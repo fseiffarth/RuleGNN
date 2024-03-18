@@ -27,6 +27,7 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 
 @click.command()
 @click.option('--data_path', default="../GraphData/DS_all/", type=str, help='Path to the graph data')
+@click.option('--distances_path', default=None, type=str, help='Path to the distances')
 @click.option('--graph_db_name', default="MUTAG", type=str, help='Database name')
 @click.option('--network_type', default='wl_1:1,2,3;wl_1', type=str, help='Layer types of the network')
 @click.option('--batch_size', default=16, type=int)
@@ -72,7 +73,7 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 
 # --data_path ../GraphData/DS_all/ --graph_db_name MUTAG --threads 10 --runs 10 --epochs 1000 --batch_size 64 --node_labels 7 --edge_labels 4 --lr 0.005 --balanced True --mode debug
 
-def main(data_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
+def main(data_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
          validation_number, validation_id,
          epochs, lr, dropout, balanced, no_print, draw, save_weights, save_prediction_values, print_results,
          plot_graphs, mode, convolution_grad, resize_grad, use_features, use_attributes, load_splits):
@@ -140,7 +141,7 @@ def main(data_path, graph_db_name, max_coding, network_type, batch_size, node_fe
     else:
         graph_data = GraphData.GraphData()
         graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,
-                                      relabel_nodes=True, use_features=use_features, use_attributes=use_attributes)
+                                      relabel_nodes=True, use_features=use_features, use_attributes=use_attributes, distances_path=distances_path)
 
     # split layer_types into a list
     network_type = network_type.split(";")

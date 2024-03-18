@@ -17,7 +17,7 @@ from GraphData.Distances.load_distances import load_distances
 
 
 def data_from_graph_db(graph_data, graph_db_name, cycle_list=None, one_hot_encode_labels=True,
-                       labels_zero_one=False, use_features=True, use_attributes=False):
+                       labels_zero_one=False, use_features=True, use_attributes=False, with_distances=True, distances_path=None):
     """
     Data preprocessing: get the graphs
     """
@@ -85,16 +85,16 @@ def data_from_graph_db(graph_data, graph_db_name, cycle_list=None, one_hot_encod
                 Labels.append((graph_labels[i] + 1) // 2)
             else:
                 Labels.append(graph_labels[i])
-        if distance_list is not None:
+        if with_distances:
             # check if distance list file exists
             if os.path.isfile(f'GraphData/Distances/{graph_db_name}_distances.pkl'):
                 pass
             else:
-                distance_list.append(dict(nx.all_pairs_shortest_path_length(graph, cutoff=6)))
+                distance_list.append(dict(nx.all_pairs_shortest_path_length(graph, cutoff=2)))
         if cycle_list is not None:
             cycle_list.append(rule.generate_cycle_list(graph))
-    if os.path.isfile(f'GraphData/Distances/{graph_db_name}_distances.pkl'):
-        distance_list = load_distances(db_name=graph_db_name, path=f'GraphData/Distances/{graph_db_name}_distances.pkl')
+    if os.path.isfile(f'{distances_path}{graph_db_name}_distances.pkl'):
+        distance_list = load_distances(db_name=graph_db_name, path=f'{distances_path}{graph_db_name}_distances.pkl')
         # gdtgl.draw_graph(graph)
     # print(Data)
     # format Labels to tensor

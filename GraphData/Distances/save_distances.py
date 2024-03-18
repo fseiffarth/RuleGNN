@@ -6,8 +6,7 @@ from GraphData import GraphData
 
 def main():
     data_path = "../../../GraphData/DS_all/"
-    for db_name in ['NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
-                    'REDDIT-BINARY', 'REDDIT-MULTI-5K', 'DHFR', 'SYNTHETICnew', 'COLLAB']:
+    for db_name in ['REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB']:
         # load the graph data
         graph_data = GraphData.GraphData()
         graph_data.init_from_graph_db(data_path, db_name, with_distances=True, with_cycles=False,

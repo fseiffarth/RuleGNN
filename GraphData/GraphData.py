@@ -36,7 +36,7 @@ class GraphData:
         self.cycle_list = None
 
     def init_from_graph_db(self, path, graph_db_name, with_distances=False, with_cycles=False, relabel_nodes=False,
-                           use_features=True, use_attributes=False):
+                           use_features=True, use_attributes=False, distances_path=None):
         distance_list = []
         cycle_list = []
 
@@ -50,7 +50,9 @@ class GraphData:
         self.inputs, self.one_hot_labels, graph_data, self.distance_list = ttd.data_from_graph_db(graph_data, graph_db_name, self.cycle_list,
                                                                               one_hot_encode_labels=True,
                                                                               use_features=use_features,
-                                                                              use_attributes=use_attributes)
+                                                                              use_attributes=use_attributes,
+                                                                                                  with_distances=with_distances,
+                                                                            distances_path=distances_path)
         self.graphs = graph_data[0]
         self.graph_labels = graph_data[1]
         # num classes are unique labels
