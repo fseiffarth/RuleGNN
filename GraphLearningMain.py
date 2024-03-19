@@ -8,19 +8,14 @@ import os
 import click
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
-from joblib import Parallel, delayed
 
-from DataSplits.load_splits import Load_Splits
+from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.Labels.load_labels import load_labels
 from Layers.GraphLayers import Layer
 from LoadData.csl import PrepareCSL
-from Methods.NoGKernelWLNN import NoGKernelWLNN
 from TrainTestData import TrainTestData as ttd
-from GraphData import GraphData, NodeLabeling, EdgeLabeling
+from GraphData import GraphData, NodeLabeling
 from Methods.GraphRuleMethod import GraphRuleMethod
-from Methods.NoGKernel import NoGKernel
-from Methods.NoGKernelNN import NoGKernelNN
 from Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 
@@ -259,7 +254,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
                                                                                      graph_labels=graph_data.graph_labels,
                                                                                      val_size=0.1)
     else:
-        data = Load_Splits("DataSplits", para.db)
+        data = Load_Splits("GraphData/DataSplits", para.db)
         test_data = np.asarray(data[0][validation_id], dtype=int)
         training_data = np.asarray(data[1][validation_id], dtype=int)
         validate_data = np.asarray(data[2][validation_id], dtype=int)
