@@ -23,6 +23,7 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 @click.command()
 @click.option('--data_path', default="../GraphData/DS_all/", type=str, help='Path to the graph data')
 @click.option('--distances_path', default=None, type=str, help='Path to the distances')
+@click.option('results_path', '--results_path', default="Results/", type=str, help='Path to the results')
 @click.option('--graph_db_name', default="MUTAG", type=str, help='Database name')
 @click.option('--network_type', default='wl_1:1,2,3;wl_1', type=str, help='Layer types of the network')
 @click.option('--batch_size', default=16, type=int)
@@ -68,48 +69,48 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 
 # --data_path ../GraphData/DS_all/ --graph_db_name MUTAG --threads 10 --runs 10 --epochs 1000 --batch_size 64 --node_labels 7 --edge_labels 4 --lr 0.005 --balanced True --mode debug
 
-def main(data_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
+def main(data_path, r_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
          validation_number, validation_id,
          epochs, lr, dropout, balanced, no_print, draw, save_weights, save_prediction_values, print_results,
          plot_graphs, mode, convolution_grad, resize_grad, use_features, use_attributes, load_splits):
     # if not exists create the results directory
-    if not os.path.exists("Results"):
+    if not os.path.exists(r_path):
         try:
-            os.makedirs("Results")
+            os.makedirs(r_path)
         except:
             pass
     # if not exists create the directory for db under Results
-    if not os.path.exists("Results/" + graph_db_name):
+    if not os.path.exists(r_path + graph_db_name):
         try:
-            os.makedirs("Results/" + graph_db_name)
+            os.makedirs(r_path + graph_db_name)
         except:
             pass
     # if not exists create the directory Results, Plots, Weights and Models under db
-    if not os.path.exists("Results/" + graph_db_name + "/Results"):
+    if not os.path.exists(r_path + graph_db_name + "/Results"):
         try:
-            os.makedirs("Results/" + graph_db_name + "/Results")
+            os.makedirs(r_path + graph_db_name + "/Results")
         except:
             pass
-    if not os.path.exists("Results/" + graph_db_name + "/Plots"):
+    if not os.path.exists(r_path + graph_db_name + "/Plots"):
         try:
-            os.makedirs("Results/" + graph_db_name + "/Plots")
+            os.makedirs(r_path + graph_db_name + "/Plots")
         except:
             pass
-    if not os.path.exists("Results/" + graph_db_name + "/Weights"):
+    if not os.path.exists(r_path + graph_db_name + "/Weights"):
         try:
-            os.makedirs("Results/" + graph_db_name + "/Weights")
+            os.makedirs(r_path + graph_db_name + "/Weights")
         except:
             pass
-    if not os.path.exists("Results/" + graph_db_name + "/Models"):
+    if not os.path.exists(r_path + graph_db_name + "/Models"):
         try:
-            os.makedirs("Results/" + graph_db_name + "/Models")
+            os.makedirs(r_path + graph_db_name + "/Models")
         except:
             pass
 
     plt.ion()
 
     # path do db and db
-    results_path = "Results/" + graph_db_name + "/Results/"
+    results_path = r_path + graph_db_name + "/Results/"
     print_layer_init = True
     # if debug mode is on, turn on all print and draw options
     if mode == "debug":
@@ -228,16 +229,16 @@ def main(data_path, distances_path, graph_db_name, max_coding, network_type, bat
 
     if para.plot_graphs:
         # if not exists create the directory
-        if not os.path.exists(f"Results/{para.db}/Plots"):
-            os.makedirs(f"Results/{para.db}/Plots")
+        if not os.path.exists(f"{r_path}{para.db}/Plots"):
+            os.makedirs(f"{r_path}{para.db}/Plots")
         for i in range(0, len(graph_data.graphs)):
             gdtgl.draw_graph(graph_data.graphs[i], graph_data.graph_labels[i],
-                             f"Results/{para.db}/Plots/graph_{str(i).zfill(5)}.png")
+                             f"{r_path}{para.db}/Plots/graph_{str(i).zfill(5)}.png")
 
-    validation_step(para.run_id, para.validation_id, graph_data, para, results_path)
+    validation_step(para.run_id, para.validation_id, graph_data, para, r_path)
 
 
-def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters, results_path):
+def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters, r_path):
     """
     Split the data in training validation and test set
     """
@@ -270,7 +271,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     #     f.write(f"Test indices:\n{test_data}\n")
 
     method = GraphRuleMethod(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para,
-                             results_path)
+                             r_path)
     # method = NoGKernel(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
     # method = NoGKernelNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
     # method = NoGKernelWLNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)

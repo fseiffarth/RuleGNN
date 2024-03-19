@@ -16,7 +16,9 @@ import TrainTestData.TrainTestData as ttd
 
 
 class GraphRuleMethod:
-    def __init__(self, run_id: int, k_val:int, graph_data: GraphData.GraphData, training_data: List[int], validate_data: List[int], test_data: List[int], seed:int, para: Parameters.Parameters, results_path:str):
+    def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: List[int],
+                 validate_data: List[int], test_data: List[int], seed: int, para: Parameters.Parameters,
+                 results_path: str):
         self.run_id = run_id
         self.k_val = k_val
         self.graph_data = graph_data
@@ -26,8 +28,6 @@ class GraphRuleMethod:
         self.seed = seed
         self.para = para
         self.results_path = results_path
-
-
 
     def Run(self):
         """
@@ -59,7 +59,6 @@ class GraphRuleMethod:
                                convolution_grad=self.para.convolution_grad,
                                resize_grad=self.para.resize_grad)
 
-
         # get gpu or cpu: not used at the moment
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         device = torch.device("cpu")
@@ -79,7 +78,7 @@ class GraphRuleMethod:
         if self.run_id == 0 and self.k_val == 0:
             # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
             file_name = f'{self.para.db}_{self.para.new_file_index}_Network.txt'
-            with open(self.results_path + file_name, "a") as file_obj:
+            with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
                 file_obj.write(f"Network type: {self.para.network_type}\n"
                                f"Optimizer: {optimizer}\n"
                                f"Loss function: {criterion}\n"
@@ -104,7 +103,6 @@ class GraphRuleMethod:
                 for name, param in net.named_parameters():
                     file_obj.write(f"Layer: {name} -> {param.requires_grad}\n")
 
-
         file_name = f'{self.para.db}_{self.para.new_file_index}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
 
         # header use semicolon as delimiter
@@ -112,8 +110,8 @@ class GraphRuleMethod:
                  "EpochTime;ValidationAccuracy;TestAccuracy\n"
 
         # Save file for results and add header if the file is new
-        with open(self.results_path + file_name, "a") as file_obj:
-            if os.stat(self.results_path + file_name).st_size == 0:
+        with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
+            if os.stat(f'{self.results_path}{self.para.db}/Results/{file_name}').st_size == 0:
                 file_obj.write(header)
 
         """
@@ -212,8 +210,8 @@ class GraphRuleMethod:
                 # change learning rate with high loss
                 for g in optimizer.param_groups:
                     loss_value = loss.item()
-                    min_val = 50-epoch**(1./6.)*(49/self.para.n_epochs**(1./6.))
-                    loss_val = 100*loss_value**2
+                    min_val = 50 - epoch ** (1. / 6.) * (49 / self.para.n_epochs ** (1. / 6.))
+                    loss_val = 100 * loss_value ** 2
                     learning_rate_mul = min(min_val, loss_val)
                     g['lr'] = self.para.learning_rate * learning_rate_mul
                     # print min_val, loss_val, learning_rate_mul, g['lr']
@@ -326,7 +324,6 @@ class GraphRuleMethod:
                 labels = self.graph_data.one_hot_labels[self.validate_data]
                 validation_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
 
-
             if self.para.print_results:
                 print("validation acc: {}".format(validation_acc))
             if self.para.save_prediction_values:
@@ -381,7 +378,8 @@ class GraphRuleMethod:
             timer.measure("epoch")
             epoch_time = timer.get_flag_time("epoch")
             if self.para.print_results:
-                print("run: {} val step: {} epoch loss: {} epoch acc: {} time: {}".format(self.run_id, self.k_val, epoch_loss,
+                print("run: {} val step: {} epoch loss: {} epoch acc: {} time: {}".format(self.run_id, self.k_val,
+                                                                                          epoch_loss,
                                                                                           epoch_acc,
                                                                                           epoch_time))
 
@@ -389,16 +387,18 @@ class GraphRuleMethod:
                       f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{test_acc}\n"
 
             # Save file for results
-            with open(self.results_path + file_name, "a") as file_obj:
+            with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
                 file_obj.write(res_str)
 
             if self.para.draw:
-                self.para.draw_data = ttd.plot_learning_data(epoch + 1, [epoch_acc, validation_acc, test_acc, epoch_loss],
-                                                        self.para.draw_data, self.para.n_epochs)
+                self.para.draw_data = ttd.plot_learning_data(epoch + 1,
+                                                             [epoch_acc, validation_acc, test_acc, epoch_loss],
+                                                             self.para.draw_data, self.para.n_epochs)
 
         """Evaluation of one complete validation run"""
         # save the trained model
-        if not os.path.exists(f"Results/{self.para.db}/Models/"):
-            os.makedirs(f"Results/{self.para.db}/Models/")
+        if not os.path.exists(f'{self.results_path}{self.para.db}/Models/'):
+            os.makedirs(f'{self.results_path}{self.para.db}/Models/')
         # Save the model
-        torch.save(net.state_dict(), f"Results/{self.para.db}/Models/model_run_{self.run_id}_val_step_{self.k_val}.pt")
+        torch.save(net.state_dict(),
+                   f'{self.results_path}{self.para.db}/Models/model_run_{self.run_id}_val_step_{self.k_val}.pt')
