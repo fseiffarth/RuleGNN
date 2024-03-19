@@ -23,7 +23,7 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 @click.command()
 @click.option('--data_path', default="../GraphData/DS_all/", type=str, help='Path to the graph data')
 @click.option('--distances_path', default=None, type=str, help='Path to the distances')
-@click.option('results_path', '--results_path', default="Results/", type=str, help='Path to the results')
+@click.option('--results_path', default="Results/", type=str, help='Path to the results')
 @click.option('--graph_db_name', default="MUTAG", type=str, help='Database name')
 @click.option('--network_type', default='wl_1:1,2,3;wl_1', type=str, help='Layer types of the network')
 @click.option('--batch_size', default=16, type=int)
