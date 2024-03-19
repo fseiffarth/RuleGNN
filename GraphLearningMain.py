@@ -69,10 +69,11 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 
 # --data_path ../GraphData/DS_all/ --graph_db_name MUTAG --threads 10 --runs 10 --epochs 1000 --batch_size 64 --node_labels 7 --edge_labels 4 --lr 0.005 --balanced True --mode debug
 
-def main(data_path, r_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
+def main(data_path, results_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
          validation_number, validation_id,
          epochs, lr, dropout, balanced, no_print, draw, save_weights, save_prediction_values, print_results,
          plot_graphs, mode, convolution_grad, resize_grad, use_features, use_attributes, load_splits):
+    r_path = results_path
     # if not exists create the results directory
     if not os.path.exists(r_path):
         try:
