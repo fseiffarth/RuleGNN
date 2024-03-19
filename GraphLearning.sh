@@ -29,10 +29,9 @@ RESIZE_GRAD=True
 
 for network_type in $NETWORK_TYPES; do
   (for i in $(seq 0 $MAX_RUN_ID); do
-      (for j in $(seq 0 $CROSS_VALIDATION); do
+      for j in $(seq 0 $CROSS_VALIDATION); do
         python GraphLearningMain.py --data_path $DATA_PATH --results_path $RESULTS_PATH --distances_path $DISTANCES_PATH --graph_db_name $DATABASE_NAME --run_id $i --validation_id $j --network_type $network_type --epochs $EPOCHS --batch_size $BATCH_SIZE --edge_labels $EDGE_LABELS --use_features $USE_FEATURES --use_attributes $USE_ATTRIBUTES --lr $LEARNING_RATE --load_splits $LOAD_SPLITS  --balanced $BALANCED --convolution_grad $CONVOLUTION_GRAD --resize_grad $RESIZE_GRAD --mode fast &
       done
-      wait)
   done
   wait)
 done
