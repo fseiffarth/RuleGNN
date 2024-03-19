@@ -1,19 +1,35 @@
+import collections
 import json
 import pickle
 
+import networkx as nx
+
+import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from GraphData import GraphData
 
 
 def main():
     data_path = "../../../GraphData/DS_all/"
-    for db_name in ['REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB']:
+    for db_name in ['NCI1', 'NCI109', 'Mutagenicity', 'IMDB-BINARY', 'IMDB-MULTI', 'PROTEINS', 'ENZYMES', 'DHFR', 'SYNTHETICnew']:
         # load the graph data
-        graph_data = GraphData.GraphData()
-        graph_data.init_from_graph_db(data_path, db_name, with_distances=True, with_cycles=False,
-                                      relabel_nodes=True, use_features=False, use_attributes=False)
-
-        # save the distances to a file
-        distances = graph_data.distance_list
+        graph_data = gdtgl.graph_data_to_graph_list(data_path, db_name, relabel_nodes=False)
+        distances = []
+        for graph in graph_data[0]:
+            d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=2))
+            # order the dictionary by the values
+            d = collections.OrderedDict(sorted(d.items()))
+            distances.append(d)
+        # save list of dictionaries to a pickle file
+        pickle.dump(distances, open(f"{db_name}_distances.pkl", 'wb'))
+    for db_name in ['DD', 'REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB']:
+        # load the graph data
+        graph_data = gdtgl.graph_data_to_graph_list(data_path, db_name, relabel_nodes=False)
+        distances = []
+        for graph in graph_data[0]:
+            d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=2))
+            # order the dictionary by the values
+            d = collections.OrderedDict(sorted(d.items()))
+            distances.append(d)
         # save list of dictionaries to a pickle file
         pickle.dump(distances, open(f"{db_name}_distances.pkl", 'wb'))
 

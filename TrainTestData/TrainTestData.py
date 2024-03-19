@@ -3,6 +3,7 @@ Created on 14.03.2019
 
 @author: florian
 '''
+import collections
 import os
 import random
 import matplotlib as mpl
@@ -90,7 +91,10 @@ def data_from_graph_db(graph_data, graph_db_name, cycle_list=None, one_hot_encod
             if os.path.isfile(f'GraphData/Distances/{graph_db_name}_distances.pkl'):
                 pass
             else:
-                distance_list.append(dict(nx.all_pairs_shortest_path_length(graph, cutoff=2)))
+                d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=6))
+                # sort the dictionary by the keys
+                d = collections.OrderedDict(sorted(d.items()))
+                distance_list.append(d)
         if cycle_list is not None:
             cycle_list.append(rule.generate_cycle_list(graph))
     if os.path.isfile(f'{distances_path}{graph_db_name}_distances.pkl'):
