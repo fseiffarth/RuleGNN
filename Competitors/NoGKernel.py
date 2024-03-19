@@ -10,24 +10,22 @@ from sklearn.svm import SVC
 
 
 class NoGKernel():
-    def __init__(self, run:int, k_val:int, graph_data:GraphData, training_data:List[int], validate_data:List[int], test_data:List[int], seed:int, para:Parameters, results_path:str):
-        self.run = run
-        self.k_val = k_val
+    def __init__(self, graph_data:GraphData, training_data:List[int], validate_data:List[int], test_data:List[int], seed:int, results_path:str):
         self.graph_data = graph_data
         self.training_data = training_data
         self.validate_data = validate_data
         self.test_data = test_data
         self.seed = seed
-        self.para = para
         self.results_path = results_path
 
     def Run(self):
-        self.graph_data.add_node_labels(node_labeling_method=NodeLabeling.standard_node_labeling, edge_labeling_method=EdgeLabeling.standard_edge_labeling)
         # create numpy vector from the graph data labels
-        X = np.zeros(shape=(self.graph_data.num_graphs, self.graph_data.num_unique_node_labels + self.graph_data.num_unique_edge_labels))
+        unique_node_labels = self.graph_data.node_labels['primary'].unique_node_labels
+        unique_edge_labels = self.graph_data.edge_labels['primary'].unique_edge_labels
+        X = np.zeros(shape=(self.graph_data.num_graphs, unique_node_labels + unique_edge_labels))
         # fill the numpy vector with number of unique node and edge labels
         for i in range(0, self.graph_data.num_graphs):
-            for j in range(0, self.graph_data.num_unique_node_labels):
+            for j in range(0, unique_node_labels):
                 if j in self.graph_data.unique_node_labels[i]:
                     X[i, j] = self.graph_data.unique_node_labels[i][j]
             for j in range(self.graph_data.num_unique_node_labels, self.graph_data.num_unique_node_labels + self.graph_data.num_unique_edge_labels):
