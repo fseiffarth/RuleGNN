@@ -165,7 +165,7 @@ def evaluateGraphLearningNN(db_name, ids):
         print(f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
         print(f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
         # if name is NCI1, then group by the ValidationNumber
-        if db_name == 'NCI1' or db_name == 'ENZYMES' or db_name == 'PROTEINS' or db_name == 'DD' or db_name == 'IMDB-BINARY':
+        if db_name == 'NCI1' or db_name == 'ENZYMES' or db_name == 'PROTEINS' or db_name == 'DD' or db_name == 'IMDB-BINARY' or db_name == 'IMDB-MULTI':
             df_validation = df_validation.groupby('ValidationNumber').mean()
         else:
             df_validation = df_validation.groupby('RunNumber').mean()
@@ -213,7 +213,7 @@ def main():
     evaluateGraphLearningNN(db_name='ENZYMES', ids=[1])
     evaluateGraphLearningNN(db_name='PROTEINS', ids=[1])
     evaluateGraphLearningNN(db_name='IMDB-BINARY', ids=[1])
-    evaluateGraphLearningNN(db_name='IMDB-MULTI', ids=[1])
+    evaluateGraphLearningNN(db_name='IMDB-MULTI', ids=[1,2,3])
     # epoch_accuracy(db_name='DHFR', y_val='Train', ids=[12,13,20,1,10,7,24,9,11,25])
     # epoch_accuracy(db_name='NCI1', y_val='Test', ids=[10,24,116,4,8,9,114,110,107,25])
     # epoch_accuracy(db_name='ENZYMES', y_val='Train', ids=[1])
