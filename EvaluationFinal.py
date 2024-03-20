@@ -209,9 +209,9 @@ def evaluateGraphLearningNN(db_name, ids):
 
 def main():
 
-    evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=[1])
+    evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=[1,2,3])
     evaluateGraphLearningNN(db_name='NCI109', ids=[1])
-    evaluateGraphLearningNN(db_name='Mutagenicity', ids=[2])
+    evaluateGraphLearningNN(db_name='Mutagenicity', ids=[2,3])
 
     evaluateGraphLearningNN(db_name='DHFR', ids=[1] + [i for i in range(4, 27)])
     evaluateGraphLearningNN(db_name='NCI1', ids=[i for i in range(4,23)] + [i for i in range(24, 26)] + [i for i in range(106, 117)])

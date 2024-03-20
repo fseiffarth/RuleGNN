@@ -20,9 +20,9 @@ class NoGKernel():
 
     def Run(self):
         # create numpy vector from the graph data labels
-        unique_node_labels = self.graph_data.node_labels['primary'].unique_node_labels
-        unique_edge_labels = self.graph_data.edge_labels['primary'].unique_edge_labels
-        X = np.zeros(shape=(self.graph_data.num_graphs, unique_node_labels + unique_edge_labels))
+        unique_node_labels = self.graph_data.node_labels['primary']
+        unique_edge_labels = self.graph_data.edge_labels['primary']
+        X = np.zeros(shape=(self.graph_data.num_graphs, unique_node_labels.num_unique_node_labels + unique_edge_labels.num_unique_edge_labels))
         # fill the numpy vector with number of unique node and edge labels
         for i in range(0, self.graph_data.num_graphs):
             for j in range(0, unique_node_labels):
