@@ -1,8 +1,9 @@
 import numpy as np
 
-from Competitors import NoGKernel
+from Competitors import NoGKernel, WLKernel
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData import GraphData
+from LoadData.csl import CSL
 
 
 def main(db_name):
@@ -10,11 +11,18 @@ def main(db_name):
     graph_data = GraphData.GraphData()
     # set the path to the data
     data_path = "../../GraphData/DS_all/"
-    graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
+    if db_name == "CSL":
+        csl = CSL()
+        graph_data = csl.get_graphs(with_distances=False)
+    else:
+        graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
                                   relabel_nodes=True, use_features=False, use_attributes=False,
                                   distances_path=False)
 
-    for validation_id in range(10):
+    validation_size = 10
+    if db_name == "CSL":
+        validation_size = 5
+    for validation_id in range(validation_size):
         # three runs
         for i in range(3):
             data = Load_Splits("../GraphData/DataSplits", db_name)
@@ -22,10 +30,15 @@ def main(db_name):
             training_data = np.asarray(data[1][validation_id], dtype=int)
             validate_data = np.asarray(data[2][validation_id], dtype=int)
 
-            noG = NoGKernel.NoGKernel(graph_data, training_data, validate_data, test_data, i, "Results")
-            noG.Run()
-
-
+            #noG = NoGKernel.NoGKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data, validate_data=validate_data, test_data=test_data, seed=i)
+            #noG.Run()
+            wlKernel = WLKernel.WLKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data, validate_data=validate_data, test_data=test_data, seed=i)
+            wlKernel.Run()
 
 if __name__ == "__main__":
-    main('NCI1')
+    #main('CSL')
+    #main('NCI1')
+    #main('NCI109')
+    #main('Mutagenicity')
+    main('DHFR')
+    #main('SYNTHETICnew')
