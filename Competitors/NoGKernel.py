@@ -49,7 +49,7 @@ class NoGKernel():
             c_param = 2 ** c_param
             # create a SVM based on an RBF kernel that trains on the training data
             # and predicts the labels of the validation data and test data
-            clf = SVC(kernel='rbf', C=c_param)
+            clf = SVC(kernel='rbf', C=c_param, random_state=self.seed)
             clf.fit(X_train, Y_train)
             Y_val_pred = clf.predict(X_val)
             Y_test_pred = clf.predict(X_test)
@@ -61,7 +61,7 @@ class NoGKernel():
 
             # header use semicolon as delimiter
             header = ("Dataset;RunNumber;ValidationNumber;Algorithm;TrainingSize;ValidationSize;TestSize"
-                      ";Hyperparameter;ValidationAccuracy;TestAccuracy\n")
+                      ";HyperparameterSVC;HyperparameterAlgo;ValidationAccuracy;TestAccuracy\n")
 
             # Save file for results and add header if the file is new
             with open(f'Results/{file_name}', "a") as file_obj:
@@ -70,4 +70,4 @@ class NoGKernel():
 
             # Save results to file
             with open(f'Results/{file_name}', "a") as file_obj:
-                file_obj.write(f"{self.graph_data.graph_db_name};{self.run_num};{self.validation_num};NoGKernel;{len(self.training_data)};{len(self.validate_data)};{len(self.test_data)};{c_param};{val_acc};{test_acc}\n")
+                file_obj.write(f"{self.graph_data.graph_db_name};{self.run_num};{self.validation_num};NoGKernel;{len(self.training_data)};{len(self.validate_data)};{len(self.test_data)};{c_param};{0};{val_acc};{test_acc}\n")

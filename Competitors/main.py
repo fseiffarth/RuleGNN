@@ -1,3 +1,4 @@
+import joblib
 import numpy as np
 
 from Competitors import NoGKernel, WLKernel
@@ -30,15 +31,12 @@ def main(db_name):
             training_data = np.asarray(data[1][validation_id], dtype=int)
             validate_data = np.asarray(data[2][validation_id], dtype=int)
 
-            #noG = NoGKernel.NoGKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data, validate_data=validate_data, test_data=test_data, seed=i)
-            #noG.Run()
+            noG = NoGKernel.NoGKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data, validate_data=validate_data, test_data=test_data, seed=i)
+            noG.Run()
             wlKernel = WLKernel.WLKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data, validate_data=validate_data, test_data=test_data, seed=i)
             wlKernel.Run()
 
 if __name__ == "__main__":
-    #main('CSL')
-    #main('NCI1')
-    #main('NCI109')
-    #main('Mutagenicity')
-    main('DHFR')
-    #main('SYNTHETICnew')
+
+    # run parallel for all datasets
+    joblib.Parallel(n_jobs=-1)(joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])

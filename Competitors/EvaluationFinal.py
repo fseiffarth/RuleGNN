@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from sympy import pretty_print as pp, latex
 from sympy.abc import a, b, n
 
+
 def evaluateGraphLearningNN(db_name, algorithm):
     evaluation = {}
 
@@ -26,9 +27,13 @@ def evaluateGraphLearningNN(db_name, algorithm):
 
     # get all rows where the algorithm is NoGKernel
     df_all = df_all[df_all['Algorithm'] == algorithm]
+    # if the column HyperparameterAlgo is not present, add it with the value 0
+    if 'HyperparameterAlgo' not in df_all.columns:
+        df_all['HyperparameterAlgo'] = 0
 
-    # group by the hyperparameter
-    groups = df_all.groupby('Hyperparameter')
+    # group by the hyperparametersvc and the hyperparameterAlgo
+    groups = df_all.groupby(['HyperparameterSVC', 'HyperparameterAlgo'])
+    # groups = df_all.groupby('HyperparameterSVC')
 
     evaluation = []
     for name, group in groups:
@@ -36,7 +41,11 @@ def evaluateGraphLearningNN(db_name, algorithm):
         # get the average and deviation over all runs
         avg = df_validation.mean(numeric_only=True)
         std = df_validation.std()
-        evaluation.append({'Hyperparameter': avg['Hyperparameter'], 'ValidationAccuracy': round(100*avg['ValidationAccuracy'],2), 'TestAccuracy': round(100*avg['TestAccuracy'],2), 'TestAccuracyStd': round(100*std['TestAccuracy'],2)})
+        evaluation.append(
+            {'HyperparameterSVC': avg['HyperparameterSVC'], 'HyperparameterAlgo': avg['HyperparameterAlgo'],
+             'ValidationAccuracy': round(100 * avg['ValidationAccuracy'], 2),
+             'TestAccuracy': round(100 * avg['TestAccuracy'], 2),
+             'TestAccuracyStd': round(100 * std['TestAccuracy'], 2)})
         # print the avg and std together with the hyperparameter and the algorithm used
         print(f"Hyperparameter: {name} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
 
@@ -46,14 +55,20 @@ def evaluateGraphLearningNN(db_name, algorithm):
     # print the three best hyperparameters
     print("Best hyperparameters:")
     for hyperparameter in best_hyperparameters:
-        print(f"Hyperparameter: {hyperparameter['Hyperparameter']} Validation Accuracy: {hyperparameter['ValidationAccuracy']}Test Accuracy: {hyperparameter['TestAccuracy']} +/- {hyperparameter['TestAccuracyStd']}")
+        print(
+            f"Hyperparameter: SVC:{hyperparameter['HyperparameterSVC']} Algo:{hyperparameter['HyperparameterAlgo']} Validation Accuracy: {hyperparameter['ValidationAccuracy']}Test Accuracy: {hyperparameter['TestAccuracy']} +/- {hyperparameter['TestAccuracyStd']}")
+
 
 def main():
+    evaluateGraphLearningNN(db_name='DHFR', algorithm="WLKernel")
+
     evaluateGraphLearningNN(db_name='NCI1', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='NCI109', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='Mutagenicity', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='DHFR', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='SYNTHETICnew', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='CSL', algorithm="NoGKernel")
+
+
 if __name__ == "__main__":
     main()

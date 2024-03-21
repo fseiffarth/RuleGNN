@@ -1,10 +1,14 @@
 #
+import os
 from typing import List
 import grakel
 import numpy as np
-from grakel import GraphKernel
+from grakel import GraphKernel, WeisfeilerLehman, VertexHistogram
+from sklearn.svm import SVC
 
+from Competitors.nx_to_grakel import nx_to_grakel
 from GraphData.GraphData import GraphData
+from sklearn.metrics import accuracy_score
 from grakel.utils import graph_from_networkx
 
 from grakel.datasets import fetch_dataset
@@ -29,7 +33,6 @@ class WLKernel:
         primary_node_labels = self.graph_data.node_labels['primary']
         primary_edge_labels = self.graph_data.edge_labels['primary']
 
-
         train_graphs = [self.graph_data.graphs[i] for i in self.training_data]
         val_graphs = [self.graph_data.graphs[i] for i in self.validate_data]
         test_graphs = [self.graph_data.graphs[i] for i in self.test_data]
@@ -38,62 +41,40 @@ class WLKernel:
         y_val = np.asarray([self.graph_data.graph_labels[i] for i in self.validate_data])
         y_test = np.asarray([self.graph_data.graph_labels[i] for i in self.test_data])
 
-        grakel_train = grakel.graph_from_networkx(train_graphs, node_labels_tag='label')
-        grakel_val = grakel.graph_from_networkx(val_graphs, node_labels_tag='label')
-        grakel_test = grakel.graph_from_networkx(test_graphs, node_labels_tag='label')
+        grakel_train = nx_to_grakel(train_graphs)
+        grakel_val = nx_to_grakel(val_graphs)
+        grakel_test = nx_to_grakel(test_graphs)
 
-        # create input for the kernel from the grakel graphs
-        grakel_train_input = []
-        for g in train_graphs:
-            edge_set = set()
-            edge_dict = {}
-            edges = g.edges(data=True)
-            for e in edges:
-                label = 0
-                if 'label' in e[2]:
-                    label = e[2]['label']
-                edge_dict[(e[0], e[1])] = label
-                edge_set.add((e[0], e[1]))
-                edge_set.add((e[1], e[0]))
-            node_dict = {}
-            for n in g.nodes(data=True):
-                label = 0
-                if 'label' in n[1]:
-                    label = n[1]['label']
-                node_dict[n[0]] = label
-            grakel_train_input.append([edge_set, node_dict, edge_dict])
+        for n_iter in range(1, 15):
+            for c_param in [-11, -9, -7, -5, -3, -1, 0, 1, 3, 5, 7, 9, 11]:
+                c_param = 2 ** c_param
+                gk = WeisfeilerLehman(n_iter=n_iter, base_graph_kernel=VertexHistogram, normalize=True)
+                K_train = gk.fit_transform(grakel_train)
+                K_val = gk.transform(grakel_val)
+                K_test = gk.transform(grakel_test)
 
+                # Uses the SVM classifier to perform classification
+                clf = SVC(C=c_param, kernel="precomputed", random_state=self.seed)
+                clf.fit(K_train, y_train)
+                y_val_pred = clf.predict(K_val)
+                y_test_pred = clf.predict(K_test)
 
+                # compute the validation accuracy and test accuracy and print it
+                val_acc = accuracy_score(y_val, y_val_pred)
+                test_acc = accuracy_score(y_test, y_test_pred)
 
+                file_name = f'{self.graph_data.graph_db_name}_Results_run_id_{self.run_num}_validation_step_{self.validation_num}.csv'
 
+                # header use semicolon as delimiter
+                header = ("Dataset;RunNumber;ValidationNumber;Algorithm;TrainingSize;ValidationSize;TestSize"
+                          ";HyperparameterSVC;HyperparameterAlgo;ValidationAccuracy;TestAccuracy\n")
 
-        gk = GraphKernel(kernel=[{"name": "weisfeiler_lehman", "n_iter": 5}, "subtree_wl"], Nystroem=20)
-        K_train = gk.fit_transform(grakel_train)
-        K_val = gk.transform(grakel_val)
-        K_test = gk.transform(grakel_test)
+                # Save file for results and add header if the file is new
+                with open(f'Results/{file_name}', "a") as file_obj:
+                    if os.stat(f'Results/{file_name}').st_size == 0:
+                        file_obj.write(header)
 
-        grakel.WeisfeilerLehman(n_iter=1).fit_transform(train_graphs)
-
-        X = np.zeros(shape=(self.graph_data.num_graphs,
-                            primary_node_labels.num_unique_node_labels + primary_edge_labels.num_unique_edge_labels))
-        # fill the numpy vector with number of unique node and edge labels
-        for i in range(0, self.graph_data.num_graphs):
-            for j in range(0, primary_node_labels.num_unique_node_labels):
-                if j in primary_node_labels.unique_node_labels[i]:
-                    X[i, j] = primary_node_labels.unique_node_labels[i][j]
-            for j in range(primary_node_labels.num_unique_node_labels,
-                           primary_node_labels.num_unique_node_labels + primary_edge_labels.num_unique_edge_labels):
-                if j - primary_node_labels.num_unique_node_labels in primary_edge_labels.unique_edge_labels[i]:
-                    X[i, j] = primary_edge_labels.unique_edge_labels[i][j - primary_node_labels.num_unique_node_labels]
-
-        Y = np.asarray(self.graph_data.graph_labels)
-        # split the data in training, validation and test set
-        X_train = X[self.training_data]
-        Y_train = Y[self.training_data]
-        X_val = X[self.validate_data]
-        Y_val = Y[self.validate_data]
-        X_test = X[self.test_data]
-        Y_test = Y[self.test_data]
-
-        for c_param in range(1, 9):
-            wl = grakel.WeisfeilerLehman(n_iter=c_param)
+                # Save results to file
+                with open(f'Results/{file_name}', "a") as file_obj:
+                    file_obj.write(
+                        f"{self.graph_data.graph_db_name};{self.run_num};{self.validation_num};WLKernel;{len(self.training_data)};{len(self.validate_data)};{len(self.test_data)};{c_param};{n_iter};{val_acc};{test_acc}\n")
