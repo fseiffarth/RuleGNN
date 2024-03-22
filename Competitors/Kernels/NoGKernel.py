@@ -2,13 +2,11 @@ import os
 from typing import List
 
 import numpy as np
-
-from GraphData.GraphData import GraphData
 from sklearn.svm import SVC
 
 
 class NoGKernel():
-    def __init__(self, graph_data: GraphData, run_num:int, validation_num:int, training_data: List[int], validate_data: List[int], test_data: List[int],
+    def __init__(self, graph_data, run_num:int, validation_num:int, training_data: List[int], validate_data: List[int], test_data: List[int],
                  seed: int):
         self.graph_data = graph_data
         self.training_data = training_data
