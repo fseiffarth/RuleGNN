@@ -2,22 +2,22 @@ import click
 import joblib
 import numpy as np
 
+from GraphData.GraphData import GraphData
 from Kernels.NoGKernel import NoGKernel
 from Kernels.GraphKernels import WLKernel
 from GraphData.DataSplits.load_splits import Load_Splits
-from GraphData.GraphData import GraphData
 from LoadData.csl import CSL
 
 
 # click argument for data path
 @click.option("--data_path", default="../../GraphData/DS_all/", help="Path to the data")
-def main(data_path="../../GraphData/DS_all/"):
+def main(data_path):
     # run parallel for all datasets
     joblib.Parallel(n_jobs=-1)(
         joblib.delayed(run_competitors)(db_name, data_path) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
 
 
-def run_competitors(db_name, data_path="../../GraphData/DS_all/"):
+def run_competitors(db_name, data_path):
     # load the graph data
     graph_data = GraphData()
     if db_name == "CSL":
@@ -49,4 +49,4 @@ def run_competitors(db_name, data_path="../../GraphData/DS_all/"):
 
 
 if __name__ == "__main__":
-    main()
+    main(data_path="../../GraphData/DS_all/")

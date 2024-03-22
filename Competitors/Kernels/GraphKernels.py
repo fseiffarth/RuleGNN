@@ -8,6 +8,7 @@ from grakel import WeisfeilerLehman, VertexHistogram
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 
+
 def nx_to_grakel(nx_graphs: List[nx.Graph]):
     # create input for the kernel from the grakel graphs
     grakel_graphs = []
