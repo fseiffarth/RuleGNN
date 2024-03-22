@@ -6,7 +6,6 @@ import networkx as nx
 import numpy as np
 from grakel import WeisfeilerLehman, VertexHistogram
 from sklearn.svm import SVC
-from GraphData.GraphData import GraphData
 from sklearn.metrics import accuracy_score
 
 def nx_to_grakel(nx_graphs: List[nx.Graph]):
@@ -47,7 +46,7 @@ def nx_to_grakel(nx_graphs: List[nx.Graph]):
 
 
 class WLKernel:
-    def __init__(self, graph_data: GraphData, run_num: int, validation_num: int, training_data: List[int],
+    def __init__(self, graph_data, run_num: int, validation_num: int, training_data: List[int],
                  validate_data: List[int], test_data: List[int],
                  seed: int):
         self.graph_data = graph_data
@@ -59,9 +58,6 @@ class WLKernel:
         self.validation_num = validation_num
 
     def Run(self):
-        # create numpy vector from the graph data labels
-        primary_node_labels = self.graph_data.node_labels['primary']
-        primary_edge_labels = self.graph_data.edge_labels['primary']
 
         train_graphs = [self.graph_data.graphs[i] for i in self.training_data]
         val_graphs = [self.graph_data.graphs[i] for i in self.validate_data]
