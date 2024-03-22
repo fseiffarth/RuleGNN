@@ -2,9 +2,10 @@ import click
 import joblib
 import numpy as np
 
-import NoGKernel, WLKernel
+from Competitors.NoGKernel import NoGKernel
+from Competitors.WLKernel import WLKernel
 from GraphData.DataSplits.load_splits import Load_Splits
-from GraphData import GraphData
+from GraphData.GraphData import GraphData
 from LoadData.csl import CSL
 
 
@@ -18,7 +19,7 @@ def main(data_path="../../GraphData/DS_all/"):
 
 def run_competitors(db_name, data_path="../../GraphData/DS_all/"):
     # load the graph data
-    graph_data = GraphData.GraphData()
+    graph_data = GraphData()
     if db_name == "CSL":
         csl = CSL()
         graph_data = csl.get_graphs(with_distances=False)
@@ -38,10 +39,10 @@ def run_competitors(db_name, data_path="../../GraphData/DS_all/"):
             training_data = np.asarray(data[1][validation_id], dtype=int)
             validate_data = np.asarray(data[2][validation_id], dtype=int)
 
-            noG = NoGKernel.NoGKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data,
+            noG = NoGKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data,
                                       validate_data=validate_data, test_data=test_data, seed=i)
             noG.Run()
-            wlKernel = WLKernel.WLKernel(graph_data, run_num=i, validation_num=validation_id,
+            wlKernel = WLKernel(graph_data, run_num=i, validation_num=validation_id,
                                          training_data=training_data, validate_data=validate_data, test_data=test_data,
                                          seed=i)
             wlKernel.Run()

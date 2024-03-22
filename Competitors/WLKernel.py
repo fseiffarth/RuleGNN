@@ -1,19 +1,13 @@
 #
 import os
 from typing import List
-import grakel
 import numpy as np
-from grakel import GraphKernel, WeisfeilerLehman, VertexHistogram
+from grakel import WeisfeilerLehman, VertexHistogram
 from sklearn.svm import SVC
 
 from Competitors.nx_to_grakel import nx_to_grakel
 from GraphData.GraphData import GraphData
 from sklearn.metrics import accuracy_score
-from grakel.utils import graph_from_networkx
-
-from grakel.datasets import fetch_dataset
-
-from sklearn.model_selection import train_test_split
 
 
 class WLKernel:

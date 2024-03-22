@@ -3,9 +3,7 @@ from typing import List
 
 import numpy as np
 
-from GraphData import NodeLabeling, EdgeLabeling
 from GraphData.GraphData import GraphData
-from Parameters.Parameters import Parameters
 from sklearn.svm import SVC
 
 
