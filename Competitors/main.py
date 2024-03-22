@@ -3,7 +3,7 @@ import joblib
 import numpy as np
 
 from Kernels.NoGKernel import NoGKernel
-from Kernels.WLKernel import WLKernel
+from Kernels.GraphKernels import WLKernel
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.GraphData import GraphData
 from LoadData.csl import CSL
