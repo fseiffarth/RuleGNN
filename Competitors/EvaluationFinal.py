@@ -61,6 +61,8 @@ def evaluateGraphLearningNN(db_name, algorithm):
 
 def main():
     evaluateGraphLearningNN(db_name='DHFR', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='SYNTHETICnew', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='CSL', algorithm="WLKernel")
 
     evaluateGraphLearningNN(db_name='NCI1', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='NCI109', algorithm="NoGKernel")
