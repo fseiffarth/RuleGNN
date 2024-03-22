@@ -2,7 +2,7 @@ import click
 import joblib
 import numpy as np
 
-from Competitors import NoGKernel, WLKernel
+import NoGKernel, WLKernel
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData import GraphData
 from LoadData.csl import CSL
