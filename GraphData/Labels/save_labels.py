@@ -88,8 +88,8 @@ def save_circle_labels(data_path):
         for graph_id, graph in enumerate(graph_data.graphs):
             labels.append([])
             for node in graph.nodes():
-                if node in
-
+                if node in cycle_dict[graph_id]:
+                    TODO continue here
 
 
         file = f"{db_name}_primary_labels.txt"
