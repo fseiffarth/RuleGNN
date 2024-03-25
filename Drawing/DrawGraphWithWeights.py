@@ -104,7 +104,7 @@ def main(data_path, db):
     run = 1
     k_val = 0
     kFold = 10
-    # load a model from Mutag
+    # load a model from MUTAG
     graph_data = GraphData()
     graph_data.init_from_graph_db(data_path, db, with_distances=False, with_cycles=False)
     graph_data.secondary_node_labels, graph_data.secondary_edge_labels = graph_data.add_node_labels(

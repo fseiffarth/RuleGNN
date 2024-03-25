@@ -163,19 +163,19 @@ def evaluateGraphLearningNN(db_name, ids):
 
         # get the rows with the indices
         df_validation = df_all.loc[indices]
-        mean_validation = df_validation.mean()
-        std_validation = df_validation.std()
+        mean_validation = df_validation.mean(numeric_only=True)
+        std_validation = df_validation.std(numeric_only=True)
         #print epoch accuracy
         print(f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
         print(f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
         # if name is NCI1, then group by the ValidationNumber
         if db_name == 'NCI1' or db_name == 'ENZYMES' or db_name == 'PROTEINS' or db_name == 'DD' or db_name == 'IMDB-BINARY' or db_name == 'IMDB-MULTI' or db_name=="SYNTHETICnew" or db_name=="DHFR" or db_name=="NCI109" or db_name=="Mutagenicity" or db_name=="MUTAG":
-            df_validation = df_validation.groupby('ValidationNumber').mean()
+            df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
         else:
-            df_validation = df_validation.groupby('RunNumber').mean()
+            df_validation = df_validation.groupby('RunNumber').mean(numeric_only=True)
         # get the average and deviation over all runs
-        avg = df_validation.mean()
-        std = df_validation.std()
+        avg = df_validation.mean(numeric_only=True)
+        std = df_validation.std(numeric_only=True)
         # print the avg and std achieved by the highest validation accuracy
         print(f"Id: {id} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
 

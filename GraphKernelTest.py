@@ -16,7 +16,7 @@ from matplotlib import pylab as pl
 from ExampleGraphs.CreateExampleGraphs import *
 import numpy as np
 
-# Loads the Mutag dataset from:
+# Loads the MUTAG dataset from:
 # https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets
 # the biggest collection of benchmark datasets for graph_kernels.
 mutag = datasets.fetch_dataset("MUTAG", verbose=False)
