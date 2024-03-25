@@ -55,8 +55,8 @@ def save_wl_labels(data_path, db_names):
                 write_node_labels(file, node_labels)
 
 
-def save_circle_labels(data_path, length_bound=6):
-    for db_name in ['MUTAG']:
+def save_circle_labels(data_path, db_names, length_bound=6):
+    for db_name in db_names:
         # load the graph data'NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
         graph_data = GraphData.GraphData()
         graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -106,8 +106,8 @@ def save_circle_labels(data_path, length_bound=6):
 def main():
     data_path = "../../../GraphData/DS_all/"
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
-    save_wl_labels(data_path, db_names=['MUTAG'])
-    save_circle_labels(data_path)
+    #save_wl_labels(data_path, db_names=['MUTAG'])
+    save_circle_labels(data_path, db_names=['NCI1'])
 
 
 if __name__ == '__main__':

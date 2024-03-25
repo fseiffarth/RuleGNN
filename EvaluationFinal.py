@@ -149,11 +149,12 @@ def evaluateGraphLearningNN(db_name, ids):
         for name, group in groups:
             # get the maximum validation accuracy
             max_val_acc = group['ValidationAccuracy'].max()
+            # get the row with the maximum validation accuracy
+            max_row = group[group['ValidationAccuracy'] == max_val_acc]
             # get the minimum validation loss if column exists
             if 'ValidationLoss' in group.columns:
                 max_val_acc = group['ValidationLoss'].min()
-            # get the row with the maximum validation accuracy
-            max_row = group[group['ValidationAccuracy'] == max_val_acc]
+                max_row = group[group['ValidationLoss'] == max_val_acc]
             # get the last row of max_row
             max_row = max_row.iloc[-1]
             # get the index of the row
@@ -168,7 +169,7 @@ def evaluateGraphLearningNN(db_name, ids):
         print(f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
         print(f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
         # if name is NCI1, then group by the ValidationNumber
-        if db_name == 'NCI1' or db_name == 'ENZYMES' or db_name == 'PROTEINS' or db_name == 'DD' or db_name == 'IMDB-BINARY' or db_name == 'IMDB-MULTI' or db_name=="SYNTHETICnew" or db_name=="DHFR" or db_name=="NCI109" or db_name=="Mutagenicity":
+        if db_name == 'NCI1' or db_name == 'ENZYMES' or db_name == 'PROTEINS' or db_name == 'DD' or db_name == 'IMDB-BINARY' or db_name == 'IMDB-MULTI' or db_name=="SYNTHETICnew" or db_name=="DHFR" or db_name=="NCI109" or db_name=="Mutagenicity" or db_name=="MUTAG":
             df_validation = df_validation.groupby('ValidationNumber').mean()
         else:
             df_validation = df_validation.groupby('RunNumber').mean()
@@ -191,7 +192,11 @@ def evaluateGraphLearningNN(db_name, ids):
             line = ";".join(line)
             id = file.split('_')[1]
             network_legend[id] = f'Id:{id}, {line}'
-        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], mean_validation['ValidationAccuracy'], std_validation['ValidationAccuracy'], network_legend[id]]
+        # check if ValidationLoss exists
+        if 'ValidationLoss' in df_all.columns:
+            evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], mean_validation['ValidationAccuracy'], std_validation['ValidationAccuracy'], network_legend[id], mean_validation['ValidationLoss'], std_validation['ValidationLoss']]
+        else:
+            evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], mean_validation['ValidationAccuracy'], std_validation['ValidationAccuracy'], network_legend[id]]
 
     # print all evaluation items start with id and network then validation and test accuracy
     # round all floats to 2 decimal places
@@ -206,15 +211,23 @@ def evaluateGraphLearningNN(db_name, ids):
     print(f"Top 5 Validation Accuracies for {db_name}")
     k = 5
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
+
     for i in range(min(k, len(sorted_evaluation))):
-        print(f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
+        if len(sorted_evaluation[i][1]) > 5:
+            print(f"{sorted_evaluation[i][1][4]} Validation Loss: {sorted_evaluation[i][1][5]} +/- {sorted_evaluation[i][1][6]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
+        else:
+            print(f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
+
 
 
 def main():
 
     #Testing with MUTAG
-    evaluateGraphLearningNN(db_name='MUTAG', ids=[1,2,3])
-    epoch_accuracy(db_name='MUTAG', y_val='Train', ids=[1,2,3])
+    ids = [i for i in range(7, 17)]
+    evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
+    epoch_accuracy(db_name='MUTAG', y_val='Train', ids=ids)
+    epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=ids)
+    epoch_accuracy(db_name='MUTAG', y_val='Test', ids=ids)
 
     evaluateGraphLearningNN(db_name='DD', ids=[1])
     evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=[1,2,3])
