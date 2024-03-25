@@ -107,7 +107,7 @@ class GraphRuleMethod:
 
         # header use semicolon as delimiter
         header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
-                 "EpochTime;ValidationAccuracy;TestAccuracy\n"
+                 "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy\n"
 
         # Save file for results and add header if the file is new
         with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
@@ -151,9 +151,9 @@ class GraphRuleMethod:
                 for j, batch_pos in enumerate(batch, 0):
                     net.train(True)
                     timer.measure("forward_step")
-                    scale = 0.0
-                    random_variation = np.random.normal(0, scale, self.graph_data.inputs[batch_pos].shape)
-                    outputs[j] = net(self.graph_data.inputs[batch_pos].to(device) + random_variation, batch_pos)
+                    #scale = 0.0
+                    #random_variation = np.random.normal(0, scale, self.graph_data.inputs[batch_pos].shape)
+                    outputs[j] = net(self.graph_data.inputs[batch_pos].to(device), batch_pos)
                     timer.measure("forward_step")
 
                 labels = self.graph_data.one_hot_labels[batch]
@@ -322,6 +322,8 @@ class GraphRuleMethod:
                         inputs = torch.DoubleTensor(self.graph_data.inputs[data_pos])
                         outputs[j] = net(inputs, data_pos)
                 labels = self.graph_data.one_hot_labels[self.validate_data]
+                # get validation loss
+                validation_loss = criterion(outputs, labels).item()
                 validation_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
 
             if self.para.print_results:
@@ -384,7 +386,7 @@ class GraphRuleMethod:
                                                                                           epoch_time))
 
             res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
-                      f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{test_acc}\n"
+                      f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc}\n"
 
             # Save file for results
             with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:

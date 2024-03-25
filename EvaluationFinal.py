@@ -149,6 +149,9 @@ def evaluateGraphLearningNN(db_name, ids):
         for name, group in groups:
             # get the maximum validation accuracy
             max_val_acc = group['ValidationAccuracy'].max()
+            # get the minimum validation loss if column exists
+            if 'ValidationLoss' in group.columns:
+                max_val_acc = group['ValidationLoss'].min()
             # get the row with the maximum validation accuracy
             max_row = group[group['ValidationAccuracy'] == max_val_acc]
             # get the last row of max_row
@@ -208,6 +211,11 @@ def evaluateGraphLearningNN(db_name, ids):
 
 
 def main():
+
+    #Testing with MUTAG
+    evaluateGraphLearningNN(db_name='MUTAG', ids=[1,2,3])
+    epoch_accuracy(db_name='MUTAG', y_val='Train', ids=[1,2,3])
+
     evaluateGraphLearningNN(db_name='DD', ids=[1])
     evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=[1,2,3])
     evaluateGraphLearningNN(db_name='NCI109', ids=[1,2,3])

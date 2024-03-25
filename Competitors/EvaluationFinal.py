@@ -53,16 +53,20 @@ def evaluateGraphLearningNN(db_name, algorithm):
     evaluation = sorted(evaluation, key=lambda x: x['ValidationAccuracy'], reverse=True)
     best_hyperparameters = evaluation[:3]
     # print the three best hyperparameters
-    print("Best hyperparameters:")
+    print(f"{db_name} Best hyperparameters:")
     for hyperparameter in best_hyperparameters:
         print(
             f"Hyperparameter: SVC:{hyperparameter['HyperparameterSVC']} Algo:{hyperparameter['HyperparameterAlgo']} Validation Accuracy: {hyperparameter['ValidationAccuracy']}Test Accuracy: {hyperparameter['TestAccuracy']} +/- {hyperparameter['TestAccuracyStd']}")
 
 
 def main():
+
     evaluateGraphLearningNN(db_name='DHFR', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='SYNTHETICnew', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='CSL', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='NCI1', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='NCI109', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='Mutagenicity', algorithm="WLKernel")
 
     evaluateGraphLearningNN(db_name='NCI1', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='NCI109', algorithm="NoGKernel")
