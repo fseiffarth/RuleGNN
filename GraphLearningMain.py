@@ -12,7 +12,7 @@ import numpy as np
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.Labels.load_labels import load_labels
 from Layers.GraphLayers import Layer
-from LoadData.csl import PrepareCSL
+from LoadData.csl import CSL
 from TrainTestData import TrainTestData as ttd
 from GraphData import GraphData, NodeLabeling
 from Methods.GraphRuleMethod import GraphRuleMethod
@@ -41,8 +41,8 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 @click.option('--run_id', default=0, type=int)
 @click.option('--validation_number', default=10, type=int)
 @click.option('--validation_id', default=0, type=int)
-@click.option('--epochs', default=100, type=int)
-@click.option('--lr', default=0.01, type=float)
+@click.option('--epochs', default=50, type=int)
+@click.option('--lr', default=0.001, type=float)
 @click.option('--dropout', default=0.0, type=float)
 # balanced data option
 @click.option('--balanced', default=False, type=bool)
@@ -58,16 +58,9 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 @click.option('--plot_graphs', default=False, type=bool)
 # debug vs fast mode option in click vs custom option
 @click.option('--mode', default="normal", type=click.Choice(['fast', 'debug', 'normal']))
-# some example parameters
-# --db PTC_FM --epochs 200 --batch_size 32 --node_labels 18 --edge_labels 4 --draw True
-# --db MUTAG --epochs 200 --batch_size 32 --node_labels 7 --edge_labels 4 --draw True
 
 # current configuration
-# --db MUTAG --epochs 500 --batch_size 64 --node_labels 7 --edge_labels 4 --lr 0.001 --balanced True --draw True --save_weights True --save_prediction_values False
-
-# --data_path ../GraphData/DS_all/ --graph_db_name MUTAG --threads 10 --runs 10 --epochs 1000 --batch_size 64 --node_labels 7 --edge_labels 4 --lr 0.005 --balanced True --mode debug
-
-# --data_path ../GraphData/DS_all/ --graph_db_name MUTAG --threads 10 --runs 10 --epochs 1000 --batch_size 64 --node_labels 7 --edge_labels 4 --lr 0.005 --balanced True --mode debug
+# --distances_path GraphData/Distances --graph_db_name MUTAG --network_type wl_1:1,2,3;wl_1 --mode debug
 
 def main(data_path, results_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
          validation_number, validation_id,
@@ -132,8 +125,8 @@ def main(data_path, results_path, distances_path, graph_db_name, max_coding, net
     Create Input data, information and labels from the graphs for training and testing
     """
     if graph_db_name == "CSL":
-        csl = PrepareCSL(root="LoadData/Datasets/CSL/")
-        graph_data = csl.graph_data(with_distances=True, with_cycles=True)
+        csl = CSL()
+        graph_data = csl.get_graphs(with_distances=False)
         # TODO: find other labeling method
     else:
         graph_data = GraphData.GraphData()
@@ -191,6 +184,12 @@ def main(data_path, results_path, distances_path, graph_db_name, max_coding, net
                         graph_data.add_node_labels(node_labeling_name=l.rule_name, max_label_num=l.node_labels,
                                                    node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
                                                    max_iterations=iterations)
+            if "cycles" in l.rule_name:
+                # split by _ and get the number of iterations
+                max_cycles = int(l.rule_name.split("_")[1])
+                if os.path.exists(f"GraphData/Labels/{graph_db_name}_{l.rule_name}_labels.txt"):
+                    g_labels = load_labels(db_name=graph_db_name,label_type=l.rule_name, max_label_num=None, path=f"GraphData/Labels/")
+                    graph_data.node_labels[l.rule_name] = g_labels
 
     para = Parameters.Parameters()
 

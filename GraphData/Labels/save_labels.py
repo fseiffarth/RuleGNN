@@ -6,6 +6,7 @@ import numpy as np
 
 from GraphData import GraphData, NodeLabeling
 
+
 def write_node_labels(file, node_labels):
     with open(file, 'w') as f:
         for i, g_labels in enumerate(node_labels):
@@ -18,8 +19,9 @@ def write_node_labels(file, node_labels):
                     else:
                         f.write(f"{l}")
 
-def save_wl_labels(data_path):
-    for db_name in ['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K']:
+
+def save_wl_labels(data_path, db_names):
+    for db_name in db_names:
         # load the graph data'NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
         graph_data = GraphData.GraphData()
         graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -30,7 +32,6 @@ def save_wl_labels(data_path):
         # save node_labels as numpy array
         file = f"{db_name}_primary_labels.txt"
         write_node_labels(file, node_labels)
-
 
         graph_data.add_node_labels(node_labeling_name='wl_0', max_label_num=-1,
                                    node_labeling_method=NodeLabeling.degree_node_labeling)
@@ -54,7 +55,7 @@ def save_wl_labels(data_path):
                 write_node_labels(file, node_labels)
 
 
-def save_circle_labels(data_path):
+def save_circle_labels(data_path, length_bound=6):
     for db_name in ['MUTAG']:
         # load the graph data'NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
         graph_data = GraphData.GraphData()
@@ -63,7 +64,7 @@ def save_circle_labels(data_path):
         cycle_dict = []
         for graph in graph_data.graphs:
             cycle_dict.append({})
-            cycles = nx.chordless_cycles(graph, 6)
+            cycles = nx.chordless_cycles(graph, length_bound)
             for cycle in cycles:
                 for node in cycle:
                     if node in cycle_dict[-1]:
@@ -81,7 +82,11 @@ def save_circle_labels(data_path):
             for node_id, c_dict in g.items():
                 dict_list.append(c_dict)
 
-        dict_list = list({str(i): i for i in dict_list}.values())
+        dict_list = list({str(i) for i in dict_list})
+        # sort the dict_list
+        dict_list = sorted(dict_list)
+        label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
+
 
         # set the node labels
         labels = []
@@ -89,21 +94,20 @@ def save_circle_labels(data_path):
             labels.append([])
             for node in graph.nodes():
                 if node in cycle_dict[graph_id]:
-                    TODO continue here
+                    cycle_d = str(cycle_dict[graph_id][node])
+                    labels[-1].append(label_dict[cycle_d])
+                else:
+                    labels[-1].append(len(label_dict))
 
-
-        file = f"{db_name}_primary_labels.txt"
-        write_node_labels(file, node_labels)
-        return cycles
-
+        file = f"{db_name}_cycles_{length_bound}_labels.txt"
+        write_node_labels(file, labels)
 
 
 def main():
     data_path = "../../../GraphData/DS_all/"
-    #save_wl_labels(data_path)
+    # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
+    save_wl_labels(data_path, db_names=['MUTAG'])
     save_circle_labels(data_path)
-
-
 
 
 if __name__ == '__main__':

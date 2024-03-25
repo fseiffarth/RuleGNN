@@ -40,7 +40,8 @@ def create_splits(db_name, path="../../../GraphData/DS_all/"):
 
 
 if __name__ == "__main__":
-    create_splits("DHFR")
-    create_splits("Mutagenicity")
-    create_splits("NCI109")
-    create_splits("SYNTHETICnew")
+    create_splits("MUTAG")
+    #create_splits("DHFR")
+    #create_splits("Mutagenicity")
+    #create_splits("NCI109")
+    #create_splits("SYNTHETICnew")
