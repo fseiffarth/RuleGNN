@@ -266,8 +266,8 @@ def main():
     #epoch_accuracy(db_name='DHFR', y_val='Test', ids=[1,2,3])
 
     #Testing with MUTAG
-    ids = [i for i in range(7, 144)]
-    print_ids = [i for i in range(137, 144)]
+    ids = [i for i in range(7, 145)]
+    print_ids = [i for i in range(137, 145)]
     #evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
     evaluateGraphLearningNN(db_name='MUTAG', ids=print_ids)
     epoch_accuracy(db_name='MUTAG', y_val='Train', ids=print_ids)
