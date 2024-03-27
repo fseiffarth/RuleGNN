@@ -10,7 +10,8 @@ from LoadData.csl import CSL
 
 
 def main(db_name):
-    datapath = "/home/mlai21/seiffart/Data/GraphData/DS_all/"
+    #datapath = "/home/mlai21/seiffart/Data/GraphData/DS_all/"
+    datapath = "../../GraphData/DS_all/"
     # load the graph data
     graph_data = GraphData()
     if db_name == "CSL":
@@ -43,5 +44,6 @@ def main(db_name):
 
 if __name__ == "__main__":
     # run parallel for all datasets
-    joblib.Parallel(n_jobs=-1)(
-        joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
+    # joblib.Parallel(n_jobs=-1)(
+    #     joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
+    main("MUTAG")

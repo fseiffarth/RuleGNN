@@ -172,9 +172,9 @@ def evaluateGraphLearningNN(db_name, ids):
             # get the row with the maximum validation accuracy
             max_row = group[group['ValidationAccuracy'] == max_val_acc]
             # get the minimum validation loss if column exists
-            #if 'ValidationLoss' in group.columns:
-            #    max_val_acc = group['ValidationLoss'].min()
-            #    max_row = group[group['ValidationLoss'] == max_val_acc]
+            if 'ValidationLoss' in group.columns:
+                max_val_acc = group['ValidationLoss'].min()
+                max_row = group[group['ValidationLoss'] == max_val_acc]
             # get the last row of max_row
             max_row = max_row.iloc[-1]
             # get the index of the row
@@ -194,8 +194,25 @@ def evaluateGraphLearningNN(db_name, ids):
         else:
             df_validation = df_validation.groupby('RunNumber').mean(numeric_only=True)
         # get the average and deviation over all runs
+
+        df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        df_validation['TestAccuracy'] *= df_validation['TestSize']
+        df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
+        df_validation['ValidationLoss'] *= df_validation['ValidationSize']
         avg = df_validation.mean(numeric_only=True)
+
+        avg['EpochLoss'] /= avg['TrainingSize']
+        avg['TestAccuracy'] /= avg['TestSize']
+        avg['ValidationAccuracy'] /= avg['ValidationSize']
+        avg['ValidationLoss'] /= avg['ValidationSize']
+
+
         std = df_validation.std(numeric_only=True)
+        std['EpochLoss'] /= avg['TrainingSize']
+        std['TestAccuracy'] /= avg['TestSize']
+        std['ValidationAccuracy'] /= avg['ValidationSize']
+        std['ValidationLoss'] /= avg['ValidationSize']
+
         # print the avg and std achieved by the highest validation accuracy
         print(f"Id: {id} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
 
@@ -234,7 +251,7 @@ def evaluateGraphLearningNN(db_name, ids):
 
     for i in range(min(k, len(sorted_evaluation))):
         if len(sorted_evaluation[i][1]) > 5:
-            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
+            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][5], reverse=True)
             print(f"{sorted_evaluation[i][1][4]} Validation Loss: {sorted_evaluation[i][1][5]} +/- {sorted_evaluation[i][1][6]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
         else:
             print(f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
@@ -250,7 +267,7 @@ def main():
 
     #Testing with MUTAG
     ids = [i for i in range(7, 137)]
-    print_ids = [i for i in range(137, 138)]
+    print_ids = [i for i in range(138, 139)]
     #evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
     evaluateGraphLearningNN(db_name='MUTAG', ids=print_ids)
     epoch_accuracy(db_name='MUTAG', y_val='Train', ids=print_ids)

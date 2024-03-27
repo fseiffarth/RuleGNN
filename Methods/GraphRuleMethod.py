@@ -109,7 +109,7 @@ class GraphRuleMethod:
 
         # header use semicolon as delimiter
         header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
-                 "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy\n"
+                 "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
 
         # Save file for results and add header if the file is new
         with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
@@ -320,7 +320,7 @@ class GraphRuleMethod:
                 outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=torch.double)
                 # use torch no grad to save memory
                 with torch.no_grad():
-                    for j, data_pos in enumerate(self.validate_data, 0):
+                    for j, data_pos in enumerate(self.validate_data):
                         net.train(False)
                         outputs[j] = net(self.graph_data.inputs[data_pos].to(device), data_pos)
                 labels = self.graph_data.one_hot_labels[self.validate_data]
@@ -392,7 +392,7 @@ class GraphRuleMethod:
                                                                                           epoch_time))
 
             res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
-                      f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc}{test_loss}\n"
+                      f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc};{test_loss}\n"
 
             # Save file for results
             with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
