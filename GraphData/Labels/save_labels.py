@@ -107,7 +107,8 @@ def main():
     data_path = "../../../GraphData/DS_all/"
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
     #save_wl_labels(data_path, db_names=['MUTAG'])
-    save_circle_labels(data_path, db_names=['MUTAG'], length_bound=50)
+    save_circle_labels(data_path, db_names=['DHFR'], length_bound=50)
+    #save_wl_labels(data_path, db_names=['PTC_MM'])
 
 
 if __name__ == '__main__':
