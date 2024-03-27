@@ -251,7 +251,7 @@ def evaluateGraphLearningNN(db_name, ids):
 
     for i in range(min(k, len(sorted_evaluation))):
         if len(sorted_evaluation[i][1]) > 5:
-            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][5], reverse=True)
+            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][5], reverse=False)
             print(f"{sorted_evaluation[i][1][4]} Validation Loss: {sorted_evaluation[i][1][5]} +/- {sorted_evaluation[i][1][6]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
         else:
             print(f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
@@ -267,7 +267,7 @@ def main():
 
     #Testing with MUTAG
     ids = [i for i in range(7, 137)]
-    print_ids = [i for i in range(138, 139)]
+    print_ids = [i for i in range(139, 140)]
     #evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
     evaluateGraphLearningNN(db_name='MUTAG', ids=print_ids)
     epoch_accuracy(db_name='MUTAG', y_val='Train', ids=print_ids)

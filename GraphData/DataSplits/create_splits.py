@@ -6,7 +6,7 @@ from TrainTestData import TrainTestData as ttd
 
 def create_splits(db_name, path="../../../GraphData/DS_all/"):
     splits = []
-    run_id = 2
+    run_id = 3
     k = 10
     graph_data = GraphData.GraphData()
     graph_data.init_from_graph_db(path, db_name, with_distances=False, with_cycles=False,
