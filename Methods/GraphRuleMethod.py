@@ -3,6 +3,8 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import sklearn
+from sklearn.metrics import accuracy_score
 import torch
 from torch import optim, nn
 from torch.autograd import Variable
@@ -319,12 +321,15 @@ class GraphRuleMethod:
                 # use torch no grad to save memory
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.validate_data, 0):
-                        inputs = torch.DoubleTensor(self.graph_data.inputs[data_pos])
-                        outputs[j] = net(inputs, data_pos)
+                        net.train(False)
+                        outputs[j] = net(self.graph_data.inputs[data_pos].to(device), data_pos)
                 labels = self.graph_data.one_hot_labels[self.validate_data]
                 # get validation loss
                 validation_loss = criterion(outputs, labels).item()
-                validation_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
+                labels_argmax = labels.argmax(axis=1)
+                outputs_argmax = outputs.argmax(axis=1)
+                validation_acc = 100 * sklearn.metrics.accuracy_score(labels_argmax, outputs_argmax)
+                #validation_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
 
             if self.para.print_results:
                 print("validation acc: {}".format(validation_acc))
@@ -346,11 +351,12 @@ class GraphRuleMethod:
             outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=torch.double)
             with torch.no_grad():
                 for j, data_pos in enumerate(self.test_data, 0):
-                    inputs = torch.DoubleTensor(self.graph_data.inputs[data_pos])
                     net.train(False)
-                    outputs[j] = net(inputs, data_pos)
+                    outputs[j] = net(torch.DoubleTensor(self.graph_data.inputs[data_pos]), data_pos)
             labels = self.graph_data.one_hot_labels[self.test_data]
-            test_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
+            test_loss = criterion(outputs, labels).item()
+            test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
+            #test_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
             if self.para.print_results:
                 print("test acc: {}".format(test_acc))
                 np_labels = labels.detach().numpy()
@@ -386,7 +392,7 @@ class GraphRuleMethod:
                                                                                           epoch_time))
 
             res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
-                      f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc}\n"
+                      f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc}{test_loss}\n"
 
             # Save file for results
             with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:

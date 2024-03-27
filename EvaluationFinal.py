@@ -8,10 +8,13 @@ from sympy.abc import a, b, n
 def epoch_accuracy(db_name, y_val, ids):
     if y_val == 'Train':
         y_val = 'EpochAccuracy'
+        size = 'TrainingSize'
     elif y_val == 'Validation':
         y_val = 'ValidationAccuracy'
+        size = 'ValidationSize'
     elif y_val == 'Test':
         y_val = 'TestAccuracy'
+        size = 'TestSize'
 
 
     # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
@@ -90,8 +93,25 @@ def epoch_accuracy(db_name, y_val, ids):
     for i, id in enumerate(ids):
         id_str = str(id).zfill(6)
         group = groups.get_group(id_str)
-        group_mean = group.groupby('Epoch').mean()
-        group_std = group.groupby('Epoch').std()
+        group['EpochAccuracy']*=group['TrainingSize']
+        group['EpochLoss']*=group['TrainingSize']
+        group['ValidationAccuracy']*=group['ValidationSize']
+        group['ValidationLoss']*=group['ValidationSize']
+        group['TestAccuracy']*=group['TestSize']
+        #f = lambda x: sum(x['TrainingSize'] * x['EpochAccuracy']) / sum(x['TrainingSize'])
+
+        group_mean = group.groupby('Epoch').mean(numeric_only=True)
+        group_mean['EpochAccuracy'] /= group_mean['TrainingSize']
+        group_mean['EpochLoss'] /= group_mean['TrainingSize']
+        group_mean['ValidationAccuracy'] /= group_mean['ValidationSize']
+        group_mean['ValidationLoss'] /= group_mean['ValidationSize']
+        group_mean['TestAccuracy'] /= group_mean['TestSize']
+        group_std = group.groupby('Epoch').std(numeric_only=True)
+        group_std['EpochAccuracy'] /= group_mean['TrainingSize']
+        group_std['EpochLoss'] /= group_mean['TrainingSize']
+        group_std['ValidationAccuracy'] /= group_mean['ValidationSize']
+        group_std['ValidationLoss'] /= group_mean['ValidationSize']
+        group_std['TestAccuracy'] /= group_mean['TestSize']
         # plot the EpochAccuracy vs Epoch
         if i == 0:
             ax = group_mean.plot(y=y_val, yerr=group_std[y_val], label=network_legend[id_str])
@@ -152,9 +172,9 @@ def evaluateGraphLearningNN(db_name, ids):
             # get the row with the maximum validation accuracy
             max_row = group[group['ValidationAccuracy'] == max_val_acc]
             # get the minimum validation loss if column exists
-            if 'ValidationLoss' in group.columns:
-                max_val_acc = group['ValidationLoss'].min()
-                max_row = group[group['ValidationLoss'] == max_val_acc]
+            #if 'ValidationLoss' in group.columns:
+            #    max_val_acc = group['ValidationLoss'].min()
+            #    max_row = group[group['ValidationLoss'] == max_val_acc]
             # get the last row of max_row
             max_row = max_row.iloc[-1]
             # get the index of the row
@@ -214,6 +234,7 @@ def evaluateGraphLearningNN(db_name, ids):
 
     for i in range(min(k, len(sorted_evaluation))):
         if len(sorted_evaluation[i][1]) > 5:
+            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
             print(f"{sorted_evaluation[i][1][4]} Validation Loss: {sorted_evaluation[i][1][5]} +/- {sorted_evaluation[i][1][6]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
         else:
             print(f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
@@ -222,25 +243,38 @@ def evaluateGraphLearningNN(db_name, ids):
 
 def main():
 
+    #evaluateGraphLearningNN(db_name='DHFR', ids=[1, 2,3])
+    #epoch_accuracy(db_name='DHFR', y_val='Train', ids=[1,2,3])
+    #epoch_accuracy(db_name='DHFR', y_val='Validation', ids=[1,2,3])
+    #epoch_accuracy(db_name='DHFR', y_val='Test', ids=[1,2,3])
+
     #Testing with MUTAG
-    ids = [i for i in range(7, 17)]
-    evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
-    epoch_accuracy(db_name='MUTAG', y_val='Train', ids=ids)
-    epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=ids)
-    epoch_accuracy(db_name='MUTAG', y_val='Test', ids=ids)
+    ids = [i for i in range(7, 137)]
+    print_ids = [i for i in range(137, 138)]
+    #evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
+    evaluateGraphLearningNN(db_name='MUTAG', ids=print_ids)
+    epoch_accuracy(db_name='MUTAG', y_val='Train', ids=print_ids)
+    epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=print_ids)
+    epoch_accuracy(db_name='MUTAG', y_val='Test', ids=print_ids)
 
-    evaluateGraphLearningNN(db_name='DD', ids=[1])
-    evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=[1,2,3])
-    evaluateGraphLearningNN(db_name='NCI109', ids=[1,2,3])
-    evaluateGraphLearningNN(db_name='Mutagenicity', ids=[2,3,4])
-    evaluateGraphLearningNN(db_name='DHFR', ids=[1,2,3])
 
-    evaluateGraphLearningNN(db_name='DHFR', ids=[1] + [i for i in range(4, 27)])
-    evaluateGraphLearningNN(db_name='NCI1', ids=[i for i in range(4,23)] + [i for i in range(24, 26)] + [i for i in range(106, 117)])
-    evaluateGraphLearningNN(db_name='ENZYMES', ids=[1])
-    evaluateGraphLearningNN(db_name='PROTEINS', ids=[1])
-    evaluateGraphLearningNN(db_name='IMDB-BINARY', ids=[1])
-    evaluateGraphLearningNN(db_name='IMDB-MULTI', ids=[1,2,3])
+
+    # epoch_accuracy(db_name='MUTAG', y_val='Train', ids=ids)
+    # epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=ids)
+    # epoch_accuracy(db_name='MUTAG', y_val='Test', ids=ids)
+    #
+    # evaluateGraphLearningNN(db_name='DD', ids=[1])
+    # evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=[1,2,3])
+    # evaluateGraphLearningNN(db_name='NCI109', ids=[1,2,3])
+    # evaluateGraphLearningNN(db_name='Mutagenicity', ids=[2,3,4])
+    # evaluateGraphLearningNN(db_name='DHFR', ids=[1,2,3])
+    #
+    # evaluateGraphLearningNN(db_name='DHFR', ids=[1] + [i for i in range(4, 27)])
+    # evaluateGraphLearningNN(db_name='NCI1', ids=[i for i in range(4,23)] + [i for i in range(24, 26)] + [i for i in range(106, 117)])
+    # evaluateGraphLearningNN(db_name='ENZYMES', ids=[1])
+    # evaluateGraphLearningNN(db_name='PROTEINS', ids=[1])
+    # evaluateGraphLearningNN(db_name='IMDB-BINARY', ids=[1])
+    # evaluateGraphLearningNN(db_name='IMDB-MULTI', ids=[1,2,3])
     # epoch_accuracy(db_name='DHFR', y_val='Train', ids=[12,13,20,1,10,7,24,9,11,25])
     # epoch_accuracy(db_name='NCI1', y_val='Test', ids=[10,24,116,4,8,9,114,110,107,25])
     # epoch_accuracy(db_name='ENZYMES', y_val='Train', ids=[1])

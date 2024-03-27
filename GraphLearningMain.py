@@ -243,22 +243,10 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     Split the data in training validation and test set
     """
     seed = validation_id + para.n_val_runs * run_id
-    if para.load_splits is False:
-        run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=run_id, kFold=para.n_val_runs)
-        """
-        Create the data
-        """
-        training_data, validate_data, test_data = ttd.get_train_validation_test_list(test_indices=run_test_indices,
-                                                                                     validation_step=validation_id,
-                                                                                     seed=seed,
-                                                                                     balanced=para.balance_data,
-                                                                                     graph_labels=graph_data.graph_labels,
-                                                                                     val_size=0.1)
-    else:
-        data = Load_Splits("GraphData/DataSplits", para.db)
-        test_data = np.asarray(data[0][validation_id], dtype=int)
-        training_data = np.asarray(data[1][validation_id], dtype=int)
-        validate_data = np.asarray(data[2][validation_id], dtype=int)
+    data = Load_Splits("GraphData/DataSplits", para.db)
+    test_data = np.asarray(data[0][validation_id], dtype=int)
+    training_data = np.asarray(data[1][validation_id], dtype=int)
+    validate_data = np.asarray(data[2][validation_id], dtype=int)
 
     # print train resp test data to some file
     # with open(f"{results_path}train_test_indices.txt", "a") as f:
