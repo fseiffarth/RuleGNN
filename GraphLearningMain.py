@@ -10,10 +10,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from GraphData.DataSplits.load_splits import Load_Splits
-from GraphData.Labels.load_labels import load_labels
+from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
 from LoadData.csl import CSL
-from TrainTestData import TrainTestData as ttd
 from GraphData import GraphData, NodeLabeling
 from Methods.GraphRuleMethod import GraphRuleMethod
 from Parameters import Parameters
