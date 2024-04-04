@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from GraphData.DataSplits.load_splits import Load_Splits
+from GraphData.Distances.load_distances import load_distances
 from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
 from LoadData.csl import CSL
@@ -126,6 +127,9 @@ def main(data_path, results_path, distances_path, graph_db_name, max_coding, net
     if graph_db_name == "CSL":
         csl = CSL()
         graph_data = csl.get_graphs(with_distances=False)
+        if os.path.isfile(f'{distances_path}{graph_db_name}_distances.pkl'):
+            distance_list = load_distances(db_name=graph_db_name, path=f'{distances_path}{graph_db_name}_distances.pkl')
+            graph_data.distance_list = distance_list
         # TODO: find other labeling method
     else:
         graph_data = GraphData.GraphData()

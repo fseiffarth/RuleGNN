@@ -40,8 +40,14 @@ class GraphData:
         distance_list = []
         cycle_list = []
 
-        # Define the graph data
-        graph_data = gdtgl.graph_data_to_graph_list(path, graph_db_name, relabel_nodes=relabel_nodes)
+        # CSL graphs
+        if graph_db_name == 'CSL':
+            from LoadData.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+        else:
+            # Define the graph data
+            graph_data = gdtgl.graph_data_to_graph_list(path, graph_db_name, relabel_nodes=relabel_nodes)
 
         if with_distances:
             self.distance_list = []
