@@ -15,7 +15,7 @@ def create_splits(db_name, path="../../../GraphData/DS_all/"):
 
     run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=run_id, kFold=k)
     for validation_id in range(0, k):
-        seed = validation_id + k * run_id
+        seed = 687384987 + validation_id + k * run_id
 
         """
         Create the data
@@ -50,7 +50,8 @@ def create_splits(db_name, path="../../../GraphData/DS_all/"):
 
 
 if __name__ == "__main__":
-    create_splits("MUTAG")
+    for db in ["DHFR", "Mutagenicity", "NCI109", "SYNTHETICnew", "MUTAG"]:
+        create_splits(db)
     #create_splits("DHFR")
     #create_splits("Mutagenicity")
     #create_splits("NCI109")

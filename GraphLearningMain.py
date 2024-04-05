@@ -60,7 +60,7 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 @click.option('--mode', default="normal", type=click.Choice(['fast', 'debug', 'normal']))
 
 # current configuration
-# --distances_path GraphData/Distances --graph_db_name MUTAG --network_type wl_1:1,2,3;wl_1 --mode debug
+# --distances_path GraphData/Distances --graph_db_name CSL --network_type 100;cycles_10:1,2,3;cycles_10 --mode debug
 
 def main(data_path, results_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
          validation_number, validation_id,

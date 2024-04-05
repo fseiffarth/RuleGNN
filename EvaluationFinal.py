@@ -264,26 +264,26 @@ def evaluateGraphLearningNN(db_name, ids):
 
 
 def main():
-    ids = [i for i in range(4, 6)]
+    ids = [i for i in range(4, 7)]
     evaluateGraphLearningNN(db_name='DHFR', ids=ids)
     epoch_accuracy(db_name='DHFR', y_val='Train', ids=ids)
     epoch_accuracy(db_name='DHFR', y_val='Validation', ids=ids)
     epoch_accuracy(db_name='DHFR', y_val='Test', ids=ids)
 
-    ids = [i for i in range(200,201)]
+    ids = [i for i in range(1, 2)]
     evaluateGraphLearningNN(db_name='NCI1', ids=ids)
     epoch_accuracy(db_name='NCI1', y_val='Train', ids=ids)
     epoch_accuracy(db_name='NCI1', y_val='Validation', ids=ids)
     epoch_accuracy(db_name='NCI1', y_val='Test', ids=ids)
 
     # Testing with MUTAG
-    #ids = [i for i in range(7, 145)]
-    #print_ids = [i for i in range(137, 150)]
+    # ids = [i for i in range(7, 145)]
+    # print_ids = [i for i in range(137, 150)]
     # evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
-    #evaluateGraphLearningNN(db_name='MUTAG', ids=print_ids)
-    #epoch_accuracy(db_name='MUTAG', y_val='Train', ids=print_ids)
-    #epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=print_ids)
-    #epoch_accuracy(db_name='MUTAG', y_val='Test', ids=print_ids)
+    # evaluateGraphLearningNN(db_name='MUTAG', ids=print_ids)
+    # epoch_accuracy(db_name='MUTAG', y_val='Train', ids=print_ids)
+    # epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=print_ids)
+    # epoch_accuracy(db_name='MUTAG', y_val='Test', ids=print_ids)
 
     # epoch_accuracy(db_name='MUTAG', y_val='Train', ids=ids)
     # epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=ids)
