@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 import torch
 from torch import optim, nn
 from torch.autograd import Variable
-from torch.optim.lr_scheduler import LambdaLR
+from torch.optim.lr_scheduler import LambdaLR, ReduceLROnPlateau, ExponentialLR, StepLR
 
 from GraphData import GraphData
 from NeuralNetArchitectures import GraphNN
@@ -20,7 +20,7 @@ import TrainTestData.TrainTestData as ttd
 class GraphRuleMethod:
     def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: List[int],
                  validate_data: List[int], test_data: List[int], seed: int, para: Parameters.Parameters,
-                 results_path: str):
+                 configs):
         self.run_id = run_id
         self.k_val = k_val
         self.graph_data = graph_data
@@ -29,7 +29,8 @@ class GraphRuleMethod:
         self.test_data = test_data
         self.seed = seed
         self.para = para
-        self.results_path = results_path
+        self.results_path = configs['paths']['results']
+        self.configs = configs
 
     def Run(self):
         """
@@ -119,10 +120,9 @@ class GraphRuleMethod:
         """
         Variable learning rate
         """
-        scheduler_on = False
+        scheduler_on = self.configs['scheduler']
         if scheduler_on:
-            lambda1 = lambda epoch: 0.1 / ((10 * epoch) / 50 + 1)
-            scheduler = LambdaLR(optimizer, lr_lambda=lambda1)
+            scheduler = StepLR(optimizer, step_size=10, gamma=0.5)
 
         """
         Run through the defined number of epochs
@@ -137,12 +137,9 @@ class GraphRuleMethod:
             """
             Random Train batches for each epoch
             """
-            np.random.seed(epoch)
+            np.random.seed(epoch + 687497)
             np.random.shuffle(self.training_data)
             train_batches = np.array_split(self.training_data, self.training_data.size // self.para.batch_size)
-
-            if scheduler_on:
-                scheduler.step()
 
             for batch_counter, batch in enumerate(train_batches, 0):
                 timer.measure("forward")
@@ -214,8 +211,8 @@ class GraphRuleMethod:
                     loss_value = loss.item()
                     min_val = 50 - epoch ** (1. / 6.) * (49 / self.para.n_epochs ** (1. / 6.))
                     loss_val = 100 * loss_value ** 2
-                    learning_rate_mul = min(min_val, loss_val)
-                    g['lr'] = self.para.learning_rate * learning_rate_mul
+                    #learning_rate_mul = min(min_val, loss_val)
+                    #g['lr'] = self.para.learning_rate * learning_rate_mul
                     # print min_val, loss_val, learning_rate_mul, g['lr']
                     if self.para.print_results:
                         print(f'Min: {min_val}, Loss: {loss_val}, Learning rate: {g["lr"]}')
@@ -402,6 +399,9 @@ class GraphRuleMethod:
                 self.para.draw_data = ttd.plot_learning_data(epoch + 1,
                                                              [epoch_acc, validation_acc, test_acc, epoch_loss],
                                                              self.para.draw_data, self.para.n_epochs)
+
+            if scheduler_on:
+                scheduler.step()
 
         """Evaluation of one complete validation run"""
         # save the trained model

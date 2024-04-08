@@ -26,8 +26,8 @@ class GraphData:
         self.graph_db_name = ''
         self.graphs = []
         self.inputs = []
-        self.node_labels: Dict[NodeLabels] = {}
-        self.edge_labels: Dict[EdgeLabels] = {}
+        self.node_labels: Dict[str, NodeLabels] = {}
+        self.edge_labels: Dict[str, EdgeLabels] = {}
         self.graph_labels = []
         self.one_hot_labels = []
         self.num_classes = 0
@@ -54,12 +54,14 @@ class GraphData:
             self.distance_list = []
         if with_cycles:
             self.cycle_list = []
-        self.inputs, self.one_hot_labels, graph_data, self.distance_list = ttd.data_from_graph_db(graph_data, graph_db_name, self.cycle_list,
-                                                                              one_hot_encode_labels=True,
-                                                                              use_features=use_features,
-                                                                              use_attributes=use_attributes,
+        self.inputs, self.one_hot_labels, graph_data, self.distance_list = ttd.data_from_graph_db(graph_data,
+                                                                                                  graph_db_name,
+                                                                                                  self.cycle_list,
+                                                                                                  one_hot_encode_labels=True,
+                                                                                                  use_features=use_features,
+                                                                                                  use_attributes=use_attributes,
                                                                                                   with_distances=with_distances,
-                                                                            distances_path=distances_path)
+                                                                                                  distances_path=distances_path)
         self.graphs = graph_data[0]
         self.graph_labels = graph_data[1]
         # num classes are unique labels
@@ -71,7 +73,6 @@ class GraphData:
         self.max_nodes = 0
         for g in self.graphs:
             self.max_nodes = max(self.max_nodes, g.number_of_nodes())
-
 
         # set primary node and edge labels
         self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
@@ -85,8 +86,13 @@ class GraphData:
             node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = node_labeling_method(
                 self.graphs, **kwargs)
             node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
-            self.node_labels[node_labeling_name] = node_labeling
-            self.relabel_most_frequent(self.node_labels[node_labeling_name], max_label_num)
+
+            key = node_labeling_name
+            if max_label_num is not None and max_label_num > 0:
+                key = f'{node_labeling_name}_{max_label_num}'
+
+            self.node_labels[key] = node_labeling
+            self.relabel_most_frequent(self.node_labels[key], max_label_num)
 
     def add_edge_labels(self, edge_labeling_name, edge_labeling_method=None, **kwargs) -> None:
         if edge_labeling_method is not None:
@@ -102,7 +108,8 @@ class GraphData:
             bound = len(labels.db_unique_node_labels)
         else:
             bound = min(num_max_labels, len(labels.db_unique_node_labels))
-        most_frequent = sorted(labels.db_unique_node_labels, key=labels.db_unique_node_labels.get, reverse=True)[:bound - 1]
+        most_frequent = sorted(labels.db_unique_node_labels, key=labels.db_unique_node_labels.get, reverse=True)[
+                        :bound - 1]
         # relabel the node labels
         for i, _lab in enumerate(labels.node_labels):
             for j, lab in enumerate(_lab):
@@ -127,4 +134,3 @@ class GraphData:
             labels.unique_node_labels[i] = unique
         labels.db_unique_node_labels = db_unique
         pass
-

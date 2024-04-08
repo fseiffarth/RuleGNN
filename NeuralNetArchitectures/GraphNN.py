@@ -130,13 +130,13 @@ class GraphNet(nn.Module):
             if i < len(para.layers) - 1:
                 self.net_layers.append(layers.GraphConvLayer(layer_id=i, seed=seed + i, graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf_dist,
                                         bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-                                        node_labels=layer.rule_name, n_kernels=1,
+                                        node_labels=layer.get_layer_string(), n_kernels=1,
                                         bias=True, print_layer_init=print_layer_init, save_weights=save_weights, distances=layer.distances).double().requires_grad_(convolution_grad))
             else:
                 self.net_layers.append(layers.GraphResizeLayer(layer_id=i, seed=seed + i, graph_data=self.graph_data,
                                           w_distribution_rule=rule.node_label_rule,
                                           in_features=n_node_features, out_features=out_classes,
-                                          node_labels=layer.rule_name,
+                                          node_labels=layer.get_layer_string(),
                                           bias=True, print_layer_init=print_layer_init,
                                           save_weights=save_weights).double().requires_grad_(resize_grad))
 

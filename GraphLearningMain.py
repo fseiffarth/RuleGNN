@@ -8,6 +8,7 @@ import os
 import click
 import matplotlib.pyplot as plt
 import numpy as np
+import yaml
 
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.Distances.load_distances import load_distances
@@ -20,233 +21,194 @@ from Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 
 
+
+
+class RunConfiguration():
+    def __init__(self, layers, batch_size, lr, epochs, dropout, optimizer, loss):
+        self.layers = layers
+        self.batch_size = batch_size
+        self.lr = lr
+        self.epochs = epochs
+        self.dropout = dropout
+        self.optimizer = optimizer
+        self.loss = loss
+
+
+
 @click.command()
-@click.option('--data_path', default="../GraphData/DS_all/", type=str, help='Path to the graph data')
-@click.option('--distances_path', default=None, type=str, help='Path to the distances')
-@click.option('--results_path', default="Results/", type=str, help='Path to the results')
 @click.option('--graph_db_name', default="MUTAG", type=str, help='Database name')
-@click.option('--network_type', default='wl_1:1,2,3;wl_1', type=str, help='Layer types of the network')
-@click.option('--batch_size', default=16, type=int)
-@click.option('--edge_labels', default=-1, type=int,
-              help='If None, the number of edge labels will be determined by the graph data')
-@click.option('--use_features', default=True, type=bool,
-              help='If true, the features of the nodes will be used, otherwise ones are used as features for every node')
-@click.option('--use_attributes', default=False, type=bool,
-              help='If true, the attributes of the nodes will be used instead of the labels')
-@click.option('--load_splits', default=False, type=bool, help='If true, the splits will be loaded from the file')
-@click.option('--convolution_grad', default=True, type=bool, help='If true, the convolutional layer will be trained')
-@click.option('--resize_grad', default=True, type=bool, help='If true, the resize layer will be trained')
-@click.option('--max_coding', default=1, type=int)
-@click.option('--node_features', default=1, type=int)
 @click.option('--run_id', default=0, type=int)
 @click.option('--validation_number', default=10, type=int)
 @click.option('--validation_id', default=0, type=int)
-@click.option('--epochs', default=50, type=int)
-@click.option('--lr', default=0.001, type=float)
-@click.option('--dropout', default=0.0, type=float)
-# balanced data option
-@click.option('--balanced', default=False, type=bool)
-# turn off all drawing and printing options
-@click.option('--no_print', default=False, type=bool)
-# drawing option
-@click.option('--draw', default=False, type=bool)
-# printing and saving weights option
-@click.option('--save_weights', default=False, type=bool)
-@click.option('--save_prediction_values', default=False, type=bool)
-@click.option('--print_results', default=False, type=bool)
-# plot the graphs
-@click.option('--plot_graphs', default=False, type=bool)
-# debug vs fast mode option in click vs custom option
-@click.option('--mode', default="normal", type=click.Choice(['fast', 'debug', 'normal']))
-
+@click.option('--config', default=None, type=str)
 # current configuration
-# --distances_path GraphData/Distances --graph_db_name CSL --network_type 100;cycles_10:1,2,3;cycles_10 --mode debug
+#--graph_db_name CSL --config config.yml
 
-def main(data_path, results_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
-         validation_number, validation_id,
-         epochs, lr, dropout, balanced, no_print, draw, save_weights, save_prediction_values, print_results,
-         plot_graphs, mode, convolution_grad, resize_grad, use_features, use_attributes, load_splits):
-    r_path = results_path
-    # if not exists create the results directory
-    if not os.path.exists(r_path):
-        try:
-            os.makedirs(r_path)
-        except:
-            pass
-    # if not exists create the directory for db under Results
-    if not os.path.exists(r_path + graph_db_name):
-        try:
-            os.makedirs(r_path + graph_db_name)
-        except:
-            pass
-    # if not exists create the directory Results, Plots, Weights and Models under db
-    if not os.path.exists(r_path + graph_db_name + "/Results"):
-        try:
-            os.makedirs(r_path + graph_db_name + "/Results")
-        except:
-            pass
-    if not os.path.exists(r_path + graph_db_name + "/Plots"):
-        try:
-            os.makedirs(r_path + graph_db_name + "/Plots")
-        except:
-            pass
-    if not os.path.exists(r_path + graph_db_name + "/Weights"):
-        try:
-            os.makedirs(r_path + graph_db_name + "/Weights")
-        except:
-            pass
-    if not os.path.exists(r_path + graph_db_name + "/Models"):
-        try:
-            os.makedirs(r_path + graph_db_name + "/Models")
-        except:
-            pass
+def main(graph_db_name, run_id, validation_number, validation_id, config):
+    if config is not None:
+        # read the config yml file
+        configs = yaml.safe_load(open(config))
+        # get the data path from the config file
+        data_path = configs['paths']['data']
+        r_path = configs['paths']['results']
+        distance_path = configs['paths']['distances']
+        splits_path = configs['paths']['splits']
 
-    plt.ion()
-
-    # path do db and db
-    results_path = r_path + graph_db_name + "/Results/"
-    print_layer_init = True
-    # if debug mode is on, turn on all print and draw options
-    if mode == "debug":
-        draw = True
-        print_results = True
-        save_prediction_values = True
-        threads = 1
-    # if fast mode is on, turn off all print and draw options
-    if mode == "fast":
-        draw = False
-        print_results = False
-        save_weights = False
-        save_prediction_values = False
-        plot_graphs = False
-        print_layer_init = False
-
-    """
-    Create Input data, information and labels from the graphs for training and testing
-    """
-    if graph_db_name == "CSL":
-        csl = CSL()
-        graph_data = csl.get_graphs(with_distances=False)
-        if os.path.isfile(f'{distances_path}{graph_db_name}_distances.pkl'):
-            distance_list = load_distances(db_name=graph_db_name, path=f'{distances_path}{graph_db_name}_distances.pkl')
-            graph_data.distance_list = distance_list
-        # TODO: find other labeling method
-    else:
-        graph_data = GraphData.GraphData()
-        graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,
-                                      relabel_nodes=True, use_features=use_features, use_attributes=use_attributes, distances_path=distances_path)
-
-    # split layer_types into a list
-    network_type = network_type.split(";")
-    # first entry is the max node label
-    node_labels = int(network_type[0])
-    layers = []
-    for i,l in enumerate(network_type[1:], 1):
-        try:
-            int(l)
-        except:
-            # if network_type[i-1] is an integer, add the layer
+        # if not exists create the results directory
+        if not os.path.exists(r_path):
             try:
-                num_labels = int(network_type[i-1])
-                layer = Layer(l, num_labels)
-                layers.append(layer)
+                os.makedirs(r_path)
             except:
-                layer = Layer(l, node_labels)
-                layers.append(layer)
+                pass
+        # if not exists create the directory for db under Results
+        if not os.path.exists(r_path + graph_db_name):
+            try:
+                os.makedirs(r_path + graph_db_name)
+            except:
+                pass
+        # if not exists create the directory Results, Plots, Weights and Models under db
+        if not os.path.exists(r_path + graph_db_name + "/Results"):
+            try:
+                os.makedirs(r_path + graph_db_name + "/Results")
+            except:
+                pass
+        if not os.path.exists(r_path + graph_db_name + "/Plots"):
+            try:
+                os.makedirs(r_path + graph_db_name + "/Plots")
+            except:
+                pass
+        if not os.path.exists(r_path + graph_db_name + "/Weights"):
+            try:
+                os.makedirs(r_path + graph_db_name + "/Weights")
+            except:
+                pass
+        if not os.path.exists(r_path + graph_db_name + "/Models"):
+            try:
+                os.makedirs(r_path + graph_db_name + "/Models")
+            except:
+                pass
 
-    # add node labels for each layer_name except for the primary
-    for l in layers:
-        if l.rule_name != "primary":
-            # if wl is in the layer name, then it is a weisfeiler lehman layer
-            iterations = 0
-            if "wl" in l.rule_name:
-                if "max" in l.rule_name:
-                    # set the max iterations to 20
-                    iterations = 20
+        plt.ion()
+
+        # path do db and db
+        results_path = r_path + graph_db_name + "/Results/"
+        print_layer_init = True
+        # if debug mode is on, turn on all print and draw options
+        if configs['mode'] == "debug":
+            draw = configs['additional_options']['draw']
+            print_results = configs['additional_options']['print_results']
+            save_prediction_values = configs['additional_options']['save_prediction_values']
+            save_weights = configs['additional_options']['save_weights']
+            plot_graphs = configs['additional_options']['plot_graphs']
+        # if fast mode is on, turn off all print and draw options
+        if configs['mode'] == "experiments":
+            draw = False
+            print_results = False
+            save_weights = False
+            save_prediction_values = False
+            plot_graphs = False
+            print_layer_init = False
+
+        """
+        Create Input data, information and labels from the graphs for training and testing
+        """
+        if graph_db_name == "CSL":
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+            if os.path.isfile(f'{distance_path}{graph_db_name}_distances.pkl'):
+                distance_list = load_distances(db_name=graph_db_name,
+                                               path=f'{distance_path}{graph_db_name}_distances.pkl')
+                graph_data.distance_list = distance_list
+            # TODO: find other labeling method
+        else:
+            graph_data = GraphData.GraphData()
+            graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,
+                                          relabel_nodes=True, use_features=configs['use_features'], use_attributes=configs['use_attributes'],
+                                          distances_path=distance_path)
+
+        # define the network type from the config file
+        run_configs = []
+        # iterate over all network architectures
+        for network_architecture in configs['networks']:
+            layers = []
+            # get all different run configurations
+            for l in network_architecture:
+                layers.append(Layer(l))
+            for b in configs['batch_size']:
+                for lr in configs['learning_rate']:
+                    for e in configs['epochs']:
+                        for d in configs['dropout']:
+                            for o in configs['optimizer']:
+                                for loss in configs['loss']:
+                                    run_configs.append(RunConfiguration(layers, b, lr, e, d, o, loss))
+
+        for run_config in run_configs:
+            # add node labels for each layer_name except for the primary
+            for l in run_config.layers:
+                label_path = f"GraphData/Labels/{graph_db_name}_{l.get_layer_string()}_labels.txt"
+                if os.path.exists(label_path):
+                    g_labels = load_labels(path=label_path)
+                    graph_data.node_labels[l.get_layer_string()] = g_labels
                 else:
-                    try:
-                        # split by _ and get the number of iterations
-                        iterations = int(l.rule_name.split("_")[1])
-                    except:
-                        pass
-                if iterations == 0:
-                    l.node_labels = -1
-                    l_string = ""
-                    max_label_num = None
-                else:
-                    l_string = f'_{l.node_labels}'
-                    max_label_num = l.node_labels
-                if os.path.exists(f"GraphData/Labels/{graph_db_name}_{l.rule_name}{l_string}_labels.txt"):
-                    g_labels = load_labels(db_name=graph_db_name,label_type=l.rule_name, max_label_num=max_label_num,path=f"GraphData/Labels/")
-                    graph_data.node_labels[l.rule_name] = g_labels
-                else:
-                    if iterations == 0:
-                        graph_data.add_node_labels(node_labeling_name=l.rule_name, max_label_num=l.node_labels,
-                                                   node_labeling_method=NodeLabeling.degree_node_labeling)
-                    else:
-                        graph_data.add_node_labels(node_labeling_name=l.rule_name, max_label_num=l.node_labels,
-                                                   node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
-                                                   max_iterations=iterations)
-            if "cycles" in l.rule_name:
-                # split by _ and get the number of iterations
-                max_cycles = int(l.rule_name.split("_")[1])
-                if os.path.exists(f"GraphData/Labels/{graph_db_name}_{l.rule_name}_labels.txt"):
-                    g_labels = load_labels(db_name=graph_db_name,label_type=l.rule_name, max_label_num=None, path=f"GraphData/Labels/")
-                    graph_data.node_labels[l.rule_name] = g_labels
+                    # raise an error if the file does not exist
+                    raise FileNotFoundError(f"File {label_path} does not exist")
 
-    para = Parameters.Parameters()
+            para = Parameters.Parameters()
 
-    """
-        Data parameters
-    """
-    para.set_data_param(path=data_path, results_path=results_path,
-                        db=graph_db_name,
-                        max_coding=max_coding,
-                        network_type=network_type,
-                        layers=layers,
-                        batch_size=batch_size, node_features=node_features,
-                        load_splits=load_splits)
+            """
+                Data parameters
+            """
+            para.set_data_param(path=data_path, results_path=results_path,
+                                splits_path=splits_path,
+                                db=graph_db_name,
+                                max_coding=1,
+                                layers=run_config.layers,
+                                batch_size=run_config.batch_size, node_features=1,
+                                load_splits=configs['load_splits'])
 
-    """
-        Network parameters
-    """
-    para.set_evaluation_param(run_id=run_id, n_val_runs=validation_number, validation_id=validation_id, n_epochs=epochs,
-                              learning_rate=lr,
-                              dropout=dropout,
-                              balance_data=balanced,
-                              convolution_grad=convolution_grad,
-                              resize_graph=resize_grad)
+            """
+                Network parameters
+            """
+            para.set_evaluation_param(run_id=run_id, n_val_runs=validation_number, validation_id=validation_id,
+                                      n_epochs=run_config.epochs,
+                                      learning_rate=run_config.lr, dropout=run_config.dropout,
+                                      balance_data=configs['balance_training'],
+                                      convolution_grad=True,
+                                      resize_graph=True)
 
-    """
-    Print, save and draw parameters
-    """
-    para.set_print_param(no_print=no_print, print_results=print_results, net_print_weights=True, print_number=1,
-                         draw=draw, save_weights=save_weights,
-                         save_prediction_values=save_prediction_values, plot_graphs=plot_graphs,
-                         print_layer_init=print_layer_init)
+            """
+            Print, save and draw parameters
+            """
+            para.set_print_param(no_print=False, print_results=print_results, net_print_weights=True, print_number=1,
+                                 draw=draw, save_weights=save_weights,
+                                 save_prediction_values=save_prediction_values, plot_graphs=plot_graphs,
+                                 print_layer_init=print_layer_init)
 
-    """
-        Get the first index in the results directory that is not used
-    """
-    para.set_file_index(size=6)
+            """
+                Get the first index in the results directory that is not used
+            """
+            para.set_file_index(size=6)
 
-    if para.plot_graphs:
-        # if not exists create the directory
-        if not os.path.exists(f"{r_path}{para.db}/Plots"):
-            os.makedirs(f"{r_path}{para.db}/Plots")
-        for i in range(0, len(graph_data.graphs)):
-            gdtgl.draw_graph(graph_data.graphs[i], graph_data.graph_labels[i],
-                             f"{r_path}{para.db}/Plots/graph_{str(i).zfill(5)}.png")
+            if para.plot_graphs:
+                # if not exists create the directory
+                if not os.path.exists(f"{r_path}{para.db}/Plots"):
+                    os.makedirs(f"{r_path}{para.db}/Plots")
+                for i in range(0, len(graph_data.graphs)):
+                    gdtgl.draw_graph(graph_data.graphs[i], graph_data.graph_labels[i],
+                                     f"{r_path}{para.db}/Plots/graph_{str(i).zfill(5)}.png")
 
-    validation_step(para.run_id, para.validation_id, graph_data, para, r_path)
+            validation_step(para.run_id, para.validation_id, graph_data, para, configs)
+    else:
+        #print that config file is not provided
+        print("Please provide a configuration file")
 
 
-def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters, r_path):
+def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters, configs):
     """
     Split the data in training validation and test set
     """
-    seed = validation_id + para.n_val_runs * run_id
-    data = Load_Splits("GraphData/DataSplits", para.db)
+    seed = 56874687 + validation_id + para.n_val_runs * run_id
+    data = Load_Splits(para.splits_path, para.db)
     test_data = np.asarray(data[0][validation_id], dtype=int)
     training_data = np.asarray(data[1][validation_id], dtype=int)
     validate_data = np.asarray(data[2][validation_id], dtype=int)
@@ -262,7 +224,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     #     f.write(f"Test indices:\n{test_data}\n")
 
     method = GraphRuleMethod(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para,
-                             r_path)
+                             configs)
     # method = NoGKernel(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
     # method = NoGKernelNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
     # method = NoGKernelWLNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)

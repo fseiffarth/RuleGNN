@@ -3,6 +3,8 @@ Created on 15.03.2019
 
 @author: florian
 '''
+from typing import List
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,19 +22,45 @@ from GraphData import GraphData
 
 
 class Layer:
-    def __init__(self, layer_string, layer_node_labels):
-        # split by :
-        layer = layer_string.split(":")
-        # interpret the first part as the rule name
-        self.rule_name = layer[0]
-        self.node_labels = layer_node_labels
-        if len(layer) > 1:
-            # split the second part by ; and make a list of integers
-            self.distances = [int(x) for x in layer[1].split(",")]
+    def __init__(self, layer_dict):
+        self.layer_type = layer_dict["layer_type"]
+        self.node_labels = -1
+        self.layer_dict = layer_dict
+        if 'max_node_labels' in layer_dict:
+            self.node_labels = layer_dict["max_node_labels"]
+        if 'distances' in layer_dict:
+            self.distances = layer_dict["distances"]
         else:
             self.distances = None
-        if len(layer) > 2:
-            self.max_node_labels = int(layer[2])
+
+
+    def get_layer_string(self):
+        l_string = ""
+        if self.layer_type == "primary":
+            l_string = "primary"
+            if 'max_node_labels' in self.layer_dict:
+                max_node_labels = self.layer_dict['max_node_labels']
+                l_string = f"primary_{max_node_labels}"
+        elif self.layer_type == "wl":
+            if 'wl_iterations' in self.layer_dict:
+                iterations = self.layer_dict['wl_iterations']
+                l_string = f"wl_{iterations}"
+            else:
+                l_string = "wl_max"
+            if 'max_node_labels' in self.layer_dict:
+                max_node_labels = self.layer_dict['max_node_labels']
+                l_string = f"{l_string}_{max_node_labels}"
+        elif self.layer_type == "cycles":
+            if 'max_cycle_length' in self.layer_dict:
+                max_cycle_length = self.layer_dict['max_cycle_length']
+                l_string = f"cycles_{max_cycle_length}"
+            else:
+                l_string = "cycles_max"
+            if 'max_node_labels' in self.layer_dict:
+                max_node_labels = self.layer_dict['max_node_labels']
+                l_string = f"{l_string}_{max_node_labels}"
+
+        return l_string
 
 
 def reshape_indices(a, b):
@@ -197,8 +225,8 @@ class GraphConvLayer(nn.Module):
                                             extra_dim):
                                             # position of the weight in the Parameter list
                                             weight_pos = \
-                                            self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
-                                                self.extra_dim_map[extra_dim]]
+                                                self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
+                                                    self.extra_dim_map[extra_dim]]
 
                                             # position of the weight in the weight matrix
                                             row_index = index_map[(i1, i2, k, n1, n2)][0]
@@ -212,9 +240,10 @@ class GraphConvLayer(nn.Module):
                                                 #weight_indices[0] = flatten_indices[row_index, col_index][0]
                                                 #weight_pos_tensor[0] = np.int64(weight_pos).item()
                                             else:
-                                                graph_weight_pos_distribution = np.append(graph_weight_pos_distribution, [
-                                                    [row_index, col_index,
-                                                     weight_pos]], axis=0)
+                                                graph_weight_pos_distribution = np.append(graph_weight_pos_distribution,
+                                                                                          [
+                                                                                              [row_index, col_index,
+                                                                                               weight_pos]], axis=0)
                                                 #weight_indices = torch.cat((weight_indices,torch.tensor([flatten_indices[row_index, col_index][0]])))
                                                 #weight_pos_tensor = torch.cat((weight_pos_tensor, torch.tensor([np.int64(weight_pos).item()])))
                                             weight_entry_num += 1
@@ -228,7 +257,8 @@ class GraphConvLayer(nn.Module):
                                             int(n2_label)) and valid_edge_label(int(e_label)) and valid_extra_dim(
                                         extra_dim):
                                         # position of the weight in the Parameter list
-                                        weight_pos = self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
+                                        weight_pos = \
+                                        self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
                                             self.extra_dim_map[extra_dim]]
 
                                         # position of the weight in the weight matrix

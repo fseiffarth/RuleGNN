@@ -67,12 +67,12 @@ class Parameters(object):
 
         self.new_file_index = ''
 
-    def set_data_param(self, path, results_path, db, max_coding, network_type, layers, batch_size, node_features, load_splits):
+    def set_data_param(self, path, results_path, splits_path, db, max_coding, layers, batch_size, node_features, load_splits):
         self.path = path
         self.results_path = results_path
+        self.splits_path = splits_path
         self.db = db
         self.max_coding = max_coding
-        self.network_type = network_type
         self.layers = layers
         self.batch_size = batch_size
         self.node_features = node_features

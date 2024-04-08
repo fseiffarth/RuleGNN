@@ -1,7 +1,7 @@
 from GraphData.GraphData import NodeLabels
 
 
-def load_labels(db_name, label_type, max_label_num=None, path='') -> NodeLabels:
+def load_labels(path='') -> NodeLabels:
     node_labels = NodeLabels()
     """
     Load the labels from a file.
@@ -9,12 +9,8 @@ def load_labels(db_name, label_type, max_label_num=None, path='') -> NodeLabels:
     :param file: str
     :return: list of lists
     """
-    if max_label_num is None:
-        max_label_num = ''
-    else:
-        max_label_num = f"{max_label_num}_"
 
-    with open(f"{path}{db_name}_{label_type}_{max_label_num}labels.txt", 'r') as f:
+    with open(path, 'r') as f:
         labels = f.read().splitlines()
         labels = [list(map(int, l.split())) for l in labels]
     node_labels.node_labels = labels
