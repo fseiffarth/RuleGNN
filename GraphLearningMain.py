@@ -10,10 +10,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from GraphData.DataSplits.load_splits import Load_Splits
-from GraphData.Labels.load_labels import load_labels
+from GraphData.Distances.load_distances import load_distances
+from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
 from LoadData.csl import CSL
-from TrainTestData import TrainTestData as ttd
 from GraphData import GraphData, NodeLabeling
 from Methods.GraphRuleMethod import GraphRuleMethod
 from Parameters import Parameters
@@ -60,7 +60,7 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 @click.option('--mode', default="normal", type=click.Choice(['fast', 'debug', 'normal']))
 
 # current configuration
-# --distances_path GraphData/Distances --graph_db_name MUTAG --network_type wl_1:1,2,3;wl_1 --mode debug
+# --distances_path GraphData/Distances --graph_db_name CSL --network_type 100;cycles_10:1,2,3;cycles_10 --mode debug
 
 def main(data_path, results_path, distances_path, graph_db_name, max_coding, network_type, batch_size, node_features, edge_labels, run_id,
          validation_number, validation_id,
@@ -127,6 +127,9 @@ def main(data_path, results_path, distances_path, graph_db_name, max_coding, net
     if graph_db_name == "CSL":
         csl = CSL()
         graph_data = csl.get_graphs(with_distances=False)
+        if os.path.isfile(f'{distances_path}{graph_db_name}_distances.pkl'):
+            distance_list = load_distances(db_name=graph_db_name, path=f'{distances_path}{graph_db_name}_distances.pkl')
+            graph_data.distance_list = distance_list
         # TODO: find other labeling method
     else:
         graph_data = GraphData.GraphData()
@@ -243,22 +246,10 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     Split the data in training validation and test set
     """
     seed = validation_id + para.n_val_runs * run_id
-    if para.load_splits is False:
-        run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=run_id, kFold=para.n_val_runs)
-        """
-        Create the data
-        """
-        training_data, validate_data, test_data = ttd.get_train_validation_test_list(test_indices=run_test_indices,
-                                                                                     validation_step=validation_id,
-                                                                                     seed=seed,
-                                                                                     balanced=para.balance_data,
-                                                                                     graph_labels=graph_data.graph_labels,
-                                                                                     val_size=0.1)
-    else:
-        data = Load_Splits("GraphData/DataSplits", para.db)
-        test_data = np.asarray(data[0][validation_id], dtype=int)
-        training_data = np.asarray(data[1][validation_id], dtype=int)
-        validate_data = np.asarray(data[2][validation_id], dtype=int)
+    data = Load_Splits("GraphData/DataSplits", para.db)
+    test_data = np.asarray(data[0][validation_id], dtype=int)
+    training_data = np.asarray(data[1][validation_id], dtype=int)
+    validate_data = np.asarray(data[2][validation_id], dtype=int)
 
     # print train resp test data to some file
     # with open(f"{results_path}train_test_indices.txt", "a") as f:

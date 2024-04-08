@@ -1,0 +1,40 @@
+paths:
+  - data:
+      - "../GraphData/DS_all/"
+  - distances:
+      - "../GraphData/Distances/"
+  - results:
+      - "../Results/"
+  - splits:
+      - "../GraphData/DataSplits/"
+model:
+  - RULEGNN
+device:
+  - cpu
+batch_size:
+  - 16
+  - 32
+  - 64
+learning_rate:
+  - 0.001
+  - 0.0001
+classifier_epochs:
+  - 50
+optimizer:
+  - Adam
+loss:
+  - CrossEntropyLoss
+networks:
+  - NN1:
+    - ConvLayer:
+      - 500, wl_2, [1,2,3]
+      - 500, wl_2, [1,2,3]
+    - FinalLayer:
+      - 500, wl_2
+use_features:
+  - True
+  - False
+use_attributes:
+  - False
+
+

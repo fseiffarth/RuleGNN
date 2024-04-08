@@ -34,14 +34,21 @@ class GraphData:
         # additonal parameters
         self.distance_list = None
         self.cycle_list = None
+        self.max_nodes = 0
 
     def init_from_graph_db(self, path, graph_db_name, with_distances=False, with_cycles=False, relabel_nodes=False,
                            use_features=True, use_attributes=False, distances_path=None):
         distance_list = []
         cycle_list = []
 
-        # Define the graph data
-        graph_data = gdtgl.graph_data_to_graph_list(path, graph_db_name, relabel_nodes=relabel_nodes)
+        # CSL graphs
+        if graph_db_name == 'CSL':
+            from LoadData.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+        else:
+            # Define the graph data
+            graph_data = gdtgl.graph_data_to_graph_list(path, graph_db_name, relabel_nodes=relabel_nodes)
 
         if with_distances:
             self.distance_list = []
@@ -59,6 +66,12 @@ class GraphData:
         self.num_classes = len(set(self.graph_labels))
         self.num_graphs = len(self.graphs)
         self.graph_db_name = graph_db_name
+
+        # get graph with max number of nodes
+        self.max_nodes = 0
+        for g in self.graphs:
+            self.max_nodes = max(self.max_nodes, g.number_of_nodes())
+
 
         # set primary node and edge labels
         self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)

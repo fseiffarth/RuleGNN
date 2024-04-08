@@ -23,14 +23,19 @@ def write_node_labels(file, node_labels):
 def save_wl_labels(data_path, db_names):
     for db_name in db_names:
         # load the graph data'NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
-        graph_data = GraphData.GraphData()
-        graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
-                                      relabel_nodes=True, use_features=False, use_attributes=False)
+        if db_name == 'CSL':
+            from LoadData.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+        else:
+            graph_data = GraphData.GraphData()
+            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
+                                          relabel_nodes=True, use_features=False, use_attributes=False)
 
         node_labels = graph_data.node_labels['primary'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
-        file = f"{db_name}_primary_labels.txt"
+        file = f"../{db_name}_primary_labels.txt"
         write_node_labels(file, node_labels)
 
         graph_data.add_node_labels(node_labeling_name='wl_0', max_label_num=-1,
@@ -38,7 +43,7 @@ def save_wl_labels(data_path, db_names):
         node_labels = graph_data.node_labels['wl_0'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
-        file = f"{db_name}_wl_0_labels.txt"
+        file = f"../{db_name}_wl_0_labels.txt"
         write_node_labels(file, node_labels)
 
         for l in ['wl_1', 'wl_2']:
@@ -51,16 +56,21 @@ def save_wl_labels(data_path, db_names):
                 node_labels = graph_data.node_labels[l].node_labels
                 # save the node labels to a file
                 # save node_labels as numpy array
-                file = f"{db_name}_{l}_{n_node_labels}_labels.txt"
+                file = f"../{db_name}_{l}_{n_node_labels}_labels.txt"
                 write_node_labels(file, node_labels)
 
 
 def save_circle_labels(data_path, db_names, length_bound=6):
     for db_name in db_names:
         # load the graph data'NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
-        graph_data = GraphData.GraphData()
-        graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
-                                      relabel_nodes=True, use_features=False, use_attributes=False)
+        if db_name == 'CSL':
+            from LoadData.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+        else:
+            graph_data = GraphData.GraphData()
+            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
+                                          relabel_nodes=True, use_features=False, use_attributes=False)
         cycle_dict = []
         for graph in graph_data.graphs:
             cycle_dict.append({})
@@ -99,15 +109,17 @@ def save_circle_labels(data_path, db_names, length_bound=6):
                 else:
                     labels[-1].append(len(label_dict))
 
-        file = f"{db_name}_cycles_{length_bound}_labels.txt"
+        file = f"../{db_name}_cycles_{length_bound}_labels.txt"
         write_node_labels(file, labels)
 
 
 def main():
-    data_path = "../../../GraphData/DS_all/"
+    data_path = "../../../../GraphData/DS_all/"
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
     #save_wl_labels(data_path, db_names=['MUTAG'])
-    save_circle_labels(data_path, db_names=['NCI1'])
+    #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)
+    save_wl_labels(data_path, db_names=['CSL'])
+    save_circle_labels(data_path, db_names=['CSL'], length_bound=7)
 
 
 if __name__ == '__main__':

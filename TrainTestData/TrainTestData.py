@@ -120,10 +120,9 @@ def get_train_test_list(size, divide=0.9, seed=10):
 
 
 def get_train_validation_test_list(test_indices, validation_step, seed=10, balanced=False, graph_labels=[], val_size=0):
-    random.seed(seed)
-    np.random.seed(seed)
     test_data = test_indices[validation_step]
     train_data_unb = np.concatenate([x for i, x in enumerate(test_indices) if i != validation_step])
+    np.random.seed(seed)
     np.random.shuffle(train_data_unb)
     val_data = []
     if val_size > 0:

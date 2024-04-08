@@ -1,8 +1,6 @@
-from typing import List, Dict
+from typing import List
 
 import networkx as nx
-
-from GraphData import GraphData
 
 
 def standard_node_labeling(graphs: List[nx.Graph]):
