@@ -137,7 +137,7 @@ class GraphRuleMethod:
             # Test stopping criterion
             if self.para.configs['early_stopping']['enabled']:
                 if epoch - best_epoch["epoch"] > self.para.configs['early_stopping']['patience']:
-                    if self.paras.print_results:
+                    if self.para.print_results:
                         print(f"Early stopping at epoch {epoch}")
                     break
 
