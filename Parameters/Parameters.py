@@ -81,10 +81,11 @@ class Parameters(object):
         self.configs = configs
         self.run_config = run_config
 
-    def set_evaluation_param(self, run_id, n_val_runs, validation_id, n_epochs, learning_rate, dropout, balance_data, convolution_grad, resize_graph):
+    def set_evaluation_param(self, run_id, n_val_runs, validation_id, config_id, n_epochs, learning_rate, dropout, balance_data, convolution_grad, resize_graph):
         self.run_id = run_id
         self.n_val_runs = n_val_runs
         self.validation_id = validation_id
+        self.config_id = config_id
         self.n_epochs = n_epochs
         self.learning_rate = learning_rate
         self.dropout = dropout

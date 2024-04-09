@@ -79,6 +79,7 @@ class GraphRuleMethod:
         if self.run_id == 0 and self.k_val == 0:
             # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
             file_name = f'{self.para.db}_{self.para.new_file_index}_Network.txt'
+            file_name = f'{self.para.db}_{self.para.config_id}_Network.txt'
             with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
                 file_obj.write(f"Network architecture: {self.para.run_config.network_architecture}\n"
                                f"Optimizer: {optimizer}\n"
@@ -105,6 +106,7 @@ class GraphRuleMethod:
                     file_obj.write(f"Layer: {name} -> {param.requires_grad}\n")
 
         file_name = f'{self.para.db}_{self.para.new_file_index}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
+        file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
 
         # header use semicolon as delimiter
         header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
