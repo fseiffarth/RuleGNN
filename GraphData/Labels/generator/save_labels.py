@@ -60,7 +60,7 @@ def save_wl_labels(data_path, db_names):
                 write_node_labels(file, node_labels)
 
 
-def save_circle_labels(data_path, db_names, length_bound=6):
+def save_circle_labels(data_path, db_names, length_bound=6, cycle_type='simple'):
     for db_name in db_names:
         # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
         if db_name == 'CSL':
@@ -74,7 +74,10 @@ def save_circle_labels(data_path, db_names, length_bound=6):
         cycle_dict = []
         for graph in graph_data.graphs:
             cycle_dict.append({})
-            cycles = nx.chordless_cycles(graph, length_bound)
+            if cycle_type == 'simple':
+                cycles = nx.simple_cycles(graph, length_bound)
+            elif cycle_type == 'induced':
+                cycles = nx.chordless_cycles(graph, length_bound)
             for cycle in cycles:
                 for node in cycle:
                     if node in cycle_dict[-1]:
@@ -108,8 +111,10 @@ def save_circle_labels(data_path, db_names, length_bound=6):
                     labels[-1].append(label_dict[cycle_d])
                 else:
                     labels[-1].append(len(label_dict))
-
-        file = f"../{db_name}_cycles_{length_bound}_labels.txt"
+        if cycle_type == 'simple':
+            file = f"../{db_name}_simple_cycles_{length_bound}_labels.txt"
+        elif cycle_type == 'induced':
+            file = f"../{db_name}_induced_cycles_{length_bound}_labels.txt"
         write_node_labels(file, labels)
 
 
@@ -119,7 +124,14 @@ def main():
     #save_wl_labels(data_path, db_names=['MUTAG'])
     #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)
     #save_wl_labels(data_path, db_names=['DHFR'])
-    save_circle_labels(data_path, db_names=['MUTAG'], length_bound=10)
+    #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=8, cycle_type='induced')
+    #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
+    #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=6, cycle_type='simple')
+    #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
+
+    save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
+    save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
+
 
 
 if __name__ == '__main__':

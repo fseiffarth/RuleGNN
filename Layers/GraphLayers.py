@@ -50,12 +50,21 @@ class Layer:
             if 'max_node_labels' in self.layer_dict:
                 max_node_labels = self.layer_dict['max_node_labels']
                 l_string = f"{l_string}_{max_node_labels}"
-        elif self.layer_type == "cycles":
+        elif self.layer_type == "simple_cycles":
             if 'max_cycle_length' in self.layer_dict:
                 max_cycle_length = self.layer_dict['max_cycle_length']
-                l_string = f"cycles_{max_cycle_length}"
+                l_string = f"simple_cycles_{max_cycle_length}"
             else:
-                l_string = "cycles_max"
+                l_string = "simple_cycles_max"
+            if 'max_node_labels' in self.layer_dict:
+                max_node_labels = self.layer_dict['max_node_labels']
+                l_string = f"{l_string}_{max_node_labels}"
+        elif self.layer_type == "induced_cycles":
+            if 'max_cycle_length' in self.layer_dict:
+                max_cycle_length = self.layer_dict['max_cycle_length']
+                l_string = f"induced_cycles_{max_cycle_length}"
+            else:
+                l_string = "induced_cycles_max"
             if 'max_node_labels' in self.layer_dict:
                 max_node_labels = self.layer_dict['max_node_labels']
                 l_string = f"{l_string}_{max_node_labels}"
