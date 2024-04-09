@@ -119,7 +119,7 @@ def main():
     #save_wl_labels(data_path, db_names=['MUTAG'])
     #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)
     #save_wl_labels(data_path, db_names=['DHFR'])
-    save_wl_labels(data_path, db_names=['DHFR'])
+    save_circle_labels(data_path, db_names=['MUTAG'], length_bound=10)
 
 
 if __name__ == '__main__':
