@@ -41,7 +41,7 @@ def save_distances(data_path="../../../GraphData/DS_all/", db_names=[], cutoff=6
 def main():
     #save_distances(db_names=['NCI1', 'NCI109', 'Mutagenicity', 'IMDB-BINARY', 'IMDB-MULTI', 'PROTEINS', 'ENZYMES', 'DHFR', 'SYNTHETICnew'])
     #save_distances(db_names=[['DD', 'REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB']], cutoff=2)
-    save_distances(db_names=['SYNTHETICnew'], cutoff=None)
+    save_distances(db_names=['NCI1', 'DHFR', 'NCI109', 'Mutagenicity'], cutoff=None)
 
 
 
