@@ -33,23 +33,23 @@ early_stopping:
     25
 networks:
   # wl models
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1 ] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1 ] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1 ] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1 ] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3 ] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3,4,5,6 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3,4,5,6] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3,4,5,6,7,8,9,10] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3,4,5,6,7,8,9,10] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
 
   # cycle models

@@ -136,8 +136,8 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
 
         for config_id, run_config in enumerate(run_configs):
             # config_id to string with leading zeros
-            config_id = f'Configuration_{str(config_id).zfill(6)}'
-            run_configurations(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
+            c_id = f'Configuration_{str(config_id).zfill(6)}'
+            run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
@@ -153,20 +153,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     training_data = np.asarray(data[1][validation_id], dtype=int)
     validate_data = np.asarray(data[2][validation_id], dtype=int)
 
-    # print train resp test data to some file
-    # with open(f"{results_path}train_test_indices.txt", "a") as f:
-    #     f.write(f"Run: {run}\n")
-    #     f.write(f"Validation step: {k_val}\n")
-    #     # separate the indices by a space
-    #     training_data = " ".join(map(str, training_data))
-    #     f.write(f"Train indices:\n{training_data}\n")
-    #     test_data = " ".join(map(str, test_data))
-    #     f.write(f"Test indices:\n{test_data}\n")
-
     method = GraphRuleMethod(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para)
-    # method = NoGKernel(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
-    # method = NoGKernelNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
-    # method = NoGKernelWLNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
 
     """
     Run the method
@@ -174,7 +161,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     method.Run()
 
 
-def run_configurations(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs):
+def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs):
     # get the data path from the config file
     data_path = configs['paths']['data']
     r_path = configs['paths']['results']
