@@ -19,8 +19,7 @@ import TrainTestData.TrainTestData as ttd
 
 class GraphRuleMethod:
     def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: List[int],
-                 validate_data: List[int], test_data: List[int], seed: int, para: Parameters.Parameters,
-                 configs):
+                 validate_data: List[int], test_data: List[int], seed: int, para: Parameters.Parameters):
         self.run_id = run_id
         self.k_val = k_val
         self.graph_data = graph_data
@@ -29,8 +28,7 @@ class GraphRuleMethod:
         self.test_data = test_data
         self.seed = seed
         self.para = para
-        self.results_path = configs['paths']['results']
-        self.configs = configs
+        self.results_path = para.configs['paths']['results']
 
     def Run(self):
         """
@@ -82,7 +80,7 @@ class GraphRuleMethod:
             # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
             file_name = f'{self.para.db}_{self.para.new_file_index}_Network.txt'
             with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
-                file_obj.write(f"Network type: {self.para.network_type}\n"
+                file_obj.write(f"Network architecture: {self.para.run_config.network_architecture}\n"
                                f"Optimizer: {optimizer}\n"
                                f"Loss function: {criterion}\n"
                                f"Batch size: {self.para.batch_size}\n"
@@ -120,14 +118,27 @@ class GraphRuleMethod:
         """
         Variable learning rate
         """
-        scheduler_on = self.configs['scheduler']
+        scheduler_on = self.para.configs['scheduler']
         if scheduler_on:
             scheduler = StepLR(optimizer, step_size=10, gamma=0.5)
+
+        """
+        Store the best epoch
+        """
+        best_epoch = {"epoch": 0, "acc": 0.0, "loss": 100.0, "val_acc": 0.0, "val_loss": 100.0}
 
         """
         Run through the defined number of epochs
         """
         for epoch in range(self.para.n_epochs):
+
+            # Test stopping criterion
+            if self.para.configs['early_stopping']['enabled']:
+                if epoch - best_epoch["epoch"] > self.para.configs['early_stopping']['patience']:
+                    if self.paras.print_results:
+                        print(f"Early stopping at epoch {epoch}")
+                    break
+
             timer.measure("epoch")
             net.epoch = epoch
             epoch_loss = 0.0
@@ -207,15 +218,15 @@ class GraphRuleMethod:
 
                 timer.measure("backward")
                 # change learning rate with high loss
-                for g in optimizer.param_groups:
-                    loss_value = loss.item()
-                    min_val = 50 - epoch ** (1. / 6.) * (49 / self.para.n_epochs ** (1. / 6.))
-                    loss_val = 100 * loss_value ** 2
+                #for g in optimizer.param_groups:
+                #    loss_value = loss.item()
+                #    min_val = 50 - epoch ** (1. / 6.) * (49 / self.para.n_epochs ** (1. / 6.))
+                #    loss_val = 100 * loss_value ** 2
                     #learning_rate_mul = min(min_val, loss_val)
                     #g['lr'] = self.para.learning_rate * learning_rate_mul
                     # print min_val, loss_val, learning_rate_mul, g['lr']
-                    if self.para.print_results:
-                        print(f'Min: {min_val}, Loss: {loss_val}, Learning rate: {g["lr"]}')
+                #    if self.para.print_results:
+                #        print(f'Min: {min_val}, Loss: {loss_val}, Learning rate: {g["lr"]}')
 
                 loss.backward()
                 optimizer.step()
@@ -310,7 +321,7 @@ class GraphRuleMethod:
                     df.to_csv("Results/Parameter/training_predictions.csv", header=False, index=False, mode='a')
 
             '''
-            Evaluate the validation accuracy for each batch
+            Evaluate the validation accuracy for each epoch
             '''
             validation_acc = 0
             if self.validate_data.size != 0:
@@ -326,10 +337,15 @@ class GraphRuleMethod:
                 labels_argmax = labels.argmax(axis=1)
                 outputs_argmax = outputs.argmax(axis=1)
                 validation_acc = 100 * sklearn.metrics.accuracy_score(labels_argmax, outputs_argmax)
-                #validation_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
 
-            if self.para.print_results:
-                print("validation acc: {}".format(validation_acc))
+                # update best epoch
+                if validation_acc > best_epoch["val_acc"] or validation_acc == best_epoch["val_acc"] and validation_loss < best_epoch["val_loss"]:
+                    best_epoch["epoch"] = epoch
+                    best_epoch["acc"] = epoch_acc
+                    best_epoch["loss"] = epoch_loss
+                    best_epoch["val_acc"] = validation_acc
+                    best_epoch["val_loss"] = validation_loss
+
             if self.para.save_prediction_values:
                 # print outputs and labels to a csv file
                 outputs_np = outputs.detach().numpy()
@@ -355,7 +371,6 @@ class GraphRuleMethod:
             test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
             #test_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
             if self.para.print_results:
-                print("test acc: {}".format(test_acc))
                 np_labels = labels.detach().numpy()
                 np_outputs = outputs.detach().numpy()
                 # np array of correct/incorrect predictions
@@ -383,10 +398,14 @@ class GraphRuleMethod:
             timer.measure("epoch")
             epoch_time = timer.get_flag_time("epoch")
             if self.para.print_results:
-                print("run: {} val step: {} epoch loss: {} epoch acc: {} time: {}".format(self.run_id, self.k_val,
-                                                                                          epoch_loss,
-                                                                                          epoch_acc,
-                                                                                          epoch_time))
+                print("run: {} val step: {} epoch loss: {} epoch acc: {} validation acc: {} validation loss: {} test acc: {} test loss: {} time: {}".format(self.run_id, self.k_val,
+                                                                                            epoch_loss,
+                                                                                            epoch_acc,
+                                                                                            validation_acc,
+                                                                                            validation_loss,
+                                                                                            test_acc,
+                                                                                            test_loss,
+                                                                                            epoch_time))
 
             res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
                       f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc};{test_loss}\n"

@@ -22,7 +22,7 @@ def write_node_labels(file, node_labels):
 
 def save_wl_labels(data_path, db_names):
     for db_name in db_names:
-        # load the graph data'NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
+        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
         if db_name == 'CSL':
             from LoadData.csl import CSL
             csl = CSL()
@@ -53,7 +53,7 @@ def save_wl_labels(data_path, db_names):
                     graph_data.add_node_labels(node_labeling_name=l, max_label_num=n_node_labels,
                                                node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
                                                max_iterations=iterations)
-                node_labels = graph_data.node_labels[l].node_labels
+                node_labels = graph_data.node_labels[f'{l}_{n_node_labels}'].node_labels
                 # save the node labels to a file
                 # save node_labels as numpy array
                 file = f"../{db_name}_{l}_{n_node_labels}_labels.txt"
@@ -62,7 +62,7 @@ def save_wl_labels(data_path, db_names):
 
 def save_circle_labels(data_path, db_names, length_bound=6):
     for db_name in db_names:
-        # load the graph data'NCI1', 'NCI109', 'Mutagenicity', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
+        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
         if db_name == 'CSL':
             from LoadData.csl import CSL
             csl = CSL()
@@ -118,8 +118,8 @@ def main():
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
     #save_wl_labels(data_path, db_names=['MUTAG'])
     #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)
-    save_wl_labels(data_path, db_names=['CSL'])
-    save_circle_labels(data_path, db_names=['CSL'], length_bound=7)
+    #save_wl_labels(data_path, db_names=['DHFR'])
+    save_wl_labels(data_path, db_names=['DHFR'])
 
 
 if __name__ == '__main__':

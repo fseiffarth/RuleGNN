@@ -30,6 +30,7 @@ class Parameters(object):
         #self.node_labels = 18
         #self.edge_labels = 4
         self.load_splits = False
+        self.run_config = None
         """
         Evaluation parameters
         """
@@ -67,7 +68,7 @@ class Parameters(object):
 
         self.new_file_index = ''
 
-    def set_data_param(self, path, results_path, splits_path, db, max_coding, layers, batch_size, node_features, load_splits):
+    def set_data_param(self, path, results_path, splits_path, db, max_coding, layers, batch_size, node_features, load_splits, configs, run_config):
         self.path = path
         self.results_path = results_path
         self.splits_path = splits_path
@@ -77,6 +78,8 @@ class Parameters(object):
         self.batch_size = batch_size
         self.node_features = node_features
         self.load_splits = load_splits
+        self.configs = configs
+        self.run_config = run_config
 
     def set_evaluation_param(self, run_id, n_val_runs, validation_id, n_epochs, learning_rate, dropout, balance_data, convolution_grad, resize_graph):
         self.run_id = run_id

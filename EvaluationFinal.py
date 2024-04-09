@@ -2,8 +2,6 @@ import os
 
 import pandas as pd
 from matplotlib import pyplot as plt
-from sympy import pretty_print as pp, latex
-from sympy.abc import a, b, n
 
 
 def epoch_accuracy(db_name, y_val, ids):
@@ -50,41 +48,49 @@ def epoch_accuracy(db_name, y_val, ids):
             line = f.readline()
             # get string between [ and ]
             line = line[line.find("[") + 1:line.find("]")]
-            # split by , not in ''
-            line = line.split(", ")
-            k = line[1].split("_")[1].split(":")[0]
-            d = 0
-            if ":" in line[1]:
-                d = len(line[1].split("_")[1].split(":")[1].split(","))
-            bound = line[0]
-            # cound number of occurrences of "wl" in line
-            L = sum([1 for i in line if "wl" in i]) - 1
+            simple = True
+            if simple:
+                # split by ,
+                line = line.split(", ")
+                # join the strings
+                id = file.split('_')[1]
+                network_legend[id] = f'Id:{id}, {"".join(line)}'
+            else:
+                # split by , not in ''
+                line = line.split(", ")
+                k = line[1].split("_")[1].split(":")[0]
+                d = 0
+                if ":" in line[1]:
+                    d = len(line[1].split("_")[1].split(":")[1].split(","))
+                bound = line[0]
+                # cound number of occurrences of "wl" in line
+                L = sum([1 for i in line if "wl" in i]) - 1
 
-            # remove last element
-            line = line[:-1]
-            # join the strings with ;
-            line = ";".join(line)
-            id = file.split('_')[1]
-            # remove ' from k,d,bound and L
-            k = k.replace("'", "")
-            bound = bound.replace("'", "")
-            if d == 0:
-                # replace d and bound by '-'
-                d = '-'
-                bound = '-'
-            if k == '20':
-                k = 'max'
-            # network_legend[id] = f'Id:{id}, {line}'
-            char = '\u00b2'
-            if L == 0:
-                char = ''
-            elif L == 1:
-                char = '\u00b9'
-            elif L == 2:
+                # remove last element
+                line = line[:-1]
+                # join the strings with ;
+                line = ";".join(line)
+                id = file.split('_')[1]
+                # remove ' from k,d,bound and L
+                k = k.replace("'", "")
+                bound = bound.replace("'", "")
+                if d == 0:
+                    # replace d and bound by '-'
+                    d = '-'
+                    bound = '-'
+                if k == '20':
+                    k = 'max'
+                # network_legend[id] = f'Id:{id}, {line}'
                 char = '\u00b2'
-            elif L == 3:
-                char = '\u00b3'
-            network_legend[id] = f'({k},{d},{bound}){char}'
+                if L == 0:
+                    char = ''
+                elif L == 1:
+                    char = '\u00b9'
+                elif L == 2:
+                    char = '\u00b2'
+                elif L == 3:
+                    char = '\u00b3'
+                network_legend[id] = f'({k},{d},{bound}){char}'
 
     # group by file id
     groups = df_all.groupby('FileId')
@@ -122,7 +128,7 @@ def epoch_accuracy(db_name, y_val, ids):
     # set the title
     # two columns for the legend
     plt.legend(ncol=2)
-    plt.title(f"{db_name}")
+    plt.title(f"{db_name}, {y_val}")
     # set y-axis from 0 to 100
     plt.ylim(0, 100)
     plt.savefig(f"Results/{db_name}/Plots/{db_name}_{y_val}.png")
@@ -172,10 +178,13 @@ def evaluateGraphLearningNN(db_name, ids):
             # get the row with the maximum validation accuracy
             max_row = group[group['ValidationAccuracy'] == max_val_acc]
             # get the minimum validation loss if column exists
-            if 'ValidationLoss' in group.columns:
-                max_val_acc = group['ValidationLoss'].min()
-                max_row = group[group['ValidationLoss'] == max_val_acc]
-            # get the last row of max_row
+            #if 'ValidationLoss' in group.columns:
+            #    max_val_acc = group['ValidationLoss'].min()
+            #    max_row = group[group['ValidationLoss'] == max_val_acc]
+
+            # get row with the minimum validation loss
+            min_val_loss = max_row['ValidationLoss'].min()
+            max_row = group[group['ValidationLoss'] == min_val_loss]
             max_row = max_row.iloc[-1]
             # get the index of the row
             index = max_row.name
@@ -265,12 +274,18 @@ def evaluateGraphLearningNN(db_name, ids):
 
 def main():
     ids = [i for i in range(4, 7)]
+    evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)
+    epoch_accuracy(db_name='SYNTHETICnew', y_val='Train', ids=ids)
+    epoch_accuracy(db_name='SYNTHETICnew', y_val='Validation', ids=ids)
+    epoch_accuracy(db_name='SYNTHETICnew', y_val='Test', ids=ids)
+
+    ids = [i for i in range(4, 7)]
     evaluateGraphLearningNN(db_name='DHFR', ids=ids)
     epoch_accuracy(db_name='DHFR', y_val='Train', ids=ids)
     epoch_accuracy(db_name='DHFR', y_val='Validation', ids=ids)
     epoch_accuracy(db_name='DHFR', y_val='Test', ids=ids)
 
-    ids = [i for i in range(1, 2)]
+    ids = [i for i in range(201, 205)]
     evaluateGraphLearningNN(db_name='NCI1', ids=ids)
     epoch_accuracy(db_name='NCI1', y_val='Train', ids=ids)
     epoch_accuracy(db_name='NCI1', y_val='Validation', ids=ids)

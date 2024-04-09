@@ -24,7 +24,8 @@ import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 
 
 class RunConfiguration():
-    def __init__(self, layers, batch_size, lr, epochs, dropout, optimizer, loss):
+    def __init__(self, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, loss):
+        self.network_architecture = network_architecture
         self.layers = layers
         self.batch_size = batch_size
         self.lr = lr
@@ -32,6 +33,16 @@ class RunConfiguration():
         self.dropout = dropout
         self.optimizer = optimizer
         self.loss = loss
+
+    def print(self):
+        print(f"Network architecture: {self.network_architecture}")
+        print(f"Layers: {self.layers}")
+        print(f"Batch size: {self.batch_size}")
+        print(f"Learning rate: {self.lr}")
+        print(f"Epochs: {self.epochs}")
+        print(f"Dropout: {self.dropout}")
+        print(f"Optimizer: {self.optimizer}")
+        print(f"Loss: {self.loss}")
 
 
 
@@ -42,7 +53,7 @@ class RunConfiguration():
 @click.option('--validation_id', default=0, type=int)
 @click.option('--config', default=None, type=str)
 # current configuration
-#--graph_db_name CSL --config config.yml
+#--graph_db_name NCI1 --config config.yml
 
 def main(graph_db_name, run_id, validation_number, validation_id, config):
     if config is not None:
@@ -140,7 +151,7 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
                         for d in configs['dropout']:
                             for o in configs['optimizer']:
                                 for loss in configs['loss']:
-                                    run_configs.append(RunConfiguration(layers, b, lr, e, d, o, loss))
+                                    run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
 
         for run_config in run_configs:
             # add node labels for each layer_name except for the primary
@@ -164,7 +175,9 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
                                 max_coding=1,
                                 layers=run_config.layers,
                                 batch_size=run_config.batch_size, node_features=1,
-                                load_splits=configs['load_splits'])
+                                load_splits=configs['load_splits'],
+                                configs=configs,
+                                run_config=run_config,)
 
             """
                 Network parameters
@@ -197,13 +210,13 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
                     gdtgl.draw_graph(graph_data.graphs[i], graph_data.graph_labels[i],
                                      f"{r_path}{para.db}/Plots/graph_{str(i).zfill(5)}.png")
 
-            validation_step(para.run_id, para.validation_id, graph_data, para, configs)
+            validation_step(para.run_id, para.validation_id, graph_data, para)
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
 
 
-def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters, configs):
+def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters):
     """
     Split the data in training validation and test set
     """
@@ -223,8 +236,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     #     test_data = " ".join(map(str, test_data))
     #     f.write(f"Test indices:\n{test_data}\n")
 
-    method = GraphRuleMethod(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para,
-                             configs)
+    method = GraphRuleMethod(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para)
     # method = NoGKernel(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
     # method = NoGKernelNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
     # method = NoGKernelWLNN(run, k_val, graph_data, training_data, validate_data, test_data, seed, para, results_path)
