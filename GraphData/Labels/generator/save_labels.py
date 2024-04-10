@@ -63,7 +63,7 @@ def save_wl_labels(data_path, db_names):
                 write_node_labels(file, node_labels)
 
 
-def save_circle_labels(data_path, db_names, length_bound=6, cycle_type='simple'):
+def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple'):
     for db_name in db_names:
         # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
         if db_name == 'CSL':
@@ -114,10 +114,14 @@ def save_circle_labels(data_path, db_names, length_bound=6, cycle_type='simple')
                     labels[-1].append(label_dict[cycle_d])
                 else:
                     labels[-1].append(len(label_dict))
+        max_node_labels_str = ''
+        if max_node_labels is not None:
+            max_node_labels_str = f"_{max_node_labels}"
+            relabel_most_frequent_node_labels(labels, max_node_labels)
         if cycle_type == 'simple':
-            file = f"../{db_name}_simple_cycles_{length_bound}_labels.txt"
+            file = f"../{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt"
         elif cycle_type == 'induced':
-            file = f"../{db_name}_induced_cycles_{length_bound}_labels.txt"
+            file = f"../{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt"
         write_node_labels(file, labels)
 
 
@@ -227,6 +231,38 @@ def save_clique_labels(data_path, db_names, max_clique=6):
         file = f"../{db_name}_cliques_{max_clique}_labels.txt"
         write_node_labels(file, labels)
 
+def relabel_most_frequent_node_labels(node_labels, max_node_labels):
+    """
+    Relabel the node labels with the most frequent labels.
+    :param node_labels: list of lists
+    :param max_node_labels: int
+    :return: list of lists
+    """
+    # get the unique node labels toghether with their frequency
+    unique_frequency = {}
+    for g_labels in node_labels:
+        for l in g_labels:
+            if l in unique_frequency:
+                unique_frequency[l] += 1
+            else:
+                unique_frequency[l] = 1
+    if len(unique_frequency) <= max_node_labels:
+        return
+    else:
+    # get the k most frequent node labels from the unique_frequency sorted by frequency
+        most_frequent = sorted(unique_frequency, key=unique_frequency.get, reverse=True)[:max_node_labels - 1]
+        # add mapping most frequent to 0 to k-1
+        mapping = {key: max_node_labels - (value + 2) for key, value in zip(most_frequent, range(max_node_labels))}
+        # relabel the node labels
+        for g_labels in node_labels:
+            for i, l in enumerate(g_labels):
+                if l in mapping:
+                    g_labels[i] = mapping[l]
+                else:
+                    g_labels[i] = max_node_labels - 1
+    return node_labels
+
+
 
 
 def main():
@@ -241,7 +277,7 @@ def main():
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
     #save_clique_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity', 'SYNTHETICnew'], max_clique=6)
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
-    #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
+    save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple', max_node_labels=500)
     save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(6)])
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='simple')
