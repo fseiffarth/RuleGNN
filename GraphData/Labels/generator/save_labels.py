@@ -1,8 +1,11 @@
 # generate WL labels for the graph data and save them to a file
 import os
+from typing import List
 
 import networkx as nx
 import numpy as np
+from networkx.algorithms import isomorphism
+from networkx.algorithms.isomorphism import GraphMatcher
 
 from GraphData import GraphData, NodeLabeling
 
@@ -118,6 +121,114 @@ def save_circle_labels(data_path, db_names, length_bound=6, cycle_type='simple')
         write_node_labels(file, labels)
 
 
+def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph]):
+    for db_name in db_names:
+        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
+        if db_name == 'CSL':
+            from LoadData.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+        else:
+            graph_data = GraphData.GraphData()
+            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
+                                          relabel_nodes=True, use_features=False, use_attributes=False)
+        subgraph_dict = []
+        for graph in graph_data.graphs:
+            subgraph_dict.append({})
+            for i, subgraph in enumerate(subgraphs):
+                GM = GraphMatcher(graph, subgraph)
+                for x in GM.subgraph_isomorphisms_iter():
+                    for node in x:
+                        if node in subgraph_dict[-1]:
+                            if i in subgraph_dict[-1][node]:
+                                subgraph_dict[-1][node][i] += 1
+                            else:
+                                subgraph_dict[-1][node][i] = 1
+                        else:
+                            subgraph_dict[-1][node] = {}
+                            subgraph_dict[-1][node][i] = 1
+
+        # get all unique dicts of cycles
+        dict_list = []
+        for g in subgraph_dict:
+            for node_id, c_dict in g.items():
+                dict_list.append(c_dict)
+
+        dict_list = list({str(i) for i in dict_list})
+        # sort the dict_list
+        dict_list = sorted(dict_list)
+        label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
+
+
+        # set the node labels
+        labels = []
+        for graph_id, graph in enumerate(graph_data.graphs):
+            labels.append([])
+            for node in graph.nodes():
+                if node in subgraph_dict[graph_id]:
+                    cycle_d = str(subgraph_dict[graph_id][node])
+                    labels[-1].append(label_dict[cycle_d])
+                else:
+                    labels[-1].append(len(label_dict))
+        file = f"../{db_name}_subgraphs1_labels.txt"
+        write_node_labels(file, labels)
+
+
+
+def save_clique_labels(data_path, db_names, max_clique=6):
+    for db_name in db_names:
+        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
+        if db_name == 'CSL':
+            from LoadData.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+        else:
+            graph_data = GraphData.GraphData()
+            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
+                                          relabel_nodes=True, use_features=False, use_attributes=False)
+        clique_dict = []
+        for graph in graph_data.graphs:
+            clique_dict.append({})
+            cliques = list(nx.find_cliques(graph))
+            for clique in cliques:
+                for node in clique:
+                    if node in clique_dict[-1]:
+                        if len(clique) in clique_dict[-1][node]:
+                            clique_dict[-1][node][len(clique)] += 1
+                        else:
+                            clique_dict[-1][node][len(clique)] = 1
+                    else:
+                        clique_dict[-1][node] = {}
+                        clique_dict[-1][node][len(clique)] = 1
+
+        # get all unique dicts of cycles
+        dict_list = []
+        for g in clique_dict:
+            for node_id, c_dict in g.items():
+                dict_list.append(c_dict)
+
+        dict_list = list({str(i) for i in dict_list})
+        # sort the dict_list
+        dict_list = sorted(dict_list)
+        label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
+
+
+        # set the node labels
+        labels = []
+        for graph_id, graph in enumerate(graph_data.graphs):
+            labels.append([])
+            for node in graph.nodes():
+                if node in clique_dict[graph_id]:
+                    cycle_d = str(clique_dict[graph_id][node])
+                    labels[-1].append(label_dict[cycle_d])
+                else:
+                    labels[-1].append(len(label_dict))
+
+        file = f"../{db_name}_cliques_{max_clique}_labels.txt"
+        write_node_labels(file, labels)
+
+
+
 def main():
     data_path = "../../../../GraphData/DS_all/"
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
@@ -128,9 +239,12 @@ def main():
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=6, cycle_type='simple')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
-
-    save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
-    save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
+    #save_clique_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity', 'SYNTHETICnew'], max_clique=6)
+    #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
+    #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
+    save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(6)])
+    #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
+    #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='simple')
 
 
 

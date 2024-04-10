@@ -384,7 +384,7 @@ def final_evaluation(db_name, ids):
 
 
 def main():
-    ids = [i for i in range(0, 33)]
+    ids = [i for i in range(0, 51)]
     final_evaluation(db_name='MUTAG', ids=ids)
 
     ids = [i for i in range(4, 7)]
