@@ -387,8 +387,8 @@ def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    ids = [i for i in range(0, 3)]
-    final_evaluation(db_name='DHFR', ids=ids)
+    ids = [i for i in range(0, 4)]
+    final_evaluation(db_name='NCI1', ids=ids)
 
     ids = [i for i in range(4, 7)]
     evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)
