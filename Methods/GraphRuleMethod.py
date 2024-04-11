@@ -34,19 +34,6 @@ class GraphRuleMethod:
         """
         Set up the network
         """
-        # net = GraphNN.GraphNet(graph_data=graph_data, n_node_features=para.node_features,
-        #                        n_node_labels=para.node_labels, n_edge_labels=para.edge_labels, dropout=dropout,
-        #                        distance_list=distance_list, cycle_list=cycle_list, out_classes=para.num_classes,
-        #                        print_weights=para.net_print_weights)
-
-        # net = GraphNN.GraphNetOriginal(graph_data=self.graph_data, n_node_features=self.para.node_features,
-        #                                n_node_labels=self.para.node_labels, n_edge_labels=self.para.edge_labels,
-        #                                seed=self.seed,
-        #                                dropout=self.para.dropout,
-        #                                out_classes=self.graph_data.num_classes,
-        #                                print_weights=self.para.net_print_weights,
-        #                                print_layer_init=self.para.print_layer_init,
-        #                                save_weights=self.para.save_weights, convolution_grad=self.para.convolution_grad, resize_grad=self.para.resize_grad)
 
         net = GraphNN.GraphNet(graph_data=self.graph_data,
                                para=self.para,
@@ -163,9 +150,12 @@ class GraphRuleMethod:
                 for j, batch_pos in enumerate(batch, 0):
                     net.train(True)
                     timer.measure("forward_step")
-                    #scale = 0.0
-                    #random_variation = np.random.normal(0, scale, self.graph_data.inputs[batch_pos].shape)
-                    outputs[j] = net(self.graph_data.inputs[batch_pos].to(device), batch_pos)
+                    if 'random_variation' in self.para.configs and self.para.configs['random_variation']:
+                        scale = 1.0
+                        random_variation = np.random.normal(0, scale, self.graph_data.inputs[batch_pos].shape)
+                        outputs[j] = net(self.graph_data.inputs[batch_pos].to(device) + random_variation, batch_pos)
+                    else:
+                        outputs[j] = net(self.graph_data.inputs[batch_pos].to(device), batch_pos)
                     timer.measure("forward_step")
 
                 labels = self.graph_data.one_hot_labels[batch]
