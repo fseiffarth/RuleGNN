@@ -46,7 +46,7 @@ use_attributes: # if True uses node attributes instead of node labels
 load_splits: # if True loads precomputed data splits (use False only for new datasets)
   True
 random_variation: # if True adds random variation to the input features
-  False
+  True
 
 # data options
 balance_training:
