@@ -4,7 +4,7 @@ paths:
   distances:
     "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
   results:
-    "/home/mlai21/seiffart/RESULTS/RuleGNN/" # Results will be saved in this folder
+    "/home/mlai21/seiffart/RESULTS/TEST/RuleGNN/" # Results will be saved in this folder
   splits:
     "GraphData/DataSplits/" # Path to the folder containing the data splits
 device:
@@ -12,8 +12,7 @@ device:
 mode:
   experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
-  - 16
-  - 64
+  - 128
 learning_rate:
   - 0.05
 epochs:
@@ -34,18 +33,8 @@ early_stopping:
 networks:
   # wl models
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3,4,5,6] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
@@ -54,35 +43,27 @@ networks:
 
   # cycle models
   - - { layer_type: simple_cycles, max_cycle_length: 6, distances: [1,2,3,4,5,6] }
-    - { layer_type: simple_cycles, max_cycle_length: 6 }
+    - { layer_type: simple_cycles, max_cycle_length: 10 }
   - - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3,4,5,6] }
-    - { layer_type: simple_cycles, max_cycle_length: 8 }
-  - - { layer_type: simple_cycles, max_cycle_length: 6, distances: [1,2,3,4,5,6,7,8,9,10] }
-    - { layer_type: simple_cycles, max_cycle_length: 6 }
-  - - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3,4,5,6,7,8,9,10] }
-    - { layer_type: simple_cycles, max_cycle_length: 8 }
+    - { layer_type: simple_cycles, max_cycle_length: 10 }
 
   # mixed models
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3,4,5,6] }
-    - { layer_type: simple_cycles, max_cycle_length: 6 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3,4,5,6] }
     - { layer_type: simple_cycles, max_cycle_length: 8 }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3,4,5,6] }
+    - { layer_type: simple_cycles, max_cycle_length: 10 }
   - - { layer_type: simple_cycles, max_cycle_length: 6, distances: [1,2,3,4,5,6] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000}
   - - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3,4,5,6] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
-    - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3,4,5,6 ] }
+    - { layer_type: primary}
+  - - { layer_type: simple_cycles, max_cycle_length: 8, distances: [ 1,2,3,4,5,6 ] }
+    - { layer_type: primary}
+  - - { layer_type: primary, distances: [ 1,2,3,4,5,6 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 10 }
+  - - { layer_type: primary, distances: [ 1,2,3,4,5,6 ] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
-    - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3] }
-    - { layer_type: simple_cycles, max_cycle_length: 6 }
-  - - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
-    - { layer_type: simple_cycles, max_cycle_length: 8 }
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
   True
 use_attributes: # if True uses node attributes instead of node labels
