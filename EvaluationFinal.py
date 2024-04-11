@@ -326,10 +326,10 @@ def final_evaluation(db_name, ids):
         mean_validation = df_validation.mean(numeric_only=True)
         std_validation = df_validation.std(numeric_only=True)
         # print epoch accuracy
-        print(
-            f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
-        print(
-            f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
+        #print(
+        #    f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
+        #print(
+        #    f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
 
         df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
 
@@ -364,10 +364,10 @@ def final_evaluation(db_name, ids):
     # print all evaluation items start with id and network then validation and test accuracy
     # round all floats to 2 decimal places
     for key, value in evaluation.items():
-        value[0] = round(value[0], 2)
-        value[1] = round(value[1], 2)
-        value[2] = round(value[2], 2)
-        value[3] = round(value[3], 2)
+        value[0] = round(value[0], 4)
+        value[1] = round(value[1], 4)
+        value[2] = round(value[2], 4)
+        value[3] = round(value[3], 4)
         value[4] = round(value[4], 4)
         value[5] = round(value[5], 4)
         #print(f"{value[4]} Validation Accuracy: {value[2]} +/- {value[3]} Test Accuracy: {value[0]} +/- {value[1]}")
@@ -378,14 +378,17 @@ def final_evaluation(db_name, ids):
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
 
     for i in range(min(k, len(sorted_evaluation))):
-        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][4], reverse=False)
+        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
         print(
             f"{sorted_evaluation[i][0]} Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
 def main():
-    ids = [i for i in range(0, 51)]
-    final_evaluation(db_name='MUTAG', ids=ids)
+    #ids = [i for i in range(0, 51)]
+    #final_evaluation(db_name='MUTAG', ids=ids)
+
+    ids = [i for i in range(0, 34)]
+    final_evaluation(db_name='DHFR', ids=ids)
 
     ids = [i for i in range(4, 7)]
     evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)

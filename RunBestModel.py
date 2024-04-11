@@ -8,6 +8,7 @@ import os
 import click
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import yaml
 
 from GraphData.DataSplits.load_splits import Load_Splits
@@ -135,11 +136,10 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
                                     run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
 
         # get the best configuration and run it
+        config_id = get_best_configuration(graph_db_name)
 
-        for config_id, run_config in enumerate(run_configs):
-            # config_id to string with leading zeros
-            c_id = f'Best_Configuration_{str(config_id).zfill(6)}'
-            run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
+        c_id = f'Best_Configuration_{str(config_id).zfill(6)}'
+        run_configuration(c_id, run_configs[config_id], graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
@@ -245,6 +245,104 @@ def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, 
 
     validation_step(para.run_id, para.validation_id, graph_data, para)
 
+
+def get_best_configuration(db_name) -> int:
+    evaluation = {}
+    # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
+    # ge all those files
+    files = []
+    network_files = []
+    for file in os.listdir(f"RESULTS/{db_name}/Results"):
+        if file.endswith(".txt"):
+            network_files.append(file)
+        elif file.endswith(".csv") and file.find("run_id_0")  != -1:
+            files.append(file)
+
+    # get the ids from the network files
+    ids = []
+    for file in network_files:
+        ids.append(file.split("_")[-2])
+
+    for id in ids:
+        df_all = None
+        for i, file in enumerate(files):
+            if file.find(f"_{id}_") != -1:
+                df = pd.read_csv(f"RESULTS/{db_name}/Results/{file}", delimiter=";")
+                # concatenate the dataframes
+                if df_all is None:
+                    df_all = df
+                else:
+                    df_all = pd.concat([df_all, df], ignore_index=True)
+
+        # group the data by RunNumberValidationNumber
+        groups = df_all.groupby('ValidationNumber')
+
+        indices = []
+        # get the best validation accuracy for each validation run
+        for name, group in groups:
+            # get the maximum validation accuracy
+            max_val_acc = group['ValidationAccuracy'].max()
+            # get the row with the maximum validation accuracy
+            max_row = group[group['ValidationAccuracy'] == max_val_acc]
+            # get the minimum validation loss if column exists
+            #if 'ValidationLoss' in group.columns:
+            #    max_val_acc = group['ValidationLoss'].min()
+            #    max_row = group[group['ValidationLoss'] == max_val_acc]
+
+            # get row with the minimum validation loss
+            min_val_loss = max_row['ValidationLoss'].min()
+            max_row = group[group['ValidationLoss'] == min_val_loss]
+            max_row = max_row.iloc[-1]
+            # get the index of the row
+            index = max_row.name
+            indices.append(index)
+
+        # get the rows with the indices
+        df_validation = df_all.loc[indices]
+        mean_validation = df_validation.mean(numeric_only=True)
+        std_validation = df_validation.std(numeric_only=True)
+        # print epoch accuracy
+        print(
+            f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
+        print(
+            f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
+
+        df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
+
+        # get the average and deviation over all runs
+
+        df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        df_validation['TestAccuracy'] *= df_validation['TestSize']
+        df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
+        df_validation['ValidationLoss'] *= df_validation['ValidationSize']
+        avg = df_validation.mean(numeric_only=True)
+
+        avg['EpochLoss'] /= avg['TrainingSize']
+        avg['TestAccuracy'] /= avg['TestSize']
+        avg['ValidationAccuracy'] /= avg['ValidationSize']
+        avg['ValidationLoss'] /= avg['ValidationSize']
+
+        std = df_validation.std(numeric_only=True)
+        std['EpochLoss'] /= avg['TrainingSize']
+        std['TestAccuracy'] /= avg['TestSize']
+        std['ValidationAccuracy'] /= avg['ValidationSize']
+        std['ValidationLoss'] /= avg['ValidationSize']
+
+        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], mean_validation['ValidationAccuracy'],
+                              std_validation['ValidationAccuracy'],
+                              mean_validation['ValidationLoss'], std_validation['ValidationLoss']]
+
+    # print the evaluation items with the k highest validation accuracies
+    print(f"Top 5 Validation Accuracies for {db_name}")
+    k = 5
+    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
+
+    for i in range(min(k, len(sorted_evaluation))):
+        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
+
+    # print the id of the best configuration
+    print(f"Best configuration: {sorted_evaluation[0][0]}")
+    return int(sorted_evaluation[0][0])
 
 if __name__ == '__main__':
     main()

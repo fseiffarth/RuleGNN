@@ -1,10 +1,10 @@
 paths:
   data:
-    "/home/mlai21/seiffart/Data/GraphData/DS_all/" # Path to the folder containing the graph data
+    "../GraphData/DS_all/" # Path to the folder containing the graph data
   distances:
-    "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
+    "GraphData/Distances/" # Precomputed distances will be loaded from this folder
   results:
-    "/home/mlai21/seiffart/RESULTS/RuleGNN/" # Results will be saved in this folder
+    "RESULTS/" # Results will be saved in this folder
   splits:
     "GraphData/DataSplits/" # Path to the folder containing the data splits
 device:
@@ -12,7 +12,8 @@ device:
 mode:
   experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
-  - 128
+  - 16
+  - 64
 learning_rate:
   - 0.05
 epochs:
