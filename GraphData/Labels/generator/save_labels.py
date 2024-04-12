@@ -280,7 +280,7 @@ def main():
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple', max_node_labels=500)
     #save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(6)])
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
-    save_circle_labels(data_path, db_names=['NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple')
+    save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=6, cycle_type='simple')
 
 
 
