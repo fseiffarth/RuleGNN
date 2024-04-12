@@ -272,15 +272,26 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
                 f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
-def final_evaluation(db_name, ids):
+def model_selection_evaluation(db_name, path='Results', ids=None):
     evaluation = {}
+
+    if ids is None:
+        # get all ids
+        ids = []
+        for file in os.listdir(f"{path}/{db_name}/Results"):
+            if file.endswith(".txt"):
+                id = int(file.split('_')[-2])
+                ids.append(id)
+        # sort the ids
+        ids.sort()
+
     for id in ids:
         id_str = str(id).zfill(6)
         # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
         # ge all those files
         files = []
         network_files = []
-        for file in os.listdir(f"RESULTS/{db_name}/Results"):
+        for file in os.listdir(f"{path}/{db_name}/Results"):
             if file.startswith(f"{db_name}_Configuration_{id_str}_Results_run_id_") and file.endswith(".csv"):
                 files.append(file)
             elif file.startswith(f"{db_name}_Configuration_{id_str}_Network") and file.endswith(".txt"):
@@ -288,7 +299,7 @@ def final_evaluation(db_name, ids):
 
         df_all = None
         for i, file in enumerate(files):
-            df = pd.read_csv(f"RESULTS/{db_name}/Results/{file}", delimiter=";")
+            df = pd.read_csv(f"{path}/{db_name}/Results/{file}", delimiter=";")
             # concatenate the dataframes
             if df_all is None:
                 df_all = df
@@ -387,8 +398,7 @@ def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    ids = [i for i in range(0, 8)]
-    final_evaluation(db_name='NCI109', ids=ids)
+    model_selection_evaluation(db_name='NCI1', path='RESULTS/TEST/RuleGNN/Features')
 
     ids = [i for i in range(4, 7)]
     evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)
