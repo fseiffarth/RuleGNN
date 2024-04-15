@@ -12,7 +12,7 @@ device:
 mode:
   debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
-  - 16
+  - 128
 learning_rate:
   - 0.05
 epochs:
@@ -42,6 +42,24 @@ networks:
     - { layer_type: simple_cycles, max_cycle_length: 3}
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2,3 ] }
     - { layer_type: simple_cycles, max_cycle_length: 4 }
+
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2,3 ] }
+    - { layer_type: cliques, max_clique_size: 50 }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2,3 ] }
+    - { layer_type: cliques, max_clique_size: 50 }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: cliques, max_clique_size: 50 }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: cliques, max_clique_size: 50 }
+
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2,3 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4 }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4 }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4 }
+
+
 
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
