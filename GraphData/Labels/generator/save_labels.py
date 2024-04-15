@@ -195,15 +195,16 @@ def save_clique_labels(data_path, db_names, max_clique=6):
             clique_dict.append({})
             cliques = list(nx.find_cliques(graph))
             for clique in cliques:
-                for node in clique:
-                    if node in clique_dict[-1]:
-                        if len(clique) in clique_dict[-1][node]:
-                            clique_dict[-1][node][len(clique)] += 1
+                if len(clique) <= max_clique:
+                    for node in clique:
+                        if node in clique_dict[-1]:
+                            if len(clique) in clique_dict[-1][node]:
+                                clique_dict[-1][node][len(clique)] += 1
+                            else:
+                                clique_dict[-1][node][len(clique)] = 1
                         else:
+                            clique_dict[-1][node] = {}
                             clique_dict[-1][node][len(clique)] = 1
-                    else:
-                        clique_dict[-1][node] = {}
-                        clique_dict[-1][node][len(clique)] = 1
 
         # get all unique dicts of cycles
         dict_list = []
@@ -280,7 +281,9 @@ def main():
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple', max_node_labels=500)
     #save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(6)])
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
-    save_circle_labels(data_path, db_names=['CSL'], length_bound=20, cycle_type='simple')
+    save_clique_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], max_clique=100)
+    #save_circle_labels(data_path, db_names=['IMDB-MULTI'], length_bound=4, cycle_type='simple')
+
 
 
 
