@@ -52,14 +52,8 @@ networks:
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000}
   - - { layer_type: simple_cycles, max_cycle_length: 4, distances: [1,2,3] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3 ] }
-    - { layer_type: primary}
-  - - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2,3 ] }
-    - { layer_type: primary}
-  - - { layer_type: primary, distances: [ 1,2,3 ] }
-    - { layer_type: simple_cycles, max_cycle_length: 6 }
-  - - { layer_type: primary, distances: [ 1,2,3 ] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
+
+
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
   False
