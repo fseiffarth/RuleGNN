@@ -267,7 +267,7 @@ def get_best_configuration(db_name, configs) -> int:
         df_all = None
         for i, file in enumerate(files):
             if file.find(f"_{id}_") != -1:
-                df = pd.read_csv(f"RESULTS/{db_name}/Results/{file}", delimiter=";")
+                df = pd.read_csv(f"{configs['paths']['results']}/{db_name}/Results/{file}", delimiter=";")
                 # concatenate the dataframes
                 if df_all is None:
                     df_all = df
