@@ -39,13 +39,13 @@ networks:
 
   # cycle models
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [1,2,3] }
-    - { layer_type: simple_cycles, max_cycle_length: 3 }
+    - { layer_type: simple_cycles, max_cycle_length: 6 }
   - - { layer_type: simple_cycles, max_cycle_length: 4, distances: [1,2,3] }
-    - { layer_type: simple_cycles, max_cycle_length: 4 }
+    - { layer_type: simple_cycles, max_cycle_length: 6 }
 
   # mixed models
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
-    - { layer_type: simple_cycles, max_cycle_length: 4 }
+    - { layer_type: simple_cycles, max_cycle_length: 6 }
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
     - { layer_type: simple_cycles, max_cycle_length: 6 }
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [1,2,3] }

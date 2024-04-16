@@ -136,7 +136,7 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
                                     run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
 
         # get the best configuration and run it
-        config_id = get_best_configuration(graph_db_name)
+        config_id = get_best_configuration(graph_db_name, configs)
 
         c_id = f'Best_Configuration_{str(config_id).zfill(6)}'
         run_configuration(c_id, run_configs[config_id], graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
@@ -246,16 +246,16 @@ def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, 
     validation_step(para.run_id, para.validation_id, graph_data, para)
 
 
-def get_best_configuration(db_name) -> int:
+def get_best_configuration(db_name, configs) -> int:
     evaluation = {}
     # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
     # ge all those files
     files = []
     network_files = []
-    for file in os.listdir(f"RESULTS/{db_name}/Results"):
-        if file.endswith(".txt"):
+    for file in os.listdir(f"{configs['paths']['results']}/{db_name}/Results/"):
+        if file.endswith(".txt") and file.find("Best") == -1:
             network_files.append(file)
-        elif file.endswith(".csv") and file.find("run_id_0")  != -1:
+        elif file.endswith(".csv") and -1 != file.find("run_id_0") and file.find("Best") == -1:
             files.append(file)
 
     # get the ids from the network files
@@ -299,18 +299,8 @@ def get_best_configuration(db_name) -> int:
 
         # get the rows with the indices
         df_validation = df_all.loc[indices]
-        mean_validation = df_validation.mean(numeric_only=True)
-        std_validation = df_validation.std(numeric_only=True)
-        # print epoch accuracy
-        print(
-            f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
-        print(
-            f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
-
-        df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
 
         # get the average and deviation over all runs
-
         df_validation['EpochLoss'] *= df_validation['TrainingSize']
         df_validation['TestAccuracy'] *= df_validation['TestSize']
         df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
@@ -328,14 +318,21 @@ def get_best_configuration(db_name) -> int:
         std['ValidationAccuracy'] /= avg['ValidationSize']
         std['ValidationLoss'] /= avg['ValidationSize']
 
-        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], mean_validation['ValidationAccuracy'],
-                              std_validation['ValidationAccuracy'],
-                              mean_validation['ValidationLoss'], std_validation['ValidationLoss']]
+        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], avg['ValidationAccuracy'],
+                              std['ValidationAccuracy'],
+                              avg['ValidationLoss'], std['ValidationLoss']]
+        # print evaluation
+        print(f"Configuration {id}")
+        print(f"Test Accuracy: {avg['TestAccuracy']} +- {std['TestAccuracy']}")
+        print(f"Validation Accuracy: {avg['ValidationAccuracy']} +- {std['ValidationAccuracy']}")
+        print(f"Validation Loss: {avg['ValidationLoss']} +- {std['ValidationLoss']}")
+
 
     # print the evaluation items with the k highest validation accuracies
     print(f"Top 5 Validation Accuracies for {db_name}")
     k = 5
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
+
 
     for i in range(min(k, len(sorted_evaluation))):
         sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
