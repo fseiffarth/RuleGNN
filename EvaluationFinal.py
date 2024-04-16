@@ -394,11 +394,126 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
             f"{sorted_evaluation[i][0]} Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
+def best_model_evaluation(db_name, path='Results', ids=None):
+    evaluation = {}
+
+    if ids is None:
+        # get all ids
+        ids = []
+        for file in os.listdir(f"{path}/{db_name}/Results"):
+            if file.endswith(".txt") and "Best" in file:
+                id = int(file.split('_')[-2])
+                ids.append(id)
+        # sort the ids
+        ids.sort()
+
+    for id in ids:
+        id_str = str(id).zfill(6)
+        # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
+        # ge all those files
+        files = []
+        network_files = []
+        for file in os.listdir(f"{path}/{db_name}/Results"):
+            if file.startswith(f"{db_name}_Best_Configuration_{id_str}_Results_run_id_") and file.endswith(".csv"):
+                files.append(file)
+            elif file.startswith(f"{db_name}_Best_Configuration_{id_str}_Network") and file.endswith(".txt"):
+                network_files.append(file)
+
+        df_all = None
+        for i, file in enumerate(files):
+            df = pd.read_csv(f"{path}/{db_name}/Results/{file}", delimiter=";")
+            # concatenate the dataframes
+            if df_all is None:
+                df_all = df
+            else:
+                df_all = pd.concat([df_all, df], ignore_index=True)
+
+        # create a new column RunNumberValidationNumber that is the concatenation of RunNumber and ValidationNumber
+        df_all['RunNumberValidationNumber'] = df_all['RunNumber'].astype(str) + df_all['ValidationNumber'].astype(str)
+
+        # group the data by RunNumberValidationNumber
+        groups = df_all.groupby('RunNumberValidationNumber')
+
+        indices = []
+        # iterate over the groups
+        for name, group in groups:
+            # get the maximum validation accuracy
+            max_val_acc = group['ValidationAccuracy'].max()
+            # get the row with the maximum validation accuracy
+            max_row = group[group['ValidationAccuracy'] == max_val_acc]
+            # get the minimum validation loss if column exists
+            #if 'ValidationLoss' in group.columns:
+            #    max_val_acc = group['ValidationLoss'].min()
+            #    max_row = group[group['ValidationLoss'] == max_val_acc]
+
+            # get row with the minimum validation loss
+            min_val_loss = max_row['ValidationLoss'].min()
+            max_row = group[group['ValidationLoss'] == min_val_loss]
+            max_row = max_row.iloc[-1]
+            # get the index of the row
+            index = max_row.name
+            indices.append(index)
+
+        # get the rows with the indices
+        df_validation = df_all.loc[indices]
+        df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
+
+        # get the average and deviation over all runs
+
+        df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        df_validation['TestAccuracy'] *= df_validation['TestSize']
+        df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
+        df_validation['ValidationLoss'] *= df_validation['ValidationSize']
+        avg = df_validation.mean(numeric_only=True)
+
+        avg['EpochLoss'] /= avg['TrainingSize']
+        avg['TestAccuracy'] /= avg['TestSize']
+        avg['ValidationAccuracy'] /= avg['ValidationSize']
+        avg['ValidationLoss'] /= avg['ValidationSize']
+
+        std = df_validation.std(numeric_only=True)
+        std['EpochLoss'] /= avg['TrainingSize']
+        std['TestAccuracy'] /= avg['TestSize']
+        std['ValidationAccuracy'] /= avg['ValidationSize']
+        std['ValidationLoss'] /= avg['ValidationSize']
+
+        # print the avg and std achieved by the highest validation accuracy
+        print(f"Id: {id} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
+
+
+        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], avg['ValidationAccuracy'],
+                              std['ValidationAccuracy'],
+                              avg['ValidationLoss'], std['ValidationLoss']]
+
+
+    # print all evaluation items start with id and network then validation and test accuracy
+    # round all floats to 2 decimal places
+    for key, value in evaluation.items():
+        value[0] = round(value[0], 4)
+        value[1] = round(value[1], 4)
+        value[2] = round(value[2], 4)
+        value[3] = round(value[3], 4)
+        value[4] = round(value[4], 4)
+        value[5] = round(value[5], 4)
+        #print(f"{value[4]} Validation Accuracy: {value[2]} +/- {value[3]} Test Accuracy: {value[0]} +/- {value[1]}")
+
+    # print the evaluation items with the k highest validation accuracies
+    print(f"Top 5 Validation Accuracies for {db_name}")
+    k = 5
+    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
+
+    for i in range(min(k, len(sorted_evaluation))):
+        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
+        print(
+            f"{sorted_evaluation[i][0]} Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
+
+
 def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    model_selection_evaluation(db_name='IMDB-MULTI', path='RESULTS/NoFeatures')
+    model_selection_evaluation(db_name='NCI1', path='RESULTS/Features')
+    best_model_evaluation(db_name='NCI1', path='RESULTS/Features')
 
     ids = [i for i in range(4, 7)]
     evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)

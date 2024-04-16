@@ -1,8 +1,10 @@
 import pickle
 
 import networkx as nx
+from torch_geometric.datasets import ZINC
 
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
+from GraphData.GraphData import zinc_to_networkx
 from LoadData.csl import CSL
 
 
@@ -22,8 +24,24 @@ def save_distances(data_path="../../../GraphData/DS_all/", db_names=[], cutoff=6
                         if distance > max_distance:
                             max_distance = distance
                 distances.append(d)
-                # save list of dictionaries to a pickle file
-                pickle.dump(distances, open(f"{db_name}_distances.pkl", 'wb'))
+            # save list of dictionaries to a pickle file
+            pickle.dump(distances, open(f"{db_name}_distances.pkl", 'wb'))
+        elif db_name == 'ZINC':
+            zinc_train = ZINC(root="../ZINC/", subset=True, split='train')
+            zinc_val = ZINC(root="../ZINC/", subset=True, split='val')
+            zinc_test = ZINC(root="../ZINC/", subset=True, split='test')
+            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
+            distances = []
+            for graph in graph_data.graphs:
+                d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=cutoff))
+                # order the dictionary by the values
+                for _,value in d.items():
+                    for _, distance in value.items():
+                        if distance > max_distance:
+                            max_distance = distance
+                distances.append(d)
+            # save list of dictionaries to a pickle file
+            pickle.dump(distances, open(f"{db_name}_distances.pkl", 'wb'))
         else:
             graph_data = gdtgl.graph_data_to_graph_list(data_path, db_name, relabel_nodes=False)
             distances = []
@@ -41,7 +59,7 @@ def save_distances(data_path="../../../GraphData/DS_all/", db_names=[], cutoff=6
 def main():
     #save_distances(db_names=['NCI1', 'NCI109', 'Mutagenicity', 'IMDB-BINARY', 'IMDB-MULTI', 'PROTEINS', 'ENZYMES', 'DHFR', 'SYNTHETICnew'])
     #save_distances(db_names=[['DD', 'REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB']], cutoff=2)
-    save_distances(db_names=['NCI1', 'DHFR', 'NCI109', 'Mutagenicity'], cutoff=None)
+    save_distances(db_names=['ZINC'], cutoff=None)
 
 
 

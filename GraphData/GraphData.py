@@ -1,5 +1,8 @@
 from typing import List, Dict
 
+import networkx as nx
+import torch
+
 import TrainTestData.TrainTestData as ttd
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from GraphData import NodeLabeling, EdgeLabeling
@@ -134,3 +137,50 @@ class GraphData:
             labels.unique_node_labels[i] = unique
         labels.db_unique_node_labels = db_unique
         pass
+
+
+
+def zinc_to_networkx(train, validation, test, graph_db_name):
+    graphs = GraphData()
+    graphs.graph_db_name = graph_db_name
+    graphs.edge_labels['primary'] = EdgeLabels()
+    graphs.node_labels['primary'] = NodeLabels()
+    graphs.node_labels['primary'].node_labels = []
+    graphs.edge_labels['primary'].edge_labels = []
+    graphs.graph_labels = []
+    graphs.max_nodes = 0
+    graphs.num_classes = 1
+    graphs.num_graphs = len(train) + len(validation) + len(test)
+
+    original_source = -1
+    for data in [train, validation, test]:
+        for i, graph in enumerate(data):
+            # add new graph
+            graphs.graphs.append(nx.Graph())
+            graphs.edge_labels['primary'].edge_labels.append([])
+            graphs.inputs.append(torch.ones(graph['x'].shape[0]).double())
+
+            edges = graph['edge_index']
+            # format edges to list of tuples
+            edges = edges.T.tolist()
+            # add edges to graph
+            for i, edge in enumerate(edges):
+                if edge[0] < edge[1]:
+                    graphs.graphs[-1].add_edge(edge[0], edge[1])
+                    graphs.edge_labels['primary'].edge_labels[-1].append(graph['edge_attr'][i].item())
+            # add node labels
+            graphs.node_labels['primary'].node_labels.append([x.item() for x in graph['x']])
+            # add graph inputs using the values from graph['x'] and flatten the tensor
+            graphs.inputs[-1] = graph['x'].flatten().double()
+
+            graphs.edge_labels['primary'].edge_labels.append(graph['edge_attr'])
+            graphs.node_labels['primary'].node_labels.append([graph['x'][node].item() for node in graphs.graphs[-1].nodes])
+            graphs.graph_labels.append(graph['y'].item())
+            graphs.max_nodes = max(graphs.max_nodes, len(graph['x']))
+
+
+
+            pass
+        pass
+    graphs.one_hot_labels = graphs.graph_labels
+    return graphs

@@ -6,8 +6,10 @@ import networkx as nx
 import numpy as np
 from networkx.algorithms import isomorphism
 from networkx.algorithms.isomorphism import GraphMatcher
+from torch_geometric.datasets import ZINC
 
 from GraphData import GraphData, NodeLabeling
+from GraphData.GraphData import zinc_to_networkx
 
 
 def write_node_labels(file, node_labels):
@@ -30,11 +32,15 @@ def save_wl_labels(data_path, db_names):
             from LoadData.csl import CSL
             csl = CSL()
             graph_data = csl.get_graphs(with_distances=False)
+        elif db_name == 'ZINC':
+            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
+            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
+            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
+            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
                                           relabel_nodes=True, use_features=False, use_attributes=False)
-
         node_labels = graph_data.node_labels['primary'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
@@ -70,6 +76,11 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
             from LoadData.csl import CSL
             csl = CSL()
             graph_data = csl.get_graphs(with_distances=False)
+        elif db_name == 'ZINC':
+            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
+            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
+            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
+            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -132,6 +143,11 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph]):
             from LoadData.csl import CSL
             csl = CSL()
             graph_data = csl.get_graphs(with_distances=False)
+        elif db_name == 'ZINC':
+            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
+            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
+            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
+            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -186,6 +202,11 @@ def save_clique_labels(data_path, db_names, max_clique=6):
             from LoadData.csl import CSL
             csl = CSL()
             graph_data = csl.get_graphs(with_distances=False)
+        elif db_name == 'ZINC':
+            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
+            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
+            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
+            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -281,8 +302,9 @@ def main():
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='simple', max_node_labels=500)
     #save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(6)])
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
-    save_circle_labels(data_path, db_names=['PROTEINS', 'ENZYMES'], length_bound=6)
+    #save_circle_labels(data_path, db_names=['PROTEINS', 'ENZYMES'], length_bound=6)
     #save_circle_labels(data_path, db_names=['IMDB-MULTI'], length_bound=4, cycle_type='simple')
+    save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='simple')
 
 
 

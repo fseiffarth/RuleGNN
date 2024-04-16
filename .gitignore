@@ -3,3 +3,4 @@
 *.pkl
 /gnn-comparison/
 /RESULTS/
+/GraphData/ZINC/
