@@ -512,7 +512,7 @@ def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    model_selection_evaluation(db_name='NCI1', path='RESULTS/Features')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures')
     best_model_evaluation(db_name='NCI1', path='RESULTS/Features')
 
     ids = [i for i in range(4, 7)]
