@@ -292,7 +292,7 @@ def main():
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
     #save_wl_labels(data_path, db_names=['MUTAG'])
     #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)
-    #save_wl_labels(data_path, db_names=['DHFR'])
+    #save_wl_labels(data_path, db_names=['ZINC'])
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=8, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=6, cycle_type='simple')
@@ -304,7 +304,9 @@ def main():
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['PROTEINS', 'ENZYMES'], length_bound=6)
     #save_circle_labels(data_path, db_names=['IMDB-MULTI'], length_bound=4, cycle_type='simple')
-    save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='simple')
+    #save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='simple')
+    save_clique_labels(data_path, db_names=['ZINC'],
+                       max_clique=50)
 
 
 

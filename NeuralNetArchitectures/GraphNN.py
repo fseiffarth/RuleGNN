@@ -178,13 +178,18 @@ class GraphNet(nn.Module):
         """
         self.dropout = nn.Dropout(dropout)
         self.af = nn.Tanh()
-        self.out_af = nn.Sigmoid()
+        if para.configs['output_activation'] == 'None':
+            self.out_af = nn.Identity()
+        self.out_af = nn.Tanh()
         self.epoch = 0
         self.timer = TimeClass()
 
     def forward(self, x, pos):
         for i, layer in enumerate(self.net_layers):
-            x = self.af(layer(x, pos))
+            if i < len(self.net_layers) - 1:
+                x = self.af(layer(x, pos))
+            else:
+                x = self.out_af(layer(x, pos))
         return x
 
     def return_info(self):

@@ -56,7 +56,12 @@ class GraphRuleMethod:
         """
         Set up the loss function
         """
-        criterion = nn.CrossEntropyLoss()
+        if self.para.run_config.loss == 'CrossEntropyLoss':
+            criterion = nn.CrossEntropyLoss()
+        if self.para.run_config.loss == 'MeanSquaredError':
+            criterion = nn.MSELoss()
+        if self.para.run_config.loss == 'MeanAbsoluteError':
+            criterion = nn.L1Loss()
 
         """
         Set up the optimizer
@@ -96,8 +101,12 @@ class GraphRuleMethod:
         file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
 
         # header use semicolon as delimiter
-        header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
-                 "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
+        if self.graph_data.num_classes == 1:
+            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
+                     "EpochMAE;EpochMAEStd;EpochTime;ValidationAccuracy;ValidationLoss;ValidationMAE;ValidationMAEStd;TestAccuracy;TestLoss;TestMAE;TestMAEStd\n"
+        else:
+            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
+                     "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
 
         # Save file for results and add header if the file is new
         with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
@@ -114,7 +123,7 @@ class GraphRuleMethod:
         """
         Store the best epoch
         """
-        best_epoch = {"epoch": 0, "acc": 0.0, "loss": 100.0, "val_acc": 0.0, "val_loss": 100.0}
+        best_epoch = {"epoch": 0, "acc": 0.0, "loss": 100.0, "val_acc": 0.0, "val_loss": 100.0, "val_mae": 0.0}
 
         """
         Run through the defined number of epochs
@@ -133,6 +142,8 @@ class GraphRuleMethod:
             epoch_loss = 0.0
             running_loss = 0.0
             epoch_acc = 0.0
+            epoch_mae = 0.0
+            epoch_mae_std = 0.0
 
             """
             Random Train batches for each epoch
@@ -290,8 +301,25 @@ class GraphRuleMethod:
                 '''
                 batch_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
                 epoch_acc += batch_acc * (len(batch) / len(self.training_data))
+                batch_mae = 0
+                batch_mae_std = 0
+                # if num classes is one print the mae and its deviation
+                if self.graph_data.num_classes == 1:
+                    # flatten the labels and outputs
+                    flatten_labels = labels.flatten().detach().numpy()
+                    flatten_outputs = outputs.flatten().detach().numpy()
+                    batch_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
+                    batch_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
+                    epoch_mae += np.mean(np.abs(flatten_labels - flatten_outputs)) * (len(batch) / len(self.training_data))
+                    epoch_mae_std += np.std(np.abs(flatten_labels - flatten_outputs)) * (len(batch) / len(self.training_data))
+
                 if self.para.print_results:
-                    print("\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} % ".format(epoch + 1, self.para.n_epochs,
+                    if self.graph_data.num_classes == 1:
+                        print("\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} %, mae: {}, mae_std: {}".format(epoch + 1, self.para.n_epochs,
+                                                                                      batch_counter + 1,
+                                                                                      len(train_batches),running_loss, batch_acc, batch_mae, batch_mae_std))
+                    else:
+                        print("\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} % ".format(epoch + 1, self.para.n_epochs,
                                                                                       batch_counter + 1,
                                                                                       len(train_batches),
                                                                                       running_loss, batch_acc))
@@ -316,6 +344,8 @@ class GraphRuleMethod:
             Evaluate the validation accuracy for each epoch
             '''
             validation_acc = 0
+            validation_mae = 0
+            validation_mae_std = 0
             if self.validate_data.size != 0:
                 outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=torch.double)
                 # use torch no grad to save memory
@@ -329,14 +359,29 @@ class GraphRuleMethod:
                 labels_argmax = labels.argmax(axis=1)
                 outputs_argmax = outputs.argmax(axis=1)
                 validation_acc = 100 * sklearn.metrics.accuracy_score(labels_argmax, outputs_argmax)
+                if self.graph_data.num_classes == 1:
+                    flatten_labels = labels.flatten().detach().numpy()
+                    flatten_outputs = outputs.flatten().detach().numpy()
+                    validation_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
+                    validation_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
 
                 # update best epoch
-                if validation_acc > best_epoch["val_acc"] or validation_acc == best_epoch["val_acc"] and validation_loss < best_epoch["val_loss"]:
-                    best_epoch["epoch"] = epoch
-                    best_epoch["acc"] = epoch_acc
-                    best_epoch["loss"] = epoch_loss
-                    best_epoch["val_acc"] = validation_acc
-                    best_epoch["val_loss"] = validation_loss
+                if self.graph_data.num_classes == 1:
+                    if validation_mae <= best_epoch["val_mae"]:
+                        best_epoch["epoch"] = epoch
+                        best_epoch["acc"] = epoch_acc
+                        best_epoch["loss"] = epoch_loss
+                        best_epoch["val_acc"] = validation_acc
+                        best_epoch["val_loss"] = validation_loss
+                        best_epoch["val_mae"] = validation_mae
+                        best_epoch["val_mae_std"] = validation_mae_std
+                else:
+                    if validation_acc > best_epoch["val_acc"] or validation_acc == best_epoch["val_acc"] and validation_loss < best_epoch["val_loss"]:
+                        best_epoch["epoch"] = epoch
+                        best_epoch["acc"] = epoch_acc
+                        best_epoch["loss"] = epoch_loss
+                        best_epoch["val_acc"] = validation_acc
+                        best_epoch["val_loss"] = validation_loss
 
             if self.para.save_prediction_values:
                 # print outputs and labels to a csv file
@@ -361,7 +406,13 @@ class GraphRuleMethod:
             labels = self.graph_data.one_hot_labels[self.test_data]
             test_loss = criterion(outputs, labels).item()
             test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
-            #test_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
+            test_mae = 0
+            test_mae_std = 0
+            if self.graph_data.num_classes == 1:
+                flatten_labels = labels.flatten().detach().numpy()
+                flatten_outputs = outputs.flatten().detach().numpy()
+                test_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
+                test_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
             if self.para.print_results:
                 np_labels = labels.detach().numpy()
                 np_outputs = outputs.detach().numpy()
@@ -390,17 +441,26 @@ class GraphRuleMethod:
             timer.measure("epoch")
             epoch_time = timer.get_flag_time("epoch")
             if self.para.print_results:
-                print("run: {} val step: {} epoch loss: {} epoch acc: {} validation acc: {} validation loss: {} test acc: {} test loss: {} time: {}".format(self.run_id, self.k_val,
-                                                                                            epoch_loss,
-                                                                                            epoch_acc,
-                                                                                            validation_acc,
-                                                                                            validation_loss,
-                                                                                            test_acc,
-                                                                                            test_loss,
-                                                                                            epoch_time))
 
-            res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
-                      f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc};{test_loss}\n"
+                # if class num is one print the mae and mse
+                if self.graph_data.num_classes == 1:
+                    print(f'run: {self.run_id} val step: {self.k_val} epoch: {epoch + 1}/{self.para.n_epochs} epoch loss: {epoch_loss} epoch acc: {epoch_acc} epoch mae: {epoch_mae} +- {epoch_mae_std} epoch time: {epoch_time}'
+                            f' validation acc: {validation_acc} validation loss: {validation_loss} validation mae: {validation_mae} +- {validation_mae_std}'
+                          f'test acc: {test_acc} test loss: {test_loss} test mae: {test_mae} +- {test_mae_std}'
+                          f'time: {epoch_time}')
+                else:
+                    print(f'run: {self.run_id} val step: {self.k_val} epoch: {epoch + 1}/{self.para.n_epochs} epoch loss: {epoch_loss} epoch acc: {epoch_acc}'
+                            f' validation acc: {validation_acc} validation loss: {validation_loss}'
+                            f'test acc: {test_acc} test loss: {test_loss}'
+                            f'time: {epoch_time}')
+
+
+            if self.graph_data.num_classes == 1:
+                res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+                          f"{epoch_loss};{epoch_acc};{epoch_mae};{epoch_mae_std};{epoch_time};{validation_acc};{validation_loss};{validation_mae};{validation_mae_std};{test_acc};{test_loss};{test_mae};{test_mae_std}\n"
+            else:
+                res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+                          f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc};{test_loss}\n"
 
             # Save file for results
             with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:

@@ -148,11 +148,13 @@ def zinc_to_graph_data(train, validation, test, graph_db_name):
     graphs.node_labels['primary'].node_labels = []
     graphs.edge_labels['primary'].edge_labels = []
     graphs.graph_labels = []
+    graphs.one_hot_labels = []
     graphs.max_nodes = 0
     graphs.num_classes = 1
     graphs.num_graphs = len(train) + len(validation) + len(test)
 
     max_label = 0
+    label_set = set()
 
     original_source = -1
     for data in [train, validation, test]:
@@ -176,21 +178,28 @@ def zinc_to_graph_data(train, validation, test, graph_db_name):
             graphs.inputs[-1] = graph['x'].flatten().double()
             # update max_label
             max_label = max(abs(max_label), max(abs(graph['x'])).item())
+            # add graph label
+            for node_label in graph['x']:
+                label_set.add(node_label.item())
 
 
             graphs.edge_labels['primary'].edge_labels.append(graph['edge_attr'])
-            graphs.node_labels['primary'].node_labels.append([graph['x'][node].item() for node in graphs.graphs[-1].nodes])
             graphs.graph_labels.append(graph['y'].item())
+            graphs.one_hot_labels.append(graph['y'].double())
             graphs.max_nodes = max(graphs.max_nodes, len(graph['x']))
 
 
 
             pass
         pass
-    # normalize graph inputs to [0, 1]
+    # normalize graph inputs
+    number_of_node_labels = len(label_set)
+    label_set = sorted(label_set)
+    step = 1.0 / number_of_node_labels
     for i, graph in enumerate(graphs.inputs):
-        graphs.inputs[i] = graphs.inputs[i] / max_label
+        for j, val in enumerate(graph):
+            graphs.inputs[i][j] = (label_set.index(val) + 1) * step * (-1) ** label_set.index(val)
 
-    # set one hot labels as numpy array of graph labels
-    graphs.one_hot_labels = np.array(graphs.graph_labels)
+    # convert one hot label list to tensor
+    graphs.one_hot_labels = torch.stack(graphs.one_hot_labels)
     return graphs
