@@ -178,9 +178,10 @@ class GraphNet(nn.Module):
         """
         self.dropout = nn.Dropout(dropout)
         self.af = nn.Tanh()
-        if para.configs['output_activation'] == 'None':
+        if 'output_activation' in para.configs and para.configs['output_activation'] == 'None':
             self.out_af = nn.Identity()
-        self.out_af = nn.Tanh()
+        else:
+            self.out_af = nn.Tanh()
         self.epoch = 0
         self.timer = TimeClass()
 
