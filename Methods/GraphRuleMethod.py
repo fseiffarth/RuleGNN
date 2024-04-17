@@ -123,7 +123,7 @@ class GraphRuleMethod:
         """
         Store the best epoch
         """
-        best_epoch = {"epoch": 0, "acc": 0.0, "loss": 100.0, "val_acc": 0.0, "val_loss": 100.0, "val_mae": 0.0}
+        best_epoch = {"epoch": 0, "acc": 0.0, "loss": 100.0, "val_acc": 0.0, "val_loss": 100.0, "val_mae": 1000000}
 
         """
         Run through the defined number of epochs
