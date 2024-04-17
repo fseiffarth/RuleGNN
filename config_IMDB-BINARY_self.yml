@@ -36,18 +36,20 @@ networks:
     - { layer_type: wl, wl_iterations: 0 }
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [0,1,2,3] }
     - { layer_type: simple_cycles, max_cycle_length: 3}
-
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 0,1,2,3 ] }
     - { layer_type: cliques, max_clique_size: 50 }
-
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 0,1,2,3,4,5,6 ] }
     - { layer_type: wl, wl_iterations: 0 }
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 0,1,2,3,4,5,6 ] }
     - { layer_type: simple_cycles, max_cycle_length: 3 }
-
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 0,1,2,3,4,5,6 ] }
     - { layer_type: cliques, max_clique_size: 50 }
-
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 0,1,2,3,4,5,6,7,8,9,10 ] }
+    - { layer_type: wl, wl_iterations: 0 }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 0,1,2,3,4,5,6,7,8,9,10 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3 }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 0,1,2,3,4,5,6,7,8,9,10 ] }
+    - { layer_type: cliques, max_clique_size: 50 }
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
   True
