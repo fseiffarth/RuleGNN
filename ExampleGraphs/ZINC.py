@@ -1,7 +1,7 @@
 # download ZINC data a subset of ZINC dataset
 from torch_geometric.datasets import ZINC
 
-from GraphData.GraphData import zinc_to_networkx
+from GraphData.GraphData import zinc_to_graph_data
 
 
 def main(pytorch_geometric=None):
@@ -9,7 +9,7 @@ def main(pytorch_geometric=None):
     zinc_val = ZINC(root="../GraphData/ZINC/", subset=True, split='val')
     zinc_test = ZINC(root="../GraphData/ZINC/", subset=True, split='test')
     # zinc to networkx
-    networkx_graphs = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
+    networkx_graphs = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
     pass
     
     

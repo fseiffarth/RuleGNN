@@ -9,7 +9,7 @@ from networkx.algorithms.isomorphism import GraphMatcher
 from torch_geometric.datasets import ZINC
 
 from GraphData import GraphData, NodeLabeling
-from GraphData.GraphData import zinc_to_networkx
+from GraphData.GraphData import zinc_to_graph_data
 
 
 def write_node_labels(file, node_labels):
@@ -36,7 +36,7 @@ def save_wl_labels(data_path, db_names):
             zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -80,7 +80,7 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
             zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -147,7 +147,7 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph]):
             zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
@@ -206,7 +206,7 @@ def save_clique_labels(data_path, db_names, max_clique=6):
             zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,

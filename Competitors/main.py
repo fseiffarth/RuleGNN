@@ -1,5 +1,3 @@
-import click
-import joblib
 import numpy as np
 
 from GraphData.GraphData import GraphData
@@ -46,4 +44,4 @@ if __name__ == "__main__":
     # run parallel for all datasets
     # joblib.Parallel(n_jobs=-1)(
     #     joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
-    main("MUTAG")
+    main("IMDB-MULTI")

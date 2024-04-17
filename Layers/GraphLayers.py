@@ -123,7 +123,7 @@ class GraphConvLayer(nn.Module):
             for i, x in enumerate(kwargs["degrees"], 0):
                 self.extra_dim_map[x] = i
         elif "distances" in kwargs:
-            self.distance_list = graph_data.distance_list
+            self.distance_list = True
             self.n_extra_dim = len(kwargs["distances"])
             for i, x in enumerate(kwargs["distances"], 0):
                 self.extra_dim_map[x] = i
@@ -225,9 +225,9 @@ class GraphConvLayer(nn.Module):
                 for i2 in range(0, self.in_features):
                     for k in range(0, self.n_kernels):
                         for n1 in range(0, node_number):
-                            if len(self.distance_list) > 0:
+                            if self.distance_list:
                                 # iterate over the distance list until the maximum distance is reached
-                                for n2, distance in self.distance_list[graph_id][n1].items():
+                                for n2, distance in self.graph_data.distance_list[graph_id][n1].items():
                                     if distance <= kwargs["distances"][-1]:
                                         n1_label, n2_label, e_label, extra_dim = self.w_distribution_rule(n1, n2,
                                                                                                           self.graph_data,
@@ -260,6 +260,8 @@ class GraphConvLayer(nn.Module):
                                                 #weight_indices = torch.cat((weight_indices,torch.tensor([flatten_indices[row_index, col_index][0]])))
                                                 #weight_pos_tensor = torch.cat((weight_pos_tensor, torch.tensor([np.int64(weight_pos).item()])))
                                             weight_entry_num += 1
+                                    else:
+                                        break
                             else:
                                 for n2 in range(0, node_number):
                                     n1_label, n2_label, e_label, extra_dim = self.w_distribution_rule(n1, n2,

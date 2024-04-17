@@ -4,7 +4,7 @@ import networkx as nx
 from torch_geometric.datasets import ZINC
 
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
-from GraphData.GraphData import zinc_to_networkx
+from GraphData.GraphData import zinc_to_graph_data
 from LoadData.csl import CSL
 
 
@@ -30,7 +30,7 @@ def save_distances(data_path="../../../GraphData/DS_all/", db_names=[], cutoff=6
             zinc_train = ZINC(root="../ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="../ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_networkx(zinc_train, zinc_val, zinc_test, "ZINC")
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
             distances = []
             for graph in graph_data.graphs:
                 d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=cutoff))

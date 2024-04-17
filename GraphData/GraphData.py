@@ -140,7 +140,7 @@ class GraphData:
 
 
 
-def zinc_to_networkx(train, validation, test, graph_db_name):
+def zinc_to_graph_data(train, validation, test, graph_db_name):
     graphs = GraphData()
     graphs.graph_db_name = graph_db_name
     graphs.edge_labels['primary'] = EdgeLabels()
@@ -151,6 +151,8 @@ def zinc_to_networkx(train, validation, test, graph_db_name):
     graphs.max_nodes = 0
     graphs.num_classes = 1
     graphs.num_graphs = len(train) + len(validation) + len(test)
+
+    max_label = 0
 
     original_source = -1
     for data in [train, validation, test]:
@@ -172,6 +174,9 @@ def zinc_to_networkx(train, validation, test, graph_db_name):
             graphs.node_labels['primary'].node_labels.append([x.item() for x in graph['x']])
             # add graph inputs using the values from graph['x'] and flatten the tensor
             graphs.inputs[-1] = graph['x'].flatten().double()
+            # update max_label
+            max_label = max(abs(max_label), max(abs(graph['x'])).item())
+
 
             graphs.edge_labels['primary'].edge_labels.append(graph['edge_attr'])
             graphs.node_labels['primary'].node_labels.append([graph['x'][node].item() for node in graphs.graphs[-1].nodes])
@@ -182,5 +187,10 @@ def zinc_to_networkx(train, validation, test, graph_db_name):
 
             pass
         pass
-    graphs.one_hot_labels = graphs.graph_labels
+    # normalize graph inputs to [0, 1]
+    for i, graph in enumerate(graphs.inputs):
+        graphs.inputs[i] = graphs.inputs[i] / max_label
+
+    # set one hot labels as numpy array of graph labels
+    graphs.one_hot_labels = np.array(graphs.graph_labels)
     return graphs
