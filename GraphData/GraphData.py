@@ -209,13 +209,14 @@ def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True
 
             pass
         pass
-    # normalize graph inputs
-    number_of_node_labels = len(label_set)
-    label_set = sorted(label_set)
-    step = 1.0 / number_of_node_labels
-    for i, graph in enumerate(graphs.inputs):
-        for j, val in enumerate(graph):
-            graphs.inputs[i][j] = (label_set.index(val) + 1) * step * (-1) ** label_set.index(val)
+    if use_features:
+        # normalize graph inputs
+        number_of_node_labels = len(label_set)
+        label_set = sorted(label_set)
+        step = 1.0 / number_of_node_labels
+        for i, graph in enumerate(graphs.inputs):
+            for j, val in enumerate(graph):
+                graphs.inputs[i][j] = (label_set.index(val) + 1) * step * (-1) ** label_set.index(val)
 
     # convert one hot label list to tensor
     graphs.one_hot_labels = torch.stack(graphs.one_hot_labels)
