@@ -144,6 +144,9 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
                                     run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
 
         for config_id, run_config in enumerate(run_configs):
+            if 'config_id' in configs:
+                # if config_id is provided in the config file, add it to the current config_id
+                config_id += configs['config_id']
             # config_id to string with leading zeros
             c_id = f'Configuration_{str(config_id).zfill(6)}'
             run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs)

@@ -1,0 +1,69 @@
+paths:
+  data:
+    "/home/mlai21/seiffart/Data/GraphData/DS_all/" # Path to the folder containing the graph data
+  distances:
+    "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
+  results:
+    "/home/mlai21/seiffart/RESULTS/TEST/RuleGNN/Features/ZINC/" # Results will be saved in this folder
+  splits:
+    "GraphData/DataSplits/" # Path to the folder containing the data splits
+device:
+  cpu
+mode:
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+batch_size:
+  - 128
+learning_rate:
+  - 0.05
+epochs:
+  - 50
+scheduler:
+  True
+dropout:
+  - 0.0
+optimizer:
+  - Adam
+loss:
+  - MeanAbsoluteError
+output_activation:
+  None
+early_stopping:
+  enabled:
+    True
+  patience:
+    25
+networks:
+  - - { layer_type: primary, distances: [ 1,2,3,4,5 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 10, distances: [ 1,2,3,4,5 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+
+use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
+  True
+use_attributes: # if True uses node attributes instead of node labels
+  False
+load_splits: # if True loads precomputed data splits (use False only for new datasets)
+  True
+
+# data options
+balance_training:
+  False
+
+# Additional options for analysis only possible in debug mode
+additional_options:
+  draw: # draw the accuracy and loss during training
+    True
+  save_weights: # save the weights of the model
+    False
+  save_prediction_values:
+    True
+  plot_graphs: # Plot all graphs in the dataset
+    False
+  print_results: # Print accuracy and loss in the console
+    True
+
+config_id:
+  1300
+
+
+
