@@ -164,7 +164,9 @@ class GraphRuleMethod:
                     if 'random_variation' in self.para.configs and self.para.configs['random_variation']:
                         scale = 1.0
                         np.random.seed(graph_id + 3584946)
+                        # random variation as torch tensor
                         random_variation = np.random.normal(0, scale, self.graph_data.inputs[graph_id].shape)
+                        random_variation = torch.DoubleTensor(random_variation)
                         outputs[j] = net(random_variation, graph_id)
                     else:
                         outputs[j] = net(self.graph_data.inputs[graph_id].to(device), graph_id)
