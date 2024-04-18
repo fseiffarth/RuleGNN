@@ -116,7 +116,7 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
             zinc_train = ZINC(root="GraphData/ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="GraphData/ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="GraphData/ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC", use_features=configs['use_features'])
             if os.path.isfile(f'{distance_path}{graph_db_name}_distances.pkl'):
                 distance_list = load_distances(db_name=graph_db_name,
                                                path=f'{distance_path}{graph_db_name}_distances.pkl')

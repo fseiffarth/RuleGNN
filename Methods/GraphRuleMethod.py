@@ -158,15 +158,16 @@ class GraphRuleMethod:
                 outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=torch.double))
 
                 # TODO parallelize forward
-                for j, batch_pos in enumerate(batch, 0):
+                for j, graph_id in enumerate(batch, 0):
                     net.train(True)
                     timer.measure("forward_step")
                     if 'random_variation' in self.para.configs and self.para.configs['random_variation']:
                         scale = 1.0
-                        random_variation = np.random.normal(0, scale, self.graph_data.inputs[batch_pos].shape)
-                        outputs[j] = net(self.graph_data.inputs[batch_pos].to(device) + random_variation, batch_pos)
+                        np.random.seed(graph_id + 3584946)
+                        random_variation = np.random.normal(0, scale, self.graph_data.inputs[graph_id].shape)
+                        outputs[j] = net(random_variation, graph_id)
                     else:
-                        outputs[j] = net(self.graph_data.inputs[batch_pos].to(device), batch_pos)
+                        outputs[j] = net(self.graph_data.inputs[graph_id].to(device), graph_id)
                     timer.measure("forward_step")
 
                 labels = self.graph_data.one_hot_labels[batch]
