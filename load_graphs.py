@@ -10,8 +10,8 @@ from LoadData.csl import CSL
 
 def main():
     # load the graph data
-    graph_db = 'NCI1'
-    data_path = '../../GraphData/DS_all/'
+    graph_db = 'IMDB-MULTI'
+    data_path = '../GraphData/DS_all/'
     distance_path = "GraphData/Distances/"
     """
     Create Input data, information and labels from the graphs for training and testing

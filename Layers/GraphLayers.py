@@ -228,40 +228,37 @@ class GraphConvLayer(nn.Module):
                             if self.distance_list:
                                 # iterate over the distance list until the maximum distance is reached
                                 for n2, distance in self.graph_data.distance_list[graph_id][n1].items():
-                                    if distance <= kwargs["distances"][-1]:
-                                        n1_label, n2_label, e_label, extra_dim = self.w_distribution_rule(n1, n2,
-                                                                                                          self.graph_data,
-                                                                                                          self.node_labels,
-                                                                                                          graph_id)
-                                        if valid_node_label(int(n1_label)) and valid_node_label(
-                                                int(n2_label)) and valid_edge_label(int(e_label)) and valid_extra_dim(
-                                            extra_dim):
-                                            # position of the weight in the Parameter list
-                                            weight_pos = \
-                                                self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
-                                                    self.extra_dim_map[extra_dim]]
+                                    n1_label, n2_label, e_label, extra_dim = self.w_distribution_rule(n1, n2,
+                                                                                                      self.graph_data,
+                                                                                                      self.node_labels,
+                                                                                                      graph_id)
+                                    if valid_node_label(int(n1_label)) and valid_node_label(
+                                            int(n2_label)) and valid_edge_label(int(e_label)) and valid_extra_dim(
+                                        extra_dim):
+                                        # position of the weight in the Parameter list
+                                        weight_pos = \
+                                            self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
+                                                self.extra_dim_map[extra_dim]]
 
-                                            # position of the weight in the weight matrix
-                                            row_index = index_map[(i1, i2, k, n1, n2)][0]
-                                            col_index = index_map[(i1, i2, k, n1, n2)][1]
+                                        # position of the weight in the weight matrix
+                                        row_index = index_map[(i1, i2, k, n1, n2)][0]
+                                        col_index = index_map[(i1, i2, k, n1, n2)][1]
 
-                                            if weight_entry_num == 0:
-                                                graph_weight_pos_distribution[weight_entry_num, 0] = row_index
-                                                graph_weight_pos_distribution[weight_entry_num, 1] = col_index
-                                                graph_weight_pos_distribution[weight_entry_num, 2] = weight_pos
+                                        if weight_entry_num == 0:
+                                            graph_weight_pos_distribution[weight_entry_num, 0] = row_index
+                                            graph_weight_pos_distribution[weight_entry_num, 1] = col_index
+                                            graph_weight_pos_distribution[weight_entry_num, 2] = weight_pos
 
-                                                #weight_indices[0] = flatten_indices[row_index, col_index][0]
-                                                #weight_pos_tensor[0] = np.int64(weight_pos).item()
-                                            else:
-                                                graph_weight_pos_distribution = np.append(graph_weight_pos_distribution,
-                                                                                          [
-                                                                                              [row_index, col_index,
-                                                                                               weight_pos]], axis=0)
-                                                #weight_indices = torch.cat((weight_indices,torch.tensor([flatten_indices[row_index, col_index][0]])))
-                                                #weight_pos_tensor = torch.cat((weight_pos_tensor, torch.tensor([np.int64(weight_pos).item()])))
-                                            weight_entry_num += 1
-                                    else:
-                                        break
+                                            #weight_indices[0] = flatten_indices[row_index, col_index][0]
+                                            #weight_pos_tensor[0] = np.int64(weight_pos).item()
+                                        else:
+                                            graph_weight_pos_distribution = np.append(graph_weight_pos_distribution,
+                                                                                      [
+                                                                                          [row_index, col_index,
+                                                                                           weight_pos]], axis=0)
+                                            #weight_indices = torch.cat((weight_indices,torch.tensor([flatten_indices[row_index, col_index][0]])))
+                                            #weight_pos_tensor = torch.cat((weight_pos_tensor, torch.tensor([np.int64(weight_pos).item()])))
+                                        weight_entry_num += 1
                             else:
                                 for n2 in range(0, node_number):
                                     n1_label, n2_label, e_label, extra_dim = self.w_distribution_rule(n1, n2,

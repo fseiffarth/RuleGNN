@@ -339,6 +339,8 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
         # get the average and deviation over all runs
 
         df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        df_validation['Epoch'] *= df_validation['TrainingSize']
+        df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
         df_validation['TestAccuracy'] *= df_validation['TestSize']
         df_validation['TestLoss'] *= df_validation['TestSize']
         df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
@@ -346,6 +348,8 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
         avg = df_validation.mean(numeric_only=True)
 
         avg['EpochLoss'] /= avg['TrainingSize']
+        avg['Epoch'] /= avg['TrainingSize']
+        avg['EpochAccuracy'] /= avg['TrainingSize']
         avg['TestAccuracy'] /= avg['TestSize']
         avg['TestLoss'] /= avg['TestSize']
         avg['ValidationAccuracy'] /= avg['ValidationSize']
@@ -353,13 +357,20 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
 
         std = df_validation.std(numeric_only=True)
         std['EpochLoss'] /= avg['TrainingSize']
+        std['Epoch'] /= avg['TrainingSize']
+        std['EpochAccuracy'] /= avg['TrainingSize']
         std['TestAccuracy'] /= avg['TestSize']
         std['TestLoss'] /= avg['TestSize']
         std['ValidationAccuracy'] /= avg['ValidationSize']
         std['ValidationLoss'] /= avg['ValidationSize']
 
         # print the avg and std achieved by the highest validation accuracy
-        print(f"Id: {id} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
+        # print the avg and std achieved by the highest validation accuracy
+        print(f"Id: {id} "
+              f"Epoch: {avg['Epoch']} +/- {std['Epoch']} "
+                f"Average Training Accuracy: {avg['EpochAccuracy']} +/- {std['EpochAccuracy']} "
+              f"Average Validation Accuracy: {avg['ValidationAccuracy']} +/- {std['ValidationAccuracy']}"
+              f"Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
 
 
         evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], avg['ValidationAccuracy'],
@@ -480,24 +491,30 @@ def best_model_evaluation(db_name, path='Results', ids=None):
         # get the average and deviation over all runs
 
         df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
         df_validation['TestAccuracy'] *= df_validation['TestSize']
         df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
         df_validation['ValidationLoss'] *= df_validation['ValidationSize']
         avg = df_validation.mean(numeric_only=True)
 
         avg['EpochLoss'] /= avg['TrainingSize']
+        avg['EpochAccuracy'] /= avg['TrainingSize']
         avg['TestAccuracy'] /= avg['TestSize']
         avg['ValidationAccuracy'] /= avg['ValidationSize']
         avg['ValidationLoss'] /= avg['ValidationSize']
 
         std = df_validation.std(numeric_only=True)
         std['EpochLoss'] /= avg['TrainingSize']
+        std['TrainingAccuracy'] /= avg['TrainingSize']
         std['TestAccuracy'] /= avg['TestSize']
         std['ValidationAccuracy'] /= avg['ValidationSize']
         std['ValidationLoss'] /= avg['ValidationSize']
 
         # print the avg and std achieved by the highest validation accuracy
-        print(f"Id: {id} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
+        print(f"Id: {id} "
+                f"Average Training Accuracy: {avg['EpochAccuracy']} +/- {std['EpochAccuracy']} "
+              f"Average Validation Accuracy: {avg['ValidationAccuracy']} +/- {std['ValidationAccuracy']}"
+              f"Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
 
 
         evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], avg['ValidationAccuracy'],
@@ -524,15 +541,17 @@ def best_model_evaluation(db_name, path='Results', ids=None):
     for i in range(min(k, len(sorted_evaluation))):
         sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
         print(
-            f"Id: {sorted_evaluation[i][0]} Epoch Loss: Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
+            f"Id: {sorted_evaluation[i][0]} "
+            f'Epoch Accuracy: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} '
+            f"Epoch Loss: Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
 def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    model_selection_evaluation(db_name='ZINC', path='RESULTS/Features')
-    best_model_evaluation(db_name='IMDB-MULTI', path='RESULTS/Longrange')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures')
+    best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures')
 
     ids = [i for i in range(4, 7)]
     evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)
