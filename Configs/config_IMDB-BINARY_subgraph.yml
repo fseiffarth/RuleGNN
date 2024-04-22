@@ -30,11 +30,23 @@ early_stopping:
     25
 networks:
   # mixed models
-  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
-    - { layer_type: subgraph }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2] }
+    - { layer_type: subgraph}
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: subgraph}
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: subgraph}
+
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1 }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: subgraph, id: 1 }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3 ] }
+    - { layer_type: subgraph, id: 1 }
+    
   - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
     - { layer_type: subgraph }
-  - - { layer_type: induced_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
     - { layer_type: subgraph }
   - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
     - { layer_type: subgraph }
@@ -44,17 +56,17 @@ networks:
     - { layer_type: subgraph }
   - - { layer_type: induced_cycles, max_cycle_length: 50, distances: [ 1,2 ] }
     - { layer_type: subgraph } 
-  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
-    - { layer_type: subgraph, id: 1 }
   - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
     - { layer_type: subgraph, id: 1}
-  - - { layer_type: induced_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
     - { layer_type: subgraph, id: 1 }
   - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
     - { layer_type: subgraph, id: 1 }
   - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
     - { layer_type: subgraph, id: 1 }
   - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1 }
+  - - { layer_type: induced_cycles, max_cycle_length: 50, distances: [ 1,2 ] }
     - { layer_type: subgraph, id: 1 }
   - - { layer_type: induced_cycles, max_cycle_length: 50, distances: [ 1,2 ] }
     - { layer_type: subgraph, id: 1 }
