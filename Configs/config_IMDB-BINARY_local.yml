@@ -32,6 +32,8 @@ early_stopping:
     25
 networks:
   # mixed models
+  - - { layer_type: subgraph, distances: [ 2 ] }
+    - { layer_type: subgraph }
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2,3 ] }
     - { layer_type: wl, wl_iterations: 0 }
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2,3 ] }
