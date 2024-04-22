@@ -4,7 +4,7 @@ paths:
   distances:
     "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
   results:
-    "/home/mlai21/seiffart/RESULTS/TEST/RuleGNN/Features/ZINC3/" # Results will be saved in this folder
+    "/home/mlai21/seiffart/RESULTS/TEST/RuleGNN/Features/" # Results will be saved in this folder
   splits:
     "GraphData/DataSplits/" # Path to the folder containing the data splits
 device:
@@ -33,19 +33,18 @@ early_stopping:
   patience:
     25
 networks:
-
-
-  # cycle models
   - - { layer_type: simple_cycles, max_cycle_length: 8, distances: [1,2,3,4,5,6] }
-    - { layer_type: simple_cycles, max_cycle_length: 10 }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000}
   - - { layer_type: simple_cycles, max_cycle_length: 10, distances: [1,2,3,4,5,6] }
-    - { layer_type: simple_cycles, max_cycle_length: 10 }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
-  True
+  False
 use_attributes: # if True uses node attributes instead of node labels
   False
 load_splits: # if True loads precomputed data splits (use False only for new datasets)
+  True
+random_variation: # if True adds random variation to the input features
   True
 
 # data options
@@ -66,4 +65,5 @@ additional_options:
     True
 
 
-
+config_id:
+  1900

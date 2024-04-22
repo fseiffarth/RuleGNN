@@ -334,42 +334,50 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
 
         # get the rows with the indices
         df_validation = df_all.loc[indices]
-        mean_validation = df_validation.mean(numeric_only=True)
-        std_validation = df_validation.std(numeric_only=True)
-        # print epoch accuracy
-        #print(
-        #    f"Id: {id} Average Epoch Accuracy: {mean_validation['EpochAccuracy']} +/- {std_validation['EpochAccuracy']}")
-        #print(
-        #    f"Id: {id} Average Validation Accuracy: {mean_validation['ValidationAccuracy']} +/- {std_validation['ValidationAccuracy']}")
-
         df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
 
         # get the average and deviation over all runs
 
         df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        df_validation['Epoch'] *= df_validation['TrainingSize']
+        df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
         df_validation['TestAccuracy'] *= df_validation['TestSize']
+        df_validation['TestLoss'] *= df_validation['TestSize']
         df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
         df_validation['ValidationLoss'] *= df_validation['ValidationSize']
         avg = df_validation.mean(numeric_only=True)
 
         avg['EpochLoss'] /= avg['TrainingSize']
+        avg['Epoch'] /= avg['TrainingSize']
+        avg['EpochAccuracy'] /= avg['TrainingSize']
         avg['TestAccuracy'] /= avg['TestSize']
+        avg['TestLoss'] /= avg['TestSize']
         avg['ValidationAccuracy'] /= avg['ValidationSize']
         avg['ValidationLoss'] /= avg['ValidationSize']
 
         std = df_validation.std(numeric_only=True)
         std['EpochLoss'] /= avg['TrainingSize']
+        std['Epoch'] /= avg['TrainingSize']
+        std['EpochAccuracy'] /= avg['TrainingSize']
         std['TestAccuracy'] /= avg['TestSize']
+        std['TestLoss'] /= avg['TestSize']
         std['ValidationAccuracy'] /= avg['ValidationSize']
         std['ValidationLoss'] /= avg['ValidationSize']
 
         # print the avg and std achieved by the highest validation accuracy
-        print(f"Id: {id} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
+        # print the avg and std achieved by the highest validation accuracy
+        print(f"Id: {id} "
+              f"Epoch: {avg['Epoch']} +/- {std['Epoch']} "
+                f"Average Training Accuracy: {avg['EpochAccuracy']} +/- {std['EpochAccuracy']} "
+              f"Average Validation Accuracy: {avg['ValidationAccuracy']} +/- {std['ValidationAccuracy']}"
+              f"Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
 
 
-        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], mean_validation['ValidationAccuracy'],
-                              std_validation['ValidationAccuracy'],
-                              mean_validation['ValidationLoss'], std_validation['ValidationLoss']]
+        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], avg['ValidationAccuracy'],
+                              std['ValidationAccuracy'],
+                              avg['ValidationLoss'], std['ValidationLoss'],
+                          avg['TestLoss'], std['TestLoss'],
+                          avg['EpochLoss'], std['EpochLoss']]
 
 
     # print all evaluation items start with id and network then validation and test accuracy
@@ -381,17 +389,29 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
         value[3] = round(value[3], 4)
         value[4] = round(value[4], 4)
         value[5] = round(value[5], 4)
-        #print(f"{value[4]} Validation Accuracy: {value[2]} +/- {value[3]} Test Accuracy: {value[0]} +/- {value[1]}")
+        value[6] = round(value[6], 4)
+        value[7] = round(value[7], 4)
+        value[8] = round(value[8], 4)
+        value[9] = round(value[9], 4)
 
     # print the evaluation items with the k highest validation accuracies
     print(f"Top 5 Validation Accuracies for {db_name}")
-    k = 5
-    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
+    k = 10
+
+    sort_key = 2
+    reversed_sort = True
+    if db_name == 'ZINC':
+        sort_key = 8
+        reversed_sort = False
+
+    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sort_key], reverse=reversed_sort)
 
     for i in range(min(k, len(sorted_evaluation))):
-        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
+        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sort_key], reverse=reversed_sort)
         print(
-            f"{sorted_evaluation[i][0]} Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
+            f" Id: {sorted_evaluation[i][0]} "
+            f" Epoch Loss: {sorted_evaluation[i][1][8]} +/- {sorted_evaluation[i][1][9]} "
+            f" Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]} Test Loss: {sorted_evaluation[i][1][6]} +/- {sorted_evaluation[i][1][7]}")
 
 
 def best_model_evaluation(db_name, path='Results', ids=None):
@@ -437,22 +457,32 @@ def best_model_evaluation(db_name, path='Results', ids=None):
         indices = []
         # iterate over the groups
         for name, group in groups:
-            # get the maximum validation accuracy
-            max_val_acc = group['ValidationAccuracy'].max()
-            # get the row with the maximum validation accuracy
-            max_row = group[group['ValidationAccuracy'] == max_val_acc]
-            # get the minimum validation loss if column exists
-            #if 'ValidationLoss' in group.columns:
-            #    max_val_acc = group['ValidationLoss'].min()
-            #    max_row = group[group['ValidationLoss'] == max_val_acc]
+            # if db name is zinc, look for the minimum validation loss
+            if db_name == 'ZINC':
+                # get row with the minimum validation loss
+                min_val_loss = group['ValidationLoss'].min()
+                max_row = group[group['ValidationLoss'] == min_val_loss]
+                max_row = max_row.iloc[-1]
+                # get the index of the row
+                index = max_row.name
+                indices.append(index)
+            else:
+                # get the maximum validation accuracy
+                max_val_acc = group['ValidationAccuracy'].max()
+                # get the row with the maximum validation accuracy
+                max_row = group[group['ValidationAccuracy'] == max_val_acc]
+                # get the minimum validation loss if column exists
+                #if 'ValidationLoss' in group.columns:
+                #    max_val_acc = group['ValidationLoss'].min()
+                #    max_row = group[group['ValidationLoss'] == max_val_acc]
 
-            # get row with the minimum validation loss
-            min_val_loss = max_row['ValidationLoss'].min()
-            max_row = group[group['ValidationLoss'] == min_val_loss]
-            max_row = max_row.iloc[-1]
-            # get the index of the row
-            index = max_row.name
-            indices.append(index)
+                # get row with the minimum validation loss
+                min_val_loss = max_row['ValidationLoss'].min()
+                max_row = group[group['ValidationLoss'] == min_val_loss]
+                max_row = max_row.iloc[-1]
+                # get the index of the row
+                index = max_row.name
+                indices.append(index)
 
         # get the rows with the indices
         df_validation = df_all.loc[indices]
@@ -461,24 +491,30 @@ def best_model_evaluation(db_name, path='Results', ids=None):
         # get the average and deviation over all runs
 
         df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
         df_validation['TestAccuracy'] *= df_validation['TestSize']
         df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
         df_validation['ValidationLoss'] *= df_validation['ValidationSize']
         avg = df_validation.mean(numeric_only=True)
 
         avg['EpochLoss'] /= avg['TrainingSize']
+        avg['EpochAccuracy'] /= avg['TrainingSize']
         avg['TestAccuracy'] /= avg['TestSize']
         avg['ValidationAccuracy'] /= avg['ValidationSize']
         avg['ValidationLoss'] /= avg['ValidationSize']
 
         std = df_validation.std(numeric_only=True)
         std['EpochLoss'] /= avg['TrainingSize']
+        std['TrainingAccuracy'] /= avg['TrainingSize']
         std['TestAccuracy'] /= avg['TestSize']
         std['ValidationAccuracy'] /= avg['ValidationSize']
         std['ValidationLoss'] /= avg['ValidationSize']
 
         # print the avg and std achieved by the highest validation accuracy
-        print(f"Id: {id} Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
+        print(f"Id: {id} "
+                f"Average Training Accuracy: {avg['EpochAccuracy']} +/- {std['EpochAccuracy']} "
+              f"Average Validation Accuracy: {avg['ValidationAccuracy']} +/- {std['ValidationAccuracy']}"
+              f"Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
 
 
         evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], avg['ValidationAccuracy'],
@@ -505,33 +541,19 @@ def best_model_evaluation(db_name, path='Results', ids=None):
     for i in range(min(k, len(sorted_evaluation))):
         sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
         print(
-            f"{sorted_evaluation[i][0]} Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
+            f"Id: {sorted_evaluation[i][0]} "
+            f'Epoch Accuracy: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} '
+            f"Epoch Loss: Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
 def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/Cliques')
-    best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS/Cliques')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures/Cliques')
+    best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures/Cliques')
 
-    ids = [i for i in range(4, 7)]
-    evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)
-    epoch_accuracy(db_name='SYNTHETICnew', y_val='Train', ids=ids)
-    epoch_accuracy(db_name='SYNTHETICnew', y_val='Validation', ids=ids)
-    epoch_accuracy(db_name='SYNTHETICnew', y_val='Test', ids=ids)
 
-    ids = [i for i in range(4, 7)]
-    evaluateGraphLearningNN(db_name='DHFR', ids=ids)
-    epoch_accuracy(db_name='DHFR', y_val='Train', ids=ids)
-    epoch_accuracy(db_name='DHFR', y_val='Validation', ids=ids)
-    epoch_accuracy(db_name='DHFR', y_val='Test', ids=ids)
-
-    ids = [i for i in range(201, 205)]
-    evaluateGraphLearningNN(db_name='NCI1', ids=ids)
-    epoch_accuracy(db_name='NCI1', y_val='Train', ids=ids)
-    epoch_accuracy(db_name='NCI1', y_val='Validation', ids=ids)
-    epoch_accuracy(db_name='NCI1', y_val='Test', ids=ids)
 
     # Testing with MUTAG
     # ids = [i for i in range(7, 145)]

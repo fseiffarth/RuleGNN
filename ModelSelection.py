@@ -116,7 +116,7 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
             zinc_train = ZINC(root="GraphData/ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="GraphData/ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="GraphData/ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC", use_features=configs['use_features'])
             if os.path.isfile(f'{distance_path}{graph_db_name}_distances.pkl'):
                 distance_list = load_distances(db_name=graph_db_name,
                                                path=f'{distance_path}{graph_db_name}_distances.pkl')
@@ -144,6 +144,9 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
                                     run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
 
         for config_id, run_config in enumerate(run_configs):
+            if 'config_id' in configs:
+                # if config_id is provided in the config file, add it to the current config_id
+                config_id += configs['config_id']
             # config_id to string with leading zeros
             c_id = f'Configuration_{str(config_id).zfill(6)}'
             run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs)

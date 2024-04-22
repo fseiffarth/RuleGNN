@@ -25,22 +25,9 @@ def write_node_labels(file, node_labels):
                         f.write(f"{l}")
 
 
-def save_wl_labels(data_path, db_names):
+def save_standard_labels(data_path, db_names):
     for db_name in db_names:
-        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
-        if db_name == 'CSL':
-            from LoadData.csl import CSL
-            csl = CSL()
-            graph_data = csl.get_graphs(with_distances=False)
-        elif db_name == 'ZINC':
-            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
-            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
-            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-        else:
-            graph_data = GraphData.GraphData()
-            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
-                                          relabel_nodes=True, use_features=False, use_attributes=False)
+        graph_data = GraphData.get_graph_data(db_name, data_path)
         node_labels = graph_data.node_labels['primary'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
@@ -69,22 +56,24 @@ def save_wl_labels(data_path, db_names):
                 write_node_labels(file, node_labels)
 
 
+def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
+    for db_name in db_names:
+        graph_data = GraphData.get_graph_data(db_name, data_path)
+        l = f'wl_{max_iterations}'
+
+        graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
+                                   node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
+                                   max_iterations=max_iterations)
+        node_labels = graph_data.node_labels[f'{l}_{max_label_num}'].node_labels
+        # save the node labels to a file
+        # save node_labels as numpy array
+        file = f"../{db_name}_{l}_{max_label_num}_labels.txt"
+        write_node_labels(file, node_labels)
+
+
 def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple'):
     for db_name in db_names:
-        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
-        if db_name == 'CSL':
-            from LoadData.csl import CSL
-            csl = CSL()
-            graph_data = csl.get_graphs(with_distances=False)
-        elif db_name == 'ZINC':
-            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
-            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
-            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-        else:
-            graph_data = GraphData.GraphData()
-            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
-                                          relabel_nodes=True, use_features=False, use_attributes=False)
+        graph_data = GraphData.get_graph_data(db_name, data_path)
         cycle_dict = []
         for graph in graph_data.graphs:
             cycle_dict.append({})
@@ -114,7 +103,6 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
         dict_list = sorted(dict_list)
         label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
 
-
         # set the node labels
         labels = []
         for graph_id, graph in enumerate(graph_data.graphs):
@@ -138,20 +126,7 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
 
 def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph]):
     for db_name in db_names:
-        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
-        if db_name == 'CSL':
-            from LoadData.csl import CSL
-            csl = CSL()
-            graph_data = csl.get_graphs(with_distances=False)
-        elif db_name == 'ZINC':
-            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
-            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
-            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-        else:
-            graph_data = GraphData.GraphData()
-            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
-                                          relabel_nodes=True, use_features=False, use_attributes=False)
+        graph_data = GraphData.get_graph_data(db_name, data_path)
         subgraph_dict = []
         for graph in graph_data.graphs:
             subgraph_dict.append({})
@@ -179,7 +154,6 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph]):
         dict_list = sorted(dict_list)
         label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
 
-
         # set the node labels
         labels = []
         for graph_id, graph in enumerate(graph_data.graphs):
@@ -194,23 +168,9 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph]):
         write_node_labels(file, labels)
 
 
-
 def save_clique_labels(data_path, db_names, max_clique=6):
     for db_name in db_names:
-        # load the graph data'NCI1', 'NCI109', 'NCI109', 'DD', 'ENZYMES', 'PROTEINS', 'IMDB-BINARY', 'IMDB-MULTI',
-        if db_name == 'CSL':
-            from LoadData.csl import CSL
-            csl = CSL()
-            graph_data = csl.get_graphs(with_distances=False)
-        elif db_name == 'ZINC':
-            zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
-            zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
-            zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-        else:
-            graph_data = GraphData.GraphData()
-            graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
-                                          relabel_nodes=True, use_features=False, use_attributes=False)
+        graph_data = GraphData.get_graph_data(db_name, data_path)
         clique_dict = []
         for graph in graph_data.graphs:
             clique_dict.append({})
@@ -238,7 +198,6 @@ def save_clique_labels(data_path, db_names, max_clique=6):
         dict_list = sorted(dict_list)
         label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
 
-
         # set the node labels
         labels = []
         for graph_id, graph in enumerate(graph_data.graphs):
@@ -252,6 +211,7 @@ def save_clique_labels(data_path, db_names, max_clique=6):
 
         file = f"../{db_name}_cliques_{max_clique}_labels.txt"
         write_node_labels(file, labels)
+
 
 def relabel_most_frequent_node_labels(node_labels, max_node_labels):
     """
@@ -271,7 +231,7 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
     if len(unique_frequency) <= max_node_labels:
         return
     else:
-    # get the k most frequent node labels from the unique_frequency sorted by frequency
+        # get the k most frequent node labels from the unique_frequency sorted by frequency
         most_frequent = sorted(unique_frequency, key=unique_frequency.get, reverse=True)[:max_node_labels - 1]
         # add mapping most frequent to 0 to k-1
         mapping = {key: max_node_labels - (value + 2) for key, value in zip(most_frequent, range(max_node_labels))}
@@ -283,8 +243,6 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
                 else:
                     g_labels[i] = max_node_labels - 1
     return node_labels
-
-
 
 
 def main():
@@ -304,10 +262,9 @@ def main():
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['PROTEINS', 'ENZYMES'], length_bound=6)
     #save_circle_labels(data_path, db_names=['IMDB-MULTI'], length_bound=4, cycle_type='simple')
-    save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='induced')
-    #save_clique_labels(data_path, db_names=['ZINC'],max_clique=50)
-
-
+    #save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='simple')
+    #save_wl_labels(data_path, db_names=['ZINC'], max_iterations=4, max_label_num=50000)
+    save_circle_labels(data_path,db_names=['IMDB-BINARY', 'IMDB-MULTI'], length_bound=4, cycle_type='induced')
 
 
 if __name__ == '__main__':

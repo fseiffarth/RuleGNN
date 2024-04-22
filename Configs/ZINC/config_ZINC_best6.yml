@@ -1,16 +1,16 @@
 paths:
   data:
-    "../GraphData/DS_all/" # Path to the folder containing the graph data
+    "/home/mlai21/seiffart/Data/GraphData/DS_all/" # Path to the folder containing the graph data
   distances:
-    "GraphData/Distances/" # Precomputed distances will be loaded from this folder
+    "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
   results:
-    "RESULTS/" # Results will be saved in this folder
+    "/home/mlai21/seiffart/RESULTS/TEST/RuleGNN/Features/" # Results will be saved in this folder
   splits:
     "GraphData/DataSplits/" # Path to the folder containing the data splits
 device:
   cpu
 mode:
-  debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
   - 128
 learning_rate:
@@ -33,15 +33,17 @@ early_stopping:
   patience:
     25
 networks:
-  # wl models
-  - - { layer_type: primary, distances: [1 ] }
-    - { layer_type: primary}
+  - - { layer_type: primary, distances: [ 1,2,3,4,5 ] }
+    - { layer_type: primary }
+
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
-  True
+  False
 use_attributes: # if True uses node attributes instead of node labels
   False
 load_splits: # if True loads precomputed data splits (use False only for new datasets)
+  True
+random_variation: # if True adds random variation to the input features
   True
 
 # data options
@@ -60,6 +62,9 @@ additional_options:
     False
   print_results: # Print accuracy and loss in the console
     True
+
+config_id:
+  500
 
 
 

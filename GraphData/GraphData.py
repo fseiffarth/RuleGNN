@@ -2,6 +2,7 @@ from typing import List, Dict
 
 import networkx as nx
 import torch
+from torch_geometric.datasets import ZINC
 
 import TrainTestData.TrainTestData as ttd
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
@@ -139,8 +140,25 @@ class GraphData:
         pass
 
 
+def get_graph_data(db_name, data_path):
+    # load the graph data
+    if db_name == 'CSL':
+        from LoadData.csl import CSL
+        csl = CSL()
+        graph_data = csl.get_graphs(with_distances=False)
+    elif db_name == 'ZINC':
+        zinc_train = ZINC(root="../../ZINC/", subset=True, split='train')
+        zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
+        zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
+        graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
+    else:
+        graph_data = GraphData()
+        graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
+                                      relabel_nodes=True, use_features=False, use_attributes=False)
+    return graph_data
 
-def zinc_to_graph_data(train, validation, test, graph_db_name):
+
+def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True):
     graphs = GraphData()
     graphs.graph_db_name = graph_db_name
     graphs.edge_labels['primary'] = EdgeLabels()
@@ -163,6 +181,9 @@ def zinc_to_graph_data(train, validation, test, graph_db_name):
             graphs.graphs.append(nx.Graph())
             graphs.edge_labels['primary'].edge_labels.append([])
             graphs.inputs.append(torch.ones(graph['x'].shape[0]).double())
+            # add graph inputs using the values from graph['x'] and flatten the tensor
+            if use_features:
+                graphs.inputs[-1] = graph['x'].flatten().double()
 
             edges = graph['edge_index']
             # format edges to list of tuples
@@ -174,31 +195,28 @@ def zinc_to_graph_data(train, validation, test, graph_db_name):
                     graphs.edge_labels['primary'].edge_labels[-1].append(graph['edge_attr'][i].item())
             # add node labels
             graphs.node_labels['primary'].node_labels.append([x.item() for x in graph['x']])
-            # add graph inputs using the values from graph['x'] and flatten the tensor
-            graphs.inputs[-1] = graph['x'].flatten().double()
+
             # update max_label
             max_label = max(abs(max_label), max(abs(graph['x'])).item())
             # add graph label
             for node_label in graph['x']:
                 label_set.add(node_label.item())
 
-
             graphs.edge_labels['primary'].edge_labels.append(graph['edge_attr'])
             graphs.graph_labels.append(graph['y'].item())
             graphs.one_hot_labels.append(graph['y'].double())
             graphs.max_nodes = max(graphs.max_nodes, len(graph['x']))
 
-
-
             pass
         pass
-    # normalize graph inputs
-    number_of_node_labels = len(label_set)
-    label_set = sorted(label_set)
-    step = 1.0 / number_of_node_labels
-    for i, graph in enumerate(graphs.inputs):
-        for j, val in enumerate(graph):
-            graphs.inputs[i][j] = (label_set.index(val) + 1) * step * (-1) ** label_set.index(val)
+    if use_features:
+        # normalize graph inputs
+        number_of_node_labels = len(label_set)
+        label_set = sorted(label_set)
+        step = 1.0 / number_of_node_labels
+        for i, graph in enumerate(graphs.inputs):
+            for j, val in enumerate(graph):
+                graphs.inputs[i][j] = (label_set.index(val) + 1) * step * (-1) ** label_set.index(val)
 
     # convert one hot label list to tensor
     graphs.one_hot_labels = torch.stack(graphs.one_hot_labels)
