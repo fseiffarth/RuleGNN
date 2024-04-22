@@ -45,9 +45,9 @@ networks:
   - - { layer_type: induced_cycles, max_cycle_length: 50, distances: [ 1,2 ] }
     - { layer_type: subgraph } 
   - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
-    - { layer_type: subgraph, id: 1 }
+    - { layer_type: subgraph }
   - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
-    - { layer_type: subgraph, id: 1}
+    - { layer_type: subgraph }
   - - { layer_type: induced_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
     - { layer_type: subgraph, id: 1 }
   - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
@@ -65,8 +65,6 @@ networks:
     - { layer_type: cliques, max_clique_size: 3 }
   - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
     - { layer_type: cliques, max_clique_size: 50 }
-  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
-    - { layer_type: simple_cycles, max_cycle_length: 3 }
   - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
     - { layer_type: simple_cycles, max_cycle_length: 4 }
   - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
