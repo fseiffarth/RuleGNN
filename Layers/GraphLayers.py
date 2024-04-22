@@ -75,9 +75,13 @@ class Layer:
                 l_string = f"cliques_{max_clique_size}"
         elif self.layer_type == "subgraph":
             l_string = f"subgraph"
+            if 'id' in self.layer_dict:
+                id = self.layer_dict['id']
+                l_string = f"{l_string}_{id}"
             if 'max_node_labels' in self.layer_dict:
                 max_node_labels = self.layer_dict['max_node_labels']
                 l_string = f"subgraph_{max_node_labels}"
+
 
         return l_string
 

@@ -124,7 +124,7 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
         write_node_labels(file, labels)
 
 
-def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph'):
+def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path)
         subgraph_dict = []
@@ -166,7 +166,7 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='su
                     labels[-1].append(label_dict[cycle_d])
                 else:
                     labels[-1].append(len(label_dict))
-        file = f"../{db_name}_{name}_labels.txt"
+        file = f"../{db_name}_{name}_{id}_labels.txt"
         write_node_labels(file, labels)
 
 
@@ -267,7 +267,8 @@ def main():
     #save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='simple')
     #save_wl_labels(data_path, db_names=['ZINC'], max_iterations=4, max_label_num=50000)
     #save_circle_labels(data_path,db_names=['IMDB-BINARY', 'IMDB-MULTI'], length_bound=4, max_node_labels=1000, cycle_type='simple')
-    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3)])
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3)], id=0)
+    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3), nx.star_graph(1)], id=1)
 
 
 if __name__ == '__main__':
