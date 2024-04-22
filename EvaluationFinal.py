@@ -553,6 +553,9 @@ def main():
     model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/Cliques')
     best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS/Cliques')
 
+    model_selection_evaluation(db_name='IMDB-MULTI', path='RESULTS/Cliques')
+    best_model_evaluation(db_name='IMDB-MULTI', path='RESULTS/Cliques')
+
 
 
     # Testing with MUTAG
