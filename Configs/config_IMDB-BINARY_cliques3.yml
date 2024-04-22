@@ -104,5 +104,5 @@ additional_options:
   print_results: # Print accuracy and loss in the console
     True
 
-  config_id:
-    200
+config_id:
+  200
