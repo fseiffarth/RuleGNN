@@ -304,9 +304,8 @@ def main():
     #save_circle_labels(data_path, db_names=['DHFR', 'MUTAG'], length_bound=100, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['PROTEINS', 'ENZYMES'], length_bound=6)
     #save_circle_labels(data_path, db_names=['IMDB-MULTI'], length_bound=4, cycle_type='simple')
-    #save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='simple')
-    save_clique_labels(data_path, db_names=['ZINC'],
-                       max_clique=50)
+    save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='induced')
+    #save_clique_labels(data_path, db_names=['ZINC'],max_clique=50)
 
 
 
