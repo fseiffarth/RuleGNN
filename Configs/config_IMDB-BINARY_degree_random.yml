@@ -59,7 +59,7 @@ use_features: # if True uses normlized node labels as input features, if False u
 use_attributes: # if True uses node attributes instead of node labels
   False
 random_variation: # if True adds random variation to the input features
-  False
+  True
 load_splits: # if True loads precomputed data splits (use False only for new datasets)
   True
 
@@ -81,4 +81,4 @@ additional_options:
     True
 
 config_id:
-  500
+  400
