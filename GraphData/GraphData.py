@@ -152,7 +152,7 @@ def get_graph_data(db_name, data_path):
         zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
     else:
-        graph_data = GraphData.GraphData()
+        graph_data = GraphData()
         graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
                                       relabel_nodes=True, use_features=False, use_attributes=False)
     return graph_data

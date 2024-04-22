@@ -10,7 +10,7 @@ from LoadData.csl import CSL
 
 def main():
     # load the graph data
-    graph_db = 'IMDB-MULTI'
+    graph_db = 'REDDIT-BINARY'
     data_path = '../GraphData/DS_all/'
     distance_path = "GraphData/Distances/"
     """

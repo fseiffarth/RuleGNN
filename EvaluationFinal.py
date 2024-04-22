@@ -550,26 +550,10 @@ def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures')
-    best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures/Cliques')
+    best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS/NoFeatures/Cliques')
 
-    ids = [i for i in range(4, 7)]
-    evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=ids)
-    epoch_accuracy(db_name='SYNTHETICnew', y_val='Train', ids=ids)
-    epoch_accuracy(db_name='SYNTHETICnew', y_val='Validation', ids=ids)
-    epoch_accuracy(db_name='SYNTHETICnew', y_val='Test', ids=ids)
 
-    ids = [i for i in range(4, 7)]
-    evaluateGraphLearningNN(db_name='DHFR', ids=ids)
-    epoch_accuracy(db_name='DHFR', y_val='Train', ids=ids)
-    epoch_accuracy(db_name='DHFR', y_val='Validation', ids=ids)
-    epoch_accuracy(db_name='DHFR', y_val='Test', ids=ids)
-
-    ids = [i for i in range(201, 205)]
-    evaluateGraphLearningNN(db_name='NCI1', ids=ids)
-    epoch_accuracy(db_name='NCI1', y_val='Train', ids=ids)
-    epoch_accuracy(db_name='NCI1', y_val='Validation', ids=ids)
-    epoch_accuracy(db_name='NCI1', y_val='Test', ids=ids)
 
     # Testing with MUTAG
     # ids = [i for i in range(7, 145)]
