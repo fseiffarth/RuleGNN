@@ -264,7 +264,7 @@ def main():
     #save_circle_labels(data_path, db_names=['IMDB-MULTI'], length_bound=4, cycle_type='simple')
     #save_circle_labels(data_path, db_names=['ZINC'], length_bound=10, cycle_type='simple')
     #save_wl_labels(data_path, db_names=['ZINC'], max_iterations=4, max_label_num=50000)
-    save_circle_labels(data_path,db_names=['IMDB-BINARY', 'IMDB-MULTI'], length_bound=4, cycle_type='induced')
+    save_circle_labels(data_path,db_names=['IMDB-BINARY', 'IMDB-MULTI'], length_bound=10,cycle_type='induced')
 
 
 if __name__ == '__main__':
