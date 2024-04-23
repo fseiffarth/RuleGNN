@@ -4,7 +4,7 @@ paths:
   distances:
     "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
   results:
-    "/home/mlai21/seiffart/RESULTS/TEST/RuleGNN/"
+    "/home/mlai21/seiffart/RESULTS/RuleGNN/"
   splits:
     "GraphData/DataSplits/" # Path to the folder containing the data splits# Results will be saved in this folder
 mode:
@@ -817,6 +817,3 @@ additional_options:
     False
   print_results: # Print accuracy and loss in the console
     True
-
-config_id:
-  700
