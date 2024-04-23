@@ -273,6 +273,7 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
 
 
 def model_selection_evaluation(db_name, path='Results', ids=None):
+    print(f"Model Selection Evaluation for {db_name}")
     evaluation = {}
 
     if ids is None:
@@ -395,8 +396,9 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
         value[9] = round(value[9], 4)
 
     # print the evaluation items with the k highest validation accuracies
-    print(f"Top 5 Validation Accuracies for {db_name}")
-    k = 10
+    k = 5
+    print(f"Top {k} Validation Accuracies for {db_name}")
+
 
     sort_key = 2
     reversed_sort = True
@@ -550,11 +552,11 @@ def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS/Cliques')
-    best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS/Cliques')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS')
+    #best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS')
 
-    model_selection_evaluation(db_name='IMDB-MULTI', path='RESULTS/Cliques')
-    best_model_evaluation(db_name='IMDB-MULTI', path='RESULTS/Cliques')
+    model_selection_evaluation(db_name='IMDB-MULTI', path='RESULTS')
+    #best_model_evaluation(db_name='IMDB-MULTI', path='RESULTS')
 
 
 

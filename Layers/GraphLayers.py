@@ -3,22 +3,14 @@ Created on 15.03.2019
 
 @author: florian
 '''
-from typing import List
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.nn.init
-import torch.optim as optim
-from torch.autograd import Variable
 import time
-import networkx as nx
 import numpy as np
-from numpy import int64
-import torch.multiprocessing as mp
-from torch.multiprocessing import Pool, Process
 import ReadWriteGraphs.GraphFunctions as gf
 from GraphData import GraphData
+from utils.RunConfiguration import RunConfiguration
 
 
 class Layer:
@@ -100,7 +92,7 @@ def reshape_indices(a, b):
 
 class GraphConvLayer(nn.Module):
 
-    def __init__(self, layer_id, seed, graph_data: GraphData.GraphData, w_distribution_rule, bias_distribution_rule,
+    def __init__(self, layer_id, seed, parameters, graph_data: GraphData.GraphData, w_distribution_rule, bias_distribution_rule,
                  in_features, node_labels, n_kernels=1, bias=True, print_layer_init=False, save_weights=False, *args,
                  **kwargs):
         super(GraphConvLayer, self).__init__()
@@ -173,6 +165,13 @@ class GraphConvLayer(nn.Module):
         self.Param_b = nn.ParameterList(
             [nn.Parameter(lower + torch.randn(1, dtype=torch.double) * (upper - lower)) for _ in
              range(0, self.bias_num)])
+
+        self.Param_W_original = None
+        if 'prune' in parameters.configs:
+
+            self.Param_W_original = torch.tensor([x.item() for x in self.Param_W])
+
+
         self.bias = bias
 
         # Initialize the current weight matrix and bias vector

@@ -21,31 +21,7 @@ from GraphData import GraphData, NodeLabeling
 from Methods.GraphRuleMethod import GraphRuleMethod
 from Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
-
-
-
-
-class RunConfiguration():
-    def __init__(self, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, loss):
-        self.network_architecture = network_architecture
-        self.layers = layers
-        self.batch_size = batch_size
-        self.lr = lr
-        self.epochs = epochs
-        self.dropout = dropout
-        self.optimizer = optimizer
-        self.loss = loss
-
-    def print(self):
-        print(f"Network architecture: {self.network_architecture}")
-        print(f"Layers: {self.layers}")
-        print(f"Batch size: {self.batch_size}")
-        print(f"Learning rate: {self.lr}")
-        print(f"Epochs: {self.epochs}")
-        print(f"Dropout: {self.dropout}")
-        print(f"Optimizer: {self.optimizer}")
-        print(f"Loss: {self.loss}")
-
+from utils.RunConfiguration import RunConfiguration
 
 
 @click.command()
@@ -116,7 +92,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
             zinc_train = ZINC(root="GraphData/ZINC/", subset=True, split='train')
             zinc_val = ZINC(root="GraphData/ZINC/", subset=True, split='val')
             zinc_test = ZINC(root="GraphData/ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC", use_features=configs['use_features'])
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC",
+                                            use_features=configs['use_features'])
             if os.path.isfile(f'{distance_path}{graph_db_name}_distances.pkl'):
                 distance_list = load_distances(db_name=graph_db_name,
                                                path=f'{distance_path}{graph_db_name}_distances.pkl')
@@ -124,7 +101,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,
-                                          relabel_nodes=True, use_features=configs['use_features'], use_attributes=configs['use_attributes'],
+                                          relabel_nodes=True, use_features=configs['use_features'],
+                                          use_attributes=configs['use_attributes'],
                                           distances_path=distance_path)
 
         # define the network type from the config file
@@ -141,7 +119,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
                         for d in configs['dropout']:
                             for o in configs['optimizer']:
                                 for loss in configs['loss']:
-                                    run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
+                                    run_configs.append(
+                                        RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
 
         for config_id, run_config in enumerate(run_configs):
             if 'config_id' in configs:
@@ -149,7 +128,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
                 config_id += configs['config_id']
             # config_id to string with leading zeros
             c_id = f'Configuration_{str(config_id).zfill(6)}'
-            run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
+            run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number,
+                              configs)
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
@@ -173,7 +153,8 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     method.Run()
 
 
-def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs):
+def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number,
+                      configs):
     # get the data path from the config file
     data_path = configs['paths']['data']
     r_path = configs['paths']['results']

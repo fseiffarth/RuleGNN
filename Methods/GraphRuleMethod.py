@@ -15,6 +15,7 @@ from NeuralNetArchitectures import GraphNN
 from Parameters import Parameters
 from Time.TimeClass import TimeClass
 import TrainTestData.TrainTestData as ttd
+from utils.utils import get_k_lowest_nonzero_indices
 
 
 class GraphRuleMethod:
@@ -236,11 +237,7 @@ class GraphRuleMethod:
                 loss.backward()
                 optimizer.step()
                 timer.measure("backward")
-
                 timer.reset()
-
-                # timer.print_times()
-                # net.timer.print_times()
 
                 if self.para.save_weights:
                     change = []
@@ -298,6 +295,11 @@ class GraphRuleMethod:
                 running_loss += loss.item()
                 epoch_loss += running_loss
 
+
+
+
+
+
                 '''
                 Evaluate the training accuracy
                 '''
@@ -342,6 +344,37 @@ class GraphRuleMethod:
                     df = pd.DataFrame(labels_np)
                     df.to_csv("Results/Parameter/training_predictions.csv", header=False, index=False, mode='a')
 
+            # prune each five epochs
+            if (epoch + 1) % 10 == 0 and 0 < epoch + 1 < self.para.n_epochs and 'prune' in self.para.configs and self.para.configs['prune']:
+                print('Pruning')
+                # iterate over the layers of the neural net
+                for layer in net.net_layers:
+                    if layer.name != 'Resize_Layer':
+                        # get tensor from the parameter_list layer.Param_W
+                        layer_tensor = torch.abs(torch.tensor(layer.Param_W))
+                        # print number of non zero entries in layer_tensor
+                        print(f'Number of non zero entries in layer {layer.name}: {torch.count_nonzero(layer_tensor)}')
+                        # get the indices of the trainable parameters with lowest absolute max(1, 1%)
+                        k = max(1, int(layer_tensor.size(0) * 0.20))
+                        low = torch.topk(layer_tensor, k, largest=False)
+                        lowest_indices = get_k_lowest_nonzero_indices(layer_tensor, k)
+                        # print the number of lowest indices
+                        print(f'Number of lowest indices in layer {layer.name}: {len(lowest_indices)}')
+                        # iterate over the entries of the lowest indices
+                        for i in lowest_indices:
+                            # set the lowest indices to zero and torch.grad to false
+                            layer.Param_W[i].requires_grad_(False)
+                            layer.Param_W[i][:] = 0
+                        # replace all non zero entries with the original values
+                        layer_tensor = torch.abs(torch.tensor(layer.Param_W))
+                        non_zero = torch.nonzero(layer_tensor, as_tuple=True)
+                        # print the number of non zero entries
+                        print(f'Number of non zero entries in layer {layer.name}: {len(non_zero[0])}')
+                        for i in non_zero[0]:
+                            with torch.no_grad():
+                                layer.Param_W[i][:] = layer.Param_W_original[i]
+                            # enable grad for the non zero entries
+                            layer.Param_W[i].requires_grad_(True)
             '''
             Evaluate the validation accuracy for each epoch
             '''

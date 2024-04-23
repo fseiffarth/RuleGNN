@@ -10,10 +10,8 @@ paths:
 device:
   cpu
 mode:
-  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+  debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
-  - 8
-  - 16
   - 64
 learning_rate:
   - 0.05
@@ -84,6 +82,7 @@ networks:
   - - { layer_type: simple_cycles, max_cycle_length: 10, distances: [1,2,3] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1,2,3] }
     - { layer_type: simple_cycles, max_cycle_length: 10 }
+
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
   True
 use_attributes: # if True uses node attributes instead of node labels
