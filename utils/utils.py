@@ -1,3 +1,6 @@
+from typing import List
+
+import networkx as nx
 import torch
 
 
@@ -18,3 +21,72 @@ def get_k_lowest_nonzero_indices(tensor, k):
     k_lowest_original_indices = non_zero_indices[k_lowest_indices]
 
     return k_lowest_original_indices
+
+
+def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None):
+    # save in two files DBName_Nodes.txt and DBName_Edges.txt
+    # DBName_Nodes.txt has the following structure GraphId NodeId Feature1 Feature2 ...
+    # DBName_Edges.txt has the following structure GraphId Node1 Node2 Feature1 Feature2 ...
+    # DBName_Labels.txt has the following structure GraphId Label
+    with open(path + db_name + "_Nodes.txt", "w") as f:
+        for i, graph in enumerate(graphs):
+            for node in graph.nodes(data=True):
+                # get list of all data entries of the node
+                data_list = list(node[1].values())
+                f.write(str(i) + " " + str(node[0]) + " " + " ".join(map(str, data_list)) + "\n")
+        # remove last empty line
+        f.seek(f.tell() - 1, 0)
+        f.truncate()
+    with open(path + db_name + "_Edges.txt", "w") as f:
+        for i, graph in enumerate(graphs):
+            for edge in graph.edges(data=True):
+                data_list = list(edge[2].values())
+                f.write(str(i) + " " + str(edge[0]) + " " + str(edge[1]) + " " + " ".join(map(str, data_list)) + "\n")
+        # remove last empty line
+        f.seek(f.tell() - 1, 0)
+        f.truncate()
+    with open(path + db_name + "_Labels.txt", "w") as f:
+        if labels is not None:
+            for i, label in enumerate(labels):
+                f.write(str(i) + " " + str(label) + "\n")
+
+        else:
+            for i in range(len(graphs)):
+                f.write(str(i) + " " + str(0) + "\n")
+        # remove last empty line
+        f.seek(f.tell() - 1, 0)
+        f.truncate()
+
+
+def load_graphs(path, db_name):
+    graphs = []
+    labels = []
+    with open(path + db_name + "_Nodes.txt", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            data = line.strip().split(" ")
+            graph_id = int(data[0])
+            node_id = int(data[1])
+            feature = list(map(float, data[2:]))
+            while len(graphs) <= graph_id:
+                graphs.append(nx.Graph())
+            graphs[graph_id].add_node(node_id, label=feature)
+    with open(path + db_name + "_Edges.txt", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            data = line.strip().split(" ")
+            graph_id = int(data[0])
+            node1 = int(data[1])
+            node2 = int(data[2])
+            feature = list(map(float, data[3:]))
+            graphs[graph_id].add_edge(node1, node2, label=feature)
+    with open(path + db_name + "_Labels.txt", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            data = line.strip().split(" ")
+            graph_id = int(data[0])
+            label = int(data[1])
+            while len(labels) <= graph_id:
+                labels.append(label)
+            labels[graph_id] = label
+    return graphs, labels

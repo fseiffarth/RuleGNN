@@ -1,3 +1,4 @@
+import os
 from typing import List, Dict
 
 import networkx as nx
@@ -7,6 +8,8 @@ from torch_geometric.datasets import ZINC
 import TrainTestData.TrainTestData as ttd
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from GraphData import NodeLabeling, EdgeLabeling
+from GraphData.Distances.load_distances import load_distances
+from utils.utils import load_graphs
 
 
 class NodeLabels:
@@ -139,8 +142,33 @@ class GraphData:
         labels.db_unique_node_labels = db_unique
         pass
 
+    def load_from_benchmark(self, db_name, path):
+        self.graph_db_name = db_name
+        self.graphs, self.graph_labels = load_graphs(path, db_name)
+        self.num_classes = len(set(self.graph_labels))
+        self.num_graphs = len(self.graphs)
+        self.max_nodes = 0
+        for g in self.graphs:
+            self.max_nodes = max(self.max_nodes, g.number_of_nodes())
 
-def get_graph_data(db_name, data_path):
+        self.one_hot_labels = torch.zeros(self.num_graphs, self.num_classes)
+        for i, label in enumerate(self.graph_labels):
+            self.one_hot_labels[i][label] = 1
+
+        self.inputs = []
+        ## add node labels
+        for graph in self.graphs:
+            self.inputs.append(torch.zeros(graph.number_of_nodes()).double())
+            for node in graph.nodes(data=True):
+                self.inputs[-1][node[0]] = node[1]['label'][0]
+
+        self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
+        self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
+
+        return None
+
+
+def get_graph_data(db_name, data_path, distance_path=""):
     # load the graph data
     if db_name == 'CSL':
         from LoadData.csl import CSL
@@ -151,10 +179,21 @@ def get_graph_data(db_name, data_path):
         zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
         zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
+    elif db_name == 'LongRings':
+        graph_data = GraphData()
+        graph_data.load_from_benchmark("LongRings", data_path)
+        if distance_path != "" and os.path.isfile(f'{distance_path}{db_name}_distances.pkl'):
+            distance_list = load_distances(db_name=db_name,
+                                           path=f'{distance_path}{db_name}_distances.pkl')
+            graph_data.distance_list = distance_list
     else:
         graph_data = GraphData()
         graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
                                       relabel_nodes=True, use_features=False, use_attributes=False)
+        if os.path.isfile(f'{distance_path}{db_name}_distances.pkl'):
+            distance_list = load_distances(db_name=db_name,
+                                           path=f'{distance_path}{db_name}_distances.pkl')
+            graph_data.distance_list = distance_list
     return graph_data
 
 

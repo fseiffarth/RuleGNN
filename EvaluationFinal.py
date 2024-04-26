@@ -298,6 +298,10 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
             elif file.startswith(f"{db_name}_Configuration_{id_str}_Network") and file.endswith(".txt"):
                 network_files.append(file)
 
+        # check that there are 10 files
+        if len(files) != 10:
+            print(f"Id: {id} has {len(files)} files")
+            continue
         df_all = None
         for i, file in enumerate(files):
             df = pd.read_csv(f"{path}/{db_name}/Results/{file}", delimiter=";")

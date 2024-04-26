@@ -616,7 +616,14 @@ def draw_graph(graph, label=None, out_path=None):
     edge_labels = {}
     for (key1, key2, value) in graph.edges(data=True):
         if "label" in value:
-            edge_labels[(key1, key2)] = int(value["label"])
+            # check type of value
+            if type(value["label"]) == list:
+                if len(value["label"]) > 1:
+                    edge_labels[(key1, key2)] = f'{array_to_str(value["label"])}'
+                else:
+                    edge_labels[(key1, key2)] = 0
+            else:
+                edge_labels[(key1, key2)] = int(value["label"])
         else:
             edge_labels[(key1, key2)] = ""
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)

@@ -357,6 +357,7 @@ class GraphConvLayer(nn.Module):
         weight_distr = self.weight_distribution[pos]
         for entry in weight_distr:
             self.current_W[entry[0], entry[1]] = self.Param_W[entry[2]]
+        pass
         # W.put_(self.weight_index_list[pos], self.Param_W[self.weight_pos_list[pos]])
 
         # return self.weight_matrices[pos]

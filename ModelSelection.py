@@ -13,7 +13,7 @@ from torch_geometric.datasets import ZINC
 
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.Distances.load_distances import load_distances
-from GraphData.GraphData import zinc_to_graph_data
+from GraphData.GraphData import zinc_to_graph_data, get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
 from LoadData.csl import CSL
@@ -81,23 +81,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         """
         Create Input data, information and labels from the graphs for training and testing
         """
-        if graph_db_name == "CSL":
-            csl = CSL()
-            graph_data = csl.get_graphs(with_distances=False)
-            if os.path.isfile(f'{distance_path}{graph_db_name}_distances.pkl'):
-                distance_list = load_distances(db_name=graph_db_name,
-                                               path=f'{distance_path}{graph_db_name}_distances.pkl')
-                graph_data.distance_list = distance_list
-        elif graph_db_name == 'ZINC':
-            zinc_train = ZINC(root="GraphData/ZINC/", subset=True, split='train')
-            zinc_val = ZINC(root="GraphData/ZINC/", subset=True, split='val')
-            zinc_test = ZINC(root="GraphData/ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC",
-                                            use_features=configs['use_features'])
-            if os.path.isfile(f'{distance_path}{graph_db_name}_distances.pkl'):
-                distance_list = load_distances(db_name=graph_db_name,
-                                               path=f'{distance_path}{graph_db_name}_distances.pkl')
-                graph_data.distance_list = distance_list
+        if graph_db_name in ["CSL", "ZINC", "LongRings"]:
+            graph_data = get_graph_data(graph_db_name, data_path, distance_path)
         else:
             graph_data = GraphData.GraphData()
             graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,

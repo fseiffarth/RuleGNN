@@ -6,7 +6,6 @@ import networkx as nx
 import numpy as np
 from networkx.algorithms import isomorphism
 from networkx.algorithms.isomorphism import GraphMatcher
-from torch_geometric.datasets import ZINC
 
 from GraphData import GraphData, NodeLabeling
 from GraphData.GraphData import zinc_to_graph_data
@@ -25,13 +24,16 @@ def write_node_labels(file, node_labels):
                         f.write(f"{l}")
 
 
-def save_standard_labels(data_path, db_names):
+def save_standard_labels(data_path, db_names, label_path=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path)
         node_labels = graph_data.node_labels['primary'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
-        file = f"../{db_name}_primary_labels.txt"
+        if label_path is None:
+            file = f"../{db_name}_primary_labels.txt"
+        else:
+            file = f"{label_path}{db_name}_primary_labels.txt"
         write_node_labels(file, node_labels)
 
         graph_data.add_node_labels(node_labeling_name='wl_0', max_label_num=-1,
@@ -39,7 +41,10 @@ def save_standard_labels(data_path, db_names):
         node_labels = graph_data.node_labels['wl_0'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
-        file = f"../{db_name}_wl_0_labels.txt"
+        if label_path is None:
+            file = f"../{db_name}_wl_0_labels.txt"
+        else:
+            file = f"{label_path}{db_name}_wl_0_labels.txt"
         write_node_labels(file, node_labels)
 
         for l in ['wl_1', 'wl_2']:
@@ -52,7 +57,10 @@ def save_standard_labels(data_path, db_names):
                 node_labels = graph_data.node_labels[f'{l}_{n_node_labels}'].node_labels
                 # save the node labels to a file
                 # save node_labels as numpy array
-                file = f"../{db_name}_{l}_{n_node_labels}_labels.txt"
+                if label_path is None:
+                    file = f"../{db_name}_{l}_{n_node_labels}_labels.txt"
+                else:
+                    file = f"{label_path}{db_name}_{l}_{n_node_labels}_labels.txt"
                 write_node_labels(file, node_labels)
 
 
@@ -270,6 +278,7 @@ def main():
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3)], id=0)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3), nx.star_graph(1)], id=1)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(4), nx.star_graph(1)], id=2)
-    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
+    save_standard_labels(data_path, db_names=['LongRings'])
 if __name__ == '__main__':
     main()

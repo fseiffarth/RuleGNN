@@ -16,15 +16,20 @@ def standard_node_labeling(graphs: List[nx.Graph]):
     unique_node_labels = []
     db_unique_node_labels = {}
     for graph in graphs:
-        node_labels.append([])
+        node_labels.append([0] * len(graph.nodes))
         unique_node_labels.append({})
         for node in graph.nodes(data=True):
             # check if the node has a label
             if 'label' in node[1]:
-                node_label = int(node[1]['label'])
+                if type(node[1]['label']) == int or type(node[1]['label']) == float:
+                    node_label = node[1]['label']
+                elif type(node[1]['label']) == list and len(node[1]['label']) > 0:
+                    node_label = node[1]['label'][0]
+                else:
+                    node_label = 0
             else:
                 node_label = 0
-            node_labels[-1].append(node_label)
+            node_labels[-1][node[0]] = node_label
             if node_label not in unique_node_labels[-1]:
                 unique_node_labels[-1][node_label] = 1
             else:
@@ -42,12 +47,12 @@ def degree_node_labeling(graphs: List[nx.Graph]):
     unique_node_labels = []
     db_unique_node_labels = {}
     for graph in graphs:
-        node_labels.append([])
+        node_labels.append([0]*len(graph.nodes))
         unique_node_labels.append({})
         for node in graph.nodes(data=True):
             # get degree of node
             degree = graph.degree(node[0])
-            node_labels[-1].append(degree)
+            node_labels[-1][node[0]] = degree
             if degree not in unique_node_labels[-1]:
                 unique_node_labels[-1][degree] = 1
             else:
