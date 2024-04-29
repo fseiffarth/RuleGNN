@@ -1,24 +1,16 @@
 import numpy as np
 
-from GraphData.GraphData import GraphData
+from GraphData.GraphData import GraphData, get_graph_data
 from Kernels.NoGKernel import NoGKernel
 from Kernels.GraphKernels import WLKernel
 from GraphData.DataSplits.load_splits import Load_Splits
 from LoadData.csl import CSL
 
 
-def main(db_name):
+def main(db_name, data_path="../../GraphData/DS_all/"):
     #datapath = "/home/mlai21/seiffart/Data/GraphData/DS_all/"
-    datapath = "../../GraphData/DS_all/"
     # load the graph data
-    graph_data = GraphData()
-    if db_name == "CSL":
-        csl = CSL()
-        graph_data = csl.get_graphs(with_distances=False)
-    else:
-        graph_data.init_from_graph_db(path=datapath, graph_db_name=db_name, with_distances=False, with_cycles=False,
-                                      relabel_nodes=True, use_features=False, use_attributes=False,
-                                      distances_path=False)
+    graph_data = get_graph_data(db_name, data_path=data_path, distance_path="../GraphData/Distances/")
 
     validation_size = 10
     if db_name == "CSL":
@@ -44,4 +36,5 @@ if __name__ == "__main__":
     # run parallel for all datasets
     # joblib.Parallel(n_jobs=-1)(
     #     joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
-    main("IMDB-MULTI")
+    #main("IMDB-MULTI")
+    main("LongRings", data_path="../GraphBenchmarks/Data/")

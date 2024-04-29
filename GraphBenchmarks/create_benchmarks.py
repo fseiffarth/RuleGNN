@@ -2,12 +2,12 @@ from typing import List
 
 import networkx as nx
 import numpy as np
+from torch_geometric.data import InMemoryDataset
 
 from GraphData.DataSplits.create_splits import create_splits
 from GraphData.Distances.save_distances import save_distances
 from GraphData.Labels.generator.save_labels import save_standard_labels
 from utils.utils import save_graphs
-
 
 def long_rings(data_size=1200, ring_size=100) -> (List[nx.Graph], List[int]):
     graphs = []
@@ -60,8 +60,8 @@ def long_rings(data_size=1200, ring_size=100) -> (List[nx.Graph], List[int]):
 
 
 def main(output_path="Data/", benchmark=None):
-    if benchmark == "LongRings":
-        graphs, labels = long_rings(data_size=300, ring_size=8)
+    if "LongRings" in benchmark:
+        graphs, labels = long_rings(data_size=1200, ring_size=100)
         save_graphs(output_path, "LongRings", graphs, labels)
         # create distance files
         save_distances(output_path, ["LongRings"], cutoff=None, distance_path="../GraphData/Distances/")
@@ -72,4 +72,4 @@ def main(output_path="Data/", benchmark=None):
 
 
 if __name__ == "__main__":
-    main(benchmark="LongRings")
+    main(benchmarks=["LongRings"])

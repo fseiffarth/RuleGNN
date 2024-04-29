@@ -1,8 +1,11 @@
 import os
+import sys
 from typing import List, Dict
 
 import networkx as nx
 import torch
+import torch_geometric.data
+from torch_geometric.data import InMemoryDataset
 from torch_geometric.datasets import ZINC
 
 import TrainTestData.TrainTestData as ttd
@@ -195,6 +198,57 @@ def get_graph_data(db_name, data_path, distance_path=""):
                                            path=f'{distance_path}{db_name}_distances.pkl')
             graph_data.distance_list = distance_list
     return graph_data
+
+
+class BenchmarkDatasets(InMemoryDataset):
+    def __init__(self, root: str, name: str, graph_data: GraphData):
+        self.graph_data = graph_data
+        self.name = name
+        super().__init__(root)
+        self.data, self.slices = torch.load(self.processed_paths[0])
+
+    @property
+    def raw_dir(self) -> str:
+        return os.path.join(self.root, self.name, 'raw')
+
+    @property
+    def processed_dir(self) -> str:
+        return os.path.join(self.root, self.name, 'processed')
+
+    @property
+    def raw_file_names(self):
+        return [f'{self.name}_Edges.txt', f'{self.name}_Nodes.txt', f'{self.name}_Labels.txt']
+
+    @property
+    def processed_file_names(self):
+        return [f'data.pt']
+
+    def download(self):
+        pass
+
+    def process(self):
+        data_list = []
+        num_node_labels = self.graph_data.node_labels['primary'].num_unique_node_labels
+        for i, graph in enumerate(self.graph_data.graphs):
+            data = torch_geometric.data.Data()
+            data_x = torch.zeros((graph.number_of_nodes(), num_node_labels))
+            # create one hot encoding for node labels
+            for j, node in graph.nodes(data=True):
+                data_x[j][node['label']] = 1
+            data.x = data_x
+            edge_index = torch.zeros((2, 2 * len(graph.edges)), dtype=torch.long)
+            # add each edge twice, once in each direction
+            for j, edge in enumerate(graph.edges):
+                edge_index[0][2 * j] = edge[0]
+                edge_index[1][2 * j] = edge[1]
+                edge_index[0][2 * j + 1] = edge[1]
+                edge_index[1][2 * j + 1] = edge[0]
+
+            data.edge_index = edge_index
+            data.y = torch.tensor(self.graph_data.graph_labels[i])
+            data_list.append(data)
+        data, slices = self.collate(data_list)
+        torch.save((data, slices), self.processed_paths[0])
 
 
 def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True):

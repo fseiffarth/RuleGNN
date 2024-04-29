@@ -511,7 +511,7 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
         std = df_validation.std(numeric_only=True)
         std['EpochLoss'] /= avg['TrainingSize']
-        std['TrainingAccuracy'] /= avg['TrainingSize']
+        std['EpochAccuracy'] /= avg['TrainingSize']
         std['TestAccuracy'] /= avg['TestSize']
         std['ValidationAccuracy'] /= avg['ValidationSize']
         std['ValidationLoss'] /= avg['ValidationSize']
@@ -556,11 +556,11 @@ def main():
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
-    model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS')
-    #best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS')
+    #model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS')
+    best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS')
 
-    model_selection_evaluation(db_name='IMDB-MULTI', path='RESULTS')
-    #best_model_evaluation(db_name='IMDB-MULTI', path='RESULTS')
+    #model_selection_evaluation(db_name='IMDB-MULTI', path='RESULTS')
+    best_model_evaluation(db_name='IMDB-MULTI', path='RESULTS')
 
 
 
