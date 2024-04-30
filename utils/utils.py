@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 import networkx as nx
@@ -28,6 +29,16 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None)
     # DBName_Nodes.txt has the following structure GraphId NodeId Feature1 Feature2 ...
     # DBName_Edges.txt has the following structure GraphId Node1 Node2 Feature1 Feature2 ...
     # DBName_Labels.txt has the following structure GraphId Label
+    # if not folder db_name exists in path create it
+    if not os.path.exists(path + db_name):
+        os.makedirs(path + db_name)
+    # create processed and raw folders in path+db_name
+    if not os.path.exists(path + db_name + "/processed"):
+        os.makedirs(path + db_name + "/processed")
+    if not os.path.exists(path + db_name + "/raw"):
+        os.makedirs(path + db_name + "/raw")
+    # update path to write into raw folder
+    path = path + db_name + "/raw/"
     with open(path + db_name + "_Nodes.txt", "w") as f:
         for i, graph in enumerate(graphs):
             for node in graph.nodes(data=True):

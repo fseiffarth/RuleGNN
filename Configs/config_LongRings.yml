@@ -16,7 +16,7 @@ batch_size:
 learning_rate:
   - 0.05
 epochs:
-  - 200
+  - 50
 scheduler:
   True
 dropout:
@@ -32,14 +32,14 @@ early_stopping:
     25
 networks:
   # mixed models
-  - - { layer_type: primary, distances: [25] }
+  - - { layer_type: primary, distances: [4] }
     - { layer_type: primary }
 
 
 
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
-  True
+  False
 use_attributes: # if True uses node attributes instead of node labels
   False
 random_variation: # if True adds random variation to the input features

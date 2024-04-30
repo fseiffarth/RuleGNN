@@ -81,14 +81,15 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         """
         Create Input data, information and labels from the graphs for training and testing
         """
-        if graph_db_name in ["CSL", "ZINC", "LongRings"]:
-            graph_data = get_graph_data(graph_db_name, data_path, distance_path)
-        else:
-            graph_data = GraphData.GraphData()
-            graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,
-                                          relabel_nodes=True, use_features=configs['use_features'],
-                                          use_attributes=configs['use_attributes'],
-                                          distances_path=distance_path)
+        graph_data = get_graph_data(graph_db_name, data_path, distance_path, use_features=configs['use_features'],use_attributes=configs['use_attributes'])
+        # if graph_db_name in ["CSL", "ZINC", "LongRings100", "LongRings8", "EvenOddRings16"]:
+        #     graph_data = get_graph_data(graph_db_name, data_path, distance_path)
+        # else:
+        #     graph_data = GraphData.GraphData()
+        #     graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,
+        #                                   relabel_nodes=True, use_features=configs['use_features'],
+        #                                   use_attributes=configs['use_attributes'],
+        #                                   distances_path=distance_path)
 
         # define the network type from the config file
         run_configs = []

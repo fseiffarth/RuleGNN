@@ -145,7 +145,7 @@ class GraphData:
         labels.db_unique_node_labels = db_unique
         pass
 
-    def load_from_benchmark(self, db_name, path):
+    def load_from_benchmark(self, db_name, path, use_features=True):
         self.graph_db_name = db_name
         self.graphs, self.graph_labels = load_graphs(path, db_name)
         self.num_classes = len(set(self.graph_labels))
@@ -161,9 +161,10 @@ class GraphData:
         self.inputs = []
         ## add node labels
         for graph in self.graphs:
-            self.inputs.append(torch.zeros(graph.number_of_nodes()).double())
-            for node in graph.nodes(data=True):
-                self.inputs[-1][node[0]] = node[1]['label'][0]
+            self.inputs.append(torch.ones(graph.number_of_nodes()).double())
+            if use_features:
+                for node in graph.nodes(data=True):
+                    self.inputs[-1][node[0]] = node[1]['label'][0]
 
         self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
         self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
@@ -171,7 +172,7 @@ class GraphData:
         return None
 
 
-def get_graph_data(db_name, data_path, distance_path=""):
+def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_attributes=None):
     # load the graph data
     if db_name == 'CSL':
         from LoadData.csl import CSL
@@ -182,9 +183,11 @@ def get_graph_data(db_name, data_path, distance_path=""):
         zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
         zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-    elif db_name == 'LongRings':
+    elif 'LongRings' or 'EvenOddRings' in db_name:
         graph_data = GraphData()
-        graph_data.load_from_benchmark("LongRings", data_path)
+        # add db_name and raw to the data path
+        data_path = data_path + db_name + "/raw/"
+        graph_data.load_from_benchmark(db_name, data_path, use_features)
         if distance_path != "" and os.path.isfile(f'{distance_path}{db_name}_distances.pkl'):
             distance_list = load_distances(db_name=db_name,
                                            path=f'{distance_path}{db_name}_distances.pkl')
@@ -192,7 +195,7 @@ def get_graph_data(db_name, data_path, distance_path=""):
     else:
         graph_data = GraphData()
         graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
-                                      relabel_nodes=True, use_features=False, use_attributes=False)
+                                      relabel_nodes=True, use_features=use_features, use_attributes=use_attributes)
         if os.path.isfile(f'{distance_path}{db_name}_distances.pkl'):
             distance_list = load_distances(db_name=db_name,
                                            path=f'{distance_path}{db_name}_distances.pkl')

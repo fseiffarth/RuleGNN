@@ -5,7 +5,7 @@ from torch_geometric.datasets import ZINC
 
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from GraphData import GraphData
-from GraphData.GraphData import zinc_to_graph_data
+from GraphData.GraphData import zinc_to_graph_data, get_graph_data
 from LoadData.csl import CSL
 
 
@@ -26,27 +26,28 @@ def write_distances(graph_data, db_name, cutoff, distance_path="") -> int:
 
 
 def save_distances(data_path="../../../GraphData/DS_all/", db_names=[], cutoff=None, distance_path=""):
-    max_distance = 0
     for db_name in db_names:
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path)
+        write_distances(graph_data=graph_data, db_name=db_name, cutoff=cutoff, distance_path=distance_path)
         # load the graph data
-        if db_name == 'CSL':
-            csl = CSL()
-            graph_data = csl.get_graphs(with_distances=False)
-            max_distance = write_distances(graph_data, db_name, cutoff)
-        elif db_name == 'ZINC':
-            zinc_train = ZINC(root="../ZINC/", subset=True, split='train')
-            zinc_val = ZINC(root="../ZINC/", subset=True, split='val')
-            zinc_test = ZINC(root="../ZINC/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-            max_distance = write_distances(graph_data, db_name, cutoff)
-        elif db_name == 'LongRings':
-            graph_data = GraphData.GraphData()
-            graph_data.load_from_benchmark("LongRings", "Data/")
-            max_distance = write_distances(graph_data, db_name, cutoff, distance_path)
-        else:
-            graph_data = gdtgl.graph_data_to_graph_list(data_path, db_name, relabel_nodes=False)
-            graph_data = graph_data[0]
-            max_distance = write_distances(graph_data, db_name, cutoff, distance_path)
+        # if db_name == 'CSL':
+        #     csl = CSL()
+        #     graph_data = csl.get_graphs(with_distances=False)
+        #     max_distance = write_distances(graph_data, db_name, cutoff)
+        # elif db_name == 'ZINC':
+        #     zinc_train = ZINC(root="../ZINC/", subset=True, split='train')
+        #     zinc_val = ZINC(root="../ZINC/", subset=True, split='val')
+        #     zinc_test = ZINC(root="../ZINC/", subset=True, split='test')
+        #     graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
+        #     max_distance = write_distances(graph_data, db_name, cutoff)
+        # elif db_name == 'LongRings':
+        #     graph_data = GraphData.GraphData()
+        #     graph_data.load_from_benchmark("LongRings", "Data/")
+        #     max_distance = write_distances(graph_data, db_name, cutoff, distance_path)
+        # else:
+        #     graph_data = gdtgl.graph_data_to_graph_list(data_path, db_name, relabel_nodes=False)
+        #     graph_data = graph_data[0]
+        #     max_distance = write_distances(graph_data, db_name, cutoff, distance_path)
 
 
 def main():

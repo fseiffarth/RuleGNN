@@ -180,8 +180,8 @@ def main(db_name, data_path=None):
     run_number = 0
     run_seed = 368787 + run_number
 
-    run_configuration = {"conv_model": GATv2Conv, "layers": 3, "batch_size": 32, "epochs": 1000, "learning_rate": 0.001,
-                         "hidden_channels": 64, "neighborhood_aggregation": global_add_pool}
+    run_configuration = {"conv_model": GCNConv, "layers": 8, "batch_size": 32, "epochs": 1000, "learning_rate": 0.001,
+                         "hidden_channels": 64, "neighborhood_aggregation": global_max_pool}
 
     if db_name == "CSL":
         validation_size = 5
@@ -212,10 +212,10 @@ def main(db_name, data_path=None):
                         out_channels=gnn.dataset.num_classes, num_layers=2)
         model_GraphSAGE = GraphSAGE(in_channels=gnn.dataset.num_node_features, hidden_channels=16,
                                     out_channels=gnn.dataset.num_classes, num_layers=2, jk="max")
-        model = GNNModule(run_configuration, in_channels=gnn.dataset.num_node_features,out_channels=gnn.dataset.num_classes)
-        #gnn.ModelSelection(model)
-        gnn.BasicModelSelection(model_GraphSAGE)
+        model = GNNModule(run_configuration=run_configuration, in_channels=gnn.dataset.num_node_features,out_channels=gnn.dataset.num_classes)
+        gnn.ModelSelection(model)
+        #gnn.BasicModelSelection(model)
 
 
 if __name__ == "__main__":
-    main("MUTAG", data_path="../../GraphBenchmarks/Data/")
+    main("EvenOddRingsCount16", data_path="../../GraphBenchmarks/Data/")
