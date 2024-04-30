@@ -156,8 +156,8 @@ def Snowflake(part_list=[0, 1, 2, 3], size=4, plot=False):
                     shell.append(size + j*14 + 13)
             if i > 0:
                 shell_list.append(shell)
-        pos = nx.shell_layout(G, nlist=shell_list, rotate=0)
-        nx.draw_networkx_nodes(G, pos)
+        pos = nx.kamada_kawai_layout(G)
+        nx.draw_networkx_nodes(G, pos, node_size=50)
         nx.draw_networkx_edges(G, pos)
         plt.show()
     return G
@@ -211,7 +211,7 @@ def double_circle(n=50, m=50):
 
 
 def main():
-    Snowflake(plot=True)
+    Snowflake(part_list=[0, 1, 2, 3, 0, 0, 0, 1, 2, 3], size=10, plot=True)
 
 
 if __name__ == '__main__':
