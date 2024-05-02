@@ -2,7 +2,9 @@ import os
 from typing import List
 
 import numpy as np
-from sklearn.svm import SVC
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.svm import SVC, SVR
 
 
 class NoGKernel():
@@ -45,13 +47,21 @@ class NoGKernel():
             c_param = 2 ** c_param
             # create a SVM based on an RBF kernel that trains on the training data
             # and predicts the labels of the validation data and test data
-            clf = SVC(kernel='rbf', C=c_param, random_state=self.seed)
+            if len(Y_train[0]) > 1:
+                clf = SVR(kernel='rbf', C=c_param)
+                clf = MultiOutputRegressor(clf)
+            else:
+                clf = SVC(kernel='rbf', C=c_param, random_state=self.seed)
             clf.fit(X_train, Y_train)
             Y_val_pred = clf.predict(X_val)
             Y_test_pred = clf.predict(X_test)
-            # calculate the accuracy of the prediction
-            val_acc = np.mean(Y_val_pred == Y_val)
-            test_acc = np.mean(Y_test_pred == Y_test)
+            if len(Y_train[0]) > 1:
+                val_acc = mean_absolute_error(Y_val, Y_val_pred)
+                test_acc = mean_absolute_error(Y_test, Y_test_pred)
+            else:
+                # calculate the accuracy of the prediction
+                val_acc = np.mean(Y_val_pred == Y_val)
+                test_acc = np.mean(Y_test_pred == Y_test)
 
             file_name = f'{self.graph_data.graph_db_name}_Results_run_id_{self.run_num}_validation_step_{self.validation_num}.csv'
 

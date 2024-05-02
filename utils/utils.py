@@ -2,6 +2,7 @@ import os
 from typing import List
 
 import networkx as nx
+import numpy as np
 import torch
 
 
@@ -59,8 +60,10 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None)
     with open(path + db_name + "_Labels.txt", "w") as f:
         if labels is not None:
             for i, label in enumerate(labels):
-                f.write(str(i) + " " + str(label) + "\n")
-
+                if type(label) == int:
+                    f.write(str(i) + " " + str(label) + "\n")
+                elif type(label) == np.ndarray or type(label) == list:
+                    f.write(str(i) + " " + " ".join(map(str, label)) + "\n")
         else:
             for i in range(len(graphs)):
                 f.write(str(i) + " " + str(0) + "\n")
@@ -96,7 +99,11 @@ def load_graphs(path, db_name):
         for line in lines:
             data = line.strip().split(" ")
             graph_id = int(data[0])
-            label = int(data[1])
+            if len(data) == 2:
+                label = int(data[1])
+            else:
+                label = list(map(float, data[1:]))
+
             while len(labels) <= graph_id:
                 labels.append(label)
             labels[graph_id] = label

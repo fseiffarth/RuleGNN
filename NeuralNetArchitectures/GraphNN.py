@@ -112,6 +112,7 @@ class GraphNet(nn.Module):
         super(GraphNet, self).__init__()
         self.graph_data = graph_data
         self.print_weights = print_weights
+        self.para = para
         # self.l1 = layers.GraphConvLayer(graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf,
         #                                bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
         #                                n_node_labels=n_node_labels, n_edge_labels=n_edge_labels, n_kernels=1,
@@ -164,7 +165,9 @@ class GraphNet(nn.Module):
         #                                   node_labels='wl_2',
         #                                   bias=True, print_layer_init=print_layer_init,
         #                                   save_weights=save_weights).double().requires_grad_(resize_grad)
-        # self.lfc1 = nn.Linear(self.out_dim, self.out_dim, bias=True).double()
+        if 'linear_layers' in para.configs and para.configs['linear_layers'] > 0:
+            for i in range(para.configs['linear_layers']):
+                self.net_layers.append(nn.Linear(out_classes, out_classes, bias=True).double())
         # self.lfc2 = nn.Linear(self.out_dim, self.out_dim, bias=True).double()
         # self.lfc_out = nn.Linear(self.out_dim, out_classes, bias=True).double()
         """
@@ -176,6 +179,10 @@ class GraphNet(nn.Module):
         self.af = nn.Tanh()
         if 'output_activation' in para.configs and para.configs['output_activation'] == 'None':
             self.out_af = nn.Identity()
+        elif 'output_activation' in para.configs and para.configs['output_activation'] == 'Relu':
+            self.out_af = nn.ReLU()
+        elif 'output_activation' in para.configs and para.configs['output_activation'] == 'LeakyRelu':
+            self.out_af = nn.LeakyReLU()
         else:
             self.out_af = nn.Tanh()
         self.epoch = 0
@@ -186,7 +193,10 @@ class GraphNet(nn.Module):
             if i < len(self.net_layers) - 1:
                 x = self.af(layer(x, pos))
             else:
-                x = self.out_af(layer(x, pos))
+                if 'linear_layers' in self.para.configs and self.para.configs['linear_layers'] > 0:
+                    x = self.out_af(layer(x))
+                else:
+                    x = self.out_af(layer(x, pos))
         return x
 
     def return_info(self):

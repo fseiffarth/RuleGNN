@@ -1,5 +1,5 @@
 class RunConfiguration():
-    def __init__(self, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, loss):
+    def __init__(self, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, loss, task="classification"):
         self.network_architecture = network_architecture
         self.layers = layers
         self.batch_size = batch_size
@@ -8,6 +8,7 @@ class RunConfiguration():
         self.dropout = dropout
         self.optimizer = optimizer
         self.loss = loss
+        self.task = "classification"
 
     def print(self):
         print(f"Network architecture: {self.network_architecture}")

@@ -93,6 +93,9 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
 
         # define the network type from the config file
         run_configs = []
+        task = "classification"
+        if 'task' in configs:
+            task = configs['task']
         # iterate over all network architectures
         for network_architecture in configs['networks']:
             layers = []
@@ -106,7 +109,7 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
                             for o in configs['optimizer']:
                                 for loss in configs['loss']:
                                     run_configs.append(
-                                        RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
+                                        RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss, task))
 
         for config_id, run_config in enumerate(run_configs):
             if 'config_id' in configs:

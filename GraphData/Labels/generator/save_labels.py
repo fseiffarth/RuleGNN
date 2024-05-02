@@ -79,7 +79,7 @@ def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
         write_node_labels(file, node_labels)
 
 
-def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple'):
+def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path)
         cycle_dict = []
@@ -125,14 +125,20 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
         if max_node_labels is not None:
             max_node_labels_str = f"_{max_node_labels}"
             relabel_most_frequent_node_labels(labels, max_node_labels)
-        if cycle_type == 'simple':
-            file = f"../{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt"
-        elif cycle_type == 'induced':
-            file = f"../{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt"
+        if label_path is None:
+            if cycle_type == 'simple':
+                file = f"../{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt"
+            elif cycle_type == 'induced':
+                file = f"../{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt"
+        else:
+            if cycle_type == 'simple':
+                file = f"{label_path}{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt"
+            elif cycle_type == 'induced':
+                file = f"{label_path}{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt"
         write_node_labels(file, labels)
 
 
-def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0):
+def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path)
         subgraph_dict = []
@@ -174,7 +180,10 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='su
                     labels[-1].append(label_dict[cycle_d])
                 else:
                     labels[-1].append(len(label_dict))
-        file = f"../{db_name}_{name}_{id}_labels.txt"
+        if label_path is None:
+            file = f"../{db_name}_{name}_{id}_labels.txt"
+        else:
+            file = f"{label_path}{db_name}_{name}_{id}_labels.txt"
         write_node_labels(file, labels)
 
 

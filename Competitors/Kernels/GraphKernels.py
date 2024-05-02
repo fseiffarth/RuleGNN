@@ -5,8 +5,9 @@ from typing import List
 import networkx as nx
 import numpy as np
 from grakel import WeisfeilerLehman, VertexHistogram
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.svm import SVC, SVR
+from sklearn.metrics import accuracy_score, mean_absolute_error
 
 
 def nx_to_grakel(nx_graphs: List[nx.Graph]):
@@ -26,6 +27,10 @@ def nx_to_grakel(nx_graphs: List[nx.Graph]):
                         label = int(label)
                     except:
                         label = 0
+                else:
+                    label = 0
+            else:
+                label = 0
             edge_dict[(e[0], e[1])] = label
             edge_dict[(e[1], e[0])] = label
             edge_set.add((e[0], e[1]))
@@ -41,6 +46,10 @@ def nx_to_grakel(nx_graphs: List[nx.Graph]):
                         label = int(label)
                     except:
                         label = 0
+                else:
+                    label = 0
+            else:
+                label = 0
             node_dict[n[0]] = label
         grakel_graphs.append([edge_set, node_dict, edge_dict])
     return grakel_graphs
@@ -80,15 +89,25 @@ class WLKernel:
                 K_val = gk.transform(grakel_val)
                 K_test = gk.transform(grakel_test)
 
+                if len(y_train[0]) > 1:
+                    clf = SVR(kernel='precomputed', C=c_param)
+                    clf = MultiOutputRegressor(clf)
+                else:
+                    clf = SVC(C=c_param, kernel="precomputed", random_state=self.seed)
                 # Uses the SVM classifier to perform classification
-                clf = SVC(C=c_param, kernel="precomputed", random_state=self.seed)
                 clf.fit(K_train, y_train)
                 y_val_pred = clf.predict(K_val)
                 y_test_pred = clf.predict(K_test)
 
-                # compute the validation accuracy and test accuracy and print it
-                val_acc = accuracy_score(y_val, y_val_pred)
-                test_acc = accuracy_score(y_test, y_test_pred)
+                if len(y_train[0]) > 1:
+                    val_acc = mean_absolute_error(y_val, y_val_pred)
+                    test_acc = mean_absolute_error(y_test, y_test_pred)
+                else:
+                    # compute the validation accuracy and test accuracy and print it
+                    val_acc = accuracy_score(y_val, y_val_pred)
+                    test_acc = accuracy_score(y_test, y_test_pred)
+
+
 
                 file_name = f'{self.graph_data.graph_db_name}_Results_run_id_{self.run_num}_validation_step_{self.validation_num}.csv'
 

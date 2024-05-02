@@ -148,15 +148,22 @@ class GraphData:
     def load_from_benchmark(self, db_name, path, use_features=True):
         self.graph_db_name = db_name
         self.graphs, self.graph_labels = load_graphs(path, db_name)
-        self.num_classes = len(set(self.graph_labels))
         self.num_graphs = len(self.graphs)
+        try:
+            self.num_classes = len(set(self.graph_labels))
+        except:
+            self.num_classes = len(self.graph_labels[0])
         self.max_nodes = 0
         for g in self.graphs:
             self.max_nodes = max(self.max_nodes, g.number_of_nodes())
 
         self.one_hot_labels = torch.zeros(self.num_graphs, self.num_classes)
+
         for i, label in enumerate(self.graph_labels):
-            self.one_hot_labels[i][label] = 1
+            if type(label) == int:
+                self.one_hot_labels[i][label] = 1
+            elif type(label) == list:
+                self.one_hot_labels[i] = torch.tensor(label)
 
         self.inputs = []
         ## add node labels
@@ -183,7 +190,7 @@ def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_
         zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
         zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-    elif 'LongRings' or 'EvenOddRings' in db_name:
+    elif 'LongRings' or 'EvenOddRings' or 'SnowflakesCount' in db_name:
         graph_data = GraphData()
         # add db_name and raw to the data path
         data_path = data_path + db_name + "/raw/"

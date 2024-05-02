@@ -102,7 +102,7 @@ class GraphRuleMethod:
         file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
 
         # header use semicolon as delimiter
-        if self.graph_data.num_classes == 1:
+        if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
             header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
                      "EpochMAE;EpochMAEStd;EpochTime;ValidationAccuracy;ValidationLoss;ValidationMAE;ValidationMAEStd;TestAccuracy;TestLoss;TestMAE;TestMAEStd\n"
         else:
@@ -307,8 +307,8 @@ class GraphRuleMethod:
                 epoch_acc += batch_acc * (len(batch) / len(self.training_data))
                 batch_mae = 0
                 batch_mae_std = 0
-                # if num classes is one print the mae and its deviation
-                if self.graph_data.num_classes == 1:
+                # if num classes is one calculate the mae and mae_std or if the task is regression
+                if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
                     # flatten the labels and outputs
                     flatten_labels = labels.flatten().detach().numpy()
                     flatten_outputs = outputs.flatten().detach().numpy()
@@ -318,7 +318,7 @@ class GraphRuleMethod:
                     epoch_mae_std += np.std(np.abs(flatten_labels - flatten_outputs)) * (len(batch) / len(self.training_data))
 
                 if self.para.print_results:
-                    if self.graph_data.num_classes == 1:
+                    if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
                         print("\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} %, mae: {}, mae_std: {}".format(epoch + 1, self.para.n_epochs,
                                                                                       batch_counter + 1,
                                                                                       len(train_batches),running_loss, batch_acc, batch_mae, batch_mae_std))

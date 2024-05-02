@@ -15,6 +15,13 @@ def glue_graphs(G1, G2, node1, node2, plot=False):
     Glue together two graphs G1 and G2 and replace node2 in G2 with node1 in G1
     '''
     G = nx.Graph()
+    # add nodes from G1
+    for i, node in enumerate(G1.nodes()):
+        # check if node is labeled
+        if 'label' in G1.nodes[node]:
+            G.add_node(i, label=G1.nodes[node]['label'])
+        else:
+            G.add_node(i)
     # add edges from G1
     for edge in G1.edges():
         G.add_edge(edge[0], edge[1])
@@ -112,7 +119,11 @@ def Snowflake(part_list=[0, 1, 2, 3], size=4, plot=False):
     Glue the parts from partlist, i.e., M0, M1, M2, M3 together to a snowflake graph
     '''
     # create ring graph
-    G = nx.circulant_graph(size, [1])
+    if size == 1:
+        G = nx.Graph()
+        G.add_node(0)
+    else:
+        G = nx.circulant_graph(size, [1])
     part_dict = {0: (M0(), 7), 1: (M1(), 7), 2: (M1(), 14), 3: (M3(), 7)}
     # create snowflake graph
     for i, part in enumerate(part_list):
@@ -130,30 +141,30 @@ def Snowflake(part_list=[0, 1, 2, 3], size=4, plot=False):
                 shell_list.append(list(range(0, size)))
             elif i == 1:
                 for j in range(0, size):
-                    shell.append(size + j*14)
-                    shell.append(size + j*14 + 1)
+                    shell.append(size + j * 14)
+                    shell.append(size + j * 14 + 1)
             elif i == 2:
                 for j in range(0, size):
-                    shell.append(size + j*14 + 2)
-                    shell.append(size + j*14 + 3)
+                    shell.append(size + j * 14 + 2)
+                    shell.append(size + j * 14 + 3)
                     shell.append(size + j * 14 + 4)
                     shell.append(size + j * 14 + 5)
             elif i == 3:
                 for j in range(0, size):
-                    shell.append(size + j*14 + 6)
+                    shell.append(size + j * 14 + 6)
             elif i == 4:
                 for j in range(0, size):
-                    shell.append(size + j*14 + 7)
-                    shell.append(size + j*14 + 8)
+                    shell.append(size + j * 14 + 7)
+                    shell.append(size + j * 14 + 8)
                     shell.append(size + j * 14 + 9)
                     shell.append(size + j * 14 + 10)
             elif i == 5:
                 for j in range(0, size):
-                    shell.append(size + j*14 + 11)
-                    shell.append(size + j*14 + 12)
+                    shell.append(size + j * 14 + 11)
+                    shell.append(size + j * 14 + 12)
             elif i == 6:
                 for j in range(0, size):
-                    shell.append(size + j*14 + 13)
+                    shell.append(size + j * 14 + 13)
             if i > 0:
                 shell_list.append(shell)
         pos = nx.kamada_kawai_layout(G)
@@ -161,6 +172,52 @@ def Snowflake(part_list=[0, 1, 2, 3], size=4, plot=False):
         nx.draw_networkx_edges(G, pos)
         plt.show()
     return G
+
+
+def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, plot=False, seed=4837257):
+    '''
+    Create a list of snowflake graphs with sizes from smallest_snowflake to largest_snowflake
+    '''
+    np.random.seed(seed)
+    snowflakes = []
+    labels = []
+    if type(flakes_per_size) == int:
+        # create a list of snowflakes with sizes from smallest_snowflake to largest_snowflake
+        for i in range(smallest_snowflake, largest_snowflake + 1):
+            for j in range(0, flakes_per_size):
+                # create random part list of size i
+                part_list = np.random.randint(0, 4, i)
+                snowflakes.append(Snowflake(part_list=part_list, size=i))
+                # count the number of parts in the snowflake
+                part_count = np.zeros(4)
+                for part in part_list:
+                    part_count[part] += 1
+                # label the snowflake with the number of parts
+                labels.append(part_count)
+    if type(flakes_per_size) == list:
+        # create a list of snowflakes with sizes from smallest_snowflake to largest_snowflake
+        for i in range(smallest_snowflake, largest_snowflake + 1):
+            for j in range(0, flakes_per_size[i - smallest_snowflake]):
+                # create random part list of size i
+                part_list = np.random.randint(0, 4, i)
+                snowflakes.append(Snowflake(part_list=part_list, size=i))
+                # count the number of parts in the snowflake
+                part_count = np.zeros(4)
+                for part in part_list:
+                    part_count[part] += 1
+                # label the snowflake with the number of parts
+                labels.append(part_count)
+    if plot:
+        # plot all snowflakes
+        for i, snowflake in enumerate(snowflakes):
+            # label as title
+            label = labels[i]
+            plt.title(str(label))
+            pos = nx.kamada_kawai_layout(snowflake)
+            nx.draw_networkx_nodes(snowflake, pos, node_size=50)
+            nx.draw_networkx_edges(snowflake, pos)
+            plt.show()
+    return snowflakes, labels
 
 
 def example_graph1():
@@ -211,7 +268,8 @@ def double_circle(n=50, m=50):
 
 
 def main():
-    Snowflake(part_list=[0, 1, 2, 3, 0, 0, 0, 1, 2, 3], size=10, plot=True)
+    #Snowflake(part_list=[0, 1, 2, 3], size=4, plot=True)
+    Snowflakes(smallest_snowflake=2, largest_snowflake=2, flakes_per_size=100, plot=True, seed=764)
 
 
 if __name__ == '__main__':

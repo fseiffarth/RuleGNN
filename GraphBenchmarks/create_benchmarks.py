@@ -4,9 +4,10 @@ import networkx as nx
 import numpy as np
 from torch_geometric.data import InMemoryDataset
 
+from GraphBenchmarks.ExampleGraphs import Snowflakes
 from GraphData.DataSplits.create_splits import create_splits
 from GraphData.Distances.save_distances import save_distances
-from GraphData.Labels.generator.save_labels import save_standard_labels
+from GraphData.Labels.generator.save_labels import save_standard_labels, save_circle_labels, save_subgraph_labels
 from utils.utils import save_graphs
 
 
@@ -199,14 +200,22 @@ def main(output_path="Data/", benchmarks=None):
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../GraphData/Distances/")
             save_standard_labels(output_path, [name], label_path="../GraphData/Labels/")
-            create_splits("LongRings8", path=output_path, output_path="../GraphData/DataSplits/")
-        if "Snowflakes" in benchmarks:
-            pass
-
+            create_splits(name, path=output_path, output_path="../GraphData/DataSplits/")
+        if name == "SnowflakesCount":
+            graphs, labels = Snowflakes(smallest_snowflake=2, largest_snowflake=2, flakes_per_size=300, seed=764)
+            save_graphs(output_path, name, graphs, labels)
+            # create distance files
+            save_distances(output_path, [name], cutoff=None, distance_path="../GraphData/Distances/")
+            save_standard_labels(output_path, [name], label_path="../GraphData/Labels/")
+            save_circle_labels(output_path, [name], length_bound=3, cycle_type="induced", label_path="../GraphData/Labels/")
+            save_circle_labels(output_path, [name], length_bound=6, cycle_type="induced", label_path="../GraphData/Labels/")
+            save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(5)], label_path="../GraphData/Labels/")
+            create_splits(name, path=output_path, output_path="../GraphData/DataSplits/")
 
 if __name__ == "__main__":
-    main(benchmarks=["EvenOddRings1_16", "EvenOddRings2_16", "EvenOddRings3_16"])
-    main(benchmarks=["EvenOddRingsCount16"])
+    #main(benchmarks=["EvenOddRings1_16", "EvenOddRings2_16", "EvenOddRings3_16"])
+    #main(benchmarks=["EvenOddRingsCount16"])
+    main(benchmarks=["SnowflakesCount"])
     # main(benchmarks=["EvenOddRings2_16", "EvenOddRings2_120"])
     # main(benchmarks=["EvenOddRings3_16", "EvenOddRings3_120"])
 

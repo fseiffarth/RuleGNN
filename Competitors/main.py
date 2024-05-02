@@ -23,13 +23,15 @@ def main(db_name, data_path="../../GraphData/DS_all/"):
             training_data = np.asarray(data[1][validation_id], dtype=int)
             validate_data = np.asarray(data[2][validation_id], dtype=int)
 
-            noG = NoGKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data,
-                            validate_data=validate_data, test_data=test_data, seed=i)
-            noG.Run()
             wlKernel = WLKernel(graph_data, run_num=i, validation_num=validation_id,
                                 training_data=training_data, validate_data=validate_data, test_data=test_data,
                                 seed=i)
             wlKernel.Run()
+
+            noG = NoGKernel(graph_data, run_num=i, validation_num=validation_id, training_data=training_data,
+                            validate_data=validate_data, test_data=test_data, seed=i)
+            noG.Run()
+
 
 
 if __name__ == "__main__":
@@ -37,4 +39,4 @@ if __name__ == "__main__":
     # joblib.Parallel(n_jobs=-1)(
     #     joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
     #main("IMDB-MULTI")
-    main("LongRings", data_path="../GraphBenchmarks/Data/")
+    main("SnowflakesCount", data_path="../GraphBenchmarks/Data/")
