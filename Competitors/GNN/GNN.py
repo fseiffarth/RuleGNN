@@ -6,9 +6,10 @@ import torch_geometric.datasets
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score
 from torch_geometric.data import Data
-from torch_geometric.nn import GCNConv, global_mean_pool, GATv2Conv, global_max_pool, global_add_pool, GraphSAGE
+from torch_geometric.nn import GCNConv, global_mean_pool, GATv2Conv, global_max_pool, global_add_pool, SAGEConv
 from torch_geometric.nn.models import GCN, GIN
 
+from Competitors.GNN.Models.GraphSAGE import GraphSAGE
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.GraphData import get_graph_data, BenchmarkDatasets
 
@@ -210,6 +211,10 @@ def main(db_name, data_path=None):
                         out_channels=gnn.dataset.num_classes, num_layers=2)
         model_GCN = GCN(in_channels=gnn.dataset.num_node_features, hidden_channels=16,
                         out_channels=gnn.dataset.num_classes, num_layers=2)
+        model = GNNModule(run_configuration, in_channels=gnn.dataset.num_node_features,out_channels=gnn.dataset.num_classes)
+        model_gs = GraphSAGE(in_channels=gnn.dataset.num_node_features,out_channels=gnn.dataset.num_classes, run_config=run_configuration)
+        gnn.ModelSelection(model_gs)
+        #gnn.BasicModelSelection(model)
         model_GraphSAGE = GraphSAGE(in_channels=gnn.dataset.num_node_features, hidden_channels=16,
                                     out_channels=gnn.dataset.num_classes, num_layers=2, jk="max")
         model = GNNModule(run_configuration=run_configuration, in_channels=gnn.dataset.num_node_features,out_channels=gnn.dataset.num_classes)
@@ -218,4 +223,5 @@ def main(db_name, data_path=None):
 
 
 if __name__ == "__main__":
+    main("DHFR", data_path="../../GraphBenchmarks/Data/")
     main("EvenOddRingsCount16", data_path="../../GraphBenchmarks/Data/")
