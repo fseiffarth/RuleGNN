@@ -177,33 +177,15 @@ class GraphRuleMethod:
                 loss = criterion(outputs, labels)
                 timer.measure("forward")
 
-                weights_l1 = []
-                weights_l2 = []
-                weights_l3 = []
-                weights_lr = []
-
                 if self.para.save_weights:
-                    try:
-                        net.l1
-                        # look if the weights are updated
-                        weights_l1 = [x.item() for x in net.l1.Param_W]
-                    except:
-                        pass
-                    try:
-                        net.l2
-                        weights_l2 = [x.item() for x in net.l2.Param_W]
-                    except:
-                        pass
-                    try:
-                        net.l3
-                        weights_l3 = [x.item() for x in net.l3.Param_W]
-                    except:
-                        pass
-                    try:
-                        net.lr
-                        weights_lr = [x.item() for x in net.lr.Param_W]
-                    except:
-                        pass
+                    weights = []
+                    for i, layer in enumerate(net.net_layers):
+                        weights += [x.item() for x in layer.Param_W]
+                        w = np.array(weights[-1]).reshape(1, -1)
+                        df = pd.DataFrame(w)
+                        df.to_csv
+
+                        df.to_csv(f"Results/Parameter/weights.csv", header=False, index=False, mode='a')
 
                     # save the weights to a csv file
                     re_weights_l1 = np.array(weights_l1).reshape(1, -1)
