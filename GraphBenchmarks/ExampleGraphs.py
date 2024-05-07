@@ -207,6 +207,36 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
                     part_count[part] += 1
                 # label the snowflake with the number of parts
                 labels.append(part_count)
+    if flakes_per_size == 'all':
+        for i in range(smallest_snowflake, largest_snowflake + 1):
+            # create 1 million part counts and get the unique ones
+            part_counts = set()
+            for j in range(0, 1000000):
+                # create random part list of size i
+                part_list = np.random.randint(0, 4, i)
+                # count the number of parts in the snowflake
+                part_count = np.zeros(4)
+                for part in part_list:
+                    part_count[part] += 1
+                part_counts.add(tuple(part_count))
+            # part_counts to list of numpy arrays
+            part_counts = [np.array(part_count) for part_count in part_counts]
+            for part_count in part_counts:
+                # make part list from part count
+                part_list = []
+
+
+            # get all
+            for j in range(0, 4 ** i):
+                # create random part list of size i
+                part_list = np.random.randint(0, 4, i)
+                snowflakes.append(Snowflake(part_list=part_list, size=i))
+                # count the number of parts in the snowflake
+                part_count = np.zeros(4)
+                for part in part_list:
+                    part_count[part] += 1
+                # label the snowflake with the number of parts
+                labels.append(part_count)
     if plot:
         # plot all snowflakes
         for i, snowflake in enumerate(snowflakes):

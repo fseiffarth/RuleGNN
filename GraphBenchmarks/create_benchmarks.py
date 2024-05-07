@@ -202,14 +202,16 @@ def main(output_path="Data/", benchmarks=None):
             save_standard_labels(output_path, [name], label_path="../GraphData/Labels/")
             create_splits(name, path=output_path, output_path="../GraphData/DataSplits/")
         if name == "SnowflakesCount":
-            graphs, labels = Snowflakes(smallest_snowflake=2, largest_snowflake=2, flakes_per_size=300, seed=764)
+            graphs, labels = Snowflakes(smallest_snowflake=3, largest_snowflake=6, flakes_per_size=200, seed=764)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../GraphData/Distances/")
             save_standard_labels(output_path, [name], label_path="../GraphData/Labels/")
             save_circle_labels(output_path, [name], length_bound=3, cycle_type="induced", label_path="../GraphData/Labels/")
             save_circle_labels(output_path, [name], length_bound=6, cycle_type="induced", label_path="../GraphData/Labels/")
-            save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(5)], label_path="../GraphData/Labels/")
+            save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(5)], id=0, label_path="../GraphData/Labels/")
+            save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4)], id=1, label_path="../GraphData/Labels/")
+            save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4), nx.cycle_graph(5)], id=2, label_path="../GraphData/Labels/")
             create_splits(name, path=output_path, output_path="../GraphData/DataSplits/")
 
 if __name__ == "__main__":

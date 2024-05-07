@@ -103,7 +103,7 @@ class GraphNetOriginal(nn.Module):
 
 ###Net for learning graph class
 class GraphNet(nn.Module):
-    def __init__(self, graph_data: GraphData,
+    def     __init__(self, graph_data: GraphData,
                  para,
                  n_node_features, seed, dropout=0,
                  out_classes=2,
@@ -176,7 +176,14 @@ class GraphNet(nn.Module):
         self.lfc3.weight.requires_grad_(False)
         """
         self.dropout = nn.Dropout(dropout)
-        self.af = nn.Tanh()
+        if 'activation' in para.configs and para.configs['activation'] == 'None':
+            self.af = nn.Identity()
+        elif 'activation' in para.configs and para.configs['activation'] == 'Relu':
+            self.af = nn.ReLU()
+        elif 'activation' in para.configs and para.configs['activation'] == 'LeakyRelu':
+            self.af = nn.LeakyReLU()
+        else:
+            self.af = nn.Tanh()
         if 'output_activation' in para.configs and para.configs['output_activation'] == 'None':
             self.out_af = nn.Identity()
         elif 'output_activation' in para.configs and para.configs['output_activation'] == 'Relu':
