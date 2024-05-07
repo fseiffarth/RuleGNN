@@ -39,4 +39,5 @@ if __name__ == "__main__":
     # joblib.Parallel(n_jobs=-1)(
     #     joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
     #main("IMDB-MULTI")
-    main("SnowflakesCount", data_path="../GraphBenchmarks/Data/")
+    #main("SnowflakesCount", data_path="../GraphBenchmarks/Data/")
+    main("LongRings100", data_path="../GraphBenchmarks/Data/")

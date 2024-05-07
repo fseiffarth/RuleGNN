@@ -89,7 +89,7 @@ class WLKernel:
                 K_val = gk.transform(grakel_val)
                 K_test = gk.transform(grakel_test)
 
-                if len(y_train[0]) > 1:
+                if type(y_train) is not np.ndarray:
                     clf = SVR(kernel='precomputed', C=c_param)
                     clf = MultiOutputRegressor(clf)
                 else:
@@ -99,7 +99,7 @@ class WLKernel:
                 y_val_pred = clf.predict(K_val)
                 y_test_pred = clf.predict(K_test)
 
-                if len(y_train[0]) > 1:
+                if type(y_train) is not np.ndarray:
                     val_acc = mean_absolute_error(y_val, y_val_pred)
                     test_acc = mean_absolute_error(y_test, y_test_pred)
                 else:

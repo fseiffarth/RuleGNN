@@ -115,6 +115,7 @@ class GraphConvLayer(nn.Module):
         self.n_kernels = n_kernels
         self.n_extra_dim = 1
         self.extra_dim_map = {}
+        self.parameters = parameters
 
         self.args = args
         self.kwargs = kwargs
@@ -312,7 +313,7 @@ class GraphConvLayer(nn.Module):
                     self.weight_matrices[-1][entry[0]][entry[1]] = self.Param_W[entry[2]]
                     parameterMatrix[entry[0]][entry[1]] = entry[2] + 1
                     np.savetxt(
-                        f"Results/{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt",
+                        f"{self.parameters.configs['paths']['results']}/{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt",
                         parameterMatrix, delimiter=';', fmt='%i')
 
             # print(row_array, col_array, data_array)
