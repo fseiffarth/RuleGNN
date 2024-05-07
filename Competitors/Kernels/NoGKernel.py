@@ -47,7 +47,7 @@ class NoGKernel():
             c_param = 2 ** c_param
             # create a SVM based on an RBF kernel that trains on the training data
             # and predicts the labels of the validation data and test data
-            if len(Y_train[0]) > 1:
+            if type(Y_train) is not np.ndarray:
                 clf = SVR(kernel='rbf', C=c_param)
                 clf = MultiOutputRegressor(clf)
             else:
@@ -55,7 +55,7 @@ class NoGKernel():
             clf.fit(X_train, Y_train)
             Y_val_pred = clf.predict(X_val)
             Y_test_pred = clf.predict(X_test)
-            if len(Y_train[0]) > 1:
+            if type(Y_train) is not np.ndarray:
                 val_acc = mean_absolute_error(Y_val, Y_val_pred)
                 test_acc = mean_absolute_error(Y_test, Y_test_pred)
             else:
