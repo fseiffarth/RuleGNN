@@ -64,12 +64,15 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None)
                     f.write(str(i) + " " + str(label) + "\n")
                 elif type(label) == np.ndarray or type(label) == list:
                     f.write(str(i) + " " + " ".join(map(str, label)) + "\n")
+                else:
+                    f.write(str(i) + " " + str(label) + "\n")
         else:
             for i in range(len(graphs)):
                 f.write(str(i) + " " + str(0) + "\n")
         # remove last empty line
-        f.seek(f.tell() - 1, 0)
-        f.truncate()
+        if f.tell() > 0:
+            f.seek(f.tell() - 1, 0)
+            f.truncate()
 
 
 def load_graphs(path, db_name):

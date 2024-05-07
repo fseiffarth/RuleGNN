@@ -173,6 +173,13 @@ def main(output_path="Data/", benchmarks=None):
             save_distances(output_path, [name], cutoff=None, distance_path="../GraphData/Distances/")
             save_standard_labels(output_path, [name], label_path="../GraphData/Labels/")
             create_splits(name, path=output_path, output_path="../GraphData/DataSplits/")
+        if name == "EvenOddRings2_100":
+            graphs, labels = even_odd_rings(data_size=1200, ring_size=100, difficulty=2, count=False)
+            save_graphs(output_path, name, graphs, labels)
+            # create distance files
+            save_distances(output_path, [name], cutoff=None, distance_path="../GraphData/Distances/")
+            save_standard_labels(output_path, [name], label_path="../GraphData/Labels/")
+            create_splits(name, path=output_path, output_path="../GraphData/DataSplits/")
         if name == "EvenOddRings3_16":
             graphs, labels = even_odd_rings(data_size=1200, ring_size=16, difficulty=3, count=False)
             save_graphs(output_path, name, graphs, labels)
@@ -214,8 +221,9 @@ def main(output_path="Data/", benchmarks=None):
 
 if __name__ == "__main__":
     #main(benchmarks=["EvenOddRings1_16", "EvenOddRings2_16", "EvenOddRings3_16"])
+    main(benchmarks=["EvenOddRings2_100"])
     #main(benchmarks=["EvenOddRingsCount16"])
-    main(benchmarks=["SnowflakesCount"])
+    #main(benchmarks=["SnowflakesCount"])
     # main(benchmarks=["EvenOddRings2_16", "EvenOddRings2_120"])
     # main(benchmarks=["EvenOddRings3_16", "EvenOddRings3_120"])
 
