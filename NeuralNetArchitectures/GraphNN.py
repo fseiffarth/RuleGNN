@@ -101,9 +101,8 @@ class GraphNetOriginal(nn.Module):
         return type(self)
 
 
-###Net for learning graph class
 class GraphNet(nn.Module):
-    def     __init__(self, graph_data: GraphData,
+    def __init__(self, graph_data: GraphData,
                  para,
                  n_node_features, seed, dropout=0,
                  out_classes=2,
@@ -113,68 +112,30 @@ class GraphNet(nn.Module):
         self.graph_data = graph_data
         self.print_weights = print_weights
         self.para = para
-        # self.l1 = layers.GraphConvLayer(graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf,
-        #                                bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-        #                                n_node_labels=n_node_labels, n_edge_labels=n_edge_labels, n_kernels=1,
-        #                                bias=True)
-        # self.l2 = layers.GraphConvLayer(graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf,
-        #                                bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-        #                                n_node_labels=n_node_labels, n_edge_labels=n_edge_labels,  n_kernels=1,
-        #                                bias=True)
+
         self.net_layers = []
         for i, layer in enumerate(para.layers):
-            # while i is not the last index
             if i < len(para.layers) - 1:
-                self.net_layers.append(layers.GraphConvLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf_dist,
-                                        bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-                                        node_labels=layer.get_layer_string(), n_kernels=1,
-                                        bias=True, print_layer_init=print_layer_init, save_weights=save_weights, distances=layer.distances).double().requires_grad_(convolution_grad))
+                self.net_layers.append(
+                    layers.GraphConvLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data,
+                                          w_distribution_rule=rule.weight_rule_wf_dist,
+                                          bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
+                                          node_labels=layer.get_layer_string(), n_kernels=1,
+                                          bias=True, print_layer_init=print_layer_init, save_weights=save_weights,
+                                          distances=layer.distances).double().requires_grad_(convolution_grad))
             else:
-                self.net_layers.append(layers.GraphResizeLayer(layer_id=i, seed=seed + i, graph_data=self.graph_data,
-                                          w_distribution_rule=rule.node_label_rule,
-                                          in_features=n_node_features, out_features=out_classes,
-                                          node_labels=layer.get_layer_string(),
-                                          bias=True, print_layer_init=print_layer_init,
-                                          save_weights=save_weights).double().requires_grad_(resize_grad))
+                self.net_layers.append(layers.GraphResizeLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data,
+                                                               w_distribution_rule=rule.node_label_rule,
+                                                               in_features=n_node_features, out_features=out_classes,
+                                                               node_labels=layer.get_layer_string(),
+                                                               bias=True, print_layer_init=print_layer_init,
+                                                               save_weights=save_weights).double().requires_grad_(
+                    resize_grad))
 
-        # self.l1 = layers.GraphConvLayer(layer_id=1, seed=seed + 1, graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf_dist,
-        #                                 bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-        #                                 node_labels='wl_2', n_kernels=1,
-        #                                 bias=True, print_layer_init=print_layer_init, save_weights=save_weights, distances=[1, 2, 3]).double().requires_grad_(convolution_grad)
-        # self.l2 = layers.GraphConvLayer(layer_id=2, seed=seed + 2, graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf_dist,
-        #                                 bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-        #                                 n_node_labels=n_node_labels, n_edge_labels=n_edge_labels, n_kernels=1,
-        #                                 bias=True, save_weights=save_weights, distances=[1, 2, 3]).double().requires_grad_(convolution_grad)
-        # self.l3 = layers.GraphConvLayer(graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf_dist,
-        #                                 bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-        #                                 n_node_labels=n_node_labels, n_edge_labels=n_edge_labels, n_kernels=1,
-        #                                 bias=False, distance_list=distance_list, distances=[1])
-        # self.l2 = layers.GraphConvLayer(graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_wf,
-        #                                bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-        #                                n_node_labels=n_node_labels, n_edge_labels=n_edge_labels,  n_kernels=1,
-        #                                bias=True)
-        # self.l3 = layers.GraphConvLayer(graph_data=self.graph_data, w_distribution_rule=rule.weight_rule_graphs_edge, bias_distribution_rule=rule.bias_rule_graphs, in_features=n_node_features, n_node_labels=n_node_labels, n_edge_labels=n_edge_labels, n_kernels=1, bias=True)
-        # self.l4 = layers.GraphConvDistanceLayer(graph_data=self.graph_data, distance_list=distance_list, max_distance = 1, w_distribution_rule=rule.weight_rule_distances, bias_distribution_rule=rule.bias_rule_graphs, in_features=n_node_features, out_features=100  , n_node_labels=n_node_labels, n_kernels=1, bias=True)
-        # self.l5 = layers.GraphConvDistanceLayer(graph_data=self.graph_data, distance_list=distance_list, max_distance = 6, w_distribution_rule=rule.weight_rule_distances, bias_distribution_rule=rule.bias_rule_graphs, in_features=n_node_features, out_features=100, n_node_labels=n_node_labels, n_kernels=1, bias=True)
-
-        # self.lcycle = layers.GraphCycleLayer(graph_data=self.graph_data, cycle_list=cycle_list, max_cycle_length = 7, w_distribution_rule=rule.weight_rule_cycles, bias_distribution_rule=rule.bias_rule_graphs, in_features=n_node_features, out_features=100, n_node_labels=n_node_labels, n_kernels=1, bias=True)
-        # self.out_dim = graph_data.num_classes
-        # self.lr = layers.GraphResizeLayer(layer_id=2, seed=seed + 2, graph_data=self.graph_data,
-        #                                   w_distribution_rule=rule.node_label_rule,
-        #                                   in_features=n_node_features, out_features=self.out_dim,
-        #                                   node_labels='wl_2',
-        #                                   bias=True, print_layer_init=print_layer_init,
-        #                                   save_weights=save_weights).double().requires_grad_(resize_grad)
         if 'linear_layers' in para.configs and para.configs['linear_layers'] > 0:
             for i in range(para.configs['linear_layers']):
                 self.net_layers.append(nn.Linear(out_classes, out_classes, bias=True).double())
-        # self.lfc2 = nn.Linear(self.out_dim, self.out_dim, bias=True).double()
-        # self.lfc_out = nn.Linear(self.out_dim, out_classes, bias=True).double()
-        """
-        self.lfc2.weight.requires_grad_(False)
-        self.lfc1.weight.requires_grad_(False)
-        self.lfc3.weight.requires_grad_(False)
-        """
+
         self.dropout = nn.Dropout(dropout)
         if 'activation' in para.configs and para.configs['activation'] == 'None':
             self.af = nn.Identity()

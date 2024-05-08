@@ -177,32 +177,13 @@ class GraphRuleMethod:
                 loss = criterion(outputs, labels)
                 timer.measure("forward")
 
+                weights = []
                 if self.para.save_weights:
-                    weights = []
                     for i, layer in enumerate(net.net_layers):
-                        weights += [x.item() for x in layer.Param_W]
+                        weights.append([x.item() for x in layer.Param_W])
                         w = np.array(weights[-1]).reshape(1, -1)
                         df = pd.DataFrame(w)
-                        df.to_csv
-
-                        df.to_csv(f"Results/Parameter/weights.csv", header=False, index=False, mode='a')
-
-                    # save the weights to a csv file
-                    re_weights_l1 = np.array(weights_l1).reshape(1, -1)
-                    df = pd.DataFrame(re_weights_l1)
-                    df.to_csv("Results/Parameter/layer1_weights.csv", header=False, index=False, mode='a')
-
-                    re_weights_l2 = np.array(weights_l2).reshape(1, -1)
-                    df = pd.DataFrame(re_weights_l2)
-                    df.to_csv("Results/Parameter/layer2_weights.csv", header=False, index=False, mode='a')
-
-                    re_weights_l3 = np.array(weights_l3).reshape(1, -1)
-                    df = pd.DataFrame(re_weights_l3)
-                    df.to_csv("Results/Parameter/layer3_weights.csv", header=False, index=False, mode='a')
-
-                    re_weights_lr = np.array(weights_lr).reshape(1, -1)
-                    df = pd.DataFrame(re_weights_lr)
-                    df.to_csv("Results/Parameter/layer_resize_weights.csv", header=False, index=False, mode='a')
+                        df.to_csv(f"Results/Parameter/layer_{i}_weights.csv", header=False, index=False, mode='a')
 
                 timer.measure("backward")
                 # change learning rate with high loss
@@ -222,57 +203,18 @@ class GraphRuleMethod:
                 timer.reset()
 
                 if self.para.save_weights:
-                    change = []
-                    change2 = []
-                    change3 = []
-                    changer = []
-                    try:
-                        net.l1
-                        change = [weights_l1[i] - x.item() for i, x in enumerate(net.l1.Param_W, 0)]
-                    except:
-                        pass
-                    try:
-                        net.l2
-                        change2 = [weights_l2[i] - x.item() for i, x in enumerate(net.l2.Param_W, 0)]
-                    except:
-                        pass
-                    try:
-                        net.l3
-                        change3 = [weights_l3[i] - x.item() for i, x in enumerate(net.l3.Param_W, 0)]
-                    except:
-                        pass
-                    try:
-                        net.lr
-                        changer = [weights_lr[i] - x.item() for i, x in enumerate(net.lr.Param_W, 0)]
-                    except:
-                        pass
-
-                    change = np.array(change)
-                    change2 = np.array(change2)
-                    change3 = np.array(change3)
-                    changer = np.array(changer)
-                    # flatten the numpy array
-                    change = change.flatten()
-                    change2 = change2.flatten()
-                    change3 = change3.flatten()
-                    changer = changer.flatten()
-                    change = change.reshape(1, -1)
-                    change2 = change2.reshape(1, -1)
-                    change3 = change3.reshape(1, -1)
-                    changer = changer.reshape(1, -1)
-
-                    # save to three differen csv files using pandas
-                    df = pd.DataFrame(change)
-                    df.to_csv("Results/Parameter/layer1_change.csv", header=False, index=False, mode='a')
-
-                    df = pd.DataFrame(change2)
-                    df.to_csv("Results/Parameter/layer2_change.csv", header=False, index=False, mode='a')
-
-                    df = pd.DataFrame(change3)
-                    df.to_csv("Results/Parameter/layer3_change.csv", header=False, index=False, mode='a')
-
-                    df = pd.DataFrame(changer)
-                    df.to_csv("Results/Parameter/layerr_change.csv", header=False, index=False, mode='a')
+                    weight_changes = []
+                    for i, layer in enumerate(net.net_layers):
+                        change = np.array([weights[i][j] - x.item() for j, x in enumerate(layer.Param_W)]).flatten().reshape(1, -1)
+                        weight_changes.append(change)
+                        # save to three differen csv files using pandas
+                        df = pd.DataFrame(change)
+                        df.to_csv(f'Results/Parameter/layer_{i}_change.csv', header=False, index=False, mode='a')
+                        # if there is some change print that the layer trains
+                        if np.count_nonzero(change) > 0:
+                            print(f'Layer {i} has updated')
+                        else:
+                            print(f'Layer {i} has not updated')
 
                 running_loss += loss.item()
                 epoch_loss += running_loss

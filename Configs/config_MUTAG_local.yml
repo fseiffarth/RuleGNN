@@ -32,7 +32,7 @@ early_stopping:
     25
 networks:
   # mixed models
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1 ] }
     - { layer_type: simple_cycles, max_cycle_length: 6 }
 
 
@@ -56,7 +56,7 @@ additional_options:
   draw: # draw the accuracy and loss during training
     True
   save_weights: # save the weights of the model
-    False
+    True
   save_prediction_values:
     True
   plot_graphs: # Plot all graphs in the dataset

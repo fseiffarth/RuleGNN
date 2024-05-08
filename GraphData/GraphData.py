@@ -190,7 +190,7 @@ def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_
         zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
         zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-    elif 'LongRings' or 'EvenOddRings' or 'SnowflakesCount' in db_name:
+    elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name):
         graph_data = GraphData()
         # add db_name and raw to the data path
         data_path = data_path + db_name + "/raw/"
@@ -207,6 +207,10 @@ def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_
             distance_list = load_distances(db_name=db_name,
                                            path=f'{distance_path}{db_name}_distances.pkl')
             graph_data.distance_list = distance_list
+        else:
+            # raise error that the distances are not available
+            print(f'Distances for {db_name} not available')
+            sys.exit(1)
     return graph_data
 
 

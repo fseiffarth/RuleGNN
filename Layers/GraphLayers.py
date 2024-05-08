@@ -25,7 +25,6 @@ class Layer:
         else:
             self.distances = None
 
-
     def get_layer_string(self):
         l_string = ""
         if self.layer_type == "primary":
@@ -74,7 +73,6 @@ class Layer:
                 max_node_labels = self.layer_dict['max_node_labels']
                 l_string = f"subgraph_{max_node_labels}"
 
-
         return l_string
 
 
@@ -92,7 +90,8 @@ def reshape_indices(a, b):
 
 class GraphConvLayer(nn.Module):
 
-    def __init__(self, layer_id, seed, parameters, graph_data: GraphData.GraphData, w_distribution_rule, bias_distribution_rule,
+    def __init__(self, layer_id, seed, parameters, graph_data: GraphData.GraphData, w_distribution_rule,
+                 bias_distribution_rule,
                  in_features, node_labels, n_kernels=1, bias=True, print_layer_init=False, save_weights=False, *args,
                  **kwargs):
         super(GraphConvLayer, self).__init__()
@@ -115,7 +114,7 @@ class GraphConvLayer(nn.Module):
         self.n_kernels = n_kernels
         self.n_extra_dim = 1
         self.extra_dim_map = {}
-        self.parameters = parameters
+        self.para = parameters
 
         self.args = args
         self.kwargs = kwargs
@@ -160,18 +159,15 @@ class GraphConvLayer(nn.Module):
         lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
         # set seed for reproducibility
         torch.manual_seed(seed)
-        self.Param_W = nn.ParameterList(
-            [nn.Parameter(lower + torch.randn(1, dtype=torch.double) * (upper - lower)) for _ in
-             range(0, self.weight_num)])
-        self.Param_b = nn.ParameterList(
-            [nn.Parameter(lower + torch.randn(1, dtype=torch.double) * (upper - lower)) for _ in
-             range(0, self.bias_num)])
+        # Initialize the weight matrix with random values between lower and upper
+        weight_data = lower + torch.randn(self.weight_num, dtype=torch.double) * (upper - lower)
+        self.Param_W = nn.Parameter(weight_data, requires_grad=True)
+        bias_data = lower + torch.randn(self.bias_num, dtype=torch.double) * (upper - lower)
+        self.Param_b = nn.Parameter(bias_data, requires_grad=True)
 
         self.Param_W_original = None
-        if 'prune' in parameters.configs:
-
+        if 'prune' in self.para.configs:
             self.Param_W_original = torch.tensor([x.item() for x in self.Param_W])
-
 
         self.bias = bias
 
@@ -187,10 +183,10 @@ class GraphConvLayer(nn.Module):
             else:
                 return False
 
-        def valid_edge_label(e_label, n1=0, n2=1):
-            if 0 <= e_label < self.n_edge_labels:
+        def valid_edge_label(edge_label, src=0, dst=1):
+            if 0 <= edge_label < self.n_edge_labels:
                 return True
-            elif n1 == n2 and 0 <= e_label < self.n_edge_labels + 1:
+            elif src == dst and 0 <= edge_label < self.n_edge_labels + 1:
                 return True
             else:
                 return False
@@ -280,8 +276,8 @@ class GraphConvLayer(nn.Module):
                                         extra_dim):
                                         # position of the weight in the Parameter list
                                         weight_pos = \
-                                        self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
-                                            self.extra_dim_map[extra_dim]]
+                                            self.weight_map[i1][i2][k][int(n1_label)][int(n2_label)][int(e_label)][
+                                                self.extra_dim_map[extra_dim]]
 
                                         # position of the weight in the weight matrix
                                         row_index = index_map[(i1, i2, k, n1, n2)][0]
@@ -313,7 +309,7 @@ class GraphConvLayer(nn.Module):
                     self.weight_matrices[-1][entry[0]][entry[1]] = self.Param_W[entry[2]]
                     parameterMatrix[entry[0]][entry[1]] = entry[2] + 1
                     np.savetxt(
-                        f"{self.parameters.configs['paths']['results']}/{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt",
+                        f"{self.para.configs['paths']['results']}/{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt",
                         parameterMatrix, delimiter=';', fmt='%i')
 
             # print(row_array, col_array, data_array)
@@ -356,6 +352,13 @@ class GraphConvLayer(nn.Module):
         # print(self.sparse_weight_data[pos])
         self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=torch.double)
         weight_distr = self.weight_distribution[pos]
+        # get third column of the weight_distribution: the index of self.Param_W
+        param_indices = weight_distr[:, 2]
+        param_values = torch.take(self.Param_W, param_indices)
+        # set self.current_W by using the weight_distribution: the first two columns are the indices of the weight matrix and the third column is the index of self.Param_W
+        self.current_W = self.current_W.flatten()
+
+
         for entry in weight_distr:
             self.current_W[entry[0], entry[1]] = self.Param_W[entry[2]]
         pass
@@ -695,7 +698,7 @@ class GraphCycleLayer(nn.Module):
 
 
 class GraphResizeLayer(nn.Module):
-    def __init__(self, layer_id, seed, graph_data: GraphData.GraphData, w_distribution_rule, in_features, out_features,
+    def __init__(self, layer_id, seed, parameters, graph_data: GraphData.GraphData, w_distribution_rule, in_features, out_features,
                  node_labels, n_kernels=1,
                  bias=True, print_layer_init=False, save_weights=False, *args, **kwargs):
         super(GraphResizeLayer, self).__init__()
@@ -737,6 +740,7 @@ class GraphResizeLayer(nn.Module):
         self.forward_step_time = 0
 
         self.name = "Resize_Layer"
+        self.para = parameters
 
         def valid_node_label(n_label):
             if 0 <= n_label < self.n_node_labels:
@@ -788,7 +792,7 @@ class GraphResizeLayer(nn.Module):
                     parameterMatrix[entry[0]][entry[1]] = entry[2] + 1
                     # save the parameter matrix
                     np.savetxt(
-                        f"Results/{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt",
+                        f"{self.para.configs['paths']['results']}/{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt",
                         parameterMatrix, delimiter=';', fmt='%i')
             """
             for i in range(0, input_size):
