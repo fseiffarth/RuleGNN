@@ -30,6 +30,11 @@ early_stopping:
     25
 networks:
   - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
     - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
   - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
     - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
