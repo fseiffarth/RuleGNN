@@ -54,7 +54,7 @@ def main():
     #save_distances(db_names=['NCI1', 'NCI109', 'Mutagenicity', 'IMDB-BINARY', 'IMDB-MULTI', 'PROTEINS', 'ENZYMES', 'DHFR', 'SYNTHETICnew'])
     #save_distances(db_names=[['DD', 'REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB']], cutoff=2)
     #save_distances(db_names=['LongRings'], cutoff=None)
-    save_distances(db_names=['MUTAG'], cutoff=None)
+    save_distances(db_names=['DHFR'], cutoff=None)
 
 if __name__ == '__main__':
     main()

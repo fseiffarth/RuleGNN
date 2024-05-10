@@ -289,7 +289,8 @@ def main():
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(4), nx.star_graph(1)], id=2)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
     #save_standard_labels(data_path, db_names=['LongRings'])
-    #save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(5), nx.cycle_graph(6)], name='cycle', id=1)
-    save_wl_labels(data_path, db_names=['DHFR'], max_iterations=3, max_label_num=1000)
+    save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(5), nx.cycle_graph(6)], id=2)
+    save_wl_labels(data_path, db_names=['MUTAG'], max_iterations=4, max_label_num=1000)
+    #save_wl_labels(data_path, db_names=['DHFR'], max_iterations=3, max_label_num=1000)
 if __name__ == '__main__':
     main()

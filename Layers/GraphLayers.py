@@ -160,14 +160,14 @@ class GraphConvLayer(nn.Module):
         # set seed for reproducibility
         torch.manual_seed(seed)
         # Initialize the weight matrix with random values between lower and upper
-        weight_data = lower + torch.randn(self.weight_num, dtype=torch.double) * (upper - lower)
+        weight_data = lower + torch.randn(self.weight_num, dtype=torch.float) * (upper - lower)
         self.Param_W = nn.Parameter(weight_data, requires_grad=True)
-        bias_data = lower + torch.randn(self.bias_num, dtype=torch.double) * (upper - lower)
+        bias_data = lower + torch.randn(self.bias_num, dtype=torch.float) * (upper - lower)
         self.Param_b = nn.Parameter(bias_data, requires_grad=True)
 
         self.Param_W_original = None
-        if 'prune' in self.para.configs:
-            self.Param_W_original = torch.tensor([x.item() for x in self.Param_W])
+        if 'prune' in self.para.configs and self.para.configs['prune']:
+            self.Param_W_original = self.Param_W.detach().clone()
 
         self.bias = bias
 
@@ -304,7 +304,7 @@ class GraphConvLayer(nn.Module):
 
             if save_weights:
                 parameterMatrix = np.full((input_size, input_size * self.n_kernels), 0, dtype=np.int16)
-                self.weight_matrices.append(torch.zeros((input_size, input_size * self.n_kernels), dtype=torch.double))
+                self.weight_matrices.append(torch.zeros((input_size, input_size * self.n_kernels), dtype=torch.float))
                 for entry in graph_weight_pos_distribution:
                     self.weight_matrices[-1][entry[0]][entry[1]] = self.Param_W[entry[2]]
                     parameterMatrix[entry[0]][entry[1]] = entry[2] + 1
@@ -319,7 +319,7 @@ class GraphConvLayer(nn.Module):
 
             graph_bias_pos_distribution = np.zeros((1, 2), np.dtype(np.int16))
             out_size = node_number * self.in_features * self.n_kernels
-            bias = torch.zeros((out_size), dtype=torch.double)
+            bias = torch.zeros((out_size), dtype=torch.float)
 
             in_high_dim = np.zeros(shape=(self.in_features, self.n_kernels, node_number))
             out_low_dim = np.zeros(shape=(out_size,))
@@ -348,18 +348,19 @@ class GraphConvLayer(nn.Module):
         self.forward_step_time = 0
 
     def set_weights(self, input_size, pos):
-        self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=torch.double)
+        # reshape self.current_W to the size of the weight matrix and fill it with zeros
+        self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=torch.float)
         weight_distr = self.weight_distribution[pos]
         # get third column of the weight_distribution: the index of self.Param_W
-        param_indices = torch.tensor(weight_distr[:, 2])
-        matrix_indices = torch.tensor(weight_distr[:, 0:2]).T
+        param_indices = torch.tensor(weight_distr[:, 2]).long()
+        matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long()
         # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
         self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
         #self.current_W = self.weight_matrices[pos]
 
 
     def set_bias(self, input_size, pos):
-        self.current_B = torch.zeros((input_size * self.n_kernels), dtype=torch.double)
+        self.current_B = torch.zeros((input_size * self.n_kernels), dtype=torch.float)
         bias_distr = self.bias_distribution[pos]
 
         self.current_B[bias_distr[:, 0]] = torch.take(self.Param_b, torch.tensor(bias_distr[:, 1]))
@@ -438,17 +439,17 @@ class GraphResizeLayer(nn.Module):
         lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
         # set seed for reproducibility
         torch.manual_seed(seed)
-        self.Param_W = nn.Parameter(lower + torch.randn(self.weight_number, dtype=torch.double) * (upper - lower))
+        self.Param_W = nn.Parameter(lower + torch.randn(self.weight_number, dtype=torch.float) * (upper - lower))
 
         #self.Param_W = nn.ParameterList(
-        #    [nn.Parameter(lower + torch.randn(1, dtype=torch.double) * (upper - lower)) for i in
+        #    [nn.Parameter(lower + torch.randn(1, dtype=torch.float) * (upper - lower)) for i in
         #     range(0, self.weight_number)])
 
         self.current_W = torch.Tensor()
 
         self.bias = bias
         if self.bias:
-            self.Param_b = nn.Parameter(lower + torch.randn((1, out_features), dtype=torch.double) * (upper - lower))
+            self.Param_b = nn.Parameter(lower + torch.randn((1, out_features), dtype=torch.float) * (upper - lower))
 
         self.forward_step_time = 0
 
@@ -498,7 +499,7 @@ class GraphResizeLayer(nn.Module):
             self.weight_distribution.append(graph_weight_pos_distribution)
 
             if save_weights:
-                self.weight_matrices.append(torch.zeros((self.out_features, input_size), dtype=torch.double))
+                self.weight_matrices.append(torch.zeros((self.out_features, input_size), dtype=torch.float))
                 parameterMatrix = np.full((self.out_features, input_size), 0, dtype=np.int16)
                 for i, entry in enumerate(graph_weight_pos_distribution, 0):
                     self.weight_matrices[-1][entry[0]][entry[1]] = self.Param_W[entry[2]]
@@ -527,7 +528,7 @@ class GraphResizeLayer(nn.Module):
             """
 
     def set_weights(self, input_size, pos):
-        self.current_W = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=torch.double)
+        self.current_W = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=torch.float)
         num_graphs_nodes = self.graph_data.graphs[pos].number_of_nodes()
         weight_distr = self.weight_distribution[pos]
         param_indices = torch.tensor(weight_distr[:, 2])
@@ -575,146 +576,3 @@ class GraphResizeLayer(nn.Module):
         return [x.item() for x in self.Param_b[0]]
 
 
-# TODO: Modify this Layer such that it coincides with the NoGKernelNN using 1's as Input and as weights
-class GraphResizeNoGLayer(nn.Module):
-    def __init__(self, layer_id, seed, graph_data: GraphData.GraphData, w_distribution_rule, out_features,
-                 n_node_labels, n_edge_labels=1,
-                 bias=True, print_layer_init=False, save_weights=False, *args, **kwargs):
-        super(GraphResizeLayer, self).__init__()
-
-        self.graph_data = graph_data
-
-        self.out_features = out_features
-        self.n_node_labels = n_node_labels
-        self.n_edge_labels = n_edge_labels
-        self.weight_number = n_node_labels * n_edge_labels * out_features
-        self.w_distribution_rule = w_distribution_rule
-
-        self.weight_num = n_node_labels * n_edge_labels * out_features
-        self.weight_map = np.arange(self.weight_num, dtype=np.int16).reshape(
-            (out_features, n_node_labels, n_edge_labels))
-
-        self.weight_matrices = []
-
-        # calculate the range for the weights
-        lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
-        # set seed for reproducibility
-        torch.manual_seed(seed)
-        self.Param_W = nn.ParameterList(
-            [nn.Parameter(lower + torch.randn(1, dtype=torch.double) * (upper - lower)) for i in
-             range(0, self.weight_number)])
-
-        self.current_W = torch.Tensor()
-
-        self.bias = bias
-        if self.bias:
-            self.Param_b = nn.Parameter(lower + torch.randn((1, out_features), dtype=torch.double) * (upper - lower))
-
-        self.forward_step_time = 0
-
-        self.name = "Resize_Layer_NoG"
-
-        def valid_node_label(n_label):
-            if 0 <= n_label < self.n_node_labels:
-                return True
-            else:
-                return False
-
-        # Set the distribution for each graph
-        self.weight_distribution = []
-        for counter, graph in enumerate(self.graph_data.graphs, 0):
-            if (self.graph_data.num_graphs < 10 or counter % (
-                    self.graph_data.num_graphs // 10) == 0) and print_layer_init:
-                print("ResizeLayerInitWeights: ", str(int(counter / self.graph_data.num_graphs * 100)), "%")
-
-            label_hist = gf.get_graph_label_hist(graph)
-            node_labels = []
-            graph_weight_pos_distribution = np.zeros((1, 3), np.dtype(np.int16))
-            input_size = graph.number_of_nodes()
-            weight_entry_num = 0
-            in_high_dim = np.zeros(
-                shape=(out_features, graph.number_of_nodes()))
-            out_low_dim = np.zeros(shape=(out_features, input_size))
-            index_map = reshape_indices(in_high_dim, out_low_dim)
-
-            for o in range(0, out_features):
-                for n1 in range(0, graph.number_of_nodes()):
-                    n1_label = self.w_distribution_rule(n1, graph)
-                    if valid_node_label(int(n1_label)):
-                        weight_pos = self.weight_map[o][int(n1_label)]
-                        if weight_entry_num == 0:
-                            graph_weight_pos_distribution[weight_entry_num][0] = index_map[(o, n1)][0]
-                            graph_weight_pos_distribution[weight_entry_num][1] = index_map[(o, n1)][1]
-                            graph_weight_pos_distribution[weight_entry_num][2] = weight_pos
-                        else:
-                            graph_weight_pos_distribution = np.append(graph_weight_pos_distribution, [
-                                [index_map[(o, n1)][0], index_map[(o, n1)][1],
-                                 weight_pos]], axis=0)
-                        node_labels.append(int(n1_label))
-                        weight_entry_num += 1
-
-            self.weight_distribution.append(graph_weight_pos_distribution)
-            self.weight_matrices.append(torch.zeros((self.out_features, input_size), dtype=torch.double))
-            parameterMatrix = np.full((self.out_features, input_size), 0, dtype=np.int16)
-            for i, entry in enumerate(graph_weight_pos_distribution, 0):
-                self.weight_matrices[-1][entry[0]][entry[1]] = self.Param_W[entry[2]]
-                parameterMatrix[entry[0]][entry[1]] = entry[2] + 1
-            if save_weights:
-                # save the parameter matrix
-                np.savetxt(
-                    f"Results/{graph_data.graph_db_name}/Weights/graph_{counter}_layer_{layer_id}_parameterWeightMatrix.txt",
-                    parameterMatrix, delimiter=';', fmt='%i')
-            """
-            for i in range(0, input_size):
-                for j in range(0, input_size * self.n_kernels):
-                    number = self.w_resize_distribution_rule(i, j, self.out_features, input_size, self.n_node_labels,
-                                                             graph)
-                    if number >= 0 and number < len(self.Param_W):
-                        if weight_entry_num == 0:
-                            graph_weight_pos_distribution[weight_entry_num][0] = i
-                            graph_weight_pos_distribution[weight_entry_num][1] = j
-                            graph_weight_pos_distribution[weight_entry_num][2] = number
-                        else:
-                            graph_weight_pos_distribution = np.append(graph_weight_pos_distribution, [[i, j, number]],
-                                                                      axis=0)
-                        weight_entry_num += 1
-
-            self.weight_distribution.append(graph_weight_pos_distribution)
-            # print(graph_weight_pos_distribution)
-            """
-
-    def set_weights(self, input_size, pos):
-        self.current_W = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=torch.double)
-        # num_graphs_nodes = self.graph_data.graphs[pos].number_of_nodes()
-        weight_distr = self.weight_distribution[pos]
-        for entry in weight_distr:
-            self.current_W[entry[0]][entry[1]] = self.Param_W[entry[2]]
-
-        # return self.weight_matrices[pos]
-
-    def print_weights(self):
-        print("Weights of the Resize layer")
-        for x in self.Param_W:
-            print("\t", x.data)
-
-    def print_bias(self):
-        print("Bias of the Resize layer")
-        for x in self.Param_b:
-            print("\t", x.data)
-
-    def forward(self, x, pos):
-        x = x.view(-1)
-        begin = time.time()
-        self.set_weights(x.size()[0], pos)
-
-        self.forward_step_time += time.time() - begin
-
-        if self.bias:
-            return torch.mv(self.current_W, x) + self.Param_b
-        else:
-            return torch.mv(self.current_W, x)
-
-        # if self.bias:
-        #     return torch.mv(self.weight_matrices[pos], x) + self.Param_b.to("cpu")
-        # else:
-        #     return torch.mv(self.weight_matrices[pos], x)

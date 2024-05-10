@@ -52,7 +52,7 @@ def data_from_graph_db(graph_data, graph_db_name, cycle_list=None, one_hot_encod
         # Data.append((gdtgl.nodes_label_matrix(graph) + 1)/node_labels)
         # Data.append(np.append((gdtgl.nodes_label_matrix(graph) + 1)/node_labels, (gdtgl.nodes_label_matrix(graph) + 1)/node_labels, axis = 1))
         # Data.append(np.random.rand(graph.number_of_nodes(), 1))
-        # torch_data = torch.ones((graph.number_of_nodes(), 1), dtype=torch.double)
+        # torch_data = torch.ones((graph.number_of_nodes(), 1), dtype=torch.float)
         label_matrix = gdtgl.nodes_label_matrix(graph).flatten()
         if label_matrix.size == 0:
             use_features = False
@@ -63,15 +63,15 @@ def data_from_graph_db(graph_data, graph_db_name, cycle_list=None, one_hot_encod
             label_matrix[j] = (label_set.index(val) + 1) * step * (-1) ** label_set.index(val)
 
         if use_attributes:
-            torch_data = torch.from_numpy(attribute_matrix)
+            torch_data = torch.from_numpy(attribute_matrix).float()
         else:
-            torch_data = torch.from_numpy(label_matrix)
+            torch_data = torch.from_numpy(label_matrix).float()
         if use_features:
             # take labels into account
             Data.append(torch_data)
         else:
             # ignore the labels
-            Data.append(torch.ones(graph.number_of_nodes(), dtype=torch.double))
+            Data.append(torch.ones(graph.number_of_nodes(), dtype=torch.float))
 
         if one_hot_encode_labels:
             # tensor with length of number of unique labels

@@ -156,7 +156,7 @@ class GraphRuleMethod:
             for batch_counter, batch in enumerate(train_batches, 0):
                 timer.measure("forward")
                 optimizer.zero_grad()
-                outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=torch.double))
+                outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=torch.float))
 
                 # TODO parallelize forward
                 for j, graph_id in enumerate(batch, 0):
@@ -166,7 +166,7 @@ class GraphRuleMethod:
                         scale = 1.0
                         # random variation as torch tensor
                         random_variation = np.random.normal(0, scale, self.graph_data.inputs[graph_id].shape)
-                        random_variation = torch.DoubleTensor(random_variation)
+                        random_variation = torch.FloatTensor(random_variation)
                         outputs[j] = net(random_variation, graph_id)
                     else:
                         outputs[j] = net(self.graph_data.inputs[graph_id].to(device), graph_id)
@@ -306,7 +306,7 @@ class GraphRuleMethod:
             validation_mae = 0
             validation_mae_std = 0
             if self.validate_data.size != 0:
-                outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=torch.double)
+                outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=torch.float)
                 # use torch no grad to save memory
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.validate_data):
@@ -357,45 +357,53 @@ class GraphRuleMethod:
                 df.to_csv("Results/Parameter/validation_predictions.csv", header=False, index=False, mode='a')
 
             # Test accuracy
-            outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=torch.double)
-            with torch.no_grad():
-                for j, data_pos in enumerate(self.test_data, 0):
-                    net.train(False)
-                    outputs[j] = net(torch.DoubleTensor(self.graph_data.inputs[data_pos]), data_pos)
-            labels = self.graph_data.one_hot_labels[self.test_data]
-            test_loss = criterion(outputs, labels).item()
-            test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
+            # print only if run best model is used
+            test = False
+            test_acc = 0
+            test_loss = 0
             test_mae = 0
             test_mae_std = 0
-            if self.graph_data.num_classes == 1:
-                flatten_labels = labels.flatten().detach().numpy()
-                flatten_outputs = outputs.flatten().detach().numpy()
-                test_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
-                test_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
-            if self.para.print_results:
-                np_labels = labels.detach().numpy()
-                np_outputs = outputs.detach().numpy()
-                # np array of correct/incorrect predictions
-                labels_argmax = np_labels.argmax(axis=1)
-                outputs_argmax = np_outputs.argmax(axis=1)
-                np_correct = labels_argmax == outputs_argmax
-                # print entries of np_labels and np_outputs
-                for j, data_pos in enumerate(self.test_data, 0):
-                    print(data_pos, np_labels[j], np_outputs[j], np_correct[j])
+            if test:
+                # Test accuracy
+                outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=torch.float)
+                with torch.no_grad():
+                    for j, data_pos in enumerate(self.test_data, 0):
+                        net.train(False)
+                        outputs[j] = net(torch.floatTensor(self.graph_data.inputs[data_pos]), data_pos)
+                labels = self.graph_data.one_hot_labels[self.test_data]
+                test_loss = criterion(outputs, labels).item()
+                test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
+                test_mae = 0
+                test_mae_std = 0
+                if self.graph_data.num_classes == 1:
+                    flatten_labels = labels.flatten().detach().numpy()
+                    flatten_outputs = outputs.flatten().detach().numpy()
+                    test_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
+                    test_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
+                if self.para.print_results:
+                    np_labels = labels.detach().numpy()
+                    np_outputs = outputs.detach().numpy()
+                    # np array of correct/incorrect predictions
+                    labels_argmax = np_labels.argmax(axis=1)
+                    outputs_argmax = np_outputs.argmax(axis=1)
+                    np_correct = labels_argmax == outputs_argmax
+                    # print entries of np_labels and np_outputs
+                    for j, data_pos in enumerate(self.test_data, 0):
+                        print(data_pos, np_labels[j], np_outputs[j], np_correct[j])
 
-            if self.para.save_prediction_values:
-                # print outputs and labels to a csv file
-                outputs_np = outputs.detach().numpy()
-                # transpose the numpy array
-                outputs_np = outputs_np.T
-                df = pd.DataFrame(outputs_np)
-                # show only two decimal places
-                df = df.round(2)
-                df.to_csv("Results/Parameter/test_predictions.csv", header=False, index=False, mode='a')
-                labels_np = labels.detach().numpy()
-                labels_np = labels_np.T
-                df = pd.DataFrame(labels_np)
-                df.to_csv("Results/Parameter/test_predictions.csv", header=False, index=False, mode='a')
+                if self.para.save_prediction_values:
+                    # print outputs and labels to a csv file
+                    outputs_np = outputs.detach().numpy()
+                    # transpose the numpy array
+                    outputs_np = outputs_np.T
+                    df = pd.DataFrame(outputs_np)
+                    # show only two decimal places
+                    df = df.round(2)
+                    df.to_csv("Results/Parameter/test_predictions.csv", header=False, index=False, mode='a')
+                    labels_np = labels.detach().numpy()
+                    labels_np = labels_np.T
+                    df = pd.DataFrame(labels_np)
+                    df.to_csv("Results/Parameter/test_predictions.csv", header=False, index=False, mode='a')
 
             timer.measure("epoch")
             epoch_time = timer.get_flag_time("epoch")

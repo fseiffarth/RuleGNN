@@ -122,19 +122,19 @@ class GraphNet(nn.Module):
                                           bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
                                           node_labels=layer.get_layer_string(), n_kernels=1,
                                           bias=True, print_layer_init=print_layer_init, save_weights=save_weights,
-                                          distances=layer.distances).double().requires_grad_(convolution_grad))
+                                          distances=layer.distances).float().requires_grad_(convolution_grad))
             else:
                 self.net_layers.append(layers.GraphResizeLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data,
                                                                w_distribution_rule=rule.node_label_rule,
                                                                in_features=n_node_features, out_features=out_classes,
                                                                node_labels=layer.get_layer_string(),
                                                                bias=True, print_layer_init=print_layer_init,
-                                                               save_weights=save_weights).double().requires_grad_(
+                                                               save_weights=save_weights).float().requires_grad_(
                     resize_grad))
 
         if 'linear_layers' in para.configs and para.configs['linear_layers'] > 0:
             for i in range(para.configs['linear_layers']):
-                self.net_layers.append(nn.Linear(out_classes, out_classes, bias=True).double())
+                self.net_layers.append(nn.Linear(out_classes, out_classes, bias=True).float())
 
         self.dropout = nn.Dropout(dropout)
         if 'activation' in para.configs and para.configs['activation'] == 'None':

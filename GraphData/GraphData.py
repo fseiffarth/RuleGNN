@@ -168,7 +168,7 @@ class GraphData:
         self.inputs = []
         ## add node labels
         for graph in self.graphs:
-            self.inputs.append(torch.ones(graph.number_of_nodes()).double())
+            self.inputs.append(torch.ones(graph.number_of_nodes()).float())
             if use_features:
                 for node in graph.nodes(data=True):
                     self.inputs[-1][node[0]] = node[1]['label'][0]
@@ -288,10 +288,10 @@ def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True
             # add new graph
             graphs.graphs.append(nx.Graph())
             graphs.edge_labels['primary'].edge_labels.append([])
-            graphs.inputs.append(torch.ones(graph['x'].shape[0]).double())
+            graphs.inputs.append(torch.ones(graph['x'].shape[0]).float())
             # add graph inputs using the values from graph['x'] and flatten the tensor
             if use_features:
-                graphs.inputs[-1] = graph['x'].flatten().double()
+                graphs.inputs[-1] = graph['x'].flatten().float()
 
             edges = graph['edge_index']
             # format edges to list of tuples
@@ -312,7 +312,7 @@ def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True
 
             graphs.edge_labels['primary'].edge_labels.append(graph['edge_attr'])
             graphs.graph_labels.append(graph['y'].item())
-            graphs.one_hot_labels.append(graph['y'].double())
+            graphs.one_hot_labels.append(graph['y'].float())
             graphs.max_nodes = max(graphs.max_nodes, len(graph['x']))
 
             pass
