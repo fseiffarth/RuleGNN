@@ -179,7 +179,7 @@ class GraphData:
         return None
 
 
-def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_attributes=None):
+def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_attributes=None, with_distances=True):
     # load the graph data
     if db_name == 'CSL':
         from LoadData.csl import CSL
@@ -208,9 +208,10 @@ def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_
                                            path=f'{distance_path}{db_name}_distances.pkl')
             graph_data.distance_list = distance_list
         else:
-            # raise error that the distances are not available
-            print(f'Distances for {db_name} not available')
-            sys.exit(1)
+            if with_distances:
+                # raise error that the distances are not available
+                print(f'Distances for {db_name} not available')
+                sys.exit(1)
     return graph_data
 
 

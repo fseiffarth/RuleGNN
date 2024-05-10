@@ -27,7 +27,7 @@ def write_distances(graph_data, db_name, cutoff, distance_path="") -> int:
 
 def save_distances(data_path="../../../GraphData/DS_all/", db_names=[], cutoff=None, distance_path=""):
     for db_name in db_names:
-        graph_data = get_graph_data(db_name=db_name, data_path=data_path)
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path, with_distances=False)
         write_distances(graph_data=graph_data, db_name=db_name, cutoff=cutoff, distance_path=distance_path)
         # load the graph data
         # if db_name == 'CSL':
@@ -53,8 +53,8 @@ def save_distances(data_path="../../../GraphData/DS_all/", db_names=[], cutoff=N
 def main():
     #save_distances(db_names=['NCI1', 'NCI109', 'Mutagenicity', 'IMDB-BINARY', 'IMDB-MULTI', 'PROTEINS', 'ENZYMES', 'DHFR', 'SYNTHETICnew'])
     #save_distances(db_names=[['DD', 'REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB']], cutoff=2)
-    save_distances(db_names=['LongRings'], cutoff=None)
-
+    #save_distances(db_names=['LongRings'], cutoff=None)
+    save_distances(db_names=['MUTAG'], cutoff=None)
 
 if __name__ == '__main__':
     main()
