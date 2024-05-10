@@ -26,7 +26,7 @@ def write_node_labels(file, node_labels):
 
 def save_standard_labels(data_path, db_names, label_path=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
         node_labels = graph_data.node_labels['primary'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
@@ -66,7 +66,7 @@ def save_standard_labels(data_path, db_names, label_path=None):
 
 def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
         l = f'wl_{max_iterations}'
 
         graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
@@ -81,7 +81,7 @@ def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
 
 def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
         cycle_dict = []
         for graph in graph_data.graphs:
             cycle_dict.append({})
@@ -189,7 +189,7 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='su
 
 def save_clique_labels(data_path, db_names, max_clique=6):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
         clique_dict = []
         for graph in graph_data.graphs:
             clique_dict.append({})
@@ -289,6 +289,7 @@ def main():
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(4), nx.star_graph(1)], id=2)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
     #save_standard_labels(data_path, db_names=['LongRings'])
-    save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(5), nx.cycle_graph(6)], name='cycle', id=1)
+    #save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(5), nx.cycle_graph(6)], name='cycle', id=1)
+    save_wl_labels(data_path, db_names=['DHFR'], max_iterations=3, max_label_num=1000)
 if __name__ == '__main__':
     main()

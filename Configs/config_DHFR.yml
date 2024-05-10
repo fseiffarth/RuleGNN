@@ -31,6 +31,9 @@ early_stopping:
   patience:
     25
 networks:
+  # test
+  - - { layer_type: wl, wl_iterations: 3, max_node_labels: 1000, distances: [ 1,2,3,4,5,6 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 10 }
   # wl models
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [1] }
     - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000 }
