@@ -29,13 +29,6 @@ early_stopping:
   patience:
     25
 networks:
-  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
-    - { layer_type: induced_cycles, max_cycle_length: 5 }
-  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
-    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
-  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
-    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
-
   - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
     - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
   - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
@@ -815,7 +808,7 @@ balance_training:
 # Additional options for analysis only possible in debug mode
 additional_options:
   draw: # draw the accuracy and loss during training
-    False
+    True
   save_weights: # save the weights of the model
     False
   save_prediction_values:
