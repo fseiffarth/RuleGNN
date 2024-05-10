@@ -29,9 +29,773 @@ early_stopping:
   patience:
     25
 networks:
-
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5 }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
   - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
     - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 1, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 500, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: simple_cycles, max_node_labels: 1000, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 0, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 1, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: subgraph, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 1, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 2, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: subgraph, id: 3, distances: [ 1, 2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: simple_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 5, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: induced_cycles, max_cycle_length: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 3, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 4, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 6, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 10, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 20, distances: [ 1,2 ] }
+  - - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
+    - { layer_type: cliques, max_clique_size: 50, distances: [ 1,2 ] }
 
 
 
@@ -51,12 +815,12 @@ balance_training:
 # Additional options for analysis only possible in debug mode
 additional_options:
   draw: # draw the accuracy and loss during training
-    True
+    False
   save_weights: # save the weights of the model
     False
   save_prediction_values:
-    True
+    False
   plot_graphs: # Plot all graphs in the dataset
     False
   print_results: # Print accuracy and loss in the console
-    True
+    False
