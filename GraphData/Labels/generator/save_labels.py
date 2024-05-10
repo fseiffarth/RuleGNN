@@ -140,7 +140,7 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
 
 def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
         subgraph_dict = []
         for i, graph in enumerate(graph_data.graphs):
             # print the progress
@@ -288,6 +288,7 @@ def main():
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3), nx.star_graph(1)], id=1)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(4), nx.star_graph(1)], id=2)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
-    save_standard_labels(data_path, db_names=['LongRings'])
+    #save_standard_labels(data_path, db_names=['LongRings'])
+    save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(5), nx.cycle_graph(6)], name='cycle', id=1)
 if __name__ == '__main__':
     main()

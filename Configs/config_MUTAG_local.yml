@@ -33,7 +33,7 @@ early_stopping:
 networks:
   # mixed models
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 3 ] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, distances: [ 1, 2, 3] }
+    -
     - { layer_type: simple_cycles, max_cycle_length: 6 }
 
 
