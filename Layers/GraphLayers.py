@@ -145,6 +145,7 @@ class GraphConvLayer(nn.Module):
         # There are two cases assymetric and symmetric, assymetric is the default
         if 'symmetric' in self.para.configs and self.para.configs['symmetric']:
             self.weight_num = self.in_features * self.in_features * self.n_kernels * ((self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_edge_labels * self.n_extra_dim
+            # np upper triangular matrix
             self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape(
                 (self.in_features, self.in_features, self.n_kernels, self.n_node_labels, self.n_node_labels,
                  self.n_edge_labels, self.n_extra_dim))
