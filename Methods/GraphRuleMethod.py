@@ -32,6 +32,7 @@ class GraphRuleMethod:
         self.results_path = para.configs['paths']['results']
 
     def Run(self):
+        torch.set_num_threads(1)
         """
         Set up the network
         """
@@ -363,7 +364,7 @@ class GraphRuleMethod:
             test_loss = 0
             test_mae = 0
             test_mae_std = 0
-            if self.para.configs['best_run']:
+            if 'best_model' in self.para.configs and self.para.configs['best_model']:
                 # Test accuracy
                 outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=torch.float)
                 with torch.no_grad():

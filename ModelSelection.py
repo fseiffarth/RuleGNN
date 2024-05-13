@@ -40,7 +40,9 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         data_path = configs['paths']['data']
         r_path = configs['paths']['results']
         distance_path = configs['paths']['distances']
-        splits_path = configs['paths']['splits']
+
+        # copy config file to the results directory
+        os.system(f"cp {config} {r_path}{graph_db_name}/config.yml")
 
         # if not exists create the results directory
         if not os.path.exists(r_path):
@@ -122,7 +124,6 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
-
 
 def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters):
     """
