@@ -142,10 +142,17 @@ class GraphConvLayer(nn.Module):
             self.extra_dim_map = {0: 0}
 
         # Determine the number of weights and biases
-        self.weight_num = self.in_features * self.in_features * self.n_kernels * self.n_node_labels * self.n_node_labels * self.n_edge_labels * self.n_extra_dim
-        self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape(
-            (self.in_features, self.in_features, self.n_kernels, self.n_node_labels, self.n_node_labels,
-             self.n_edge_labels, self.n_extra_dim))
+        # There are two cases assymetric and symmetric, assymetric is the default
+        if 'symmetric' in self.para.configs and self.para.configs['symmetric']:
+            self.weight_num = self.in_features * self.in_features * self.n_kernels * ((self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_edge_labels * self.n_extra_dim
+            self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape(
+                (self.in_features, self.in_features, self.n_kernels, self.n_node_labels, self.n_node_labels,
+                 self.n_edge_labels, self.n_extra_dim))
+        else:
+            self.weight_num = self.in_features * self.in_features * self.n_kernels * self.n_node_labels * self.n_node_labels * self.n_edge_labels * self.n_extra_dim
+            self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape(
+                (self.in_features, self.in_features, self.n_kernels, self.n_node_labels, self.n_node_labels,
+                 self.n_edge_labels, self.n_extra_dim))
 
         self.bias_num = self.in_features * self.n_kernels * self.n_node_labels
         self.bias_map = np.arange(self.bias_num, dtype=np.int64).reshape(
@@ -213,7 +220,7 @@ class GraphConvLayer(nn.Module):
                 print("GraphConvLayerInitWeights: ", str(int(graph_id / self.graph_data.num_graphs * 100)), "%")
 
             node_number = graph.number_of_nodes()
-            graph_weight_pos_distribution = np.zeros((1, 3), np.dtype(np.int16))
+            graph_weight_pos_distribution = np.zeros((1, 3), dtype=np.int64)
 
             input_size = node_number * self.in_features
             weight_entry_num = 0

@@ -363,13 +363,13 @@ class GraphRuleMethod:
             test_loss = 0
             test_mae = 0
             test_mae_std = 0
-            if test:
+            if self.para.configs['best_run']:
                 # Test accuracy
                 outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=torch.float)
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.test_data, 0):
                         net.train(False)
-                        outputs[j] = net(torch.floatTensor(self.graph_data.inputs[data_pos]), data_pos)
+                        outputs[j] = net(self.graph_data.inputs[data_pos].to(device), data_pos)
                 labels = self.graph_data.one_hot_labels[self.test_data]
                 test_loss = criterion(outputs, labels).item()
                 test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
