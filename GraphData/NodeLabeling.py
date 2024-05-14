@@ -23,7 +23,7 @@ def standard_node_labeling(graphs: List[nx.Graph]):
             if 'label' in node[1]:
                 if type(node[1]['label']) == int or type(node[1]['label']) == float:
                     node_label = node[1]['label']
-                elif type(node[1]['label']) == list and len(node[1]['label']) > 0:
+                elif len(node[1]['label']) > 0:
                     node_label = node[1]['label'][0]
                 else:
                     node_label = 0

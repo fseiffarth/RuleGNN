@@ -43,8 +43,13 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None)
     with open(path + db_name + "_Nodes.txt", "w") as f:
         for i, graph in enumerate(graphs):
             for node in graph.nodes(data=True):
-                # get list of all data entries of the node
-                data_list = list(node[1].values())
+                # get list of all data entries of the node, first label then the rest
+                data_list = [int(node[1]['label'])]
+                # append all the other features
+                for key, value in node[1].items():
+                    if key != 'label':
+                        for v in value:
+                            data_list.append(v)
                 f.write(str(i) + " " + str(node[0]) + " " + " ".join(map(str, data_list)) + "\n")
         # remove last empty line
         f.seek(f.tell() - 1, 0)

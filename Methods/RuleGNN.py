@@ -18,7 +18,7 @@ import TrainTestData.TrainTestData as ttd
 from utils.utils import get_k_lowest_nonzero_indices
 
 
-class GraphRuleMethod:
+class RuleGNN:
     def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: List[int],
                  validate_data: List[int], test_data: List[int], seed: int, para: Parameters.Parameters):
         self.run_id = run_id
@@ -440,7 +440,10 @@ class GraphRuleMethod:
                                                              self.para.draw_data, self.para.n_epochs)
 
             if scheduler_on:
-                scheduler.step()
+                # check if learning rate is > 0.0001
+                if optimizer.param_groups[0]['lr'] > 0.0001:
+                    scheduler.step()
+
 
         """Evaluation of one complete validation run"""
         # save the trained model

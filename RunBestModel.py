@@ -18,7 +18,7 @@ from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
 from LoadData.csl import CSL
 from GraphData import GraphData, NodeLabeling
-from Methods.GraphRuleMethod import GraphRuleMethod
+from Methods.RuleGNN import RuleGNN
 from Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from utils.RunConfiguration import RunConfiguration
@@ -123,7 +123,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     training_data = np.asarray(data[1][validation_id], dtype=int)
     validate_data = np.asarray(data[2][validation_id], dtype=int)
 
-    method = GraphRuleMethod(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para)
+    method = RuleGNN(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para)
 
     """
     Run the method
