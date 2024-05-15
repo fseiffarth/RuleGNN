@@ -192,6 +192,8 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
                 part_count = np.zeros(4)
                 for part in part_list:
                     part_count[part] += 1
+                # divide part count by largest snowflake size
+                part_count = part_count / largest_snowflake
                 # label the snowflake with the number of parts
                 labels.append(part_count)
     if type(flakes_per_size) == list:
@@ -205,6 +207,8 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
                 part_count = np.zeros(4)
                 for part in part_list:
                     part_count[part] += 1
+                # divide part count by largest snowflake size
+                part_count = part_count / largest_snowflake
                 # label the snowflake with the number of parts
                 labels.append(part_count)
     if flakes_per_size == 'all':
@@ -219,8 +223,11 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
                 for part in part_list:
                     part_count[part] += 1
                 part_counts.add(tuple(part_count))
+
             # part_counts to list of numpy arrays
             part_counts = [np.array(part_count) for part_count in part_counts]
+            # divide part count by largest snowflake size
+            part_count = part_count / largest_snowflake
             for part_count in part_counts:
                 # make part list from part count
                 part_list = []

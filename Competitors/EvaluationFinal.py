@@ -60,6 +60,11 @@ def evaluateGraphLearningNN(db_name, algorithm):
 
 
 def main():
+    evaluateGraphLearningNN(db_name='CSL', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='CSL', algorithm="NoGKernel")
+
+    evaluateGraphLearningNN(db_name='LongRings100', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='LongRings100', algorithm="NoGKernel")
 
     evaluateGraphLearningNN(db_name='NCI1', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='NCI109', algorithm="NoGKernel")

@@ -12,14 +12,12 @@ import pandas as pd
 import yaml
 
 from GraphData.DataSplits.load_splits import Load_Splits
-from GraphData.Distances.load_distances import load_distances
 from GraphData.GraphData import get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
-from LoadData.csl import CSL
-from GraphData import GraphData, NodeLabeling
+from GraphData import GraphData
 from Methods.RuleGNN import RuleGNN
-from Parameters import Parameters
+from utils.Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from utils.RunConfiguration import RunConfiguration
 

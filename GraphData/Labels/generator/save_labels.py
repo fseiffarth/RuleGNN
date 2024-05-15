@@ -63,6 +63,19 @@ def save_standard_labels(data_path, db_names, label_path=None):
                     file = f"{label_path}{db_name}_{l}_{n_node_labels}_labels.txt"
                 write_node_labels(file, node_labels)
 
+def save_trivial_labels(data_path, db_names, label_path=None):
+    for db_name in db_names:
+        graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
+        node_labels = graph_data.node_labels['primary'].node_labels
+        # label 0 for all nodes
+        node_labels = [[0 for _ in range(len(g_labels))] for g_labels in node_labels]
+        # save the node labels to a file
+        # save node_labels as numpy array
+        if label_path is None:
+            file = f"../{db_name}_trivial_labels.txt"
+        else:
+            file = f"{label_path}{db_name}_trivial_labels.txt"
+        write_node_labels(file, node_labels)
 
 def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
     for db_name in db_names:
@@ -266,6 +279,8 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
 
 def main():
     data_path = "../../../../GraphData/DS_all/"
+    save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)
+    #save_trivial_labels('../../../GraphBenchmarks/Data/', db_names=['EvenOddRingsCount16'])
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
     #save_wl_labels(data_path, db_names=['MUTAG'])
     #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)

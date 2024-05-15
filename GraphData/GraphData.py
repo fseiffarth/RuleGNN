@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List, Dict
+from typing import Dict
 
 import networkx as nx
 import torch
@@ -53,7 +53,7 @@ class GraphData:
 
         # CSL graphs
         if graph_db_name == 'CSL':
-            from LoadData.csl import CSL
+            from GraphBenchmarks.csl import CSL
             csl = CSL()
             graph_data = csl.get_graphs(with_distances=False)
         else:
@@ -173,8 +173,17 @@ class GraphData:
                 for node in graph.nodes(data=True):
                     self.inputs[-1][node[0]] = node[1]['label'][0]
 
+
+
         self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
         self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
+
+        # normalize the graph inputs, i.e. to have values between 0 and 1
+        if use_features:
+            # get the number of different node labels
+            num_node_labels = self.node_labels['primary'].num_unique_node_labels
+            for i, graph in enumerate(self.inputs):
+                self.inputs[i] /= num_node_labels
 
         return None
 
@@ -182,7 +191,7 @@ class GraphData:
 def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_attributes=None, with_distances=True):
     # load the graph data
     if db_name == 'CSL':
-        from LoadData.csl import CSL
+        from GraphBenchmarks.csl import CSL
         csl = CSL()
         graph_data = csl.get_graphs(with_distances=False)
     elif db_name == 'ZINC':

@@ -9,17 +9,14 @@ import click
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
-from torch_geometric.datasets import ZINC
 
 from GraphData.DataSplits.load_splits import Load_Splits
-from GraphData.Distances.load_distances import load_distances
-from GraphData.GraphData import zinc_to_graph_data, get_graph_data
+from GraphData.GraphData import get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
-from LoadData.csl import CSL
-from GraphData import GraphData, NodeLabeling
+from GraphData import GraphData
 from Methods.RuleGNN import RuleGNN
-from Parameters import Parameters
+from utils.Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from utils.RunConfiguration import RunConfiguration
 
@@ -40,9 +37,6 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         data_path = configs['paths']['data']
         r_path = configs['paths']['results']
         distance_path = configs['paths']['distances']
-
-        # copy config file to the results directory
-        os.system(f"cp {config} {r_path}{graph_db_name}/config.yml")
 
         # if not exists create the results directory
         if not os.path.exists(r_path):
@@ -78,20 +72,20 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
             except:
                 pass
 
+        # copy config file to the results directory
+        os.system(f"cp {config} {r_path}{graph_db_name}/config.yml")
+
         plt.ion()
 
         """
         Create Input data, information and labels from the graphs for training and testing
         """
-        graph_data = get_graph_data(graph_db_name, data_path, distance_path, use_features=configs['use_features'],use_attributes=configs['use_attributes'])
-        # if graph_db_name in ["CSL", "ZINC", "LongRings100", "LongRings8", "EvenOddRings16"]:
-        #     graph_data = get_graph_data(graph_db_name, data_path, distance_path)
-        # else:
-        #     graph_data = GraphData.GraphData()
-        #     graph_data.init_from_graph_db(data_path, graph_db_name, with_distances=True, with_cycles=False,
-        #                                   relabel_nodes=True, use_features=configs['use_features'],
-        #                                   use_attributes=configs['use_attributes'],
-        #                                   distances_path=distance_path)
+        graph_data = get_graph_data(graph_db_name, data_path, distance_path, use_features=configs['use_features'], use_attributes=configs['use_attributes'])
+        # adapt the precision of the input data
+        if 'precision' in configs:
+            if configs['precision'] == 'double':
+                for i in range(len(graph_data.inputs)):
+                    graph_data.inputs[i] = graph_data.inputs[i].double()
 
         # define the network type from the config file
         run_configs = []

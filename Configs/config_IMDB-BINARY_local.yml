@@ -27,7 +27,7 @@ loss:
   - CrossEntropyLoss
 early_stopping:
   enabled:
-    False
+    True
   patience:
     25
 networks:

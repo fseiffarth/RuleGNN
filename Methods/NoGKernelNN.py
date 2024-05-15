@@ -4,11 +4,8 @@ from typing import List
 import numpy as np
 import torch
 
-from GraphData import NodeLabeling, EdgeLabeling
 from GraphData.GraphData import GraphData
-from Parameters.Parameters import Parameters
-from sklearn.svm import SVC
-
+from utils.Parameters import Parameters
 
 
 class NoGKernelNN():

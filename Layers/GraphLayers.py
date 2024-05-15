@@ -14,7 +14,15 @@ from utils.RunConfiguration import RunConfiguration
 
 
 class Layer:
+    """
+    classdocs for the Layer: This class represents a layer in a RuleGNN
+    """
+
     def __init__(self, layer_dict):
+        """
+        Constructor of the Layer
+        :param layer_dict: the dictionary that contains the layer information
+        """
         self.layer_type = layer_dict["layer_type"]
         self.node_labels = -1
         self.layer_dict = layer_dict
@@ -26,6 +34,9 @@ class Layer:
             self.distances = None
 
     def get_layer_string(self):
+        """
+        Method to get the layer string. This is used to load the node labels
+        """
         l_string = ""
         if self.layer_type == "primary":
             l_string = "primary"
@@ -72,6 +83,8 @@ class Layer:
             if 'max_node_labels' in self.layer_dict:
                 max_node_labels = self.layer_dict['max_node_labels']
                 l_string = f"subgraph_{max_node_labels}"
+        elif self.layer_type == "trivial":
+            l_string = "trivial"
 
         return l_string
 
@@ -89,36 +102,65 @@ def reshape_indices(a, b):
 
 
 class GraphConvLayer(nn.Module):
+    """
+    classdocs for the GraphConvLayer: This class represents a convolutional layer for a RuleGNN
+    """
 
     def __init__(self, layer_id, seed, parameters, graph_data: GraphData.GraphData, w_distribution_rule,
                  bias_distribution_rule,
-                 in_features, node_labels, n_kernels=1, bias=True, print_layer_init=False, save_weights=False, *args,
+                 in_features, node_labels_name, n_kernels=1, bias=True, print_layer_init=False, save_weights=False,
+                 precision=torch.float, *args,
                  **kwargs):
+        """
+        Constructor of the GraphConvLayer
+        :param layer_id: the id of the layer
+        :param seed: the seed for the random number generator
+        :param parameters: the parameters of the experiment
+        :param graph_data: the data of the graph dataset
+        :param w_distribution_rule: the rule for the weight distribution in the layer
+        :param bias_distribution_rule: the rule for the bias distribution in the layer
+        :param in_features: the number of input features (at the moment only 1 is supported)
+        :param node_labels_name: the name of the node labels used in the layer
+        :param n_kernels: the number of kernels used in the layer (at the moment only 1 is supported)
+        :param bias: if bias is used in the layer
+        :param print_layer_init: if the layer initialization should be printed
+        :param save_weights: if the weights should be saved
+        :param precision: the precision of the weights, can be torch.float or torch.double
+        :param args: additional arguments
+        :param kwargs: additional keyword arguments
+        """
         super(GraphConvLayer, self).__init__()
-
+        # id and name of the layer
         self.layer_id = layer_id
+        self.name = "WL_Layer"
         # get the graph data
         self.graph_data = graph_data
         # get the input features, i.e. the dimension of the input vector
         self.in_features = in_features
         # set the node labels
-        self.node_labels = graph_data.node_labels[node_labels]
-        n_node_labels = self.node_labels.num_unique_node_labels
-        self.edge_labels = graph_data.edge_labels['primary']
-        n_edge_labels = self.edge_labels.num_unique_edge_labels
+        self.node_labels = graph_data.node_labels[node_labels_name]
         # get the number of considered node labels
-        self.n_node_labels = n_node_labels
+        self.n_node_labels = self.node_labels.num_unique_node_labels
+        self.edge_labels = graph_data.edge_labels['primary']
         # get the number of considered edge labels
-        self.n_edge_labels = n_edge_labels
+        self.n_edge_labels = self.edge_labels.num_unique_edge_labels
         # get the number of considered kernels
         self.n_kernels = n_kernels
         self.n_extra_dim = 1
         self.extra_dim_map = {}
-        self.para = parameters
+        self.para = parameters  # get the all the parameters of the experiment
+        self.bias = bias  # use bias or not default is True
+
+        # Initialize the current weight matrix and bias vector
+        self.current_W = torch.Tensor()
+        self.current_B = torch.Tensor()
+        # Get the rules for the weight and bias distribution
+        self.w_distribution_rule = w_distribution_rule
+        self.bias_distribution_rule = bias_distribution_rule
 
         self.args = args
         self.kwargs = kwargs
-        self.precision = torch.float
+        self.precision = precision
 
         # Extra features
         if "n_max_degree" in kwargs:
@@ -144,8 +186,9 @@ class GraphConvLayer(nn.Module):
 
         # Determine the number of weights and biases
         # There are two cases assymetric and symmetric, assymetric is the default
-        if 'symmetric' in self.para.configs and self.para.configs['symmetric']:
-            self.weight_num = self.in_features * self.in_features * self.n_kernels * ((self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_edge_labels * self.n_extra_dim
+        if 'symmetric' in self.para.configs and self.para.configs['symmetric']:  #TODO
+            self.weight_num = self.in_features * self.in_features * self.n_kernels * (
+                        (self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_edge_labels * self.n_extra_dim
             # np upper triangular matrix
             self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape(
                 (self.in_features, self.in_features, self.n_kernels, self.n_node_labels, self.n_node_labels,
@@ -156,16 +199,14 @@ class GraphConvLayer(nn.Module):
                 (self.in_features, self.in_features, self.n_kernels, self.n_node_labels, self.n_node_labels,
                  self.n_edge_labels, self.n_extra_dim))
 
+        # Determine the number of different learnable parameters in the bias vector
         self.bias_num = self.in_features * self.n_kernels * self.n_node_labels
         self.bias_map = np.arange(self.bias_num, dtype=np.int64).reshape(
             (self.in_features, self.n_kernels, self.n_node_labels))
 
-        # Get the rules for the weight and bias distribution
-        self.w_distribution_rule = w_distribution_rule
-        self.bias_distribution_rule = bias_distribution_rule
-
-        # calculate the range for the weights
+        # calculate the range for the weights using the number of weights
         lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
+
         # set seed for reproducibility
         torch.manual_seed(seed)
         # Initialize the weight matrix with random values between lower and upper
@@ -174,25 +215,30 @@ class GraphConvLayer(nn.Module):
         bias_data = lower + torch.randn(self.bias_num, dtype=self.precision) * (upper - lower)
         self.Param_b = nn.Parameter(bias_data, requires_grad=True)
 
+        # in case of pruning is turned on, save the original weights
         self.Param_W_original = None
         if 'prune' in self.para.configs and self.para.configs['prune']:
             self.Param_W_original = self.Param_W.detach().clone()
 
-        self.bias = bias
-
-        # Initialize the current weight matrix and bias vector
-        self.current_W = torch.Tensor()
-        self.current_B = torch.Tensor()
-
-        self.name = "WL_Layer"
-
-        def valid_node_label(n_label):
+        def valid_node_label(n_label: int) -> bool:
+            """
+            Check if the node label is valid, i.e., it is in the range of the node labels
+            :param n_label: the node label
+            :return: True if the node label is valid, False otherwise
+            """
             if 0 <= n_label < self.n_node_labels:
                 return True
             else:
                 return False
 
-        def valid_edge_label(edge_label, src=0, dst=1):
+        def valid_edge_label(edge_label: int, src: int = 0, dst: int = 1) -> bool:
+            """
+            Check if the edge label is valid, i.e., it is in the range of the edge labels
+            :param edge_label: the edge label
+            :param src: the source node
+            :param dst: the destination node
+            :return: True if the edge label is valid, False otherwise
+            """
             if 0 <= edge_label < self.n_edge_labels:
                 return True
             elif src == dst and 0 <= edge_label < self.n_edge_labels + 1:
@@ -313,7 +359,8 @@ class GraphConvLayer(nn.Module):
 
             if save_weights:
                 parameterMatrix = np.full((input_size, input_size * self.n_kernels), 0, dtype=np.int16)
-                self.weight_matrices.append(torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision))
+                self.weight_matrices.append(
+                    torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision))
                 for entry in graph_weight_pos_distribution:
                     self.weight_matrices[-1][entry[0]][entry[1]] = self.Param_W[entry[2]]
                     parameterMatrix[entry[0]][entry[1]] = entry[2] + 1
@@ -366,7 +413,6 @@ class GraphConvLayer(nn.Module):
         # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
         self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
         #self.current_W = self.weight_matrices[pos]
-
 
     def set_bias(self, input_size, pos):
         self.current_B = torch.zeros((input_size * self.n_kernels), dtype=self.precision)
@@ -421,13 +467,13 @@ class GraphResizeLayer(nn.Module):
     def __init__(self, layer_id, seed, parameters, graph_data: GraphData.GraphData, w_distribution_rule, in_features,
                  out_features,
                  node_labels, n_kernels=1,
-                 bias=True, print_layer_init=False, save_weights=False, *args, **kwargs):
+                 bias=True, print_layer_init=False, save_weights=False, precision=torch.float, *args, **kwargs):
         super(GraphResizeLayer, self).__init__()
 
         self.layer_id = layer_id
         self.graph_data = graph_data
 
-        self.precision = torch.float
+        self.precision = precision
 
         self.in_features = in_features
         self.out_features = out_features
@@ -585,5 +631,3 @@ class GraphResizeLayer(nn.Module):
 
     def get_bias(self):
         return [x.item() for x in self.Param_b[0]]
-
-

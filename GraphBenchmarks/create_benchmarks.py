@@ -247,10 +247,10 @@ def main(output_path="Data/", benchmarks=None):
 
 if __name__ == "__main__":
     #main(benchmarks=["EvenOddRings1_16", "EvenOddRings2_16", "EvenOddRings3_16"])
-    main(benchmarks=["LongRings16"])
+    #main(benchmarks=["LongRings16"])
     #main(benchmarks=["LongRings100"])
     #main(benchmarks=["EvenOddRingsCount16"])
-    #main(benchmarks=["SnowflakesCount"])
+    main(benchmarks=["LongRings16"])
     # main(benchmarks=["EvenOddRings2_16", "EvenOddRings2_120"])
     # main(benchmarks=["EvenOddRings3_16", "EvenOddRings3_120"])
 

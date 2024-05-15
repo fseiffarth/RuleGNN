@@ -1,12 +1,8 @@
 import pickle
 
 import networkx as nx
-from torch_geometric.datasets import ZINC
 
-import ReadWriteGraphs.GraphDataToGraphList as gdtgl
-from GraphData import GraphData
-from GraphData.GraphData import zinc_to_graph_data, get_graph_data
-from LoadData.csl import CSL
+from GraphData.GraphData import get_graph_data
 
 
 def write_distances(graph_data, db_name, cutoff, distance_path="") -> int:

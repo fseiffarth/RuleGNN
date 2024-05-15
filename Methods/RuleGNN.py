@@ -8,11 +8,11 @@ from sklearn.metrics import accuracy_score
 import torch
 from torch import optim, nn
 from torch.autograd import Variable
-from torch.optim.lr_scheduler import LambdaLR, ReduceLROnPlateau, ExponentialLR, StepLR
+from torch.optim.lr_scheduler import StepLR
 
 from GraphData import GraphData
 from NeuralNetArchitectures import GraphNN
-from Parameters import Parameters
+from utils.Parameters import Parameters
 from Time.TimeClass import TimeClass
 import TrainTestData.TrainTestData as ttd
 from utils.utils import get_k_lowest_nonzero_indices
@@ -33,21 +33,19 @@ class RuleGNN:
 
     def Run(self):
         torch.set_num_threads(1)
+        dtype = torch.float
+        if 'precision' in self.para.configs:
+            if self.para.configs['precision'] == 'double':
+                dtype = torch.double
+                # set the inputs in graph_data to double precision
+                self.graph_data.inputs = [x.double() for x in self.graph_data.inputs]
         """
         Set up the network
         """
 
         net = GraphNN.GraphNet(graph_data=self.graph_data,
                                para=self.para,
-                               n_node_features=self.para.node_features,
-                               seed=self.seed,
-                               dropout=self.para.dropout,
-                               out_classes=self.graph_data.num_classes,
-                               print_weights=self.para.net_print_weights,
-                               print_layer_init=self.para.print_layer_init,
-                               save_weights=self.para.save_weights,
-                               convolution_grad=self.para.convolution_grad,
-                               resize_grad=self.para.resize_grad)
+                               seed=self.seed)
 
         # get gpu or cpu: not used at the moment
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -68,7 +66,7 @@ class RuleGNN:
         """
         Set up the optimizer
         """
-        optimizer = optim.Adam([{'params': layer.parameters()} for layer in net.net_layers], lr=self.para.learning_rate)
+        optimizer = optim.Adam(net.parameters(), lr=self.para.learning_rate)
 
         if self.run_id == 0 and self.k_val == 0:
             # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
@@ -157,9 +155,9 @@ class RuleGNN:
             for batch_counter, batch in enumerate(train_batches, 0):
                 timer.measure("forward")
                 optimizer.zero_grad()
-                outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=torch.float))
+                outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=dtype))
 
-                # TODO parallelize forward
+                # TODO batch in one matrix ?
                 for j, graph_id in enumerate(batch, 0):
                     net.train(True)
                     timer.measure("forward_step")
@@ -307,7 +305,7 @@ class RuleGNN:
             validation_mae = 0
             validation_mae_std = 0
             if self.validate_data.size != 0:
-                outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=torch.float)
+                outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=dtype)
                 # use torch no grad to save memory
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.validate_data):
@@ -335,6 +333,14 @@ class RuleGNN:
                         best_epoch["val_loss"] = validation_loss
                         best_epoch["val_mae"] = validation_mae
                         best_epoch["val_mae_std"] = validation_mae_std
+                        # save the best model
+                        if not os.path.exists(f'{self.results_path}{self.para.db}/Models/'):
+                            os.makedirs(f'{self.results_path}{self.para.db}/Models/')
+                        # Save the model if best model is used
+                        if 'best_model' in self.para.configs and self.para.configs['best_model']:
+                            torch.save(net.state_dict(),
+                                       f'{self.results_path}{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
+
                 else:
                     if validation_acc > best_epoch["val_acc"] or validation_acc == best_epoch["val_acc"] and validation_loss < best_epoch["val_loss"]:
                         best_epoch["epoch"] = epoch
@@ -342,6 +348,13 @@ class RuleGNN:
                         best_epoch["loss"] = epoch_loss
                         best_epoch["val_acc"] = validation_acc
                         best_epoch["val_loss"] = validation_loss
+                        # save the best model
+                        if not os.path.exists(f'{self.results_path}{self.para.db}/Models/'):
+                            os.makedirs(f'{self.results_path}{self.para.db}/Models/')
+                        # Save the model if best model is used
+                        if 'best_model' in self.para.configs and self.para.configs['best_model']:
+                            torch.save(net.state_dict(),
+                                       f'{self.results_path}{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
 
             if self.para.save_prediction_values:
                 # print outputs and labels to a csv file
@@ -366,7 +379,7 @@ class RuleGNN:
             test_mae_std = 0
             if 'best_model' in self.para.configs and self.para.configs['best_model']:
                 # Test accuracy
-                outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=torch.float)
+                outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=dtype)
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.test_data, 0):
                         net.train(False)
@@ -445,10 +458,3 @@ class RuleGNN:
                     scheduler.step()
 
 
-        """Evaluation of one complete validation run"""
-        # save the trained model
-        if not os.path.exists(f'{self.results_path}{self.para.db}/Models/'):
-            os.makedirs(f'{self.results_path}{self.para.db}/Models/')
-        # Save the model
-        torch.save(net.state_dict(),
-                   f'{self.results_path}{self.para.db}/Models/model_run_{self.run_id}_val_step_{self.k_val}.pt')

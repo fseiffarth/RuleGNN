@@ -5,7 +5,7 @@ import networkx as nx
 from GraphData import GraphData
 from GraphData.Distances.load_distances import load_distances
 
-from LoadData.csl import CSL
+from GraphBenchmarks.csl import CSL
 
 
 def main():

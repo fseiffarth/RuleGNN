@@ -44,7 +44,10 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None)
         for i, graph in enumerate(graphs):
             for node in graph.nodes(data=True):
                 # get list of all data entries of the node, first label then the rest
-                data_list = [int(node[1]['label'])]
+                if 'label' not in node[1]:
+                    data_list = [0]
+                else:
+                    data_list = [int(node[1]['label'])]
                 # append all the other features
                 for key, value in node[1].items():
                     if key != 'label':

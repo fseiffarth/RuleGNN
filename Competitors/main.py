@@ -1,10 +1,9 @@
 import numpy as np
 
-from GraphData.GraphData import GraphData, get_graph_data
+from GraphData.GraphData import get_graph_data
 from Kernels.NoGKernel import NoGKernel
 from Kernels.GraphKernels import WLKernel
 from GraphData.DataSplits.load_splits import Load_Splits
-from LoadData.csl import CSL
 
 
 def main(db_name, data_path="../../GraphData/DS_all/"):
@@ -40,4 +39,4 @@ if __name__ == "__main__":
     #     joblib.delayed(main)(db_name) for db_name in ['CSL', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
     #main("IMDB-MULTI")
     #main("SnowflakesCount", data_path="../GraphBenchmarks/Data/")
-    main("LongRings100", data_path="../GraphBenchmarks/Data/")
+    main("EvenOddRingsCount16", data_path="../GraphBenchmarks/Data/")
