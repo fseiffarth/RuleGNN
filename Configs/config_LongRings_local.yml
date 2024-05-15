@@ -33,6 +33,7 @@ early_stopping:
 networks:
   # mixed models
   - - { layer_type: primary, distances: [8] }
+    - { layer_type: primary, distances: [4] }
     - { layer_type: primary }
 
 

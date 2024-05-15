@@ -23,6 +23,16 @@ from utils.RunConfiguration import RunConfiguration
 def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, node_color='blue', edge_color='black',
                edge_width=0.5, ):
     graph = graph_data.graphs[graph_id]
+
+    # draw the graph
+    # root node is the one with label 0
+    root_node = None
+    for node in graph.nodes():
+        if graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+            root_node = node
+            break
+
+
     node_labels = {}
     for node in graph.nodes():
         key = int(node)
@@ -34,16 +44,28 @@ def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, node_color='bl
             edge_labels[(key1, key2)] = int(value["label"])
         else:
             edge_labels[(key1, key2)] = ""
-
-    # draw the graph
-    # root node is the one with label 0
-    root_node = None
-    for node in graph.nodes():
-        if graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
-            root_node = node
-            break
-    print(f"Root node: {root_node}")
-    pos = nx.nx_pydot.graphviz_layout(graph, root=root_node)
+    # if graph is circular use the circular layout
+    pos = dict()
+    circle = True
+    if circle:
+        # get circular positions around (0,0) starting with the root node at (-400,0)
+        pos[root_node] = (400, 0)
+        angle = 2 * np.pi / (graph.number_of_nodes())
+        # iterate over the neighbors of the root node
+        cur_node = root_node
+        last_node = None
+        counter = 0
+        while len(pos) < graph.number_of_nodes():
+            neighbors = list(graph.neighbors(cur_node))
+            for next_node in neighbors:
+                if next_node != last_node:
+                    counter += 1
+                    pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                    last_node = cur_node
+                    cur_node = next_node
+                    break
+    else:
+        pos = nx.nx_pydot.graphviz_layout(graph)
     # keys to ints
     pos = {int(k): v for k, v in pos.items()}
     nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=edge_color, width=edge_width)
@@ -96,9 +118,28 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
         if graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
             root_node = node
             break
-    # change NodeView order such that it starts with the root node
-    #graph = nx.relabel_nodes(graph, {root_node: 0})
-    pos = nx.nx_pydot.graphviz_layout(graph, root=root_node)
+    # if graph is circular use the circular layout
+    pos = dict()
+    circle = True
+    if circle:
+        # get circular positions around (0,0) starting with the root node at (-400,0)
+        pos[root_node] = (400, 0)
+        angle = 2 * np.pi / (graph.number_of_nodes())
+        # iterate over the neighbors of the root node
+        cur_node = root_node
+        last_node = None
+        counter = 0
+        while len(pos) < graph.number_of_nodes():
+            neighbors = list(graph.neighbors(cur_node))
+            for next_node in neighbors:
+                if next_node != last_node:
+                    counter += 1
+                    pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                    last_node = cur_node
+                    cur_node = next_node
+                    break
+    else:
+        pos = nx.nx_pydot.graphviz_layout(graph)
     # keys to ints
     pos = {int(k): v for k, v in pos.items()}
     # graph to digraph with
@@ -121,7 +162,7 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
 
     node_colors = []
     node_sizes = []
-    for node in graph.nodes():
+    for node in digraph.nodes():
         node_label = graph_data.node_labels['primary'].node_labels[graph_id][node]
         node_colors.append(bias_colors[node_label])
         node_sizes.append(node_size * abs(bias_vector[node_label]) / bias_max_abs)
@@ -133,7 +174,9 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
 @click.option('--data_path', default="../GraphBenchmarks/Data/", help='Path to the graph data')
 @click.option('--db', default="EvenOddRings2_16", help='Database to use')
 @click.option('--config', default="", help='Path to the configuration file')
-def main(data_path, db, config):
+@click.option('--out', default="")
+# --data_path ../GraphBenchmarks/Data/ --db EvenOddRings2_16 --config ../TEMP/EvenOddRings2_16/config.yml
+def main(data_path, db, config, out):
     run = 0
     k_val = 0
     kFold = 10
@@ -254,8 +297,8 @@ def main(data_path, db, config):
                         counter += 1
                     accuracy = correct / counter
                     print(f"Accuracy for model {model_path} is {accuracy}")
-
-                graph_ids = [0, 10, 100]
+                # get three random graph ids from the test data
+                graph_ids = np.random.choice(test_data, 3)
                 rows = len(graph_ids)
                 cols = len(net.net_layers)
                 fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(3 * cols, 3 * rows))
@@ -275,7 +318,7 @@ def main(data_path, db, config):
                             draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id, layer=layers[j - 1], ax=ax, node_size=20, edge_width=2)
                 # draw_graph_layer(graph_data, graph_id, net.lr)
                 # save the figure as svg
-                #plt.savefig(f'../Results/{db}/Figures/weights_run_{run}_val_step_{k_val}.svg')
+                plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{k_val}.svg')
                 plt.show()
 
 

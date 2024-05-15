@@ -53,7 +53,7 @@ additional_options:
   draw: # draw the accuracy and loss during training
     True
   save_weights: # save the weights of the model
-    False
+    True
   save_prediction_values:
     True
   plot_graphs: # Plot all graphs in the dataset
