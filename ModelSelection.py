@@ -27,7 +27,7 @@ from utils.RunConfiguration import RunConfiguration
 @click.option('--validation_id', default=0, type=int)
 @click.option('--config', default=None, type=str)
 # current configuration
-#--graph_db_name NCI1 --config config.yml
+#--graph_db_name NCI1 --config Configs/config_NCI1_test.yml --validation_number 10 --validation_id 0
 
 def main(graph_db_name, validation_number, validation_id, config, run_id=0):
     if config is not None:

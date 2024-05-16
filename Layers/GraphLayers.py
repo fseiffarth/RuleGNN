@@ -358,7 +358,7 @@ class GraphConvLayer(nn.Module):
             #self.weight_pos_list.append(weight_pos_tensor)
 
             if save_weights:
-                parameterMatrix = np.full((input_size, input_size * self.n_kernels), 0, dtype=np.int32)
+                parameterMatrix = np.full((input_size, input_size * self.n_kernels), 0, dtype=np.int64)
                 self.weight_matrices.append(
                     torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision))
                 for entry in graph_weight_pos_distribution:
@@ -373,7 +373,7 @@ class GraphConvLayer(nn.Module):
             # self.sparse_weight_row_col.append(torch.cat((row_array, col_array), 0))
             # print(self.sparse_weight_data, self.sparse_weight_row_col)
 
-            graph_bias_pos_distribution = np.zeros((1, 2), np.dtype(np.int32))
+            graph_bias_pos_distribution = np.zeros((1, 2), np.dtype(np.int64))
             out_size = node_number * self.in_features * self.n_kernels
             bias = torch.zeros((out_size), dtype=self.precision)
 
@@ -487,7 +487,7 @@ class GraphResizeLayer(nn.Module):
         self.n_kernels = n_kernels
 
         self.weight_num = in_features * n_kernels * n_node_labels * out_features
-        self.weight_map = np.arange(self.weight_num, dtype=np.int32).reshape(
+        self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape(
             (out_features, in_features, n_kernels, n_node_labels))
 
         self.weight_matrices = []
@@ -527,7 +527,7 @@ class GraphResizeLayer(nn.Module):
                 print("ResizeLayerInitWeights: ", str(int(graph_id / self.graph_data.num_graphs * 100)), "%")
 
             node_labels = []
-            graph_weight_pos_distribution = np.zeros((1, 3), np.dtype(np.int32))
+            graph_weight_pos_distribution = np.zeros((1, 3), np.dtype(np.int64))
             input_size = graph.number_of_nodes() * in_features * self.n_kernels
             weight_entry_num = 0
             in_high_dim = np.zeros(

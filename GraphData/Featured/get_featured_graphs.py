@@ -6,20 +6,14 @@ from Layers.GraphLayers import Layer
 from utils.utils import save_graphs
 
 
-def create_dataset(dataset_name):
+def create_dataset(dataset_name, layers=None):
     # load the graphs
     data_path = '../../../GraphData/DS_all/'
     distance_path = '../Distances/'
     graph_data = get_graph_data(dataset_name, data_path, distance_path, use_features=True, use_attributes=False)
-    # if not exists create the results directory named after the dataset
-    if not os.path.exists(f"{dataset_name}"):
-        try:
-            os.makedirs(f"{dataset_name}")
-        except:
-            pass
-    output_path = f"{dataset_name}/"
+    output_path = ""
 
-    layers = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'simple_cycles', 'max_cycle_length': 10})]
+
     for l in layers:
         label_path = f"../Labels/{dataset_name}_{l.get_layer_string()}_labels.txt"
         if os.path.exists(label_path):
@@ -42,11 +36,24 @@ def create_dataset(dataset_name):
             graph_data.graph_labels[i] //= 2
 
 
-    save_graphs(path=output_path, db_name=dataset_name, graphs=graph_data.graphs, labels=graph_data.graph_labels)
+    save_graphs(path=output_path, db_name=f'{dataset_name}Features', graphs=graph_data.graphs, labels=graph_data.graph_labels)
 
 
 def main():
-    create_dataset('DHFR')
+    mutagenicity_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
+    create_dataset('Mutagenicity', layers=mutagenicity_layers)
+    dhfr_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'simple_cycles', 'max_cycle_length': 10})]
+    create_dataset('DHFR', layers=dhfr_layers)
+    imdb_binary_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'induced_cycles', 'max_cycle_length': 5})]
+    create_dataset('IMDB-BINARY', layers=imdb_binary_layers)
+    imdb_multi_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'subgraph', id:1})]
+    create_dataset('IMDB-MULTI', layers=imdb_multi_layers)
+    nci1_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
+    create_dataset('NCI1', layers=nci1_layers)
+    nci109_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
+    create_dataset('NCI109', layers=nci109_layers)
+
+
 
 
 if __name__ == "__main__":

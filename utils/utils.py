@@ -60,7 +60,16 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None)
     with open(path + db_name + "_Edges.txt", "w") as f:
         for i, graph in enumerate(graphs):
             for edge in graph.edges(data=True):
-                data_list = list(edge[2].values())
+                # get list of all data entries of the node, first label then the rest
+                if 'label' not in edge[2]:
+                    data_list = [0]
+                else:
+                    data_list = [int(edge[2]['label'])]
+                # append all the other features
+                for key, value in edge[2].items():
+                    if key != 'label':
+                        for v in value:
+                            data_list.append(v)
                 f.write(str(i) + " " + str(edge[0]) + " " + str(edge[1]) + " " + " ".join(map(str, data_list)) + "\n")
         # remove last empty line
         f.seek(f.tell() - 1, 0)
