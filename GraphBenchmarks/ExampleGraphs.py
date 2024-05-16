@@ -42,6 +42,7 @@ def glue_graphs(G1, G2, node1, node2, plot=False):
         pos = nx.spring_layout(G)
         nx.draw_networkx_nodes(G, nodelist=range(0, G1.number_of_nodes()), pos=pos, node_color='b')
         nx.draw_networkx_nodes(G, nodelist=range(G1.number_of_nodes(), G.number_of_nodes()), pos=pos, node_color='r')
+        nx.draw_networkx_labels(G, pos, labels={node: node for node in G.nodes()})
         nx.draw_networkx_edges(G, pos)
         plt.show()
     return G
@@ -127,7 +128,7 @@ def Snowflake(part_list=[0, 1, 2, 3], size=4, plot=False):
     part_dict = {0: (M0(), 7), 1: (M1(), 7), 2: (M1(), 14), 3: (M3(), 7)}
     # create snowflake graph
     for i, part in enumerate(part_list):
-        G = glue_graphs(G, part_dict[part][0], i, part_dict[part][1])
+        G = glue_graphs(G, part_dict[part][0], i, part_dict[part][1], plot=False)
     if plot:
         # draw the graph G with pydot
         # for each graph in part list create a shell
@@ -174,7 +175,7 @@ def Snowflake(part_list=[0, 1, 2, 3], size=4, plot=False):
     return G
 
 
-def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, plot=False, seed=4837257):
+def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, plot=False, seed=4837257, generation_type='count'):
     '''
     Create a list of snowflake graphs with sizes from smallest_snowflake to largest_snowflake
     '''
@@ -188,14 +189,43 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
                 # create random part list of size i
                 part_list = np.random.randint(0, 4, i)
                 snowflakes.append(Snowflake(part_list=part_list, size=i))
-                # count the number of parts in the snowflake
-                part_count = np.zeros(4)
-                for part in part_list:
-                    part_count[part] += 1
-                # divide part count by largest snowflake size
-                part_count = part_count / largest_snowflake
-                # label the snowflake with the number of parts
-                labels.append(part_count)
+                if generation_type == 'count':
+                    # count the number of parts in the snowflake
+                    part_count = np.zeros(4)
+                    for part in part_list:
+                        part_count[part] += 1
+                    # divide part count by largest snowflake size
+                    part_count = part_count / largest_snowflake
+                    # label the snowflake with the number of parts
+                    labels.append(part_count)
+                if generation_type == 'binary':
+                    # create random list with one 1 and the rest 0 of length i
+                    rand_index1 = np.random.randint(0, i)
+                    rand_index2 = np.random.randint(0, i)
+                    rand_index3 = np.random.randint(0, i)
+
+                    label = (rand_index1*part_list[rand_index1] + 2 * rand_index2*part_list[rand_index2] + 3 * rand_index3*part_list[rand_index3]) % 2
+
+                    rand_index2 = i + 14 * rand_index2
+                    rand_index3 = i + 7 + 14 * rand_index3
+                    # add node labels to the last graph in snowflakes
+                    for node in snowflakes[-1].nodes():
+                        if node == rand_index1:
+                            snowflakes[-1].nodes[node]['label'] = 1
+                        elif node >= i:
+                            # set node to random label between 0 and 4
+                            rand_node_label = np.random.randint(0, 1)
+                            snowflakes[-1].nodes[node]['label'] = rand_node_label
+                        #elif node == rand_index2:
+                        #    snowflakes[-1].nodes[node]['label'] = 1
+                        #elif node == rand_index3:
+                        #    snowflakes[-1].nodes[node]['label'] = 1
+                        else:
+                            rand_node_label = np.random.randint(0, 1)
+                            snowflakes[-1].nodes[node]['label'] = rand_node_label
+                    label = part_list[rand_index1]
+                    labels.append(label)
+
     if type(flakes_per_size) == list:
         # create a list of snowflakes with sizes from smallest_snowflake to largest_snowflake
         for i in range(smallest_snowflake, largest_snowflake + 1):
@@ -253,6 +283,7 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
             pos = nx.kamada_kawai_layout(snowflake)
             nx.draw_networkx_nodes(snowflake, pos, node_size=50)
             nx.draw_networkx_edges(snowflake, pos)
+            nx.draw_networkx_labels(snowflake, pos, font_size=8, labels={node: snowflake.nodes[node]['label'] for node in snowflake.nodes()})
             plt.show()
     return snowflakes, labels
 
@@ -306,7 +337,7 @@ def double_circle(n=50, m=50):
 
 def main():
     #Snowflake(part_list=[0, 1, 2, 3], size=4, plot=True)
-    Snowflakes(smallest_snowflake=2, largest_snowflake=2, flakes_per_size=100, plot=True, seed=764)
+    Snowflakes(smallest_snowflake=3, largest_snowflake=10, flakes_per_size=10, plot=True, seed=764, generation_type='binary')
 
 
 if __name__ == '__main__':

@@ -20,8 +20,8 @@ from utils.Parameters.Parameters import Parameters
 from utils.RunConfiguration import RunConfiguration
 
 
-def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, node_color='blue', edge_color='black',
-               edge_width=0.5, ):
+def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, edge_color='black',
+               edge_width=0.5, draw_type='circle'):
     graph = graph_data.graphs[graph_id]
 
     # draw the graph
@@ -31,7 +31,6 @@ def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, node_color='bl
         if graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
             root_node = node
             break
-
 
     node_labels = {}
     for node in graph.nodes():
@@ -46,8 +45,7 @@ def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, node_color='bl
             edge_labels[(key1, key2)] = ""
     # if graph is circular use the circular layout
     pos = dict()
-    circle = True
-    if circle:
+    if draw_type == 'circle':
         # get circular positions around (0,0) starting with the root node at (-400,0)
         pos[root_node] = (400, 0)
         angle = 2 * np.pi / (graph.number_of_nodes())
@@ -64,17 +62,23 @@ def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, node_color='bl
                     last_node = cur_node
                     cur_node = next_node
                     break
+    elif draw_type == 'kawai':
+        pos = nx.kamada_kawai_layout(graph)
     else:
         pos = nx.nx_pydot.graphviz_layout(graph)
     # keys to ints
     pos = {int(k): v for k, v in pos.items()}
     nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=edge_color, width=edge_width)
-    nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_color, node_size=node_size)
-    nx.draw_networkx_labels(graph, pos=pos, labels=node_labels, ax=ax, font_size=8, font_color='white')
     nx.draw_networkx_edge_labels(graph, pos=pos, edge_labels=edge_labels, ax=ax, font_size=8, font_color='black')
+    # get node colors from the node labels using the plasma colormap
+    cmap = plt.get_cmap('tab20')
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=graph_data.node_labels['primary'].num_unique_node_labels)
+    node_colors = [cmap(norm(graph_data.node_labels['primary'].node_labels[graph_id][node])) for node in graph.nodes()]
+    nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors, node_size=node_size)
 
 
-def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50, edge_width=5):
+def draw_resize_layer(results_path: str, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50,
+                      edge_width=5, draw_type='circle'):
     weight = layer.get_weights()
     bias = layer.get_bias()
     layer_id = layer.layer_id
@@ -120,8 +124,7 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
             break
     # if graph is circular use the circular layout
     pos = dict()
-    circle = True
-    if circle:
+    if draw_type == 'circle':
         # get circular positions around (0,0) starting with the root node at (-400,0)
         pos[root_node] = (400, 0)
         angle = 2 * np.pi / (graph.number_of_nodes())
@@ -138,12 +141,22 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
                     last_node = cur_node
                     cur_node = next_node
                     break
+    elif draw_type == 'kawai':
+        pos = nx.kamada_kawai_layout(graph)
     else:
         pos = nx.nx_pydot.graphviz_layout(graph)
     # keys to ints
     pos = {int(k): v for k, v in pos.items()}
     # graph to digraph with
     digraph = nx.DiGraph()
+    # get indices of the 100 largest weights (absolute value)
+    #highest_weight_number = 100
+    #weight_indices = np.unravel_index(np.argsort(np.abs(weight_matrix), axis=None), weight_matrix.shape)
+    #weight_indices = (weight_indices[0][-highest_weight_number:], weight_indices[1][-highest_weight_number:])
+    # set all other weights in the weight matrix to zero
+    #non_zero_weights = np.zeros_like(weight_matrix)
+    #non_zero_weights[weight_indices] = weight_matrix[weight_indices]
+    #weight_matrix = non_zero_weights
     # add all edges where weight is not zero
     for i in range(0, graph.number_of_nodes()):
         for j in range(0, graph.number_of_nodes()):
@@ -157,7 +170,115 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
         curved_edges_colors.append(weight_colors[edge[0]][edge[1]])
         edge_widths.append(edge_width * abs(weight_matrix[edge[0]][edge[1]]) / weight_max_abs)
     arc_rad = 0.25
-    nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors, width=edge_widths,
+    nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors,
+                           width=edge_widths,
+                           connectionstyle=f'arc3, rad = {arc_rad}', arrowsize=5)
+
+    node_colors = []
+    node_sizes = []
+    for node in digraph.nodes():
+        node_label = graph_data.node_labels['primary'].node_labels[graph_id][node]
+        node_colors.append(bias_colors[node_label])
+        node_sizes.append(node_size * abs(bias_vector[node_label]) / bias_max_abs)
+
+    nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
+
+
+def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50,
+                     edge_width=5, draw_type='circle'):
+    weight = layer.get_weights()
+    bias = layer.get_bias()
+    layer_id = layer.layer_id
+    # get the adjacency matrices + the bias vector for the first graph
+    # load from txt file
+    path = f'{results_path}{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt'
+    # read as csv with pandas
+    df = pd.read_csv(path, sep=';', header=None)
+
+    graph = graph_data.graphs[graph_id]
+    weight_matrix = np.zeros((graph.number_of_nodes(), graph.number_of_nodes()))
+    # iterate over the rows and columns of the weight matrix
+    for i in range(0, graph.number_of_nodes()):
+        for j in range(0, graph.number_of_nodes()):
+            if df.iloc[i, j] != 0:
+                weight_matrix[i][j] = weight[df.iloc[i, j] - 1]
+    bias_vector = np.asarray(bias)
+
+    weight_min = np.min(weight_matrix)
+    weight_max = np.max(weight_matrix)
+    bias_min = np.min(bias_vector)
+    bias_max = np.max(bias_vector)
+
+    weight_max_abs = max(abs(weight_min), abs(weight_max))
+    bias_max_abs = max(abs(bias_min), abs(bias_max))
+
+    # use seismic colormap with maximum and minimum values from the weight matrix
+    cmap = plt.get_cmap(cmap)
+    # normalize item number values to colormap
+    norm_weight = matplotlib.colors.Normalize(vmin=-weight_max_abs, vmax=weight_max_abs)
+    norm_bias = matplotlib.colors.Normalize(vmin=-bias_max_abs, vmax=bias_max_abs)
+    weight_colors = cmap(norm_weight(weight_matrix))
+    bias_colors = cmap(norm_bias(bias_vector))
+
+    # draw the graph
+    # root node is the one with label 0
+    root_node = None
+    for i, node in enumerate(graph.nodes()):
+        if i == 0:
+            print(f"First node: {graph_data.node_labels['primary'].node_labels[graph_id][node]}")
+        if graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+            root_node = node
+            break
+    # if graph is circular use the circular layout
+    pos = dict()
+    if draw_type == 'circle':
+        # get circular positions around (0,0) starting with the root node at (-400,0)
+        pos[root_node] = (400, 0)
+        angle = 2 * np.pi / (graph.number_of_nodes())
+        # iterate over the neighbors of the root node
+        cur_node = root_node
+        last_node = None
+        counter = 0
+        while len(pos) < graph.number_of_nodes():
+            neighbors = list(graph.neighbors(cur_node))
+            for next_node in neighbors:
+                if next_node != last_node:
+                    counter += 1
+                    pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                    last_node = cur_node
+                    cur_node = next_node
+                    break
+    elif draw_type == 'kawai':
+        pos = nx.kamada_kawai_layout(graph)
+    else:
+        pos = nx.nx_pydot.graphviz_layout(graph)
+    # keys to ints
+    pos = {int(k): v for k, v in pos.items()}
+    # graph to digraph with
+    digraph = nx.DiGraph()
+    # get indices of the 100 largest weights (absolute value)
+    #highest_weight_number = 100
+    #weight_indices = np.unravel_index(np.argsort(np.abs(weight_matrix), axis=None), weight_matrix.shape)
+    #weight_indices = (weight_indices[0][-highest_weight_number:], weight_indices[1][-highest_weight_number:])
+    # set all other weights in the weight matrix to zero
+    #non_zero_weights = np.zeros_like(weight_matrix)
+    #non_zero_weights[weight_indices] = weight_matrix[weight_indices]
+    #weight_matrix = non_zero_weights
+    # add all edges where weight is not zero
+    for i in range(0, graph.number_of_nodes()):
+        for j in range(0, graph.number_of_nodes()):
+            if weight_matrix[i][j] != 0:
+                digraph.add_edge(i, j)
+                digraph.add_edge(j, i)
+    curved_edges = [edge for edge in digraph.edges() if reversed(edge) in digraph.edges()]
+    curved_edges_colors = []
+    edge_widths = []
+    for edge in curved_edges:
+        curved_edges_colors.append(weight_colors[edge[0]][edge[1]])
+        edge_widths.append(edge_width * abs(weight_matrix[edge[0]][edge[1]]) / weight_max_abs)
+    arc_rad = 0.25
+    nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors,
+                           width=edge_widths,
                            connectionstyle=f'arc3, rad = {arc_rad}', arrowsize=5)
 
     node_colors = []
@@ -175,8 +296,9 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
 @click.option('--db', default="EvenOddRings2_16", help='Database to use')
 @click.option('--config', default="", help='Path to the configuration file')
 @click.option('--out', default="")
+@click.option('--draw_type', default='circle')
 # --data_path ../GraphBenchmarks/Data/ --db EvenOddRings2_16 --config ../TEMP/EvenOddRings2_16/config.yml
-def main(data_path, db, config, out):
+def main(data_path, db, config, out, draw_type):
     run = 0
     k_val = 0
     kFold = 10
@@ -189,7 +311,8 @@ def main(data_path, db, config, out):
     splits_path = f"../{configs['paths']['splits']}"
     results_path = r_path + db + "/Results/"
 
-    graph_data = get_graph_data(data_path=data_path, db_name=db, distance_path=distance_path, use_features=configs['use_features'], use_attributes=configs['use_attributes'])
+    graph_data = get_graph_data(data_path=data_path, db_name=db, distance_path=distance_path,
+                                use_features=configs['use_features'], use_attributes=configs['use_attributes'])
     # adapt the precision of the input data
     if 'precision' in configs:
         if configs['precision'] == 'double':
@@ -297,8 +420,8 @@ def main(data_path, db, config, out):
                         counter += 1
                     accuracy = correct / counter
                     print(f"Accuracy for model {model_path} is {accuracy}")
-                # get three random graph ids from the test data
-                graph_ids = np.random.choice(test_data, 3)
+                # get the first three graphs from the test data
+                graph_ids = test_data[[0, 20, 42]]
                 rows = len(graph_ids)
                 cols = len(net.net_layers)
                 fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(3 * cols, 3 * rows))
@@ -309,13 +432,16 @@ def main(data_path, db, config, out):
                     graph_id = graph_ids[i]
                     for j, ax in enumerate(x):
                         if j == 0:
-                            draw_graph(graph_data, graph_id, ax, node_size=80, edge_width=2)
+                            draw_graph(graph_data, graph_id, ax, node_size=40, edge_width=2, draw_type=draw_type)
                             # set title on the left side of the plot
-                            ax.set_ylabel(f"Graph {graph_id}\nLabel: {graph_data.graph_labels[graph_id]}")
+                            ax.set_ylabel(f"Graph Label: {graph_data.graph_labels[graph_id]}")
                         else:
                             if i == 0:
                                 ax.set_title(f"Convolution Layer {j}")
-                            draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id, layer=layers[j - 1], ax=ax, node_size=20, edge_width=2)
+                            draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id,
+                                             layer=layers[j - 1], ax=ax, node_size=40, edge_width=2,
+                                             draw_type=draw_type)
+
                 # draw_graph_layer(graph_data, graph_id, net.lr)
                 # save the figure as svg
                 plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{k_val}.svg')
