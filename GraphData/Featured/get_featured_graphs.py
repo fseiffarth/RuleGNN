@@ -6,7 +6,7 @@ from Layers.GraphLayers import Layer
 from utils.utils import save_graphs
 
 
-def create_dataset(dataset_name, layers=None):
+def create_dataset(dataset_name, layers=None, with_degree=False):
     # load the graphs
     data_path = '../../../GraphData/DS_all/'
     distance_path = '../Distances/'
@@ -34,20 +34,27 @@ def create_dataset(dataset_name, layers=None):
         for i, label in enumerate(graph_data.graph_labels):
             graph_data.graph_labels[i] += 1
             graph_data.graph_labels[i] //= 2
+    # if the graph labels start from 1, shift to 0,1,2 ...
+    if min(graph_data.graph_labels) == 1:
+        for i, label in enumerate(graph_data.graph_labels):
+            graph_data.graph_labels[i] -= 1
 
 
-    save_graphs(path=output_path, db_name=f'{dataset_name}Features', graphs=graph_data.graphs, labels=graph_data.graph_labels)
+    save_graphs(path=output_path, db_name=f'{dataset_name}Features', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree)
+    # copy the split data in the processed folder and rename it to dataset_nameFeatures_splits.json
+    os.system(f"cp ../DataSplits/{dataset_name}_splits.json {output_path}{dataset_name}Features/processed/{dataset_name}Features_splits.json")
 
 
 def main():
+    imdb_multi_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'subgraph', id:1})]
+    create_dataset('IMDB-MULTI', layers=imdb_multi_layers, with_degree=True)
+    imdb_binary_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'induced_cycles', 'max_cycle_length': 5})]
+    create_dataset('IMDB-BINARY', layers=imdb_binary_layers, with_degree=True)
+
     mutagenicity_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
     create_dataset('Mutagenicity', layers=mutagenicity_layers)
     dhfr_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'simple_cycles', 'max_cycle_length': 10})]
     create_dataset('DHFR', layers=dhfr_layers)
-    imdb_binary_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'induced_cycles', 'max_cycle_length': 5})]
-    create_dataset('IMDB-BINARY', layers=imdb_binary_layers)
-    imdb_multi_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'subgraph', id:1})]
-    create_dataset('IMDB-MULTI', layers=imdb_multi_layers)
     nci1_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
     create_dataset('NCI1', layers=nci1_layers)
     nci109_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]

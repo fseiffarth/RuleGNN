@@ -36,7 +36,7 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
         # read the config yml file
         configs = yaml.safe_load(open(config))
         # set best_run to True
-        configs['best_run'] = True
+        configs['best_model'] = True
         # get the data path from the config file
         data_path = configs['paths']['data']
         r_path = configs['paths']['results']

@@ -72,9 +72,6 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
             except:
                 pass
 
-        # copy config file to the results directory
-        os.system(f"cp {config} {r_path}{graph_db_name}/config.yml")
-
         plt.ion()
 
         """
@@ -115,6 +112,9 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
             c_id = f'Configuration_{str(config_id).zfill(6)}'
             run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number,
                               configs)
+        # copy config file to the results directory if it is not already there
+        if not os.path.exists(f"{r_path}{graph_db_name}/config.yml"):
+            os.system(f"cp {config} {r_path}{graph_db_name}/config.yml")
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
@@ -135,6 +135,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     Run the method
     """
     method.Run()
+
 
 
 def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number,

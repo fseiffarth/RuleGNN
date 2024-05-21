@@ -1,7 +1,7 @@
 #!/bin/sh
-DATABASE_NAMES="MUTAG"
+DATABASE_NAMES="LongRings100"
 CROSS_VALIDATION=9
-CONFIG_FILE="Configs/config_MUTAG_local.yml"
+CONFIG_FILE="Configs/config_LongRings_local.yml"
 export OMP_NUM_THREADS=1
 for DATABASE_NAME in $DATABASE_NAMES; do
   for j in $(seq 0 $CROSS_VALIDATION); do
