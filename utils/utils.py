@@ -25,7 +25,7 @@ def get_k_lowest_nonzero_indices(tensor, k):
     return k_lowest_original_indices
 
 
-def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None):
+def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None, with_degree=False):
     # save in two files DBName_Nodes.txt and DBName_Edges.txt
     # DBName_Nodes.txt has the following structure GraphId NodeId Feature1 Feature2 ...
     # DBName_Edges.txt has the following structure GraphId Node1 Node2 Feature1 Feature2 ...
@@ -46,6 +46,8 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None)
                 # get list of all data entries of the node, first label then the rest
                 if 'label' not in node[1]:
                     data_list = [0]
+                    if with_degree:
+                        data_list.append(graph.degree(node[0]))
                 else:
                     data_list = [int(node[1]['label'])]
                 # append all the other features

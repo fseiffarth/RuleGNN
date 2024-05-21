@@ -1,7 +1,7 @@
 '''
 Created on 27.05.2019
 
-@author: florian
+@author:
 '''
 import time
 
@@ -13,7 +13,6 @@ import torch.nn as nn
 
 
 def main():
-    #draw_graphs(path = "/home/florian/Dokumente/Databases/GraphData/DS_all/", db = "NCI1", labels = True)
     x = np.zeros((3, 3))
     y = np.arange(9)
 

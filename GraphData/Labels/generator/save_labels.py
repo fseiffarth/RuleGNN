@@ -279,15 +279,14 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
 
 def main():
     data_path = "../../../../GraphData/DS_all/"
+    save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50, max_label_num=100000)
+    #save_standard_labels(data_path, db_names=['DHFR'])
     #save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)
     #save_trivial_labels('../../../GraphBenchmarks/Data/', db_names=['EvenOddRingsCount16'])
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
     #save_wl_labels(data_path, db_names=['MUTAG'])
     #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)
     #save_wl_labels(data_path, db_names=['ZINC'])
-    save_circle_labels(data_path, db_names=['DHFR'], length_bound=14, cycle_type='simple')
-    save_wl_labels(data_path, db_names=['DHFR'], max_iterations=3, max_label_num=50000)
-    save_wl_labels(data_path, db_names=['DHFR'], max_iterations=4, max_label_num=50000)
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=8, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=6, cycle_type='simple')

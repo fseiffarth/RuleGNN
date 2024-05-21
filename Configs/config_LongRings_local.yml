@@ -10,13 +10,13 @@ paths:
 device:
   cpu
 mode:
-  debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
   - 128
 learning_rate:
   - 0.1
 epochs:
-  - 20
+  - 200
 scheduler:
   False
 dropout:
@@ -27,7 +27,7 @@ loss:
   - CrossEntropyLoss
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 networks:
@@ -56,7 +56,7 @@ additional_options:
   draw: # draw the accuracy and loss during training
     True
   save_weights: # save the weights of the model
-    False
+    True
   save_prediction_values:
     False
   plot_graphs: # Plot all graphs in the dataset
@@ -71,4 +71,4 @@ precision:
   double
 
 best_model:
-  True
+  False

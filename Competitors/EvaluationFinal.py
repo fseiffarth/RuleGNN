@@ -63,6 +63,9 @@ def main():
     evaluateGraphLearningNN(db_name='EvenOddRingsCount16', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='EvenOddRingsCount16', algorithm="NoGKernel")
 
+    evaluateGraphLearningNN(db_name='Snowflakes', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='Snowflakes', algorithm="NoGKernel")
+
     evaluateGraphLearningNN(db_name='EvenOddRings2_16', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='EvenOddRings2_16', algorithm="NoGKernel")
 

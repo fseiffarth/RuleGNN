@@ -1,7 +1,7 @@
 '''
 Created on 14.03.2019
 
-@author: florian
+@author:
 '''
 import collections
 import os

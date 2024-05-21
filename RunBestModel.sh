@@ -1,8 +1,8 @@
 #!/bin/sh
-DATABASE_NAMES="MUTAG"
+DATABASE_NAMES="LongRings100"
 MAX_RUN_ID=2
 CROSS_VALIDATION=9
-CONFIG_FILE="Configs/config_MUTAG_local.yml"
+CONFIG_FILE="Configs/config_LongRings_local.yml"
 
 for DATABASE_NAME in $DATABASE_NAMES; do
   (

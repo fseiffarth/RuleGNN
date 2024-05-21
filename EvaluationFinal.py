@@ -564,7 +564,7 @@ def main():
 
 
     #model_selection_evaluation(db_name='MUTAG', path='TEMP')
-    best_model_evaluation(db_name='MUTAG', path='RESULTS')
+    best_model_evaluation(db_name='LongRings100', path='TEMP')
 
 
 

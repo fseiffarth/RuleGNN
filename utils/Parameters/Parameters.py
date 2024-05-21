@@ -1,7 +1,7 @@
 '''
 Created on 04.12.2019
 
-@author: florian
+@author:
 '''
 
 import os

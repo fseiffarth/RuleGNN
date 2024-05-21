@@ -7,6 +7,7 @@ from torch_geometric.data import InMemoryDataset
 from GraphBenchmarks.ExampleGraphs import Snowflakes
 from GraphData.DataSplits.create_splits import create_splits
 from GraphData.Distances.save_distances import save_distances
+from GraphData.GraphData import get_graph_data
 from GraphData.Labels.generator.save_labels import save_standard_labels, save_circle_labels, save_subgraph_labels
 from utils.utils import save_graphs
 
@@ -257,13 +258,18 @@ def main(output_path="Data/", benchmarks=None):
             #save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4)], id=1, label_path="../GraphData/Labels/")
             save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4), nx.cycle_graph(5)], id=2, label_path="../GraphData/Labels/")
             create_splits(name, path=output_path, output_path="../GraphData/DataSplits/")
-
+        if name == "CSL":
+            from GraphBenchmarks.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+            save_graphs(output_path, name, graph_data.graphs, graph_data.graph_labels)
 if __name__ == "__main__":
     #main(benchmarks=["EvenOddRings1_16", "EvenOddRings2_16", "EvenOddRings3_16"])
     #main(benchmarks=["LongRings16"])
     #main(benchmarks=["LongRings100"])
     #main(benchmarks=["EvenOddRingsCount16"])
-    main(benchmarks=["LongRings100", "EvenOddRings2_16", "EvenOddRingsCount16", "Snowflakes"])
+    main(benchmarks=["CSL"])
+    #main(benchmarks=["LongRings100", "EvenOddRings2_16", "EvenOddRingsCount16", "Snowflakes"])
     # main(benchmarks=["EvenOddRings2_16", "EvenOddRings2_120"])
     # main(benchmarks=["EvenOddRings3_16", "EvenOddRings3_120"])
 
