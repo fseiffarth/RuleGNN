@@ -1,7 +1,7 @@
 '''
 Created on 15.03.2019
 
-@author: florian
+@author:
 '''
 import torch
 import torch.nn as nn

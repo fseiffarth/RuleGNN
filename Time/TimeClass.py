@@ -1,7 +1,7 @@
 '''
 Created on 07.01.2020
 
-@author: florian
+@author:
 '''
 
 import time

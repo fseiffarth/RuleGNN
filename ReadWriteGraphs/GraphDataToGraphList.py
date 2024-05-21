@@ -1,7 +1,7 @@
 '''
 Created on 12.03.2019
 
-@author: florian
+@author:
 '''
 
 import networkx as nx

@@ -12,7 +12,7 @@ def get_graph_label_hist(graph):
     return label_hist
 
 
-def draw_graphs(path="/home/florian/Dokumente/Databases/GraphData/DS_all/", db="MUTAG", labels=None):
+def draw_graphs(path="../GraphData/DS_all/", db="MUTAG", labels=None):
     gen = rg.graph_data_generator(path, db)
     while True:
         graph_data = next(gen)
