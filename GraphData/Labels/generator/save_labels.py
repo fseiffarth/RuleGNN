@@ -279,12 +279,15 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
 
 def main():
     data_path = "../../../../GraphData/DS_all/"
-    save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)
+    #save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)
     #save_trivial_labels('../../../GraphBenchmarks/Data/', db_names=['EvenOddRingsCount16'])
     # save_wl_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI', 'DD', 'COLLAB', 'REDDIT-BINARY', 'REDDIT-MULTI-5K'])
     #save_wl_labels(data_path, db_names=['MUTAG'])
     #save_circle_labels(data_path, db_names=['SYNTHETICnew'], length_bound=5)
     #save_wl_labels(data_path, db_names=['ZINC'])
+    save_circle_labels(data_path, db_names=['DHFR'], length_bound=14, cycle_type='simple')
+    save_wl_labels(data_path, db_names=['DHFR'], max_iterations=3, max_label_num=50000)
+    save_wl_labels(data_path, db_names=['DHFR'], max_iterations=4, max_label_num=50000)
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=8, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=10, cycle_type='induced')
     #save_circle_labels(data_path, db_names=['MUTAG', 'NCI1', 'NCI109', 'Mutagenicity'], length_bound=6, cycle_type='simple')
@@ -303,10 +306,10 @@ def main():
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3), nx.star_graph(1)], id=1)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(4), nx.star_graph(1)], id=2)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
-    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3)], id=4)
-    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(5)], id=5)
-    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.star_graph(1)], id=6)
-    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(4)], id=7)
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3)], id=4)
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(5)], id=5)
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.star_graph(1)], id=6)
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(4)], id=7)
 
 
     #save_standard_labels(data_path, db_names=['LongRings'])
