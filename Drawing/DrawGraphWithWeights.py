@@ -186,38 +186,51 @@ def draw_resize_layer(results_path: str, graph_data: GraphData, graph_id, layer,
 
 def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50,
                      edge_width=5, draw_type='circle'):
-    weight = layer.get_weights()
+    all_weights = layer.get_weights()
     bias = layer.get_bias()
-    layer_id = layer.layer_id
-    # get the adjacency matrices + the bias vector for the first graph
-    # load from txt file
-    path = f'{results_path}{graph_data.graph_db_name}/Weights/graph_{graph_id}_layer_{layer_id}_parameterWeightMatrix.txt'
-    # read as csv with pandas
-    df = pd.read_csv(path, sep=';', header=None)
-
     graph = graph_data.graphs[graph_id]
-    weight_matrix = np.zeros((graph.number_of_nodes(), graph.number_of_nodes()))
-    # iterate over the rows and columns of the weight matrix
-    for i in range(0, graph.number_of_nodes()):
-        for j in range(0, graph.number_of_nodes()):
-            if df.iloc[i, j] != 0:
-                weight_matrix[i][j] = weight[df.iloc[i, j] - 1]
+    weight_distribution = layer.weight_distribution[graph_id]
+    graph_weights = np.zeros_like(all_weights)
+    for entry in weight_distribution:
+        graph_weights[entry[2]] = all_weights[entry[2]]
+    graph_weights = np.asarray(graph_weights)
+
+
+
+    # sort weights
+    filter_weights = True
+    if filter_weights:
+        sorted_weights = np.sort(graph_weights)
+        percentage = 1
+        absolute = None
+        if absolute is None:
+            lower_bound_weight = sorted_weights[int(len(sorted_weights) * percentage) - 1]
+            upper_bound_weight = sorted_weights[int(len(sorted_weights) * (1 - percentage))]
+        else:
+            lower_bound_weight = sorted_weights[absolute - 1]
+            upper_bound_weight = sorted_weights[-absolute]
+        # set all weights smaller than the lower bound and larger than the upper bound to zero
+        upper_weights = np.where(graph_weights >= upper_bound_weight, graph_weights, 0)
+        lower_weights = np.where(graph_weights <= lower_bound_weight, graph_weights, 0)
+
+        weights = upper_weights + lower_weights
+    else:
+        weights = np.asarray(graph_weights)
     bias_vector = np.asarray(bias)
 
-    weight_min = np.min(weight_matrix)
-    weight_max = np.max(weight_matrix)
+    weight_min = np.min(graph_weights)
+    weight_max = np.max(graph_weights)
+    weight_max_abs = max(abs(weight_min), abs(weight_max))
     bias_min = np.min(bias_vector)
     bias_max = np.max(bias_vector)
-
-    weight_max_abs = max(abs(weight_min), abs(weight_max))
     bias_max_abs = max(abs(bias_min), abs(bias_max))
 
     # use seismic colormap with maximum and minimum values from the weight matrix
     cmap = plt.get_cmap(cmap)
     # normalize item number values to colormap
-    norm_weight = matplotlib.colors.Normalize(vmin=-weight_max_abs, vmax=weight_max_abs)
-    norm_bias = matplotlib.colors.Normalize(vmin=-bias_max_abs, vmax=bias_max_abs)
-    weight_colors = cmap(norm_weight(weight_matrix))
+    norm_weight = matplotlib.colors.Normalize(vmin=weight_min, vmax=weight_max)
+    norm_bias = matplotlib.colors.Normalize(vmin=bias_min, vmax=bias_max)
+    weight_colors = cmap(norm_weight(graph_weights))
     bias_colors = cmap(norm_bias(bias_vector))
 
     # draw the graph
@@ -256,26 +269,22 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
     pos = {int(k): v for k, v in pos.items()}
     # graph to digraph with
     digraph = nx.DiGraph()
-    # get indices of the 100 largest weights (absolute value)
-    #highest_weight_number = 100
-    #weight_indices = np.unravel_index(np.argsort(np.abs(weight_matrix), axis=None), weight_matrix.shape)
-    #weight_indices = (weight_indices[0][-highest_weight_number:], weight_indices[1][-highest_weight_number:])
-    # set all other weights in the weight matrix to zero
-    #non_zero_weights = np.zeros_like(weight_matrix)
-    #non_zero_weights[weight_indices] = weight_matrix[weight_indices]
-    #weight_matrix = non_zero_weights
-    # add all edges where weight is not zero
-    for i in range(0, graph.number_of_nodes()):
-        for j in range(0, graph.number_of_nodes()):
-            if weight_matrix[i][j] != 0:
-                digraph.add_edge(i, j)
-                digraph.add_edge(j, i)
-    curved_edges = [edge for edge in digraph.edges() if reversed(edge) in digraph.edges()]
-    curved_edges_colors = []
+    for node in graph.nodes():
+        digraph.add_node(node)
+
     edge_widths = []
+    for entry in weight_distribution:
+        i = entry[0]
+        j = entry[1]
+        if weights[entry[2]] != 0:
+            # add edge with weight as data
+            digraph.add_edge(i, j, weight=entry[2])
+    curved_edges = [edge for edge in digraph.edges(data=True)]
+    curved_edges_colors = []
+
     for edge in curved_edges:
-        curved_edges_colors.append(weight_colors[edge[0]][edge[1]])
-        edge_widths.append(edge_width * abs(weight_matrix[edge[0]][edge[1]]) / weight_max_abs)
+        curved_edges_colors.append(weight_colors[edge[2]['weight']])
+        edge_widths.append(edge_width * abs(weights[edge[2]['weight']]) / weight_max_abs)
     arc_rad = 0.25
     nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors,
                            width=edge_widths,
@@ -421,7 +430,7 @@ def main(data_path, db, config, out, draw_type):
                     accuracy = correct / counter
                     print(f"Accuracy for model {model_path} is {accuracy}")
                 # get the first three graphs from the test data
-                graph_ids = test_data[[0, 20, 42]]
+                graph_ids = test_data[[0, 20, 40]]
                 rows = len(graph_ids)
                 cols = len(net.net_layers)
                 fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(3 * cols, 3 * rows))
