@@ -2,33 +2,29 @@ paths:
   data:
     "GraphBenchmarks/Data/" # Path to the folder containing the graph data
   distances:
-    "GraphData/Distances/" # Precomputed distances will be loaded from this folder
+    "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
   results:
-    "RESULTS/" # Results will be saved in this folder
+    "/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/"
   splits:
     "GraphData/DataSplits/" # Path to the folder containing the data splits
 device:
   cpu
 mode:
-  debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
   - 128
 learning_rate:
   - 0.1
 epochs:
-  - 1000
+  - 200
 scheduler:
-  True
+  False
 dropout:
   - 0.0
 optimizer:
   - Adam
 loss:
-  - MeanAbsoluteError
-output_activation:
-    None
-activation:
-    None
+  - CrossEntropyLoss
 early_stopping:
   enabled:
     False
@@ -38,19 +34,12 @@ networks:
   # mixed models
   - - { layer_type: subgraph, id: 2, distances: [ 3 ] }
     - { layer_type: wl, wl_iterations: 0}
-  - - { layer_type: subgraph, id: 0, distances: [1, 6, 13] }
-    - { layer_type: subgraph, id: 0, distances: [13] }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 100 }
-    #- { layer_type: wl, wl_iterations: 0 }
-
-linear_layers:
-  0
 
 
 
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
-  False
+  True
 use_attributes: # if True uses node attributes instead of node labels
   False
 random_variation: # if True adds random variation to the input features
@@ -78,5 +67,11 @@ additional_options:
 prune:
   False
 
-task:
-  regression
+#task:
+#  regression
+
+best_model:
+  False
+
+precision:
+    double
