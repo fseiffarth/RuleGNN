@@ -268,7 +268,7 @@ if __name__ == "__main__":
     #main(benchmarks=["LongRings16"])
     #main(benchmarks=["LongRings100"])
     #main(benchmarks=["EvenOddRingsCount16"])
-    main(benchmarks=["CSL"])
+    main(benchmarks=["EvenOddRings2_16"])
     #main(benchmarks=["LongRings100", "EvenOddRings2_16", "EvenOddRingsCount16", "Snowflakes"])
     # main(benchmarks=["EvenOddRings2_16", "EvenOddRings2_120"])
     # main(benchmarks=["EvenOddRings3_16", "EvenOddRings3_120"])

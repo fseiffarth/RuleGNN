@@ -185,7 +185,7 @@ def draw_resize_layer(results_path: str, graph_data: GraphData, graph_id, layer,
 
 
 def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50,
-                     edge_width=5, draw_type='circle'):
+                     edge_width=5, draw_type='circle', filter_weights=True, percentage=0.1, absolute=None):
     all_weights = layer.get_weights()
     bias = layer.get_bias()
     graph = graph_data.graphs[graph_id]
@@ -198,11 +198,8 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
 
 
     # sort weights
-    filter_weights = True
     if filter_weights:
         sorted_weights = np.sort(graph_weights)
-        percentage = 1
-        absolute = None
         if absolute is None:
             lower_bound_weight = sorted_weights[int(len(sorted_weights) * percentage) - 1]
             upper_bound_weight = sorted_weights[int(len(sorted_weights) * (1 - percentage))]
@@ -449,7 +446,7 @@ def main(data_path, db, config, out, draw_type):
                                 ax.set_title(f"Convolution Layer {j}")
                             draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id,
                                              layer=layers[j - 1], ax=ax, node_size=40, edge_width=2,
-                                             draw_type=draw_type)
+                                             draw_type=draw_type, filter_weights=True, percentage=0.01, absolute=None)
 
                 # draw_graph_layer(graph_data, graph_id, net.lr)
                 # save the figure as svg
