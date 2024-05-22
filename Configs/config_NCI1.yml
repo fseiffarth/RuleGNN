@@ -88,5 +88,15 @@ additional_options:
   print_results: # Print accuracy and loss in the console
     True
 
+prune:
+  False
 
+#task:
+#  regression
+
+best_model:
+  False
+
+precision:
+    double
 
