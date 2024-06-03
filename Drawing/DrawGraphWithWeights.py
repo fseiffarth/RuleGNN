@@ -116,7 +116,7 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
             pos = nx.nx_pydot.graphviz_layout(graph)
         # keys to ints
         pos = {int(k): v for k, v in pos.items()}
-        nx.draw_networkx_edges(graph, pos, ax=ax, edge_color='black', width=edge_width)
+        nx.draw_networkx_edges(graph, pos, ax=ax, edge_color='black', width=edge_width, alpha=0.5)
 
     all_weights = layer.get_weights()
     bias = layer.get_bias()
@@ -217,7 +217,7 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
     arc_rad = 0.25
     nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors,
                            width=edge_widths,
-                           connectionstyle=f'arc3, rad = {arc_rad}', arrowsize=5)
+                           connectionstyle=f'arc3, rad = {arc_rad}', arrows=True, arrowsize=5, node_size=5)
 
     node_colors = []
     node_sizes = []
@@ -382,7 +382,8 @@ def main(data_path, db, config, out, draw_type):
                                                  layer=layers[j - 1], ax=ax, node_size=40, edge_width=1,
                                                  draw_type=draw_type, filter_weights=True, percentage=1, absolute=None)
                 else:
-                    filter_sizes = [None, 20, 10, 5, 3]
+                    titles = ['All Weights', 'Top 10 Weights', 'Top 5 Weights', 'Top 3 Weights']
+                    filter_sizes = [None, 10, 5, 3]
                     cols = len(filter_sizes) + 1
                     fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(3 * cols, 3 * rows))
                     plt.subplots_adjust(wspace=0, hspace=0)
@@ -397,7 +398,7 @@ def main(data_path, db, config, out, draw_type):
                         for k, filter_size in enumerate(filter_sizes):
                             ax = x[k + 1]
                             if i == 0:
-                                ax.set_title(f"Convolution Layer {1}")
+                                ax.set_title(titles[k])
                             draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id,
                                              layer=layers[0], ax=ax, node_size=40, edge_width=1,
                                              draw_type=draw_type, filter_weights=True, percentage=1,
