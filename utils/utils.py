@@ -5,6 +5,8 @@ import networkx as nx
 import numpy as np
 import torch
 
+from utils.Parameters import Parameters
+
 
 def get_k_lowest_nonzero_indices(tensor, k):
     # Flatten the tensor
@@ -130,3 +132,24 @@ def load_graphs(path, db_name):
                 labels.append(label)
             labels[graph_id] = label
     return graphs, labels
+
+
+def valid_pruning_configuration(para: Parameters.Parameters, epoch: int) -> bool:
+    if 'prune' in para.configs and 'enabled' in para.configs['prune'] and 'epochs' in para.configs[
+        'prune'] and 'percentage' in para.configs['prune'] and para.configs['prune']['enabled']:
+        if (epoch + 1) % para.configs['prune']['epochs'] == 0 and 0 < epoch + 1 < para.n_epochs and len(
+                para.configs['prune']['percentage']) == len(para.run_config.layers):
+            return True
+    if 'prune' in para.configs and 'enabled' in para.configs['prune'] and para.configs['prune']['enabled'] and (
+            epoch + 1) % para.n_epochs == 0:
+        print("Pruning is enabled but the configuration is not correct")
+    return False
+
+
+def is_pruning(para: Parameters.Parameters) -> bool:
+    if 'prune' in para.configs and 'enabled' in para.configs['prune'] and para.configs['prune']['enabled']:
+        return True
+    return False
+
+
+

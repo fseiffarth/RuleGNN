@@ -8,7 +8,7 @@ from networkx.algorithms import isomorphism
 from networkx.algorithms.isomorphism import GraphMatcher
 
 from GraphData import GraphData, NodeLabeling
-from GraphData.GraphData import zinc_to_graph_data
+from utils.Subgraphs import SubgraphTree2, SubgraphTree1
 
 
 def write_node_labels(file, node_labels):
@@ -63,6 +63,7 @@ def save_standard_labels(data_path, db_names, label_path=None):
                     file = f"{label_path}{db_name}_{l}_{n_node_labels}_labels.txt"
                 write_node_labels(file, node_labels)
 
+
 def save_trivial_labels(data_path, db_names, label_path=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
@@ -76,6 +77,17 @@ def save_trivial_labels(data_path, db_names, label_path=None):
         else:
             file = f"{label_path}{db_name}_trivial_labels.txt"
         write_node_labels(file, node_labels)
+
+
+def save_node_labels(data_path, db_names, labels, name, max_label_num=None):
+    for db_name in db_names:
+        if max_label_num  and max_label_num < len(labels):
+            labels = relabel_most_frequent_node_labels(labels, max_label_num)
+        # save the node labels to a file
+        # save node_labels as numpy array
+        file = f"{data_path}/{db_name}_{name}_labels.txt"
+        write_node_labels(file, labels)
+
 
 def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
     for db_name in db_names:
@@ -279,7 +291,9 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
 
 def main():
     data_path = "../../../../GraphData/DS_all/"
-    save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50, max_label_num=100000)
+    #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
+    #               max_label_num=100000)
+    save_subgraph_labels(data_path, db_names=['DHFR'], subgraphs=[nx.cycle_graph(6), nx.cycle_graph(5)], id=0)
     #save_standard_labels(data_path, db_names=['DHFR'])
     #save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)
     #save_trivial_labels('../../../GraphBenchmarks/Data/', db_names=['EvenOddRingsCount16'])
@@ -310,10 +324,11 @@ def main():
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.star_graph(1)], id=6)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(4)], id=7)
 
-
     #save_standard_labels(data_path, db_names=['LongRings'])
     #save_subgraph_labels(data_path, db_names=['MUTAG'], subgraphs=[nx.cycle_graph(5), nx.cycle_graph(6)], id=2)
     #save_wl_labels(data_path, db_names=['MUTAG'], max_iterations=4, max_label_num=1000)
     #save_wl_labels(data_path, db_names=['DHFR'], max_iterations=3, max_label_num=1000)
+
+
 if __name__ == '__main__':
     main()

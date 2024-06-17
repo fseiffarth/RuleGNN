@@ -71,9 +71,15 @@ def snowflakeplot():
     graph_ids = [0, 100, 200, 300]
     for i in range(4):
         draw_graph(graph_data, graph_ids[i], ax[i], draw_type='kawai')
-        ax[i].set_xlabel(f"Graph Label: {graph_data.graph_labels[graph_ids[i]]}", fontsize=15)
+        ax[i].set_xlabel(f"Graph Label: ${graph_data.graph_labels[graph_ids[i]]}$", fontsize=15)
+        # do not the spines
+        ax[i].spines['top'].set_visible(False)
+        ax[i].spines['right'].set_visible(False)
+        ax[i].spines['bottom'].set_visible(False)
+        ax[i].spines['left'].set_visible(False)
+
     # save the plot as svg
-    plt.savefig(f'Plots/{db_name}_plot.svg')
+    plt.savefig(f'Plots/{db_name}_plot.pdf', bbox_inches='tight', backend='pgf')
     plt.show()
 
 def m_plot():
@@ -85,7 +91,7 @@ def m_plot():
     # get first color of tab20 colormap
     cmap = plt.get_cmap('tab20')
     color = cmap(0)
-    fig, ax = plt.subplots(1, 4, figsize=(20, 5))
+    fig, ax = plt.subplots(1, 4, figsize=(10, 5))
     for i, m in enumerate([m_0, m_1, m_2, m_3]):
         # set positions manually
         pos = {0: (0, 0), 1: (-4, 4), 2: (-2, 4), 3: (2, 4), 4: (4, 4), 5: (-2, 8), 6: (2, 8), 7: (0, 12),
@@ -100,8 +106,15 @@ def m_plot():
         nx.draw_networkx_nodes(m, pos=pos, ax=ax[i], node_color=color, node_size=50)
         # draw node ids
         #nx.draw_networkx_labels(m, pos=pos, ax=ax[i], labels={node: node for node in m.nodes()})
-        ax[i].set_xlabel(f"M_{i}", fontsize=15)
-    plt.savefig(f'Plots/m_plot.svg')
+        ax[i].set_xlabel(f"$M_{i}$", fontsize=15)
+        # do not the box around the plot
+        ax[i].spines['top'].set_visible(False)
+        ax[i].spines['right'].set_visible(False)
+        ax[i].spines['bottom'].set_visible(False)
+        ax[i].spines['left'].set_visible(False)
+
+    # save the plot as svg
+    plt.savefig(f'Plots/m_plot.pdf', bbox_inches='tight', backend='pgf')
     plt.show()
 
 

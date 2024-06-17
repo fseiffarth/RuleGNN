@@ -15,7 +15,7 @@ from NeuralNetArchitectures import GraphNN
 from utils.Parameters import Parameters
 from Time.TimeClass import TimeClass
 import TrainTestData.TrainTestData as ttd
-from utils.utils import get_k_lowest_nonzero_indices
+from utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configuration, is_pruning
 
 
 class RuleGNN:
@@ -184,8 +184,8 @@ class RuleGNN:
                     for i, layer in enumerate(net.net_layers):
                         weights.append([x.item() for x in layer.Param_W])
                         w = np.array(weights[-1]).reshape(1, -1)
-                        df = pd.DataFrame(w)
-                        df.to_csv(f"Results/Parameter/layer_{i}_weights.csv", header=False, index=False, mode='a')
+                        #df = pd.DataFrame(w)
+                        #df.to_csv(f"Results/Parameter/layer_{i}_weights.csv", header=False, index=False, mode='a')
 
                 timer.measure("backward")
                 # change learning rate with high loss
@@ -193,9 +193,9 @@ class RuleGNN:
                 #    loss_value = loss.item()
                 #    min_val = 50 - epoch ** (1. / 6.) * (49 / self.para.n_epochs ** (1. / 6.))
                 #    loss_val = 100 * loss_value ** 2
-                    #learning_rate_mul = min(min_val, loss_val)
-                    #g['lr'] = self.para.learning_rate * learning_rate_mul
-                    # print min_val, loss_val, learning_rate_mul, g['lr']
+                #learning_rate_mul = min(min_val, loss_val)
+                #g['lr'] = self.para.learning_rate * learning_rate_mul
+                # print min_val, loss_val, learning_rate_mul, g['lr']
                 #    if self.para.print_results:
                 #        print(f'Min: {min_val}, Loss: {loss_val}, Learning rate: {g["lr"]}')
 
@@ -207,11 +207,12 @@ class RuleGNN:
                 if self.para.save_weights:
                     weight_changes = []
                     for i, layer in enumerate(net.net_layers):
-                        change = np.array([weights[i][j] - x.item() for j, x in enumerate(layer.Param_W)]).flatten().reshape(1, -1)
+                        change = np.array(
+                            [weights[i][j] - x.item() for j, x in enumerate(layer.Param_W)]).flatten().reshape(1, -1)
                         weight_changes.append(change)
                         # save to three differen csv files using pandas
-                        df = pd.DataFrame(change)
-                        df.to_csv(f'Results/Parameter/layer_{i}_change.csv', header=False, index=False, mode='a')
+                        #df = pd.DataFrame(change)
+                        #df.to_csv(f'Results/Parameter/layer_{i}_change.csv', header=False, index=False, mode='a')
                         # if there is some change print that the layer trains
                         if np.count_nonzero(change) > 0:
                             print(f'Layer {i} has updated')
@@ -220,11 +221,6 @@ class RuleGNN:
 
                 running_loss += loss.item()
                 epoch_loss += running_loss
-
-
-
-
-
 
                 '''
                 Evaluate the training accuracy
@@ -240,19 +236,27 @@ class RuleGNN:
                     flatten_outputs = outputs.flatten().detach().numpy()
                     batch_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
                     batch_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
-                    epoch_mae += np.mean(np.abs(flatten_labels - flatten_outputs)) * (len(batch) / len(self.training_data))
-                    epoch_mae_std += np.std(np.abs(flatten_labels - flatten_outputs)) * (len(batch) / len(self.training_data))
+                    epoch_mae += np.mean(np.abs(flatten_labels - flatten_outputs)) * (
+                            len(batch) / len(self.training_data))
+                    epoch_mae_std += np.std(np.abs(flatten_labels - flatten_outputs)) * (
+                            len(batch) / len(self.training_data))
 
                 if self.para.print_results:
                     if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
-                        print("\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} %, mae: {}, mae_std: {}".format(epoch + 1, self.para.n_epochs,
-                                                                                      batch_counter + 1,
-                                                                                      len(train_batches),running_loss, batch_acc, batch_mae, batch_mae_std))
+                        print(
+                            "\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} %, mae: {}, mae_std: {}".format(epoch + 1,
+                                                                                                             self.para.n_epochs,
+                                                                                                             batch_counter + 1,
+                                                                                                             len(train_batches),
+                                                                                                             running_loss,
+                                                                                                             batch_acc,
+                                                                                                             batch_mae,
+                                                                                                             batch_mae_std))
                     else:
                         print("\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} % ".format(epoch + 1, self.para.n_epochs,
-                                                                                      batch_counter + 1,
-                                                                                      len(train_batches),
-                                                                                      running_loss, batch_acc))
+                                                                                          batch_counter + 1,
+                                                                                          len(train_batches),
+                                                                                          running_loss, batch_acc))
                 self.para.count += 1
                 running_loss = 0.0
 
@@ -271,36 +275,54 @@ class RuleGNN:
                     df.to_csv("Results/Parameter/training_predictions.csv", header=False, index=False, mode='a')
 
             # prune each five epochs
-            if (epoch + 1) % 10 == 0 and 0 < epoch + 1 < self.para.n_epochs and 'prune' in self.para.configs and self.para.configs['prune']:
+            if valid_pruning_configuration(self.para, epoch):
                 print('Pruning')
                 # iterate over the layers of the neural net
-                for layer in net.net_layers:
-                    if layer.name != 'Resize_Layer':
-                        # get tensor from the parameter_list layer.Param_W
-                        layer_tensor = torch.abs(torch.tensor(layer.Param_W))
-                        # print number of non zero entries in layer_tensor
-                        print(f'Number of non zero entries in layer {layer.name}: {torch.count_nonzero(layer_tensor)}')
-                        # get the indices of the trainable parameters with lowest absolute max(1, 1%)
-                        k = max(1, int(layer_tensor.size(0) * 0.20))
+                for i, layer in enumerate(net.net_layers):
+                    pruning_per_layer = self.para.configs['prune']['percentage'][i]
+                    # use total number of epochs, the epoch step and the pruning percentage
+                    pruning_per_layer /= (self.para.n_epochs / self.para.configs['prune']['epochs']) - 1
+
+                    # get tensor from the parameter_list layer.Param_W
+                    layer_tensor = torch.abs(torch.tensor(layer.Param_W) * torch.tensor(layer.mask))
+                    # print number of non zero entries in layer_tensor
+                    print(f'Number of non zero entries in before pruning {layer.name}: {torch.count_nonzero(layer_tensor)}')
+                    # get the indices of the trainable parameters with lowest absolute max(1, 1%)
+                    k = int(layer_tensor.size(0) * pruning_per_layer)
+                    if k != 0:
                         low = torch.topk(layer_tensor, k, largest=False)
                         lowest_indices = get_k_lowest_nonzero_indices(layer_tensor, k)
-                        # print the number of lowest indices
-                        print(f'Number of lowest indices in layer {layer.name}: {len(lowest_indices)}')
-                        # iterate over the entries of the lowest indices
-                        for i in lowest_indices:
-                            # set the lowest indices to zero and torch.grad to false
-                            layer.Param_W[i].requires_grad_(False)
-                            layer.Param_W[i][:] = 0
-                        # replace all non zero entries with the original values
-                        layer_tensor = torch.abs(torch.tensor(layer.Param_W))
-                        non_zero = torch.nonzero(layer_tensor, as_tuple=True)
-                        # print the number of non zero entries
-                        print(f'Number of non zero entries in layer {layer.name}: {len(non_zero[0])}')
-                        for i in non_zero[0]:
-                            with torch.no_grad():
-                                layer.Param_W[i][:] = layer.Param_W_original[i]
-                            # enable grad for the non zero entries
-                            layer.Param_W[i].requires_grad_(True)
+                        # set all indices in layer.mask to zero
+                        layer.mask[lowest_indices] = 0
+                        layer.Param_W.data = layer.Param_W_original * layer.mask
+                        # for c, graph_weight_distribution in enumerate(layer.weight_distribution):
+                        #     new_graph_weight_distribution = None
+                        #     for [i, j, pos] in graph_weight_distribution:
+                        #         # if pos is in lowest_indices do nothing else append to new_graph_weight_distribution
+                        #         if pos in lowest_indices:
+                        #             pass
+                        #         else:
+                        #             if new_graph_weight_distribution is None:
+                        #                 new_graph_weight_distribution = np.array([i, j, pos])
+                        #             else:
+                        #                 # add [i, j, pos] to new_graph_weight_distribution
+                        #                 new_graph_weight_distribution = np.vstack((new_graph_weight_distribution, [i, j, pos]))
+                        #     layer.weight_distribution[c] = new_graph_weight_distribution
+
+
+                    # print number of non zero entries in layer.Param_W
+                    print(f'Number of non zero entries in layer after pruning {layer.name}: {torch.count_nonzero(layer.Param_W)}')
+            if is_pruning(self.para):
+                for i, layer in enumerate(net.net_layers):
+                    # get tensor from the parameter_list layer.Param_W
+                    layer_tensor = torch.abs(torch.tensor(layer.Param_W) * torch.tensor(layer.mask))
+                    # print number of non zero entries in layer_tensor
+                    print(f'Number of non zero entries in layer {layer.name}: {torch.count_nonzero(layer_tensor)}/{torch.numel(layer_tensor)}')
+
+                    # multiply the Param_W with the mask
+                    layer.Param_W.data = layer.Param_W.data * layer.mask
+
+
             '''
             Evaluate the validation accuracy for each epoch
             '''
@@ -328,7 +350,7 @@ class RuleGNN:
 
                 # update best epoch
                 if self.graph_data.num_classes == 1:
-                    if validation_mae <= best_epoch["val_mae"]:
+                    if validation_mae <= best_epoch["val_mae"] or valid_pruning_configuration(self.para, epoch):
                         best_epoch["epoch"] = epoch
                         best_epoch["acc"] = epoch_acc
                         best_epoch["loss"] = epoch_loss
@@ -344,8 +366,10 @@ class RuleGNN:
                             torch.save(net.state_dict(),
                                        f'{self.results_path}{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
 
+
                 else:
-                    if validation_acc > best_epoch["val_acc"] or validation_acc == best_epoch["val_acc"] and validation_loss < best_epoch["val_loss"]:
+                    if (validation_acc > best_epoch["val_acc"] or validation_acc == best_epoch[
+                        "val_acc"] and validation_loss < best_epoch["val_loss"]) or valid_pruning_configuration(self.para, epoch):
                         best_epoch["epoch"] = epoch
                         best_epoch["acc"] = epoch_acc
                         best_epoch["loss"] = epoch_loss
@@ -428,16 +452,17 @@ class RuleGNN:
 
                 # if class num is one print the mae and mse
                 if self.graph_data.num_classes == 1:
-                    print(f'run: {self.run_id} val step: {self.k_val} epoch: {epoch + 1}/{self.para.n_epochs} epoch loss: {epoch_loss} epoch acc: {epoch_acc} epoch mae: {epoch_mae} +- {epoch_mae_std} epoch time: {epoch_time}'
-                            f' validation acc: {validation_acc} validation loss: {validation_loss} validation mae: {validation_mae} +- {validation_mae_std}'
-                          f'test acc: {test_acc} test loss: {test_loss} test mae: {test_mae} +- {test_mae_std}'
-                          f'time: {epoch_time}')
+                    print(
+                        f'run: {self.run_id} val step: {self.k_val} epoch: {epoch + 1}/{self.para.n_epochs} epoch loss: {epoch_loss} epoch acc: {epoch_acc} epoch mae: {epoch_mae} +- {epoch_mae_std} epoch time: {epoch_time}'
+                        f' validation acc: {validation_acc} validation loss: {validation_loss} validation mae: {validation_mae} +- {validation_mae_std}'
+                        f'test acc: {test_acc} test loss: {test_loss} test mae: {test_mae} +- {test_mae_std}'
+                        f'time: {epoch_time}')
                 else:
-                    print(f'run: {self.run_id} val step: {self.k_val} epoch: {epoch + 1}/{self.para.n_epochs} epoch loss: {epoch_loss} epoch acc: {epoch_acc}'
-                            f' validation acc: {validation_acc} validation loss: {validation_loss}'
-                            f'test acc: {test_acc} test loss: {test_loss}'
-                            f'time: {epoch_time}')
-
+                    print(
+                        f'run: {self.run_id} val step: {self.k_val} epoch: {epoch + 1}/{self.para.n_epochs} epoch loss: {epoch_loss} epoch acc: {epoch_acc}'
+                        f' validation acc: {validation_acc} validation loss: {validation_loss}'
+                        f'test acc: {test_acc} test loss: {test_loss}'
+                        f'time: {epoch_time}')
 
             if self.graph_data.num_classes == 1:
                 res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
@@ -459,5 +484,3 @@ class RuleGNN:
                 # check if learning rate is > 0.0001
                 if optimizer.param_groups[0]['lr'] > 0.0001:
                     scheduler.step()
-
-

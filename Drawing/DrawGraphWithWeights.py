@@ -13,9 +13,11 @@ from GraphData import NodeLabeling
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.GraphData import GraphData, get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
+from GraphData.Labels.generator.save_labels import save_node_labels
 from Layers.GraphLayers import Layer
 from NeuralNetArchitectures import GraphNN
 from TrainTestData import TrainTestData as ttd
+from utils.GraphLabels import combine_node_labels
 from utils.Parameters.Parameters import Parameters
 from utils.RunConfiguration import RunConfiguration
 
@@ -78,8 +80,8 @@ def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, edge_color='bl
 
 
 def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50,
-                     edge_width=5, draw_type='circle', filter_weights=True, percentage=0.1, absolute=None, with_graph=False):
-
+                     edge_width: float = 5.0, draw_type='circle', filter_weights=True, percentage=0.1, absolute=None,
+                     with_graph=False):
     if with_graph:
         graph = graph_data.graphs[graph_id]
 
@@ -126,8 +128,6 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
     for entry in weight_distribution:
         graph_weights[entry[2]] = all_weights[entry[2]]
     graph_weights = np.asarray(graph_weights)
-
-
 
     # sort weights
     if filter_weights:
@@ -328,6 +328,25 @@ def main(data_path, db, config, out, draw_type):
                     if os.path.exists(label_path):
                         g_labels = load_labels(path=label_path)
                         graph_data.node_labels[l.get_layer_string()] = g_labels
+                    elif l.layer_type == "combined":  # create combined file if it is a combined layer and the file does not exist
+                        combined_labels = []
+                        # get the labels for each layer in the combined layer
+                        for x in l.layer_dict['sub_labels']:
+                            sub_layer = Layer(x)
+                            sub_label_path = f"GraphData/Labels/{db}_{sub_layer.get_layer_string()}_labels.txt"
+                            if os.path.exists(sub_label_path):
+                                g_labels = load_labels(path=sub_label_path)
+                                combined_labels.append(g_labels)
+                            else:
+                                # raise an error if the file does not exist
+                                raise FileNotFoundError(f"File {sub_label_path} does not exist")
+                        # combine the labels and save them
+                        g_labels = combine_node_labels(combined_labels)
+                        graph_data.node_labels[l.get_layer_string()] = g_labels
+                        save_node_labels(data_path='GraphData/Labels/', db_names=[db],
+                                         labels=g_labels.node_labels, name=l.get_layer_string(),
+                                         max_label_num=l.node_labels)
+
                     else:
                         # raise an error if the file does not exist
                         raise FileNotFoundError(f"File {label_path} does not exist")
@@ -360,6 +379,7 @@ def main(data_path, db, config, out, draw_type):
                     print(f"Accuracy for model {model_path} is {accuracy}")
                 # get the first three graphs from the test data
                 graph_ids = test_data[[0, 20, 40]]
+                #graph_ids = test_data[[0, 40, 80]]
                 rows = len(graph_ids)
                 cols = len(net.net_layers)
                 with_filter = True
@@ -372,18 +392,19 @@ def main(data_path, db, config, out, draw_type):
                         graph_id = graph_ids[i]
                         for j, ax in enumerate(x):
                             if j == 0:
-                                draw_graph(graph_data, graph_id, ax, node_size=40, edge_width=2, draw_type=draw_type)
+                                draw_graph(graph_data, graph_id, ax, node_size=40, edge_width=1, draw_type=draw_type)
                                 # set title on the left side of the plot
-                                ax.set_ylabel(f"Graph Label: {graph_data.graph_labels[graph_id]}")
+                                ax.set_ylabel(f"Graph Label: ${graph_data.graph_labels[graph_id]}$")
                             else:
                                 if i == 0:
-                                    ax.set_title(f"Convolution Layer {j}")
+                                    ax.set_title(f"Layer: ${j}$")
                                 draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id,
                                                  layer=layers[j - 1], ax=ax, node_size=40, edge_width=1,
-                                                 draw_type=draw_type, filter_weights=True, percentage=1, absolute=None)
+                                                 draw_type=draw_type, filter_weights=False, percentage=1, absolute=None,
+                                                 with_graph=True)
                 else:
-                    titles = ['All Weights', 'Top 10 Weights', 'Top 5 Weights', 'Top 3 Weights']
-                    filter_sizes = [None, 10, 5, 3]
+                    titles = ['All Weights', 'Top $10$ Weights', 'Top $3$ Weights']
+                    filter_sizes = [None, 10, 3]
                     cols = len(filter_sizes) + 1
                     fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(3 * cols, 3 * rows))
                     plt.subplots_adjust(wspace=0, hspace=0)
@@ -392,9 +413,9 @@ def main(data_path, db, config, out, draw_type):
                     for i, x in enumerate(axes):
                         graph_id = graph_ids[i]
                         ax = x[0]
-                        draw_graph(graph_data, graph_id, ax, node_size=40, edge_width=2, draw_type=draw_type)
+                        draw_graph(graph_data, graph_id, ax, node_size=20, edge_width=0.5, draw_type=draw_type)
                         # set title on the left side of the plot
-                        ax.set_ylabel(f"Graph Label: {graph_data.graph_labels[graph_id]}")
+                        ax.set_ylabel(f"Graph Label: ${graph_data.graph_labels[graph_id]}$")
                         for k, filter_size in enumerate(filter_sizes):
                             ax = x[k + 1]
                             if i == 0:
@@ -404,12 +425,10 @@ def main(data_path, db, config, out, draw_type):
                                              draw_type=draw_type, filter_weights=True, percentage=1,
                                              absolute=filter_size, with_graph=True)
 
-
-
-
                 # draw_graph_layer(graph_data, graph_id, net.lr)
-                # save the figure as svg
-                plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{k_val}.svg')
+                # save the figure as pdf using latex font
+                plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{k_val}.pdf', bbox_inches='tight', backend='pgf')
+                #plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{k_val}.svg', bbox_inches='tight')
                 plt.show()
 
 

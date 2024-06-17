@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Dict
+from typing import Dict, List
 
 import networkx as nx
 import torch
@@ -12,23 +12,8 @@ import TrainTestData.TrainTestData as ttd
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from GraphData import NodeLabeling, EdgeLabeling
 from GraphData.Distances.load_distances import load_distances
+from utils.GraphLabels import NodeLabels, EdgeLabels
 from utils.utils import load_graphs
-
-
-class NodeLabels:
-    def __init__(self):
-        self.node_labels = None
-        self.unique_node_labels = None
-        self.db_unique_node_labels = None
-        self.num_unique_node_labels = 0
-
-
-class EdgeLabels:
-    def __init__(self):
-        self.edge_labels = None
-        self.unique_edge_labels = None
-        self.db_unique_edge_labels = None
-        self.num_unique_edge_labels = 0
 
 
 class GraphData:

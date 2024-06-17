@@ -13,9 +13,11 @@ import yaml
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.GraphData import get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
+from GraphData.Labels.generator.save_labels import save_node_labels
 from Layers.GraphLayers import Layer
 from GraphData import GraphData
 from Methods.RuleGNN import RuleGNN
+from utils.GraphLabels import combine_node_labels
 from utils.Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from utils.RunConfiguration import RunConfiguration
@@ -77,7 +79,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         """
         Create Input data, information and labels from the graphs for training and testing
         """
-        graph_data = get_graph_data(graph_db_name, data_path, distance_path, use_features=configs['use_features'], use_attributes=configs['use_attributes'])
+        graph_data = get_graph_data(graph_db_name, data_path, distance_path, use_features=configs['use_features'],
+                                    use_attributes=configs['use_attributes'])
         # adapt the precision of the input data
         if 'precision' in configs:
             if configs['precision'] == 'double':
@@ -119,6 +122,7 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         #print that config file is not provided
         print("Please provide a configuration file")
 
+
 def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters):
     """
     Split the data in training validation and test set
@@ -135,7 +139,6 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     Run the method
     """
     method.Run()
-
 
 
 def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number,
@@ -168,6 +171,22 @@ def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, 
         if os.path.exists(label_path):
             g_labels = load_labels(path=label_path)
             graph_data.node_labels[l.get_layer_string()] = g_labels
+        elif l.layer_type == "combined": # create combined file if it is a combined layer and the file does not exist
+            combined_labels = []
+            # get the labels for each layer in the combined layer
+            for x in l.layer_dict['sub_labels']:
+                sub_layer = Layer(x)
+                sub_label_path = f"GraphData/Labels/{graph_db_name}_{sub_layer.get_layer_string()}_labels.txt"
+                if os.path.exists(sub_label_path):
+                    g_labels = load_labels(path=sub_label_path)
+                    combined_labels.append(g_labels)
+                else:
+                    # raise an error if the file does not exist
+                    raise FileNotFoundError(f"File {sub_label_path} does not exist")
+            # combine the labels and save them
+            g_labels = combine_node_labels(combined_labels)
+            graph_data.node_labels[l.get_layer_string()] = g_labels
+            save_node_labels(data_path='GraphData/Labels/', db_names=[graph_db_name], labels=g_labels.node_labels, name=l.get_layer_string(), max_label_num=l.node_labels)
         else:
             # raise an error if the file does not exist
             raise FileNotFoundError(f"File {label_path} does not exist")
