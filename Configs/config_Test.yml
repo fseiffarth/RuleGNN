@@ -1,10 +1,8 @@
 paths:
   data:
     "/home/mlai21/seiffart/Data/GraphData/DS_all/" # Path to the folder containing the graph data
-  distances:
-    "/home/mlai21/seiffart/Data/GraphData/DS_all/Distances/" # Precomputed distances will be loaded from this folder
   properties:
-    "GraphData/Properties/Data/" # Precomputed properties will be loaded from this folder
+    "/home/mlai21/seiffart/Data/GraphData/Properties/" # Precomputed properties will be loaded from this folder
   results:
     "/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/" # Results will be saved in this folder
   splits:

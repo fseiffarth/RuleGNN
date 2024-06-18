@@ -323,7 +323,7 @@ def main():
     data_path = "../../../../GraphData/DS_all/"
     #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
     #               max_label_num=100000)
-    save_in_circle_labels(data_path, db_names=['DHFR'], length_bound=20)
+    save_in_circle_labels(data_path, db_names=['MUTAG'], length_bound=20)
     #save_subgraph_labels(data_path, db_names=['DHFR'], subgraphs=[nx.cycle_graph(6), nx.cycle_graph(5)], id=0)
     #save_standard_labels(data_path, db_names=['DHFR'])
     #save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)

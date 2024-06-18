@@ -8,8 +8,10 @@ import yaml
 from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.GraphData import get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
+from GraphData.Labels.generator.save_labels import save_node_labels
 from Layers.GraphLayers import Layer
 from Architectures import RuleGNN
+from utils.GraphLabels import Properties, combine_node_labels
 from utils.Parameters.Parameters import Parameters
 from utils.RunConfiguration import RunConfiguration
 
@@ -27,12 +29,11 @@ def main(db, config):
     # get the data path from the config file
     data_path = f"{configs['paths']['data']}"
     r_path = f"{configs['paths']['results']}"
-    distance_path = f"{configs['paths']['distances']}"
+    properties_path = f"{configs['paths']['properties']}"
     splits_path = f"{configs['paths']['splits']}"
     results_path = r_path + db + "/Results/"
 
-    graph_data = get_graph_data(data_path=data_path, db_name=db, distance_path=distance_path,
-                                use_features=configs['use_features'], use_attributes=configs['use_attributes'])
+    graph_data = get_graph_data(data_path=data_path, db_name=db, use_features=configs['use_features'], use_attributes=configs['use_attributes'])
     # adapt the precision of the input data
     if 'precision' in configs:
         if configs['precision'] == 'double':
@@ -104,22 +105,48 @@ def main(db, config):
                                      draw=False, save_weights=False,
                                      save_prediction_values=False, plot_graphs=False,
                                      print_layer_init=False)
-
                 for l in run_config.layers:
+                    # add the labels to the graph data
                     label_path = f"GraphData/Labels/{db}_{l.get_layer_string()}_labels.txt"
                     if os.path.exists(label_path):
                         g_labels = load_labels(path=label_path)
                         graph_data.node_labels[l.get_layer_string()] = g_labels
+                    elif l.layer_type == "combined":  # create combined file if it is a combined layer and the file does not exist
+                        combined_labels = []
+                        # get the labels for each layer in the combined layer
+                        for x in l.layer_dict['sub_labels']:
+                            sub_layer = Layer(x)
+                            sub_label_path = f"GraphData/Labels/{db}_{sub_layer.get_layer_string()}_labels.txt"
+                            if os.path.exists(sub_label_path):
+                                g_labels = load_labels(path=sub_label_path)
+                                combined_labels.append(g_labels)
+                            else:
+                                # raise an error if the file does not exist
+                                raise FileNotFoundError(f"File {sub_label_path} does not exist")
+                        # combine the labels and save them
+                        g_labels = combine_node_labels(combined_labels)
+                        graph_data.node_labels[l.get_layer_string()] = g_labels
+                        save_node_labels(data_path='GraphData/Labels/', db_names=[db],
+                                         labels=g_labels.node_labels,
+                                         name=l.get_layer_string(), max_label_num=l.node_labels)
                     else:
                         # raise an error if the file does not exist
                         raise FileNotFoundError(f"File {label_path} does not exist")
+                    # add the properties to the graph data
+                    if 'properties' in l.layer_dict:
+                        prop_dict = l.layer_dict['properties']
+                        prop_name = prop_dict['name']
+                        graph_data.properties[prop_name] = Properties(path=properties_path, db_name=db,
+                                                                      property_name=prop_dict['name'],
+                                                                      valid_values=prop_dict['values'])
+                    pass
 
                 """
                     Get the first index in the results directory that is not used
                 """
                 para.set_file_index(size=6)
 
-                net = GraphNN.RuleGNN(graph_data=graph_data,
+                net = RuleGNN.RuleGNN(graph_data=graph_data,
                                       para=para,
                                       seed=seed)
 

@@ -223,17 +223,18 @@ class RuleConvolutionLayer(nn.Module):
                     for k in range(0, self.n_kernels):  # iterate over the kernels, not used at the moment
                         # iterate over valid properties
                         for p in self.property.valid_values:
-                            for (v, w) in self.property.properties[graph_id][p]:
-                                v_label = self.node_labels.node_labels[graph_id][v]
-                                w_label = self.node_labels.node_labels[graph_id][w]
-                                property_id = self.property.valid_property_map[p]
-                                # position of the weight in the Parameter list
-                                weight_pos = self.weight_map[i1][i2][k][int(v_label)][int(w_label)][property_id]
-                                # position of the weight in the weight matrix
-                                row_index = index_map[(i1, i2, k, v, w)][0]
-                                col_index = index_map[(i1, i2, k, v, w)][1]
-                                # vstack the new weight position
-                                graph_weight_pos_distribution.append([row_index, col_index, weight_pos])
+                            if p in self.property.properties[graph_id]:
+                                for (v, w) in self.property.properties[graph_id][p]:
+                                    v_label = self.node_labels.node_labels[graph_id][v]
+                                    w_label = self.node_labels.node_labels[graph_id][w]
+                                    property_id = self.property.valid_property_map[p]
+                                    # position of the weight in the Parameter list
+                                    weight_pos = self.weight_map[i1][i2][k][int(v_label)][int(w_label)][property_id]
+                                    # position of the weight in the weight matrix
+                                    row_index = index_map[(i1, i2, k, v, w)][0]
+                                    col_index = index_map[(i1, i2, k, v, w)][1]
+                                    # vstack the new weight position
+                                    graph_weight_pos_distribution.append([row_index, col_index, weight_pos])
 
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
@@ -255,24 +256,14 @@ class RuleConvolutionLayer(nn.Module):
         self.forward_step_time = 0
 
     def set_weights(self, input_size, pos):
-        if self.mask is not None:
-            # reshape self.current_W to the size of the weight matrix and fill it with zeros
-            self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision)
-            weight_distr = self.weight_distribution[pos]
-            # get third column of the weight_distribution: the index of self.Param_W
-            param_indices = torch.tensor(weight_distr[:, 2]).long()
-            matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long()
-            # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
-            self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
-        else:
-            # reshape self.current_W to the size of the weight matrix and fill it with zeros
-            self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision)
-            weight_distr = self.weight_distribution[pos]
-            # get third column of the weight_distribution: the index of self.Param_W
-            param_indices = torch.tensor(weight_distr[:, 2]).long()
-            matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long()
-            # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
-            self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
+        # reshape self.current_W to the size of the weight matrix and fill it with zeros
+        self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision)
+        weight_distr = self.weight_distribution[pos]
+        # get third column of the weight_distribution: the index of self.Param_W
+        param_indices = torch.tensor(weight_distr[:, 2]).long()
+        matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long()
+        # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
+        self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
 
     def set_bias(self, input_size, pos):
         self.current_B = torch.zeros((input_size * self.n_kernels), dtype=self.precision)
@@ -374,17 +365,18 @@ class RuleAggregationLayer(nn.Module):
                     self.graph_data.num_graphs // 10) == 0) and self.para.print_layer_init:
                 print("ResizeLayerInitWeights: ", str(int(graph_id / self.graph_data.num_graphs * 100)), "%")
 
-            node_labels = []
             graph_weight_pos_distribution = []
             input_size = graph.number_of_nodes() * in_features * self.n_kernels
-            weight_entry_num = 0
             in_high_dim = np.zeros(
                 shape=(out_features, in_features, n_kernels, graph.number_of_nodes()))
             out_low_dim = np.zeros(shape=(out_features, input_size))
             index_map = reshape_indices(in_high_dim, out_low_dim)
 
+            ##########################################
             weight_count_map = {}
             weight_normal = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=self.precision)
+            ##########################################
+
             for o in range(0, out_features):
                 for i1 in range(0, in_features):
                     for k in range(0, n_kernels):
@@ -395,15 +387,20 @@ class RuleAggregationLayer(nn.Module):
                             weight_pos = self.weight_map[o][i1][k][int(v_label)]
                             graph_weight_pos_distribution.append([index_x, index_y, weight_pos])
 
+                            ##########################################
                             if weight_pos in weight_count_map:
                                 weight_count_map[weight_pos] += 1
                             else:
                                 weight_count_map[weight_pos] = 1
                             weight_normal[index_x, index_y] = weight_pos
-            # set values in weight count map to 1/value
+                            ##########################################
+
+            # normalize the weights by their count (this is new compared to the paper)
+            ##########################################
             for key in weight_count_map:
                 weight_normal[weight_normal == key] = 1 / (weight_count_map[key] * len(weight_count_map))
             self.weight_normalization.append(weight_normal)
+            ##########################################
 
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 

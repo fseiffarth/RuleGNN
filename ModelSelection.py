@@ -141,7 +141,8 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     method.Run()
 
 
-def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_name, run_id, validation_id, validation_number,
+def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_name, run_id, validation_id,
+                      validation_number,
                       configs):
     # get the data path from the config file
     data_path = configs['paths']['data']
@@ -197,9 +198,10 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
         if 'properties' in l.layer_dict:
             prop_dict = l.layer_dict['properties']
             prop_name = prop_dict['name']
-            graph_data.properties[prop_name] = Properties(path=properties_path, db_name=graph_db_name, property_name=prop_dict['name'], valid_values=prop_dict['values'])
+            graph_data.properties[prop_name] = Properties(path=properties_path, db_name=graph_db_name,
+                                                          property_name=prop_dict['name'],
+                                                          valid_values=prop_dict['values'])
         pass
-
 
     para = Parameters.Parameters()
 
