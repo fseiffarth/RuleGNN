@@ -11,14 +11,14 @@ from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 
 from GraphData import GraphData
-from NeuralNetArchitectures import GraphNN
+from Architectures import RuleGNN
 from utils.Parameters import Parameters
 from Time.TimeClass import TimeClass
 import TrainTestData.TrainTestData as ttd
 from utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configuration, is_pruning
 
 
-class RuleGNN:
+class ModelEvaluation:
     def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: List[int],
                  validate_data: List[int], test_data: List[int], seed: int, para: Parameters.Parameters):
         self.run_id = run_id
@@ -43,9 +43,9 @@ class RuleGNN:
         Set up the network
         """
 
-        net = GraphNN.GraphNet(graph_data=self.graph_data,
-                               para=self.para,
-                               seed=self.seed)
+        net = RuleGNN.RuleGNN(graph_data=self.graph_data,
+                              para=self.para,
+                              seed=self.seed)
 
         # get gpu or cpu: not used at the moment
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

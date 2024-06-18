@@ -12,7 +12,7 @@ import TrainTestData.TrainTestData as ttd
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from GraphData import NodeLabeling, EdgeLabeling
 from GraphData.Distances.load_distances import load_distances
-from utils.GraphLabels import NodeLabels, EdgeLabels
+from utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from utils.utils import load_graphs
 
 
@@ -23,12 +23,10 @@ class GraphData:
         self.inputs = []
         self.node_labels: Dict[str, NodeLabels] = {}
         self.edge_labels: Dict[str, EdgeLabels] = {}
+        self.properties: Dict[str, Properties] = {}
         self.graph_labels = []
         self.one_hot_labels = []
         self.num_classes = 0
-        # additonal parameters
-        self.distance_list = None
-        self.cycle_list = None
         self.max_nodes = 0
 
     def init_from_graph_db(self, path, graph_db_name, with_distances=False, with_cycles=False, relabel_nodes=False,
@@ -49,14 +47,11 @@ class GraphData:
             self.distance_list = []
         if with_cycles:
             self.cycle_list = []
-        self.inputs, self.one_hot_labels, graph_data, self.distance_list = ttd.data_from_graph_db(graph_data,
-                                                                                                  graph_db_name,
-                                                                                                  self.cycle_list,
-                                                                                                  one_hot_encode_labels=True,
-                                                                                                  use_features=use_features,
-                                                                                                  use_attributes=use_attributes,
-                                                                                                  with_distances=with_distances,
-                                                                                                  distances_path=distances_path)
+        self.inputs, self.one_hot_labels, graph_data = ttd.data_from_graph_db(graph_data=graph_data,
+                                                                              graph_db_name=graph_db_name,
+                                                                              one_hot_encode_labels=True,
+                                                                              use_features=use_features,
+                                                                              use_attributes=use_attributes, )
         self.graphs = graph_data[0]
         self.graph_labels = graph_data[1]
         # num classes are unique labels
@@ -158,8 +153,6 @@ class GraphData:
                 for node in graph.nodes(data=True):
                     self.inputs[-1][node[0]] = node[1]['label'][0]
 
-
-
         self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
         self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
 
@@ -173,7 +166,13 @@ class GraphData:
         return None
 
 
-def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_attributes=None, with_distances=True):
+def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, with_distances=True):
+    """
+    Load the graph data by name.
+    :param db_name: str - name of the graph database
+    :param data_path: str - path to the data
+
+    """
     # load the graph data
     if db_name == 'CSL':
         from GraphBenchmarks.csl import CSL
@@ -184,28 +183,16 @@ def get_graph_data(db_name, data_path, distance_path="", use_features=None, use_
         zinc_val = ZINC(root="../../ZINC/", subset=True, split='val')
         zinc_test = ZINC(root="../../ZINC/", subset=True, split='test')
         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
-    elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or ('Snowflakes' in db_name):
+    elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or (
+            'Snowflakes' in db_name):
         graph_data = GraphData()
         # add db_name and raw to the data path
         data_path = data_path + db_name + "/raw/"
         graph_data.load_from_benchmark(db_name, data_path, use_features)
-        if distance_path != "" and os.path.isfile(f'{distance_path}{db_name}_distances.pkl'):
-            distance_list = load_distances(db_name=db_name,
-                                           path=f'{distance_path}{db_name}_distances.pkl')
-            graph_data.distance_list = distance_list
     else:
         graph_data = GraphData()
         graph_data.init_from_graph_db(data_path, db_name, with_distances=False, with_cycles=False,
                                       relabel_nodes=True, use_features=use_features, use_attributes=use_attributes)
-        if os.path.isfile(f'{distance_path}{db_name}_distances.pkl'):
-            distance_list = load_distances(db_name=db_name,
-                                           path=f'{distance_path}{db_name}_distances.pkl')
-            graph_data.distance_list = distance_list
-        else:
-            if with_distances:
-                # raise error that the distances are not available
-                print(f'Distances for {db_name} not available')
-                sys.exit(1)
     return graph_data
 
 

@@ -9,7 +9,7 @@ from GraphData.DataSplits.load_splits import Load_Splits
 from GraphData.GraphData import get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
-from NeuralNetArchitectures import GraphNN
+from Architectures import RuleGNN
 from utils.Parameters.Parameters import Parameters
 from utils.RunConfiguration import RunConfiguration
 
@@ -119,9 +119,9 @@ def main(db, config):
                 """
                 para.set_file_index(size=6)
 
-                net = GraphNN.GraphNet(graph_data=graph_data,
-                                       para=para,
-                                       seed=seed)
+                net = GraphNN.RuleGNN(graph_data=graph_data,
+                                      para=para,
+                                      seed=seed)
 
                 net.load_state_dict(torch.load(model_path))
                 # iterate over all layers and get the number of zero resp. non-zero parameters

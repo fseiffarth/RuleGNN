@@ -15,7 +15,7 @@ from GraphData.GraphData import GraphData, get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
 from GraphData.Labels.generator.save_labels import save_node_labels
 from Layers.GraphLayers import Layer
-from NeuralNetArchitectures import GraphNN
+from Architectures import RuleGNN
 from TrainTestData import TrainTestData as ttd
 from utils.GraphLabels import combine_node_labels
 from utils.Parameters.Parameters import Parameters
@@ -356,9 +356,9 @@ def main(data_path, db, config, out, draw_type):
                 """
                 para.set_file_index(size=6)
 
-                net = GraphNN.GraphNet(graph_data=graph_data,
-                                       para=para,
-                                       seed=seed)
+                net = GraphNN.RuleGNN(graph_data=graph_data,
+                                      para=para,
+                                      seed=seed)
 
                 net.load_state_dict(torch.load(model_path))
                 # evaluate the performance of the model on the test data

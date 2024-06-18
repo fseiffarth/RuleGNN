@@ -8,17 +8,15 @@ from Time.TimeClass import TimeClass
 from utils.Parameters.Parameters import Parameters
 
 
-class GraphNet(nn.Module):
+class RuleGNN(nn.Module):
     def __init__(self, graph_data: GraphData, para: Parameters, seed):
-        super(GraphNet, self).__init__()
+        super(RuleGNN, self).__init__()
         self.graph_data = graph_data
         self.para = para
         self.print_weights = self.para.net_print_weights
         self.module_precision = 'double'
         n_node_features = self.para.node_features
         dropout = self.para.dropout
-        print_layer_init = self.para.print_layer_init
-        save_weights = self.para.save_weights
         convolution_grad = self.para.convolution_grad
         resize_grad = self.para.resize_grad
         out_classes = self.graph_data.num_classes
@@ -30,38 +28,34 @@ class GraphNet(nn.Module):
             if i < len(para.layers) - 1:
                 if self.module_precision == 'float':
                     self.net_layers.append(
-                        layers.GraphConvLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data,
-                                              w_distribution_rule=rule.weight_rule_wf_dist,
-                                              bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-                                              node_labels_name=layer.get_layer_string(), n_kernels=1,
-                                              bias=True, print_layer_init=print_layer_init, save_weights=save_weights,
-                                              distances=layer.distances, precision=torch.float).float().requires_grad_(convolution_grad))
+                        layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                                                    graph_data=self.graph_data,
+                                                    in_features=n_node_features, n_kernels=1,
+                                                    bias=True, precision=torch.float).float().requires_grad_(
+                            convolution_grad))
                 else:
                     self.net_layers.append(
-                        layers.GraphConvLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data,
-                                              w_distribution_rule=rule.weight_rule_wf_dist,
-                                              bias_distribution_rule=rule.node_label_rule, in_features=n_node_features,
-                                              node_labels_name=layer.get_layer_string(), n_kernels=1,
-                                              bias=True, print_layer_init=print_layer_init, save_weights=save_weights,
-                                              distances=layer.distances, precision=torch.double).double().requires_grad_(convolution_grad))
+                        layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                                                    graph_data=self.graph_data,
+                                                    in_features=n_node_features, n_kernels=1,
+                                                    bias=True, precision=torch.double).double().requires_grad_(
+                            convolution_grad))
             else:
                 if self.module_precision == 'float':
                     self.net_layers.append(
-                        layers.GraphResizeLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data,
-                                                w_distribution_rule=rule.node_label_rule,
-                                                in_features=n_node_features, out_features=out_classes,
-                                                node_labels=layer.get_layer_string(),
-                                                bias=True, print_layer_init=print_layer_init,
-                                                save_weights=save_weights, precision=torch.float).float().requires_grad_(
+                        layers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                                                    graph_data=self.graph_data,
+                                                    in_features=n_node_features, out_features=out_classes,
+                                                    bias=True,
+                                                    precision=torch.float).float().requires_grad_(
                             resize_grad))
                 else:
                     self.net_layers.append(
-                        layers.GraphResizeLayer(layer_id=i, seed=seed + i, parameters=para, graph_data=self.graph_data,
-                                                w_distribution_rule=rule.node_label_rule,
-                                                in_features=n_node_features, out_features=out_classes,
-                                                node_labels=layer.get_layer_string(),
-                                                bias=True, print_layer_init=print_layer_init,
-                                                save_weights=save_weights, precision=torch.double).double().requires_grad_(
+                        layers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                                                    graph_data=self.graph_data,
+                                                    in_features=n_node_features, out_features=out_classes,
+                                                    bias=True,
+                                                    precision=torch.double).double().requires_grad_(
                             resize_grad))
 
         if 'linear_layers' in para.configs and para.configs['linear_layers'] > 0:

@@ -16,7 +16,7 @@ from GraphData.GraphData import get_graph_data
 from GraphData.Labels.generator.load_labels import load_labels
 from Layers.GraphLayers import Layer
 from GraphData import GraphData
-from Methods.RuleGNN import RuleGNN
+from Methods.ModelEvaluation import ModelEvaluation
 from utils.Parameters import Parameters
 import ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from utils.RunConfiguration import RunConfiguration
@@ -121,7 +121,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     training_data = np.asarray(data[1][validation_id], dtype=int)
     validate_data = np.asarray(data[2][validation_id], dtype=int)
 
-    method = RuleGNN(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para)
+    method = ModelEvaluation(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para)
 
     """
     Run the method

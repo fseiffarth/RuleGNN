@@ -152,4 +152,13 @@ def is_pruning(para: Parameters.Parameters) -> bool:
     return False
 
 
+def reshape_indices(a, b):
+    reshape_dict = {}
+    ita = np.nditer(a, flags=['multi_index'])
+    itb = np.nditer(b, flags=['multi_index'])
+    while not ita.finished:
+        reshape_dict[ita.multi_index] = itb.multi_index
+        ita.iternext()
+        itb.iternext()
 
+    return reshape_dict

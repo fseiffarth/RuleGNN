@@ -163,6 +163,36 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
         write_node_labels(file, labels)
 
 
+def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None):
+    for db_name in db_names:
+        graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
+        node_in_cycle = []
+        for graph in graph_data.graphs:
+            node_in_cycle.append({})
+            cycles = nx.chordless_cycles(graph, length_bound)
+            for cycle in cycles:
+                for node in cycle:
+                    node_in_cycle[-1][node] = 1
+
+
+        # set the node labels, if node is in a cycle label 1, else 0
+        labels = []
+        for graph_id, graph in enumerate(graph_data.graphs):
+            labels.append([])
+            for node in graph.nodes():
+                if node in node_in_cycle[graph_id]:
+                    labels[-1].append(1)
+                else:
+                    labels[-1].append(0)
+
+        if label_path is None:
+            file = f"../{db_name}_cycles_{length_bound}_labels.txt"
+        else:
+            file = f"{label_path}{db_name}_cycles_{length_bound}_labels.txt"
+        write_node_labels(file, labels)
+
+
+
 def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, with_distances=False)
@@ -293,7 +323,8 @@ def main():
     data_path = "../../../../GraphData/DS_all/"
     #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
     #               max_label_num=100000)
-    save_subgraph_labels(data_path, db_names=['DHFR'], subgraphs=[nx.cycle_graph(6), nx.cycle_graph(5)], id=0)
+    save_in_circle_labels(data_path, db_names=['DHFR'], length_bound=20)
+    #save_subgraph_labels(data_path, db_names=['DHFR'], subgraphs=[nx.cycle_graph(6), nx.cycle_graph(5)], id=0)
     #save_standard_labels(data_path, db_names=['DHFR'])
     #save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)
     #save_trivial_labels('../../../GraphBenchmarks/Data/', db_names=['EvenOddRingsCount16'])
