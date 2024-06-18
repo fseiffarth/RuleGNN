@@ -4,7 +4,7 @@ paths:
   properties:
     "/home/mlai21/seiffart/Data/GraphData/Properties/" # Precomputed properties will be loaded from this folder
   results:
-    "/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/" # Results will be saved in this folder
+    "/home/mlai21/seiffart/RESULTS/RuleGNN/TEST/" # Results will be saved in this folder
   splits:
     "GraphData/DataSplits/" # Path to the folder containing the data splits
 device:
