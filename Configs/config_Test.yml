@@ -10,7 +10,7 @@ paths:
 device:
   cpu
 mode:
-  debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
   - 128
 learning_rate:
