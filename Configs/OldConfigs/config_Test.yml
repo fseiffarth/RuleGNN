@@ -1,0 +1,87 @@
+paths:
+  data:
+    "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/DS_all/" # Path to the folder containing the graph data
+  properties:
+    "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "BenchmarkGraphs/Labels/" # Path to the folder containing the labels
+  results:
+    "/home/mlai21/seiffart/RESULTS/RuleGNN/TEST/" # Results will be saved in this folder
+  splits:
+    "BenchmarkGraphs/Splits/" # Path to the folder containing the data splits
+device:
+  cpu
+mode:
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+batch_size:
+  - 128
+learning_rate:
+  - 0.05
+epochs:
+  - 2000
+scheduler:
+  False
+dropout:
+  - 0.0
+optimizer:
+  - Adam
+loss:
+  - CrossEntropyLoss
+early_stopping:
+  enabled:
+    False
+  patience:
+    25
+networks:
+  # wl models
+  #- - {layer_type: combined, sub_labels: [{layer_type: wl, wl_iterations: 2, max_node_labels: 500}, {layer_type: primary}], id: 0, max_node_labels: 1000, distances: [1,2,3,4,5,6,7,8,9,10]}
+  #  - {layer_type: simple_cycles, max_cycle_length: 10}
+  - - { layer_type: combined, sub_labels: [{layer_type: wl, wl_iterations: 2, max_node_labels: 500}, {layer_type: primary}], id: 0, max_node_labels: 1000, properties: {name: distances, values: [ 1,2,3, 4, 5, 6]} }
+    - { layer_type: simple_cycles, max_cycle_length: 10 }
+
+use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
+  True
+use_attributes: # if True uses node attributes instead of node labels
+  False
+random_variation: # if True adds random variation to the input features
+  False
+load_splits: # if True loads precomputed data splits (use False only for new datasets)
+  True
+
+# data options
+balance_training:
+  False
+
+# Additional options for analysis only possible in debug mode
+additional_options:
+  draw: # draw the accuracy and loss during training
+    True
+  save_weights: # save the weights of the model
+    False
+  save_prediction_values:
+    True
+  plot_graphs: # Plot all graphs in the dataset
+    False
+  print_results: # Print accuracy and loss in the console
+    True
+
+
+prune:
+  enabled:
+    False
+  epochs: # prune after this many epochs
+    25
+  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+    - 0.999
+    - 0.5
+
+precision:
+  double
+
+best_model:
+  True
+save_last:
+  True
+
+config_id:
+  100

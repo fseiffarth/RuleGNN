@@ -10,7 +10,7 @@ from torch import optim, nn
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 
-from GraphData import GraphData
+from utils import GraphData
 from Architectures import RuleGNN
 from utils.Parameters import Parameters
 from Time.TimeClass import TimeClass

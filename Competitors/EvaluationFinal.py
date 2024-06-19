@@ -69,8 +69,8 @@ def main():
     evaluateGraphLearningNN(db_name='EvenOddRings2_16', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='EvenOddRings2_16', algorithm="NoGKernel")
 
-    evaluateGraphLearningNN(db_name='CSL', algorithm="WLKernel")
-    evaluateGraphLearningNN(db_name='CSL', algorithm="NoGKernel")
+    evaluateGraphLearningNN(db_name='CSL_original', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='CSL_original', algorithm="NoGKernel")
 
     evaluateGraphLearningNN(db_name='LongRings100', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='LongRings100', algorithm="NoGKernel")
@@ -80,13 +80,13 @@ def main():
     evaluateGraphLearningNN(db_name='Mutagenicity', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='DHFR', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='SYNTHETICnew', algorithm="NoGKernel")
-    evaluateGraphLearningNN(db_name='CSL', algorithm="NoGKernel")
+    evaluateGraphLearningNN(db_name='CSL_original', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='IMDB-BINARY', algorithm="NoGKernel")
     evaluateGraphLearningNN(db_name='IMDB-MULTI', algorithm="NoGKernel")
 
     evaluateGraphLearningNN(db_name='DHFR', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='SYNTHETICnew', algorithm="WLKernel")
-    evaluateGraphLearningNN(db_name='CSL', algorithm="WLKernel")
+    evaluateGraphLearningNN(db_name='CSL_original', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='NCI1', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='NCI109', algorithm="WLKernel")
     evaluateGraphLearningNN(db_name='Mutagenicity', algorithm="WLKernel")

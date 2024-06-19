@@ -18,7 +18,7 @@ from grakel.datasets import fetch_dataset
 from grakel.kernels import WeisfeilerLehman, VertexHistogram
 
 # Loads the MUTAG dataset
-MUTAG = fetch_dataset("MUTAG", verbose=False, data_home="../../GraphData/DS_all/")
+MUTAG = fetch_dataset("MUTAG", verbose=False, data_home="../../BenchmarkGraphs/DS_all/")
 G, y = MUTAG.data, MUTAG.target
 
 # Splits the dataset into a training and a test set

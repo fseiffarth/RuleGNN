@@ -3,24 +3,17 @@ Created on 14.03.2019
 
 @author:
 '''
-import collections
-import os
 import random
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import ReadWriteGraphs.GraphDataToGraphList as gdtgl
-import RuleFunctions.Rules as rule
-import networkx as nx
+import utils.ReadWriteGraphs.GraphDataToGraphList as gdtgl
 import numpy as np
 import torch
-
-from GraphData.Distances.load_distances import load_distances
 
 
 def data_from_graph_db(graph_data, graph_db_name, cycle_list=None, one_hot_encode_labels=True,
                        labels_zero_one=False, use_features=True, use_attributes=False):
     """
-    Data preprocessing: get the graphs
+    BenchmarkGraphs preprocessing: get the graphs
     """
 
     graph_list, graph_labels, graph_attributes = graph_data
@@ -46,11 +39,11 @@ def data_from_graph_db(graph_data, graph_db_name, cycle_list=None, one_hot_encod
     step = 1.0 / number_of_node_labels
 
     for i, graph in enumerate(graph_list, 0):
-        # Data.append(gdtgl.nodes_label_coding_matrix(graph, max_coding))
-        # Data.append(gdtgl.nodes_label_matrix(graph))
-        # Data.append((gdtgl.nodes_label_matrix(graph) + 1)/node_labels)
-        # Data.append(np.append((gdtgl.nodes_label_matrix(graph) + 1)/node_labels, (gdtgl.nodes_label_matrix(graph) + 1)/node_labels, axis = 1))
-        # Data.append(np.random.rand(graph.number_of_nodes(), 1))
+        # BenchmarkGraphs.append(gdtgl.nodes_label_coding_matrix(graph, max_coding))
+        # BenchmarkGraphs.append(gdtgl.nodes_label_matrix(graph))
+        # BenchmarkGraphs.append((gdtgl.nodes_label_matrix(graph) + 1)/node_labels)
+        # BenchmarkGraphs.append(np.append((gdtgl.nodes_label_matrix(graph) + 1)/node_labels, (gdtgl.nodes_label_matrix(graph) + 1)/node_labels, axis = 1))
+        # BenchmarkGraphs.append(np.random.rand(graph.number_of_nodes(), 1))
         # torch_data = torch.ones((graph.number_of_nodes(), 1), dtype=torch.float)
         label_matrix = gdtgl.nodes_label_matrix(graph).flatten()
         if label_matrix.size == 0:

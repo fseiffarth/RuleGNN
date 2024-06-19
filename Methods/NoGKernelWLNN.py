@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import torch
 
-from GraphData.GraphData import GraphData
+from utils.GraphData import GraphData
 from utils.Parameters import Parameters
 
 

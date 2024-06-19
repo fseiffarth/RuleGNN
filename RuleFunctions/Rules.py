@@ -4,7 +4,7 @@ Created on 14.03.2019
 @author:
 '''
 
-import ReadWriteGraphs.GraphDataToGraphList as rg
+from utils import ReadWriteGraphs as rg
 import networkx as nx
 import numpy as np
 

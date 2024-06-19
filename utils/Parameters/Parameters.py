@@ -18,7 +18,7 @@ class Parameters(object):
         '''
 
         """
-        Data parameters
+        BenchmarkGraphs parameters
         """
         self.path = ""
         self.results_path = ""

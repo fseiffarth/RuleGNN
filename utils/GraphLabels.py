@@ -6,8 +6,6 @@ from typing import List
 
 import yaml
 
-from GraphData.Labels.generator.save_labels import save_node_labels
-
 
 class NodeLabels:
     def __init__(self, node_labels=None):

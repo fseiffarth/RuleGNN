@@ -5,13 +5,12 @@ import torch
 import torch_geometric.datasets
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score
-from torch_geometric.data import Data
-from torch_geometric.nn import GCNConv, global_mean_pool, GATv2Conv, global_max_pool, global_add_pool, SAGEConv
+from torch_geometric.nn import GCNConv, global_max_pool
 from torch_geometric.nn.models import GCN, GIN
 
 from Competitors.GNN.Models.GraphSAGE import GraphSAGE
 from GraphData.DataSplits.load_splits import Load_Splits
-from GraphData.GraphData import get_graph_data, BenchmarkDatasets
+from utils.GraphData import get_graph_data, BenchmarkDatasets
 
 
 class GNNModule(torch.nn.Module):
@@ -69,7 +68,7 @@ class GNN(torch.nn.Module):
             dataset = torch_geometric.datasets.TUDataset(root='Datasets', name=self.db_name)
         except:
             graph_data = get_graph_data(self.db_name, data_path=self.data_path)
-            dataset = BenchmarkDatasets(root=f'../../GraphBenchmarks/Data', name=self.db_name, graph_data=graph_data)
+            dataset = BenchmarkDatasets(root=f'../../GraphBenchmarks/BenchmarkGraphs', name=self.db_name, graph_data=graph_data)
         return dataset
 
     def ModelSelection(self, model):
@@ -184,7 +183,7 @@ def main(db_name, data_path=None):
     run_configuration = {"conv_model": GCNConv, "layers": 8, "batch_size": 32, "epochs": 1000, "learning_rate": 0.001,
                          "hidden_channels": 64, "neighborhood_aggregation": global_max_pool}
 
-    if db_name == "CSL":
+    if db_name == "CSL_original":
         validation_size = 5
     for validation_id in range(validation_size):
 
@@ -199,7 +198,7 @@ def main(db_name, data_path=None):
             if os.stat(f'Results/{file_name}').st_size == 0:
                 file_obj.write(header)
 
-        data = Load_Splits("../../GraphData/DataSplits", db_name)
+        data = Load_Splits("../../BenchmarkGraphs/Splits", db_name)
         test_data = np.asarray(data[0][validation_id], dtype=int)
         training_data = np.asarray(data[1][validation_id], dtype=int)
         validate_data = np.asarray(data[2][validation_id], dtype=int)
@@ -223,5 +222,5 @@ def main(db_name, data_path=None):
 
 
 if __name__ == "__main__":
-    main("DHFR", data_path="../../GraphBenchmarks/Data/")
-    main("EvenOddRingsCount16", data_path="../../GraphBenchmarks/Data/")
+    main("DHFR", data_path="../../Data/BenchmarkGraphs/")
+    main("EvenOddRingsCount16", data_path="../../Data/BenchmarkGraphs/")

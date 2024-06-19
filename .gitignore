@@ -3,8 +3,9 @@
 *.pkl
 /gnn-comparison/
 /RESULTS/
-/GraphData/ZINC/
+/Data/BenchmarkGraphs/ZINC_original/
 /Results_Paper/
 /TEMP/
 /TEST/
-/GraphData/Properties/Data/
+/Data/Properties/Data/
+/Data/Properties/

@@ -124,7 +124,17 @@ def load_graphs(path, db_name):
             data = line.strip().split(" ")
             graph_id = int(data[0])
             if len(data) == 2:
-                label = int(data[1])
+                # first try to convert to int
+                try:
+                    label = int(data[1])
+                except:
+                    # if it fails convert to float
+                    try:
+                        label = float(data[1])
+                    except:
+                        # if it fails raise an error
+                        raise ValueError("Label is not in the correct format")
+
             else:
                 label = list(map(float, data[1:]))
 
