@@ -8,8 +8,8 @@ from utils.utils import save_graphs
 
 def create_dataset(dataset_name, layers=None, with_degree=False):
     # load the graphs
-    data_path = '../../../GraphData/DS_all/'
-    distance_path = '../Distances/'
+    data_path = '../../GraphData/DS_all/'
+    distance_path = '../Data/Distances/'
     graph_data = get_graph_data(dataset_name, data_path, distance_path, use_features=True, use_attributes=False)
     output_path = ""
 
