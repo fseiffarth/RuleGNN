@@ -35,9 +35,16 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         # read the config yml file
         configs = yaml.safe_load(open(config))
         # get the data path from the config file
+        absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        # add absolute path to the config data paths
+        configs['paths']['data'] = absolute_path + "/" + configs['paths']['data']
+        configs['paths']['results'] = absolute_path + "/" + configs['paths']['results']
+        configs['paths']['labels'] = absolute_path + "/" + configs['paths']['labels']
+        configs['paths']['properties'] = absolute_path + "/" + configs['paths']['properties']
+        configs['paths']['splits'] = absolute_path + "/" + configs['paths']['splits']
+
         data_path = configs['paths']['data']
         r_path = configs['paths']['results']
-        properties_path = configs['paths']['properties']
 
         # if not exists create the results directory
         if not os.path.exists(r_path):
@@ -171,9 +178,8 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
     for l in run_config.layers:
         # add the labels to the graph data
         label_path = f"{l_path}{graph_db_name}_{l.get_layer_string()}_labels.txt"
-        absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-        if os.path.exists(absolute_path + "/" + label_path):
-            g_labels = load_labels(path=absolute_path + "/" + label_path)
+        if os.path.exists(label_path):
+            g_labels = load_labels(path=label_path)
             graph_data.node_labels[l.get_layer_string()] = g_labels
         elif l.layer_type == "combined":  # create combined file if it is a combined layer and the file does not exist
             combined_labels = []
@@ -194,8 +200,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
                              name=l.get_layer_string(), max_label_num=l.node_labels)
         else:
             # raise an error if the file does not exist and add the absolute path to the error message
-            absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            raise FileNotFoundError(f"File {absolute_path}/{label_path} does not exist")
+            raise FileNotFoundError(f"File {label_path} does not exist")
         # add the properties to the graph data
         if 'properties' in l.layer_dict:
             prop_dict = l.layer_dict['properties']
