@@ -32,10 +32,10 @@ from utils.RunConfiguration import RunConfiguration
 
 def main(graph_db_name, validation_number, validation_id, config, run_id=0):
     if config is not None:
-        # read the config yml file
-        configs = yaml.safe_load(open(config))
-        # get the data path from the config file
         absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        # read the config yml file
+        configs = yaml.safe_load(open(absolute_path + "/" + config))
+        # get the data path from the config file
         # add absolute path to the config data paths
         configs['paths']['data'] = absolute_path + "/" + configs['paths']['data']
         configs['paths']['results'] = absolute_path + "/" + configs['paths']['results']
