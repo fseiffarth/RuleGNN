@@ -173,7 +173,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
         label_path = f"{l_path}{graph_db_name}_{l.get_layer_string()}_labels.txt"
         absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         if os.path.exists(absolute_path + "/" + label_path):
-            g_labels = load_labels(path=label_path)
+            g_labels = load_labels(path=absolute_path + "/" + label_path)
             graph_data.node_labels[l.get_layer_string()] = g_labels
         elif l.layer_type == "combined":  # create combined file if it is a combined layer and the file does not exist
             combined_labels = []
