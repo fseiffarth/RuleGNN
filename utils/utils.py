@@ -1,5 +1,6 @@
+import copy
 import os
-from typing import List
+from typing import List, Any
 
 import networkx as nx
 import numpy as np
@@ -172,3 +173,26 @@ def reshape_indices(a, b):
         itb.iternext()
 
     return reshape_dict
+
+
+def convert_to_tuple(value: List):
+    """
+    Convert the value to a tuple and each element of the value to a tuple if it is a list
+    """
+    # create copy of value
+    new_value = copy.deepcopy(value)
+    for i, v in enumerate(new_value):
+        if type(v) == list:
+            new_value[i] = tuple(v)
+    return tuple(new_value)
+
+
+def convert_to_list(value: Any):
+    if type(value) == int:
+        return value
+    elif type(value) == tuple:
+        value = list(value)
+        for i, v in enumerate(value):
+            if type(v) == tuple:
+                value[i] = list(v)
+        return value

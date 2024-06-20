@@ -220,7 +220,7 @@ class RuleConvolutionLayer(nn.Module):
                 for i2 in range(0, self.in_features):  # iterate over the input features, not used at the moment
                     for k in range(0, self.n_kernels):  # iterate over the kernels, not used at the moment
                         # iterate over valid properties
-                        for p in self.property.valid_values:
+                        for p in self.property.valid_property_map.keys():
                             if p in self.property.properties[graph_id]:
                                 for (v, w) in self.property.properties[graph_id][p]:
                                     v_label = self.node_labels.node_labels[graph_id][v]

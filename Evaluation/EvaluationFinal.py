@@ -553,7 +553,7 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
 
 def main():
-    model_selection_evaluation(db_name='DHFR', path='../TEST')
+    model_selection_evaluation(db_name='DHFR', path='TEST')
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
@@ -565,7 +565,7 @@ def main():
 
 
     #model_selection_evaluation(db_name='MUTAG', path='TEMP')
-    best_model_evaluation(db_name='DHFR', path='../Results_Paper')
+    best_model_evaluation(db_name='DHFR', path='Results_Paper')
 
 
 

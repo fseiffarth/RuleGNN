@@ -13,3 +13,5 @@
 /Data/Featured/
 /Competitors/GNN/Results/
 /Competitors/GNN/Datasets/
+*.idea
+/.idea/

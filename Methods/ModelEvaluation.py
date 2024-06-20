@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 
 from utils import GraphData
-from Architectures import RuleGNN
+from Architectures.RuleGNN import RuleGNN
 from utils.Parameters import Parameters
 from Time.TimeClass import TimeClass
 import TrainTestData.TrainTestData as ttd

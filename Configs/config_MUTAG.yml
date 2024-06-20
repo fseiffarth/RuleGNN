@@ -1,15 +1,14 @@
 paths:
   data:
-    "../GraphData/DS_all/" # Path to the folder containing the graph data
+    "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/DS_all/" # Path to the folder containing the graph data
   properties:
-    "Data/Properties/" # Precomputed properties will be loaded from this folder
+    "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/Properties/" # Precomputed properties will be loaded from this folder
   labels:
     "Data/Labels/" # Path to the folder containing the labels
   results:
-    "TEST/" # Results will be saved in this folder
+    "/home/mlai21/seiffart/RESULTS/RuleGNN/TEST/" # Results will be saved in this folder
   splits:
     "Data/Splits/" # Path to the folder containing the data splits
-
 device:
   cpu
 mode:

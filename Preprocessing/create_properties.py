@@ -8,6 +8,8 @@ from utils.GraphData import get_graph_data
 from Preprocessing.load_labels import load_labels
 import copy
 
+from utils.utils import convert_to_list
+
 
 def write_distance_properties(data_path, db_name, cutoff, out_path="") -> None:
     graph_data = get_graph_data(db_name=db_name, data_path=data_path)
@@ -33,7 +35,7 @@ def write_distance_properties(data_path, db_name, cutoff, out_path="") -> None:
     with open(f"{out_path}{db_name}_distances.prop", 'wb') as f:
         f.write(gzip.compress(pickle_data))
     # save an additional .info file that stores the set of valid_properties as a yml file
-    valid_properties_dict = {"valid_values": list(valid_properties), 'description': 'Distance'}
+    valid_properties_dict = {"valid_values": list(valid_properties), 'description': 'Distance', 'list_of_values': f'{list(valid_properties)}'}
     with open(f"{out_path}{db_name}_distances.yml", 'w') as f:
         yaml.dump(valid_properties_dict, f)
 
@@ -84,9 +86,9 @@ def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out
     # compress with gzip
     with open(f"{out_path}{db_name}_circle_distances.prop", 'wb') as f:
         f.write(gzip.compress(pickle_data))
-    valid_properties = [f'{x}' for x in valid_properties]
+    v_properties = [f'{convert_to_list(x)}' for x in valid_properties]
     # save an additional .info file that stores the set of valid_properties as a yml file
-    valid_properties_dict = {"valid_values": list(valid_properties), 'description': 'Distance, In cycle -> In cycle'}
+    valid_properties_dict = {"valid_values": list(v_properties), 'description': 'Distance, In cycle -> In cycle', 'list_of_values': f'{valid_properties}'}
     with open(f"{out_path}{db_name}_circle_distances.yml", 'w') as f:
         yaml.dump(valid_properties_dict, f)
 
@@ -151,11 +153,15 @@ def write_distance_edge_properties(data_path, db_name, out_path="") -> None:
         f.write(gzip.compress(pickle_data))
 
     # create a dictionary of valid properties
-    description = []
+    v_values = []
+    list_of_values = []
     for value in valid_properties:
-        description.append(f"{value}")
+        value = convert_to_list(value)
+        v_values.append(f"{value}")
+        list_of_values.append(value)
+    list_of_values = f'{list_of_values}'
     # save an additional .info file that stores the set of valid_properties as a yml file
-    valid_properties_dict = {"valid_values": description, "description": "Distance, Path number, Edge label occurrences"}
+    valid_properties_dict = {"valid_values": v_values, "description": "Distance, Path number, Edge label occurrences", "list_of_values": list_of_values}
 
     # save an additional .info file that stores the set of valid_properties as a yml file
     with open(f"{out_path}{db_name}_edge_label_distances.yml", 'w') as f:

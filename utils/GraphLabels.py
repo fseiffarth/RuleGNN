@@ -1,3 +1,4 @@
+import ast
 import gzip
 import os
 import pickle
@@ -5,6 +6,8 @@ from collections import OrderedDict
 from typing import List
 
 import yaml
+
+from utils.utils import convert_to_tuple
 
 
 class NodeLabels:
@@ -86,7 +89,17 @@ class Properties:
         self.num_properties = len(valid_values)
         self.valid_property_map = {}
         for i, value in enumerate(valid_values):
-            self.valid_property_map[value] = i
+            try:
+                property_value = int(value)
+                self.valid_property_map[property_value] = i
+            except:
+                # check if the length of the value is 1, if not iterate over the values
+                try:
+                    len(value[0])
+                    for v in value:
+                        self.valid_property_map[convert_to_tuple(v)] = i
+                except:
+                    self.valid_property_map[convert_to_tuple(value)] = i
 
         # path to the data
         data_path = f'{path}/{db_name}_{property_name}.prop'
@@ -97,9 +110,15 @@ class Properties:
         if os.path.isfile(data_path) and os.path.isfile(info_path):
             with gzip.open(data_path, 'rb') as f:
                 self.properties = pickle.load(f)
+
             with open(info_path, 'r') as f:
                 loaded = yaml.load(f, Loader=yaml.FullLoader)
                 self.all_values = loaded['valid_values']
+                # convert to list of tuples or single values
+                for i, value in enumerate(self.all_values):
+                    if type(value) == str:
+                        self.all_values[i] = ast.literal_eval(value)
+
                 # check if all the valid values are in the valid properties, if not raise an error
                 for value in valid_values:
                     if value not in self.all_values:
