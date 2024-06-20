@@ -192,8 +192,9 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
             save_node_labels(data_path=f'{l_path}/', db_names=[graph_db_name], labels=g_labels.node_labels,
                              name=l.get_layer_string(), max_label_num=l.node_labels)
         else:
-            # raise an error if the file does not exist
-            raise FileNotFoundError(f"File {label_path} does not exist")
+            # raise an error if the file does not exist and add the absolute path to the error message
+            absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            raise FileNotFoundError(f"File {absolute_path}/{label_path} does not exist")
         # add the properties to the graph data
         if 'properties' in l.layer_dict:
             prop_dict = l.layer_dict['properties']
