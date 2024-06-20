@@ -1,8 +1,8 @@
 paths:
   data:
-    "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/DS_all/" # Path to the folder containing the graph data
+    "/home/mlai21/seiffart/Data/GraphData/DS_all/" # Path to the folder containing the graph data
   properties:
-    "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/Properties/" # Precomputed properties will be loaded from this folder
+    "/home/mlai21/seiffart/Data/GraphData/Properties/" # Precomputed properties will be loaded from this folder
   labels:
     "Data/Labels/" # Path to the folder containing the labels
   results:
