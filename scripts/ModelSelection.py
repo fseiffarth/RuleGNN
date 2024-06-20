@@ -170,7 +170,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
 
     for l in run_config.layers:
         # add the labels to the graph data
-        label_path = f"{l_path}/{graph_db_name}_{l.get_layer_string()}_labels.txt"
+        label_path = f"{l_path}{graph_db_name}_{l.get_layer_string()}_labels.txt"
         if os.path.exists(label_path):
             g_labels = load_labels(path=label_path)
             graph_data.node_labels[l.get_layer_string()] = g_labels
