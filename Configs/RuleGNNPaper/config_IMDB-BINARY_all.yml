@@ -820,14 +820,19 @@ additional_options:
   print_results: # Print accuracy and loss in the console
     True
 
-  prune:
+prune:
+  enabled:
     False
+  epochs: # prune after this many epochs
+    25
+  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+    - 0.999
+    - 0.5
 
-  #task:
-  #  regression
+precision:
+  double
 
-  best_model:
-    False
-
-  precision:
-    double
+best_model:
+  True
+save_last:
+  True
