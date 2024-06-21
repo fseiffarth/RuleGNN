@@ -5,7 +5,7 @@ import numpy as np
 
 from utils.snowflake_generation import Snowflakes
 from Preprocessing.create_splits import create_splits
-from Preprocessing.save_distances import save_distances
+from utils.save_distances import save_distances
 from Preprocessing.create_labels import save_standard_labels, save_circle_labels, save_subgraph_labels
 from utils.utils import save_graphs
 

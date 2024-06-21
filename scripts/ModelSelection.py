@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
-from Preprocessing.load_splits import Load_Splits
+from utils.load_splits import Load_Splits
 from utils.GraphData import get_graph_data
-from Preprocessing.load_labels import load_labels
+from utils.load_labels import load_labels
 from Preprocessing.create_labels import save_node_labels
 from Architectures.RuleGNN.RuleGNNLayers import Layer
 from utils import GraphData, ReadWriteGraphs as gdtgl

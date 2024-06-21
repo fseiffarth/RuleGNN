@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 
 from GraphData.DataSplits.load_splits import Load_Splits
 from utils.GraphData import GraphData, get_graph_data
-from Preprocessing.load_labels import load_labels
+from utils.load_labels import load_labels
 from Preprocessing.create_labels import save_node_labels
 from Architectures.RuleGNN.RuleGNNLayers import Layer
 from utils.GraphLabels import combine_node_labels

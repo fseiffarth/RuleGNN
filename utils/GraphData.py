@@ -29,7 +29,6 @@ class GraphData:
 
     def init_from_graph_db(self, path, graph_db_name, relabel_nodes=False, use_features=True, use_attributes=False):
 
-
         # Define the graph data
         graph_data = gdtgl.graph_data_to_graph_list(path, graph_db_name, relabel_nodes=relabel_nodes)
         self.inputs, self.one_hot_labels, graph_data = ttd.data_from_graph_db(graph_data=graph_data,
@@ -110,25 +109,47 @@ class GraphData:
         labels.db_unique_node_labels = db_unique
         pass
 
-    def load_from_benchmark(self, db_name, path, use_features=True):
+    def load_from_benchmark(self, db_name, path, use_features=True, task=None):
         self.graph_db_name = db_name
         self.graphs, self.graph_labels = load_graphs(f'{path}/{db_name}/raw/', db_name)
         self.num_graphs = len(self.graphs)
-        try:
-            self.num_classes = len(set(self.graph_labels))
-        except:
-            self.num_classes = len(self.graph_labels[0])
+        if task == 'regression':
+            self.num_classes = 1
+            if type(self.graph_labels[0]) == list:
+                self.num_classes = len(self.graph_labels[0])
+        else:
+            try:
+                self.num_classes = len(set(self.graph_labels))
+            except:
+                self.num_classes = len(self.graph_labels[0])
         self.max_nodes = 0
         for g in self.graphs:
             self.max_nodes = max(self.max_nodes, g.number_of_nodes())
 
         self.one_hot_labels = torch.zeros(self.num_graphs, self.num_classes)
 
-        for i, label in enumerate(self.graph_labels):
-            if type(label) == int:
-                self.one_hot_labels[i][label] = 1
-            elif type(label) == list:
+
+        if task == 'regression':
+            min_label = 0
+            max_label = 0
+            for i, label in enumerate(self.graph_labels):
                 self.one_hot_labels[i] = torch.tensor(label)
+                min_label = min(min_label, torch.min(self.one_hot_labels[i]))
+                max_label = max(max_label, torch.max(self.one_hot_labels[i]))
+            # get absolute max value
+            max_label = max(abs(min_label), abs(max_label))
+            # normalize the labels
+            for i, label in enumerate(self.one_hot_labels):
+                self.one_hot_labels[i] /= max_label
+
+
+
+        else:
+            for i, label in enumerate(self.graph_labels):
+                if type(label) == int:
+                    self.one_hot_labels[i][label] = 1
+                elif type(label) == list:
+                    self.one_hot_labels[i] = torch.tensor(label)
 
         self.inputs = []
         ## add node labels
@@ -141,13 +162,32 @@ class GraphData:
         self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
         self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
 
-        # normalize the graph inputs, i.e. to have values between 0 and 1
+        # normalize the graph inputs, i.e. to have values between -1 and 1, no zero values
         if use_features:
             # get the number of different node labels
             num_node_labels = self.node_labels['primary'].num_unique_node_labels
+            # get the next even number if the number of node labels is odd
+            if num_node_labels % 2 == 1:
+                num_node_labels += 1
+            intervals = num_node_labels + 1
+            interval_length = 1.0 / intervals
             for i, graph in enumerate(self.inputs):
-                self.inputs[i] /= num_node_labels
-
+                for j in range(len(graph)):
+                    value = self.inputs[i][j]
+                    # get integer value of the node label
+                    value = int(value)
+                    # if value is even, add 1 to make it odd
+                    if value % 2 == 0:
+                        value = ((value + 1) * interval_length)
+                    else:
+                        value = (-1) * (value * interval_length)
+                    self.inputs[i][j] = value
+        # get min and max values of the self.inputs
+        min_value = 0
+        max_value = 0
+        for graph in self.inputs:
+            min_value = min(min_value, torch.min(graph))
+            max_value = max(max_value, torch.max(graph))
         return None
 
 
@@ -175,7 +215,7 @@ def get_graph_data(db_name, data_path, use_features=None, use_attributes=None):
         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
     elif db_name == 'ZINC':
         graph_data = GraphData()
-        graph_data.load_from_benchmark(db_name, data_path, use_features)
+        graph_data.load_from_benchmark(db_name, data_path, use_features, task='regression')
     elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or (
             'Snowflakes' in db_name):
         graph_data = GraphData()
@@ -184,7 +224,8 @@ def get_graph_data(db_name, data_path, use_features=None, use_attributes=None):
         graph_data.load_from_benchmark(db_name, data_path, use_features)
     else:
         graph_data = GraphData()
-        graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=True, use_features=use_features, use_attributes=use_attributes)
+        graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=True, use_features=use_features,
+                                      use_attributes=use_attributes)
     return graph_data
 
 

@@ -232,14 +232,15 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='su
                     labels[-1].append(label_dict[cycle_d])
                 else:
                     labels[-1].append(len(label_dict))
+
         if label_path is None:
-            file = f"../{db_name}_{name}_{id}_labels.txt"
+            raise ValueError("No label path given")
         else:
             file = f"{label_path}{db_name}_{name}_{id}_labels.txt"
         write_node_labels(file, labels)
 
 
-def save_clique_labels(data_path, db_names, max_clique=6):
+def save_clique_labels(data_path, db_names, max_clique=6, label_path=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path)
         clique_dict = []
@@ -279,8 +280,10 @@ def save_clique_labels(data_path, db_names, max_clique=6):
                     labels[-1].append(label_dict[cycle_d])
                 else:
                     labels[-1].append(len(label_dict))
-
-        file = f"../{db_name}_cliques_{max_clique}_labels.txt"
+        if label_path is None:
+            raise ValueError("No label path given")
+        else:
+            file = f"{label_path}{db_name}_cliques_{max_clique}_labels.txt"
         write_node_labels(file, labels)
 
 
@@ -318,11 +321,13 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
 
 def main():
     data_path = "../GraphData/DS_all/"
-    data_path = "Data/BenchmarkGraphs/"
+    #data_path = "Data/BenchmarkGraphs/"
     label_path = "Data/Labels/"
     #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
     #               max_label_num=100000)
-    save_in_circle_labels(data_path, db_names=['ZINC'], length_bound=20, label_path=label_path)
+    #save_in_circle_labels(data_path, db_names=['ZINC'], length_bound=20, label_path=label_path)
+    save_in_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, label_path=label_path)
+    #save_in_circle_labels(data_path, db_names=['NCI1', 'NCI109', 'Mutagenicity'], length_bound=20, label_path=label_path)
     #save_subgraph_labels(data_path, db_names=['DHFR'], subgraphs=[nx.cycle_graph(6), nx.cycle_graph(5)], id=0)
     #save_standard_labels(data_path, db_names=['DHFR'])
     #save_circle_labels(data_path, db_names=['MUTAG'], cycle_type='simple', length_bound=12)
@@ -345,8 +350,8 @@ def main():
     #save_circle_labels(data_path, db_names=['ZINC_original'], length_bound=10, cycle_type='simple')
     #save_wl_labels(data_path, db_names=['ZINC_original'], max_iterations=4, max_label_num=50000)
     #save_circle_labels(data_path,db_names=['IMDB-BINARY', 'IMDB-MULTI'], length_bound=4, max_node_labels=1000, cycle_type='simple')
-    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3)], id=0)
-    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.complete_graph(3), nx.star_graph(1)], id=1)
+    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(4)], id=0)
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], id=1)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(4), nx.star_graph(1)], id=2)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3)], id=4)

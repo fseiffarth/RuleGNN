@@ -1,7 +1,7 @@
 import os
 
 from utils.GraphData import get_graph_data
-from Preprocessing.load_labels import load_labels
+from utils.load_labels import load_labels
 from Architectures.RuleGNN.RuleGNNLayers import Layer
 from utils.utils import save_graphs
 
