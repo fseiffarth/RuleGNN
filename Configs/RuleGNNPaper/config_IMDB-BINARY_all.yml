@@ -834,5 +834,3 @@ precision:
 
 best_model:
   True
-save_last:
-  True

@@ -92,14 +92,17 @@ additional_options:
     True
 
 prune:
-  False
-
-#task:
-#  regression
-
-best_model:
-  False
+  enabled:
+    False
+  epochs: # prune after this many epochs
+    25
+  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+    - 0.999
+    - 0.5
 
 precision:
-    double
+  double
+
+best_model:
+  True
 
