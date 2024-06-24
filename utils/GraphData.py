@@ -128,7 +128,6 @@ class GraphData:
 
         self.one_hot_labels = torch.zeros(self.num_graphs, self.num_classes)
 
-
         if task == 'regression':
             min_label = 0
             max_label = 0
@@ -138,6 +137,7 @@ class GraphData:
                 max_label = max(max_label, torch.max(self.one_hot_labels[i]))
             # get absolute max value
             max_label = max(abs(min_label), abs(max_label))
+            print(f'Max label: {max_label}')
             # normalize the labels
             for i, label in enumerate(self.one_hot_labels):
                 self.one_hot_labels[i] /= max_label
