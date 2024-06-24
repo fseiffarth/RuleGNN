@@ -687,7 +687,9 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
 
 def main():
-    model_selection_evaluation_mae(db_name='ZINC', path='RESULTS/Features')
+    #model_selection_evaluation_mae(db_name='ZINC', path='RESULTS/Features')
+    model_selection_evaluation(db_name='DHFR', path='Results_Paper_Reproduced')
+    model_selection_evaluation(db_name='DHFR', path='Results_Paper')
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
@@ -699,7 +701,7 @@ def main():
 
 
     #model_selection_evaluation(db_name='MUTAG', path='TEMP')
-    best_model_evaluation(db_name='IMDB-BINARY', path='Results_Paper')
+    best_model_evaluation(db_name='DHFR', path='Results_Paper')
 
 
 

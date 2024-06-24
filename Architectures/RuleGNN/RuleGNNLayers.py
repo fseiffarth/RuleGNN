@@ -371,8 +371,8 @@ class RuleAggregationLayer(nn.Module):
             index_map = reshape_indices(in_high_dim, out_low_dim)
 
             ##########################################
-            weight_count_map = {}
-            weight_normal = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=self.precision)
+            #weight_count_map = {}
+            #weight_normal = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=self.precision)
             ##########################################
 
             for o in range(0, out_features):
@@ -386,18 +386,18 @@ class RuleAggregationLayer(nn.Module):
                             graph_weight_pos_distribution.append([index_x, index_y, weight_pos])
 
                             ##########################################
-                            if weight_pos in weight_count_map:
-                                weight_count_map[weight_pos] += 1
-                            else:
-                                weight_count_map[weight_pos] = 1
-                            weight_normal[index_x, index_y] = weight_pos
+                            #if weight_pos in weight_count_map:
+                            #    weight_count_map[weight_pos] += 1
+                            #else:
+                            #    weight_count_map[weight_pos] = 1
+                            #weight_normal[index_x, index_y] = weight_pos
                             ##########################################
 
             # normalize the weights by their count (this is new compared to the paper)
             ##########################################
-            for key in weight_count_map:
-                weight_normal[weight_normal == key] = 1 / (weight_count_map[key] * len(weight_count_map))
-            self.weight_normalization.append(weight_normal)
+            #for key in weight_count_map:
+            #    weight_normal[weight_normal == key] = 1 / (weight_count_map[key] * len(weight_count_map))
+            #self.weight_normalization.append(weight_normal)
             ##########################################
 
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
@@ -410,9 +410,9 @@ class RuleAggregationLayer(nn.Module):
         matrix_indices = torch.tensor(weight_distr[:, 0:2]).T
         self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
         # divide the weights by the number of nodes in the graph
-        # self.current_W = self.current_W / num_graphs_nodes
+        self.current_W = self.current_W / num_graphs_nodes
         # normalize the weights using the weight_normalization
-        self.current_W = self.current_W * self.weight_normalization[pos]
+        #self.current_W = self.current_W * self.weight_normalization[pos]
         pass
 
     def print_weights(self):

@@ -28,7 +28,7 @@ def zinc_splits():
         f.write(json.dumps(splits))
 
 
-def create_splits(db_name, path="../../../BenchmarkGraphs/DS_all/", output_path=""):
+def create_splits(db_name, path="../GraphData/DS_all/", output_path="Data/Splits/"):
     splits = []
     run_id = 0
     k = 10
@@ -53,15 +53,15 @@ def create_splits(db_name, path="../../../BenchmarkGraphs/DS_all/", output_path=
         validate_data = [int(x) for x in validate_data]
         test_data = [int(x) for x in test_data]
         # write data to txt file
-        with open(f"{output_path}{db_name}_train.txt", "a") as f:
-            f.write(" ".join([str(x) for x in training_data]))
-            f.write("\n")
-        with open(f"{output_path}{db_name}_validation.txt", "a") as f:
-            f.write(" ".join([str(x) for x in validate_data]))
-            f.write("\n")
-        with open(f"{output_path}{db_name}_test.txt", "a") as f:
-            f.write(" ".join([str(x) for x in test_data]))
-            f.write("\n")
+        #with open(f"{output_path}{db_name}_train.txt", "a") as f:
+        #    f.write(" ".join([str(x) for x in training_data]))
+        #    f.write("\n")
+        #with open(f"{output_path}{db_name}_validation.txt", "a") as f:
+        #    f.write(" ".join([str(x) for x in validate_data]))
+        #    f.write("\n")
+        #with open(f"{output_path}{db_name}_test.txt", "a") as f:
+        #    f.write(" ".join([str(x) for x in test_data]))
+        #    f.write("\n")
 
         splits.append({"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
 
@@ -79,3 +79,5 @@ if __name__ == "__main__":
     #create_splits("SYNTHETICnew")
     # for db in ["DHFR", "Mutagenicity", "NCI109", "SYNTHETICnew", "MUTAG"]:
     #     create_splits(db)
+    for db in ['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR']:
+        create_splits(db)

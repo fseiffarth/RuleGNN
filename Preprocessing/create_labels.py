@@ -28,7 +28,7 @@ def save_standard_labels(data_path, db_names, label_path=None):
         # save the node labels to a file
         # save node_labels as numpy array
         if label_path is None:
-            file = f"../{db_name}_primary_labels.txt"
+            raise ValueError("No label path given")
         else:
             file = f"{label_path}{db_name}_primary_labels.txt"
         write_node_labels(file, node_labels)
@@ -39,7 +39,7 @@ def save_standard_labels(data_path, db_names, label_path=None):
         # save the node labels to a file
         # save node_labels as numpy array
         if label_path is None:
-            file = f"../{db_name}_wl_0_labels.txt"
+            raise ValueError("No label path given")
         else:
             file = f"{label_path}{db_name}_wl_0_labels.txt"
         write_node_labels(file, node_labels)
@@ -55,7 +55,7 @@ def save_standard_labels(data_path, db_names, label_path=None):
                 # save the node labels to a file
                 # save node_labels as numpy array
                 if label_path is None:
-                    file = f"../{db_name}_{l}_{n_node_labels}_labels.txt"
+                    raise ValueError("No label path given")
                 else:
                     file = f"{label_path}{db_name}_{l}_{n_node_labels}_labels.txt"
                 write_node_labels(file, node_labels)
@@ -326,7 +326,10 @@ def main():
     #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
     #               max_label_num=100000)
     #save_in_circle_labels(data_path, db_names=['ZINC'], length_bound=20, label_path=label_path)
-    save_in_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, label_path=label_path)
+    #save_in_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, label_path=label_path)
+    save_standard_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], label_path=label_path)
+    save_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, cycle_type='simple', label_path=label_path)
+    save_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, cycle_type='induced', label_path=label_path)
     #save_in_circle_labels(data_path, db_names=['NCI1', 'NCI109', 'Mutagenicity'], length_bound=20, label_path=label_path)
     #save_subgraph_labels(data_path, db_names=['DHFR'], subgraphs=[nx.cycle_graph(6), nx.cycle_graph(5)], id=0)
     #save_standard_labels(data_path, db_names=['DHFR'])
@@ -350,7 +353,7 @@ def main():
     #save_circle_labels(data_path, db_names=['ZINC_original'], length_bound=10, cycle_type='simple')
     #save_wl_labels(data_path, db_names=['ZINC_original'], max_iterations=4, max_label_num=50000)
     #save_circle_labels(data_path,db_names=['IMDB-BINARY', 'IMDB-MULTI'], length_bound=4, max_node_labels=1000, cycle_type='simple')
-    save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(4)], id=0)
+    #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.complete_graph(4)], id=0)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], id=1)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(4), nx.star_graph(1)], id=2)
     #save_subgraph_labels(data_path, db_names=['IMDB-BINARY', 'IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)], id=3)
