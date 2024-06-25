@@ -169,6 +169,7 @@ def write_distance_edge_properties(data_path, db_name, out_path="") -> None:
         # create a dictionary of valid properties
         v_values = []
         list_of_values = []
+        list_of_values_str = ''
         for value in valid_properties:
             value = convert_to_list(value)
             v_values.append(f"{value}")
@@ -189,17 +190,19 @@ def main():
 
     ### Test Dataset Properties
 
+    # ZINC
+    write_distance_edge_properties(data_path="Data/BenchmarkGraphs/", db_name='ZINC', out_path="Data/Properties/")
+    write_distance_circle_properties(data_path="Data/BenchmarkGraphs/", label_path=label_path, db_name='ZINC', cutoff=None,
+                                     out_path="Data/Properties/")
+    write_distance_properties(data_path="Data/BenchmarkGraphs/", db_name='ZINC', cutoff=None, out_path="Data/Properties/")
+
     # MUTAG
     write_distance_edge_properties(data_path=data_path, db_name='MUTAG', out_path="Data/Properties/")
     write_distance_circle_properties(data_path=data_path, label_path=label_path, db_name='MUTAG', cutoff=None,
                                      out_path="Data/Properties/")
     write_distance_properties(data_path=data_path, db_name='MUTAG', cutoff=None, out_path="Data/Properties/")
 
-    # ZINC
-    write_distance_edge_properties(data_path="Data/BenchmarkGraphs/", db_name='ZINC', out_path="Data/Properties/")
-    write_distance_circle_properties(data_path="Data/BenchmarkGraphs/", label_path=label_path, db_name='ZINC', cutoff=None,
-                                     out_path="Data/Properties/")
-    write_distance_properties(data_path="Data/BenchmarkGraphs/", db_name='ZINC', cutoff=None, out_path="Data/Properties/")
+
 
     # PTC (FM, FR, MM, MR)
     write_distance_edge_properties(data_path=data_path, db_name='PTC_FM', out_path="Data/Properties/")

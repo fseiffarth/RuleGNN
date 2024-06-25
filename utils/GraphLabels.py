@@ -85,21 +85,6 @@ class Properties:
         self.all_values = None
         # load the properties from a file, first decompress the file with gzip and then load the pickle file
         self.properties = None
-        # number of valid properties
-        self.num_properties = len(valid_values)
-        self.valid_property_map = {}
-        for i, value in enumerate(valid_values):
-            try:
-                property_value = int(value)
-                self.valid_property_map[property_value] = i
-            except:
-                # check if the length of the value is 1, if not iterate over the values
-                try:
-                    len(value[0])
-                    for v in value:
-                        self.valid_property_map[convert_to_tuple(v)] = i
-                except:
-                    self.valid_property_map[convert_to_tuple(value)] = i
 
         # path to the data
         data_path = f'{path}/{db_name}_{property_name}.prop'
@@ -119,9 +104,36 @@ class Properties:
                     if type(value) == str:
                         self.all_values[i] = ast.literal_eval(value)
 
+                # if property name is edge_label_distance, and the valid values is a list of values interpret them as the distances and take all the values from self.all_values with first entry equal to the distance
+                if property_name == 'edge_label_distances':
+                    tmp_valid_values = []
+                    for v in self.all_values:
+                        if v[0] in self.valid_values:
+                            tmp_valid_values.append(v)
+                    self.valid_values = tmp_valid_values
+
                 # check if all the valid values are in the valid properties, if not raise an error
-                for value in valid_values:
+                for value in self.valid_values:
                     if value not in self.all_values:
                         raise ValueError(f'Property {value} not in valid properties')
         else:
             raise FileNotFoundError(f'File {data_path} or {info_path} not found')
+
+
+
+        # number of valid properties
+        self.num_properties = len(self.valid_values)
+        self.valid_property_map = {}
+        for i, value in enumerate(self.valid_values):
+            try:
+                property_value = int(value)
+                self.valid_property_map[property_value] = i
+            except:
+                # check if the length of the value is 1, if not iterate over the values
+                try:
+                    len(value[0])
+                    for v in value:
+                        self.valid_property_map[convert_to_tuple(v)] = i
+                except:
+                    self.valid_property_map[convert_to_tuple(value)] = i
+
