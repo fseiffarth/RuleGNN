@@ -145,7 +145,8 @@ class RuleConvolutionLayer(nn.Module):
         self.n_properties = 1
         self.property = None
         if 'properties' in layer_info.layer_dict:
-            self.property = graph_data.properties[layer_info.layer_dict['properties']['name']]
+            key = f"{graph_data.graph_db_name}_{layer_info.layer_dict['properties']['name']}_{layer_info.layer_dict['properties']['values']}"
+            self.property = graph_data.properties[key]
             self.n_properties = self.property.num_properties
 
 

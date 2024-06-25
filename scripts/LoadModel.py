@@ -133,12 +133,15 @@ def main(db, config):
                         # raise an error if the file does not exist
                         raise FileNotFoundError(f"File {label_path} does not exist")
                     # add the properties to the graph data
+                    # add the properties to the graph data
                     if 'properties' in l.layer_dict:
                         prop_dict = l.layer_dict['properties']
                         prop_name = prop_dict['name']
-                        graph_data.properties[prop_name] = Properties(path=properties_path, db_name=db,
-                                                                      property_name=prop_dict['name'],
-                                                                      valid_values=prop_dict['values'])
+                        value_string = f"{prop_dict['values']}"
+                        key = f"{db}_{prop_name}_{value_string}"
+                        graph_data.properties[key] = Properties(path=properties_path, db_name=db,
+                                                                property_name=prop_dict['name'],
+                                                                valid_values=prop_dict['values'])
                     pass
 
                 """

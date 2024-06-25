@@ -37,9 +37,8 @@ early_stopping:
   patience:
     25
 networks:
-  - - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6]}}
-    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6] }}
-    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6] }}
+  - - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [ 8,9,10 ] } }
     - { layer_type: simple_cycles, max_cycle_length: 50 }
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features

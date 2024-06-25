@@ -205,7 +205,9 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
         if 'properties' in l.layer_dict:
             prop_dict = l.layer_dict['properties']
             prop_name = prop_dict['name']
-            graph_data.properties[prop_name] = Properties(path=properties_path, db_name=graph_db_name,
+            value_string = f"{prop_dict['values']}"
+            key = f"{graph_db_name}_{prop_name}_{value_string}"
+            graph_data.properties[key] = Properties(path=properties_path, db_name=graph_db_name,
                                                           property_name=prop_dict['name'],
                                                           valid_values=prop_dict['values'])
         pass
