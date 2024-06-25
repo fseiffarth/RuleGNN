@@ -465,76 +465,79 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
         # create a new column RunNumberValidationNumber that is the concatenation of RunNumber and ValidationNumber
         df_all['RunNumberValidationNumber'] = df_all['RunNumber'].astype(str) + df_all['ValidationNumber'].astype(str)
 
-        # group the data by RunNumberValidationNumber
-        groups = df_all.groupby('RunNumberValidationNumber')
+        # check if df_all has a row
+        if df_all.shape[0] != 0:
 
-        indices = []
-        # iterate over the groups
-        for name, group in groups:
+            # group the data by RunNumberValidationNumber
+            groups = df_all.groupby('RunNumberValidationNumber')
 
-            max_val_acc = group['ValidationLoss'].min()
-            max_row = group[group['ValidationLoss'] == max_val_acc]
+            indices = []
+            # iterate over the groups
+            for name, group in groups:
 
-            # get row with the minimum validation loss
-            min_val_loss = max_row['ValidationLoss'].min()
-            max_row = group[group['ValidationLoss'] == min_val_loss]
-            max_row = max_row.iloc[-1]
-            # get the index of the row
-            index = max_row.name
-            indices.append(index)
+                max_val_acc = group['ValidationLoss'].min()
+                max_row = group[group['ValidationLoss'] == max_val_acc]
 
-        # get the rows with the indices
-        df_validation = df_all.loc[indices]
-        df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
+                # get row with the minimum validation loss
+                min_val_loss = max_row['ValidationLoss'].min()
+                max_row = group[group['ValidationLoss'] == min_val_loss]
+                max_row = max_row.iloc[-1]
+                # get the index of the row
+                index = max_row.name
+                indices.append(index)
 
-        # get the average and deviation over all runs
+            # get the rows with the indices
+            df_validation = df_all.loc[indices]
+            df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
 
-        df_validation['EpochLoss'] *= df_validation['TrainingSize']
-        df_validation['Epoch'] *= df_validation['TrainingSize']
-        df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
-        df_validation['TestAccuracy'] *= df_validation['TestSize']
-        df_validation['TestLoss'] *= df_validation['TestSize']
-        df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
-        df_validation['ValidationLoss'] *= df_validation['ValidationSize']
-        avg = df_validation.mean(numeric_only=True)
+            # get the average and deviation over all runs
 
-        avg['EpochLoss'] /= avg['TrainingSize']
-        avg['Epoch'] /= avg['TrainingSize']
-        avg['EpochAccuracy'] /= avg['TrainingSize']
-        avg['TestAccuracy'] /= avg['TestSize']
-        avg['TestLoss'] /= avg['TestSize']
-        avg['ValidationAccuracy'] /= avg['ValidationSize']
-        avg['ValidationLoss'] /= avg['ValidationSize']
+            df_validation['EpochLoss'] *= df_validation['TrainingSize']
+            df_validation['Epoch'] *= df_validation['TrainingSize']
+            df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
+            df_validation['TestAccuracy'] *= df_validation['TestSize']
+            df_validation['TestLoss'] *= df_validation['TestSize']
+            df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
+            df_validation['ValidationLoss'] *= df_validation['ValidationSize']
+            avg = df_validation.mean(numeric_only=True)
 
-        std = df_validation.std(numeric_only=True)
-        std['EpochLoss'] /= avg['TrainingSize']
-        std['Epoch'] /= avg['TrainingSize']
-        std['EpochAccuracy'] /= avg['TrainingSize']
-        std['TestAccuracy'] /= avg['TestSize']
-        std['TestLoss'] /= avg['TestSize']
-        std['ValidationAccuracy'] /= avg['ValidationSize']
-        std['ValidationLoss'] /= avg['ValidationSize']
+            avg['EpochLoss'] /= avg['TrainingSize']
+            avg['Epoch'] /= avg['TrainingSize']
+            avg['EpochAccuracy'] /= avg['TrainingSize']
+            avg['TestAccuracy'] /= avg['TestSize']
+            avg['TestLoss'] /= avg['TestSize']
+            avg['ValidationAccuracy'] /= avg['ValidationSize']
+            avg['ValidationLoss'] /= avg['ValidationSize']
 
-        # print the avg and std achieved by the highest validation loss
-        print(f"Id: {id} "
-              f"Epoch: {avg['Epoch']} +/- {std['Epoch']} "
-              f"Average Training Loss: {avg['EpochLoss']} +/- {std['EpochLoss']} "
-              f"Average Validation Loss: {avg['ValidationLoss']} +/- {std['ValidationLoss']} "
-              f"Average Test Loss: {avg['TestLoss']} +/- {std['TestLoss']} ")
+            std = df_validation.std(numeric_only=True)
+            std['EpochLoss'] /= avg['TrainingSize']
+            std['Epoch'] /= avg['TrainingSize']
+            std['EpochAccuracy'] /= avg['TrainingSize']
+            std['TestAccuracy'] /= avg['TestSize']
+            std['TestLoss'] /= avg['TestSize']
+            std['ValidationAccuracy'] /= avg['ValidationSize']
+            std['ValidationLoss'] /= avg['ValidationSize']
+
+            # print the avg and std achieved by the highest validation loss
+            print(f"Id: {id} "
+                  f"Epoch: {avg['Epoch']} +/- {std['Epoch']} "
+                  f"Average Training Loss: {avg['EpochLoss']} +/- {std['EpochLoss']} "
+                  f"Average Validation Loss: {avg['ValidationLoss']} +/- {std['ValidationLoss']} "
+                  f"Average Test Loss: {avg['TestLoss']} +/- {std['TestLoss']} ")
 
 
-        evaluation[id] = [avg['EpochLoss'], std['EpochLoss'],avg['ValidationLoss'], std['ValidationLoss'],avg['TestLoss'], std['TestLoss']]
+            evaluation[id] = [avg['EpochLoss'], std['EpochLoss'],avg['ValidationLoss'], std['ValidationLoss'],avg['TestLoss'], std['TestLoss']]
 
 
     # print all evaluation items start with id and network then validation and test accuracy
     # round all floats to 2 decimal places
     for key, value in evaluation.items():
-        value[0] = round(value[0], 4)
-        value[1] = round(value[1], 4)
-        value[2] = round(value[2], 4)
-        value[3] = round(value[3], 4)
-        value[4] = round(value[4], 4)
-        value[5] = round(value[5], 4)
+        value[0] = round(value[0], 6)
+        value[1] = round(value[1], 6)
+        value[2] = round(value[2], 6)
+        value[3] = round(value[3], 6)
+        value[4] = round(value[4], 6)
+        value[5] = round(value[5], 6)
 
     # print the evaluation items with the k highest validation accuracies
     k = 5
@@ -687,9 +690,9 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
 
 def main():
-    #model_selection_evaluation_mae(db_name='ZINC', path='RESULTS/Features')
-    model_selection_evaluation(db_name='DHFR', path='Results_Paper_Reproduced')
-    model_selection_evaluation(db_name='DHFR', path='Results_Paper')
+    model_selection_evaluation_mae(db_name='ZINC', path='TEST')
+    #model_selection_evaluation(db_name='DHFR', path='Results_Paper_Reproduced')
+    #model_selection_evaluation(db_name='DHFR', path='Results_Paper')
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 
@@ -701,7 +704,7 @@ def main():
 
 
     #model_selection_evaluation(db_name='MUTAG', path='TEMP')
-    best_model_evaluation(db_name='DHFR', path='Results_Paper')
+    #best_model_evaluation(db_name='DHFR', path='Results_Paper')
 
 
 
