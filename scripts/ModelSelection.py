@@ -102,8 +102,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         for network_architecture in configs['networks']:
             layers = []
             # get all different run configurations
-            for l in network_architecture:
-                layers.append(Layer(l))
+            for i, l in enumerate(network_architecture):
+                layers.append(Layer(l, i))
             for b in configs['batch_size']:
                 for lr in configs['learning_rate']:
                     for e in configs['epochs']:
@@ -175,7 +175,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
         plot_graphs = False
         print_layer_init = False
 
-    for l in run_config.layers:
+    for i, l in enumerate(run_config.layers):
         # add the labels to the graph data
         label_path = f"{l_path}{graph_db_name}_{l.get_layer_string()}_labels.txt"
         if os.path.exists(label_path):
@@ -185,7 +185,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
             combined_labels = []
             # get the labels for each layer in the combined layer
             for x in l.layer_dict['sub_labels']:
-                sub_layer = Layer(x)
+                sub_layer = Layer(x, i)
                 sub_label_path = f"{l_path}/{graph_db_name}_{sub_layer.get_layer_string()}_labels.txt"
                 if os.path.exists(sub_label_path):
                     g_labels = load_labels(path=sub_label_path)
@@ -205,11 +205,12 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
         if 'properties' in l.layer_dict:
             prop_dict = l.layer_dict['properties']
             prop_name = prop_dict['name']
-            value_string = f"{prop_dict['values']}"
-            key = f"{graph_db_name}_{prop_name}_{value_string}"
-            graph_data.properties[key] = Properties(path=properties_path, db_name=graph_db_name,
-                                                          property_name=prop_dict['name'],
-                                                          valid_values=prop_dict['values'])
+            if prop_name not in graph_data.properties:
+                graph_data.properties[prop_name] = Properties(path=properties_path, db_name=graph_db_name,
+                                                              property_name=prop_dict['name'],
+                                                              valid_values=prop_dict['values'], layer_id=l.layer_id)
+            else:
+                graph_data.properties[prop_name].add_properties(prop_dict['values'], l.layer_id)
         pass
 
     para = Parameters.Parameters()

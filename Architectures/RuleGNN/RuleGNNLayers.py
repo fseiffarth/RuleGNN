@@ -17,7 +17,7 @@ class Layer:
     classdocs for the Layer: This class represents a layer in a RuleGNN
     """
 
-    def __init__(self, layer_dict):
+    def __init__(self, layer_dict, layer_id):
         """
         Constructor of the Layer
         :param layer_dict: the dictionary that contains the layer information
@@ -26,6 +26,7 @@ class Layer:
         self.sub_labels = None
         self.node_labels = -1
         self.layer_dict = layer_dict
+        self.layer_id = layer_id
 
         if 'max_node_labels' in layer_dict:
             self.node_labels = layer_dict["max_node_labels"]
@@ -145,9 +146,8 @@ class RuleConvolutionLayer(nn.Module):
         self.n_properties = 1
         self.property = None
         if 'properties' in layer_info.layer_dict:
-            key = f"{graph_data.graph_db_name}_{layer_info.layer_dict['properties']['name']}_{layer_info.layer_dict['properties']['values']}"
-            self.property = graph_data.properties[key]
-            self.n_properties = self.property.num_properties
+            self.property = graph_data.properties[layer_info.layer_dict['properties']['name']]
+            self.n_properties = self.property.num_properties[layer_id]
 
 
         self.para = parameters  # get the all the parameters of the experiment
@@ -221,12 +221,12 @@ class RuleConvolutionLayer(nn.Module):
                 for i2 in range(0, self.in_features):  # iterate over the input features, not used at the moment
                     for k in range(0, self.n_kernels):  # iterate over the kernels, not used at the moment
                         # iterate over valid properties
-                        for p in self.property.valid_property_map.keys():
+                        for p in self.property.valid_property_map[layer_id].keys():
                             if p in self.property.properties[graph_id]:
                                 for (v, w) in self.property.properties[graph_id][p]:
                                     v_label = self.node_labels.node_labels[graph_id][v]
                                     w_label = self.node_labels.node_labels[graph_id][w]
-                                    property_id = self.property.valid_property_map[p]
+                                    property_id = self.property.valid_property_map[layer_id][p]
                                     # position of the weight in the Parameter list
                                     weight_pos = self.weight_map[i1][i2][k][int(v_label)][int(w_label)][property_id]
                                     # position of the weight in the weight matrix
@@ -258,11 +258,12 @@ class RuleConvolutionLayer(nn.Module):
         # reshape self.current_W to the size of the weight matrix and fill it with zeros
         self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision)
         weight_distr = self.weight_distribution[pos]
-        # get third column of the weight_distribution: the index of self.Param_W
-        param_indices = torch.tensor(weight_distr[:, 2]).long()
-        matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long()
-        # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
-        self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
+        if len(weight_distr) != 0:
+            # get third column of the weight_distribution: the index of self.Param_W
+            param_indices = torch.tensor(weight_distr[:, 2]).long()
+            matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long()
+            # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
+            self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
 
     def set_bias(self, input_size, pos):
         self.current_B = torch.zeros((input_size * self.n_kernels), dtype=self.precision)
