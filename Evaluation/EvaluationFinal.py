@@ -402,7 +402,7 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
         value[9] = round(value[9], 4)
 
     # print the evaluation items with the k highest validation accuracies
-    k = 5
+    k = 10
     print(f"Top {k} Validation Accuracies for {db_name}")
 
 
@@ -540,7 +540,7 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
         value[5] = round(value[5], 6)
 
     # print the evaluation items with the k highest validation accuracies
-    k = 5
+    k = 10
     print(f"Top {k} Validation Accuracies for {db_name}")
 
 
@@ -677,8 +677,8 @@ def best_model_evaluation(db_name, path='Results', ids=None):
         #print(f"{value[4]} Validation Accuracy: {value[2]} +/- {value[3]} Test Accuracy: {value[0]} +/- {value[1]}")
 
     # print the evaluation items with the k highest validation accuracies
-    print(f"Top 5 Validation Accuracies for {db_name}")
-    k = 5
+    k = 10
+    print(f"Top {k} Validation Accuracies for {db_name}")
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
 
     for i in range(min(k, len(sorted_evaluation))):
@@ -691,8 +691,8 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
 def main():
     model_selection_evaluation_mae(db_name='ZINC', path='TEST')
-    #model_selection_evaluation(db_name='DHFR', path='Results_Paper_Reproduced')
-    #model_selection_evaluation(db_name='DHFR', path='Results_Paper')
+    #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper_Reproduced')
+    #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper')
     #ids = [i for i in range(0, 51)]
     #final_evaluation(db_name='MUTAG', ids=ids)
 

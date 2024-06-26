@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import yaml
 
-from GraphData.DataSplits.load_splits import Load_Splits
+from ModelSelection import get_run_configs
 from utils.GraphData import get_graph_data
 from utils.load_labels import load_labels
 from Preprocessing.create_labels import save_node_labels
@@ -14,21 +14,23 @@ from Architectures import RuleGNN
 from utils.GraphLabels import Properties, combine_node_labels
 from utils.Parameters.Parameters import Parameters
 from utils.RunConfiguration import RunConfiguration
+from utils.load_splits import Load_Splits
 
 
 @click.command()
+@click.option('--data_path', default="../GraphData/DS_all/", help='Path to the data')
+@click.option('--out_path', default="", help='Path to the results')
 @click.option('--db', default="EvenOddRings2_16", help='Database to use')
-@click.option('--config', default="", help='Path to the configuration file')
-# --data_path ../GraphBenchmarks/BenchmarkGraphs/ --db EvenOddRings2_16 --config ../TEMP/EvenOddRings2_16/config.yml
-def main(db, config):
+# --db DHFR --data_path ../GraphData/DS_all/ --out_path Results_Paper_Reproduced/
+def main(data_path, out_path, db):
     run = 0
     k_val = 0
     kFold = 10
     # load the model
-    configs = yaml.safe_load(open(config))
-    # get the data path from the config file
-    data_path = f"{configs['paths']['data']}"
+    config_path = f"{out_path}{db}/config.yml"
+    configs = yaml.safe_load(open(config_path))
     r_path = f"{configs['paths']['results']}"
+    label_path = f"{configs['paths']['labels']}"
     properties_path = f"{configs['paths']['properties']}"
     splits_path = f"{configs['paths']['splits']}"
     results_path = r_path + db + "/Results/"
@@ -40,26 +42,12 @@ def main(db, config):
             for i in range(len(graph_data.inputs)):
                 graph_data.inputs[i] = graph_data.inputs[i].double()
 
-    #create run config from first config
-    # get all different run configurations
-    # define the network type from the config file
-    run_configs = []
-    # iterate over all network architectures
-    for network_architecture in configs['networks']:
-        layers = []
-        # get all different run configurations
-        for l in network_architecture:
-            layers.append(Layer(l))
-        for b in configs['batch_size']:
-            for lr in configs['learning_rate']:
-                for e in configs['epochs']:
-                    for d in configs['dropout']:
-                        for o in configs['optimizer']:
-                            for loss in configs['loss']:
-                                run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
+    # get the run configurations
+    run_configs = get_run_configs(configs)
+
     for i, run_config in enumerate(run_configs):
         config_id = str(i).zfill(6)
-        model_path = f'{r_path}{db}/Models/model_Configuration_{config_id}_run_{run}_val_step_{k_val}.pt'
+        model_path = f'{out_path}{db}/Models/model_Configuration_{config_id}_run_{run}_val_step_{k_val}.pt'
         seed = k_val + kFold * run
         data = Load_Splits(f"{configs['paths']['splits']}", db)
         test_data = np.asarray(data[0][k_val], dtype=int)
@@ -105,9 +93,10 @@ def main(db, config):
                                      draw=False, save_weights=False,
                                      save_prediction_values=False, plot_graphs=False,
                                      print_layer_init=False)
-                for l in run_config.layers:
+
+                for i, l in enumerate(run_config.layers):
                     # add the labels to the graph data
-                    label_path = f"Data/Labels/{db}_{l.get_layer_string()}_labels.txt"
+                    label_path = f"{label_path}{db}_{l.get_layer_string()}_labels.txt"
                     if os.path.exists(label_path):
                         g_labels = load_labels(path=label_path)
                         graph_data.node_labels[l.get_layer_string()] = g_labels
@@ -115,8 +104,8 @@ def main(db, config):
                         combined_labels = []
                         # get the labels for each layer in the combined layer
                         for x in l.layer_dict['sub_labels']:
-                            sub_layer = Layer(x)
-                            sub_label_path = f"Data/Labels/{db}_{sub_layer.get_layer_string()}_labels.txt"
+                            sub_layer = Layer(x, i)
+                            sub_label_path = f"{label_path}/{db}_{sub_layer.get_layer_string()}_labels.txt"
                             if os.path.exists(sub_label_path):
                                 g_labels = load_labels(path=sub_label_path)
                                 combined_labels.append(g_labels)
@@ -126,19 +115,22 @@ def main(db, config):
                         # combine the labels and save them
                         g_labels = combine_node_labels(combined_labels)
                         graph_data.node_labels[l.get_layer_string()] = g_labels
-                        save_node_labels(data_path='../Data/Labels/', db_names=[db],
-                                         labels=g_labels.node_labels,
+                        save_node_labels(data_path=f'{label_path}/', db_names=[db], labels=g_labels.node_labels,
                                          name=l.get_layer_string(), max_label_num=l.node_labels)
                     else:
-                        # raise an error if the file does not exist
+                        # raise an error if the file does not exist and add the absolute path to the error message
                         raise FileNotFoundError(f"File {label_path} does not exist")
                     # add the properties to the graph data
                     if 'properties' in l.layer_dict:
                         prop_dict = l.layer_dict['properties']
                         prop_name = prop_dict['name']
-                        graph_data.properties[prop_name] = Properties(path=properties_path, db_name=db,
-                                                                      property_name=prop_dict['name'],
-                                                                      valid_values=prop_dict['values'])
+                        if prop_name not in graph_data.properties:
+                            graph_data.properties[prop_name] = Properties(path=properties_path, db_name=db,
+                                                                          property_name=prop_dict['name'],
+                                                                          valid_values=prop_dict['values'],
+                                                                          layer_id=l.layer_id)
+                        else:
+                            graph_data.properties[prop_name].add_properties(prop_dict['values'], l.layer_id)
                     pass
 
                 """

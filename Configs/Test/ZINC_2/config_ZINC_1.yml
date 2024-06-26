@@ -1,0 +1,130 @@
+paths:
+  # all the paths are relative to the PYTHONPATH path
+  data:
+    "Data/BenchmarkGraphs/" # Path to the folder containing the graph data
+  properties:
+    "../../Data/GraphData/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Data/Labels/" # Path to the folder containing the labels
+  results:
+    "../../RESULTS/RuleGNN/TEST/" # Results will be saved in this folder
+  splits:
+    "Data/Splits/" # Path to the folder containing the data splits
+
+task:
+  regression
+
+device:
+  cpu
+mode:
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+batch_size:
+  - 128
+learning_rate:
+  - 0.005
+epochs:
+  - 200
+scheduler:
+  False
+dropout:
+  - 0.0
+optimizer:
+  - Adam
+loss:
+  - MeanAbsoluteError
+early_stopping:
+  enabled:
+    False
+  patience:
+    25
+networks:
+
+  - - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+  - - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+  - - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3]}}
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+  - - { layer_type: primary, properties: { name: circle_distances, values: [ 'no_circles' ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'in_circles' ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'circles' ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'out_circles' ] } }
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1,2,3 ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+  - - { layer_type: primary, properties: { name: circle_distances, values: [ 'in_circles' ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'circles' ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'out_circles' ] } }
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1,2,3 ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+  - - { layer_type: primary, properties: { name: circle_distances, values: [ 'in_circles' ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 8, properties: { name: circle_distances, values: [ 'circles' ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'out_circles' ] } }
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1,2,3 ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+  - - { layer_type: simple_cycles, max_cycle_length: 8, properties: { name: circle_distances, values: [ 'in_circles' ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 8, properties: { name: circle_distances, values: [ 'circles' ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 8, properties: { name: circle_distances, values: [ 'out_circles' ] } }
+    - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1,2,3 ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 50 }
+
+use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
+  True
+use_attributes: # if True uses node attributes instead of node labels
+  False
+random_variation: # if True adds random variation to the input features
+  False
+load_splits: # if True loads precomputed data splits (use False only for new datasets)
+  True
+
+# data options
+balance_training:
+  False
+
+# Additional options for analysis only possible in debug mode
+additional_options:
+  draw: # draw the accuracy and loss during training
+    True
+  save_weights: # save the weights of the model
+    False
+  save_prediction_values:
+    True
+  plot_graphs: # Plot all graphs in the dataset
+    False
+  print_results: # Print accuracy and loss in the console
+    True
+
+
+prune:
+  enabled:
+    False
+  epochs: # prune after this many epochs
+    25
+  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+    - 0.999
+    - 0.5
+
+precision:
+  double
+
+best_model:
+  True
+save_last:
+  True
+
+config_id:
+  1000

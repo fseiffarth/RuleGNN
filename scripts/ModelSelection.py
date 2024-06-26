@@ -22,6 +22,29 @@ from utils.Parameters import Parameters
 from utils.RunConfiguration import RunConfiguration
 
 
+def get_run_configs(configs):
+    # define the network type from the config file
+    run_configs = []
+    task = "classification"
+    if 'task' in configs:
+        task = configs['task']
+    # iterate over all network architectures
+    for network_architecture in configs['networks']:
+        layers = []
+        # get all different run configurations
+        for i, l in enumerate(network_architecture):
+            layers.append(Layer(l, i))
+        for b in configs['batch_size']:
+            for lr in configs['learning_rate']:
+                for e in configs['epochs']:
+                    for d in configs['dropout']:
+                        for o in configs['optimizer']:
+                            for loss in configs['loss']:
+                                run_configs.append(
+                                    RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss, task))
+    return run_configs
+
+
 @click.command()
 @click.option('--graph_db_name', default="MUTAG", type=str, help='Database name')
 @click.option('--validation_number', default=10, type=int)
@@ -93,25 +116,7 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
                 for i in range(len(graph_data.inputs)):
                     graph_data.inputs[i] = graph_data.inputs[i].double()
 
-        # define the network type from the config file
-        run_configs = []
-        task = "classification"
-        if 'task' in configs:
-            task = configs['task']
-        # iterate over all network architectures
-        for network_architecture in configs['networks']:
-            layers = []
-            # get all different run configurations
-            for i, l in enumerate(network_architecture):
-                layers.append(Layer(l, i))
-            for b in configs['batch_size']:
-                for lr in configs['learning_rate']:
-                    for e in configs['epochs']:
-                        for d in configs['dropout']:
-                            for o in configs['optimizer']:
-                                for loss in configs['loss']:
-                                    run_configs.append(
-                                        RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss, task))
+        run_configs = get_run_configs(configs)
 
         for config_id, run_config in enumerate(run_configs):
             if 'config_id' in configs:
@@ -123,7 +128,7 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
                               configs)
         # copy config file to the results directory if it is not already there
         if not os.path.exists(f"{r_path}{graph_db_name}/config.yml"):
-            os.system(f"cp {config} {r_path}{graph_db_name}/config.yml")
+            os.system(f"cp {absolute_path}{config} {r_path}{graph_db_name}/config.yml")
     else:
         #print that config file is not provided
         print("Please provide a configuration file")

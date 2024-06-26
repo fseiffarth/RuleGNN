@@ -124,6 +124,27 @@ class Properties:
                 self.valid_values[layer_id] = tmp_valid_values
             else:
                 self.valid_values[layer_id] = valid_values
+        elif self.name == 'circle_distances':
+            if type(valid_values[0]) == str:
+                for v in valid_values:
+                    if v == 'no_circles':
+                        for x in self.all_values:
+                            if x[1] == 0 and x[2] == 0:
+                                self.valid_values[layer_id].append(x)
+                    if v == 'circles':
+                        for x in self.all_values:
+                            if x[1] == 1 and x[2] == 1:
+                                self.valid_values[layer_id].append(x)
+                    if v == 'in_circles':
+                        for x in self.all_values:
+                            if x[1] == 0 and x[2] == 1:
+                                self.valid_values[layer_id].append(x)
+                    if v == 'out_circles':
+                        for x in self.all_values:
+                            if x[1] == 1 and x[2] == 0:
+                                self.valid_values[layer_id].append(x)
+            else:
+                self.valid_values[layer_id] = valid_values
         else:
             self.valid_values[layer_id] = valid_values
 

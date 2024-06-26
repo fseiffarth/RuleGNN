@@ -95,10 +95,14 @@ def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out
         # compress with gzip
         with open(out, 'wb') as f:
             f.write(gzip.compress(pickle_data))
-        v_properties = [f'{convert_to_list(x)}' for x in valid_properties]
+        v_properties = [convert_to_list(x) for x in valid_properties]
+        circle_properties = [convert_to_list(x) for x in valid_properties if x[1] == 1 and x[2] == 1]
+        no_circle_properties = [convert_to_list(x) for x in valid_properties if x[1] == 0 and x[2] == 0]
+        in_circle_properties = [convert_to_list(x) for x in valid_properties if x[1] == 0 and x[2] == 1]
+        out_circle_properties = [convert_to_list(x) for x in valid_properties if x[1] == 1 and x[2] == 0]
         # save an additional .info file that stores the set of valid_properties as a yml file
         valid_properties_dict = {"valid_values": list(v_properties), 'description': 'Distance, In cycle -> In cycle',
-                                 'list_of_values': f'{valid_properties}'}
+                                 'list_of_values': f'{valid_properties}', 'list_of_values_circle': f'{circle_properties}', 'list_of_values_no_circle': f'{no_circle_properties}', 'list_of_values_in_circle': f'{in_circle_properties}', 'list_of_values_out_circle': f'{out_circle_properties}'}
         with open(f"{out_path}{db_name}_circle_distances.yml", 'w') as f:
             yaml.dump(valid_properties_dict, f)
 
@@ -242,6 +246,7 @@ def main():
     write_distance_circle_properties(data_path=data_path, label_path=label_path, db_name='Mutagenicity', cutoff=None,
                                      out_path="Data/Properties/")
     write_distance_properties(data_path=data_path, db_name='Mutagenicity', cutoff=None, out_path="Data/Properties/")
+    write_distance_edge_properties(data_path=data_path, db_name='Mutagenicity', out_path="Data/Properties/")
 
     # IMDB-BINARY
     write_distance_properties(data_path=data_path, db_name='IMDB-BINARY', cutoff=None, out_path="Data/Properties/")

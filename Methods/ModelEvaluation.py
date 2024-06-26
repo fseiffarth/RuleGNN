@@ -236,10 +236,8 @@ class ModelEvaluation:
                     flatten_outputs = outputs.flatten().detach().numpy()
                     batch_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
                     batch_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
-                    epoch_mae += np.mean(np.abs(flatten_labels - flatten_outputs)) * (
-                            len(batch) / len(self.training_data))
-                    epoch_mae_std += np.std(np.abs(flatten_labels - flatten_outputs)) * (
-                            len(batch) / len(self.training_data))
+                    epoch_mae += batch_mae * (len(batch) / len(self.training_data))
+                    epoch_mae_std += batch_mae * (len(batch) / len(self.training_data))
 
                 if self.para.print_results:
                     if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
@@ -427,7 +425,11 @@ class ModelEvaluation:
                     # np array of correct/incorrect predictions
                     labels_argmax = np_labels.argmax(axis=1)
                     outputs_argmax = np_outputs.argmax(axis=1)
-                    np_correct = labels_argmax == outputs_argmax
+                    # change if task is regression
+                    if 'task' in self.para.configs and self.para.configs['task'] == 'regression':
+                        np_correct = np_labels - np_outputs
+                    else:
+                        np_correct = labels_argmax == outputs_argmax
                     # print entries of np_labels and np_outputs
                     for j, data_pos in enumerate(self.test_data, 0):
                         print(data_pos, np_labels[j], np_outputs[j], np_correct[j])
