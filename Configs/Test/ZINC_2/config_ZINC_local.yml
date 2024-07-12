@@ -18,9 +18,9 @@ device:
 mode:
   debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
-  - 16
+  - 128
 learning_rate:
-  - 0.001
+  - 0.005
 epochs:
   - 200
 scheduler:
@@ -37,10 +37,9 @@ early_stopping:
   patience:
     25
 networks:
-  - - { layer_type: primary, properties: { name: circle_distances, values: [ 'in_circles' ] } }
-    - { layer_type: primary, properties: { name: circle_distances, values: [ 'out_circles' ] } }
-    - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1,2,3 ] } }
-    - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1,2,3 ] } }
+  - - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1,2,3,4,5,6,7,8 ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'circles' ] } }
+    - { layer_type: primary, properties: { name: circle_distances, values: [ 'circles' ] } }
     - { layer_type: primary, properties: { name: circle_distances, values: [ 'circles' ] } }
     - { layer_type: simple_cycles, max_cycle_length: 50 }
 

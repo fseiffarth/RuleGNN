@@ -2,6 +2,7 @@ import os
 from typing import Dict
 
 import networkx as nx
+import numpy as np
 import torch
 import torch_geometric.data
 from torch_geometric.data import InMemoryDataset
@@ -12,6 +13,9 @@ import utils.ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from utils import NodeLabeling, EdgeLabeling
 from utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from utils.utils import load_graphs
+
+
+
 
 
 class GraphData:
@@ -26,6 +30,45 @@ class GraphData:
         self.one_hot_labels = []
         self.num_classes = 0
         self.max_nodes = 0
+
+    def __iadd__(self, other):
+        '''
+        Add another GraphData object to this one.
+        '''
+        if 'Union' in self.graph_db_name:
+            pass
+        else:
+            self.graph_db_name = f'Union_{self.graph_db_name}'
+        self.graph_db_name += f'_{other.graph_db_name}'
+        self.graphs += other.graphs
+        self.inputs += other.inputs
+
+        for key, value in other.node_labels.items():
+            if key in self.node_labels:
+                self.node_labels[key] += value
+            else:
+                self.node_labels[key] = value
+
+        for key, value in other.edge_labels.items():
+            if key in self.edge_labels:
+                self.edge_labels[key] += value
+            else:
+                self.edge_labels[key] = value
+
+        for key, value in other.properties.items():
+            if key in self.properties:
+                self.properties[key] += value
+            else:
+                self.properties[key] = value
+
+
+        self.graph_labels += other.graph_labels
+        self.one_hot_labels += other.one_hot_labels
+        self.num_classes = max(self.num_classes, other.num_classes)
+        self.max_nodes = max(self.max_nodes, other.max_nodes)
+
+
+
 
     def init_from_graph_db(self, path, graph_db_name, relabel_nodes=False, use_features=True, use_attributes=False):
 
@@ -191,7 +234,32 @@ class GraphData:
         return None
 
 
-def get_graph_data(db_name, data_path, use_features=None, use_attributes=None):
+class GraphDataUnion:
+    def __init__(self, db_names, graph_data):
+        self.graph_db_names = db_names
+        self.graph_name_to_index = {}
+
+        # merge all the graph data into one
+        self.graph_data = GraphData()
+        start_index = 0
+        for i, graph in enumerate(graph_data):
+            if i == 0:
+                self.graph_data = graph
+            else:
+                self.graph_data += graph
+            indices = np.arange(start_index, start_index + len(graph))
+            start_index += len(graph)
+            self.graph_name_to_index[graph.graph_db_name] = indices
+
+
+
+
+
+
+        self.graph_data = graph_data
+
+
+def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, relabel_nodes=True):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
@@ -224,7 +292,7 @@ def get_graph_data(db_name, data_path, use_features=None, use_attributes=None):
         graph_data.load_from_benchmark(db_name, data_path, use_features)
     else:
         graph_data = GraphData()
-        graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=True, use_features=use_features,
+        graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=relabel_nodes, use_features=use_features,
                                       use_attributes=use_attributes)
     return graph_data
 

@@ -11,15 +11,15 @@ paths:
   splits:
     "Data/Splits/" # Path to the folder containing the data splits
 device:
-  cpu
+  cuda
 mode:
-  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+  debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
   - 64
 learning_rate:
   - 0.05
 epochs:
-  - 500
+  - 100
 scheduler:
   False
 dropout:
@@ -93,7 +93,7 @@ additional_options:
   save_weights: # save the weights of the model
     False
   save_prediction_values:
-    True
+    False
   plot_graphs: # Plot all graphs in the dataset
     False
   print_results: # Print accuracy and loss in the console

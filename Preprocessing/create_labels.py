@@ -6,6 +6,7 @@ from networkx.algorithms.isomorphism import GraphMatcher
 
 from utils import NodeLabeling
 from utils import GraphData
+from utils.GraphData import GraphDataUnion
 
 
 def write_node_labels(file, node_labels):
@@ -19,6 +20,20 @@ def write_node_labels(file, node_labels):
                         f.write(f"{l}\n")
                     else:
                         f.write(f"{l}")
+
+
+
+def save_standard_labels_union(data_paths, db_names, label_path=None):
+    data = []
+    # if data_paths is a list then we have multiple data paths
+    if isinstance(data_paths, list):
+        for i, db_name in enumerate(db_names):
+            data.append(GraphData.get_graph_data(db_name, data_paths[i]))
+    else:
+        for i, db_name in enumerate(db_names):
+            data.append(GraphData.get_graph_data(db_name, data_paths))
+    union_graph = GraphDataUnion(db_names, data)
+
 
 
 def save_standard_labels(data_path, db_names, label_path=None):
@@ -320,16 +335,17 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
 
 
 def main():
-    data_path = "../GraphData/DS_all/"
+    data_path = "/home/mlai21/seiffart/Data/GraphData/DS_all/"
     #data_path = "Data/BenchmarkGraphs/"
     label_path = "Data/Labels/"
+    save_standard_labels_union(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], label_path=label_path)
     #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
     #               max_label_num=100000)
     #save_in_circle_labels(data_path, db_names=['ZINC'], length_bound=20, label_path=label_path)
     #save_in_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, label_path=label_path)
-    save_standard_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], label_path=label_path)
-    save_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, cycle_type='simple', label_path=label_path)
-    save_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, cycle_type='induced', label_path=label_path)
+    #save_standard_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], label_path=label_path)
+    #save_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, cycle_type='simple', label_path=label_path)
+    #save_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, cycle_type='induced', label_path=label_path)
     #save_in_circle_labels(data_path, db_names=['NCI1', 'NCI109', 'Mutagenicity'], length_bound=20, label_path=label_path)
     #save_subgraph_labels(data_path, db_names=['DHFR'], subgraphs=[nx.cycle_graph(6), nx.cycle_graph(5)], id=0)
     #save_standard_labels(data_path, db_names=['DHFR'])

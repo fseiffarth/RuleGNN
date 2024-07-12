@@ -34,6 +34,10 @@ class NodeLabels:
                         self.unique_node_labels[-1][l] += 1
             self.num_unique_node_labels = len(self.db_unique_node_labels)
 
+    def __iadd__(self, other):
+        pass
+
+
 
 def combine_node_labels(labels: List[NodeLabels]):
     # create tuples for each node

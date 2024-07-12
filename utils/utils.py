@@ -28,7 +28,7 @@ def get_k_lowest_nonzero_indices(tensor, k):
     return k_lowest_original_indices
 
 
-def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None, with_degree=False):
+def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None, with_degree=False, format=None):
     # save in two files DBName_Nodes.txt and DBName_Edges.txt
     # DBName_Nodes.txt has the following structure GraphId NodeId Feature1 Feature2 ...
     # DBName_Edges.txt has the following structure GraphId Node1 Node2 Feature1 Feature2 ...
@@ -79,22 +79,40 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None,
         # remove last empty line
         f.seek(f.tell() - 1, 0)
         f.truncate()
-    with open(path + db_name + "_Labels.txt", "w") as f:
-        if labels is not None:
-            for i, label in enumerate(labels):
-                if type(label) == int:
-                    f.write(str(i) + " " + str(label) + "\n")
-                elif type(label) == np.ndarray or type(label) == list:
-                    f.write(str(i) + " " + " ".join(map(str, label)) + "\n")
-                else:
-                    f.write(str(i) + " " + str(label) + "\n")
-        else:
-            for i in range(len(graphs)):
-                f.write(str(i) + " " + str(0) + "\n")
-        # remove last empty line
-        if f.tell() > 0:
-            f.seek(f.tell() - 1, 0)
-            f.truncate()
+    if format == 'NEL':
+        with open(path + db_name + "_Labels.txt", "w") as f:
+            if labels is not None:
+                for i, label in enumerate(labels):
+                    if type(label) == int:
+                        f.write(db_name + " " + str(i) + " " + str(label) + "\n")
+                    elif type(label) == np.ndarray or type(label) == list:
+                        f.write(db_name + " " + str(i) + " " + " ".join(map(str, label)) + "\n")
+                    else:
+                        f.write(db_name + " " + str(i) + " " + str(label) + "\n")
+            else:
+                for i in range(len(graphs)):
+                    f.write(db_name + " " + str(i) + " " + str(0) + "\n")
+            # remove last empty line
+            if f.tell() > 0:
+                f.seek(f.tell() - 1, 0)
+                f.truncate()
+    else:
+        with open(path + db_name + "_Labels.txt", "w") as f:
+            if labels is not None:
+                for i, label in enumerate(labels):
+                    if type(label) == int:
+                        f.write(str(i) + " " + str(label) + "\n")
+                    elif type(label) == np.ndarray or type(label) == list:
+                        f.write(str(i) + " " + " ".join(map(str, label)) + "\n")
+                    else:
+                        f.write(str(i) + " " + str(label) + "\n")
+            else:
+                for i in range(len(graphs)):
+                    f.write(str(i) + " " + str(0) + "\n")
+            # remove last empty line
+            if f.tell() > 0:
+                f.seek(f.tell() - 1, 0)
+                f.truncate()
 
 
 def load_graphs(path, db_name):

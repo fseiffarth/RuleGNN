@@ -8,7 +8,7 @@ from utils.Parameters.Parameters import Parameters
 
 
 class RuleGNN(nn.Module):
-    def __init__(self, graph_data: GraphData, para: Parameters, seed):
+    def __init__(self, graph_data: GraphData, para: Parameters, seed, device):
         super(RuleGNN, self).__init__()
         self.graph_data = graph_data
         self.para = para
@@ -35,14 +35,14 @@ class RuleGNN(nn.Module):
                         layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, n_kernels=1,
-                                                    bias=True, precision=torch.float).float().requires_grad_(
+                                                    bias=True, precision=torch.float, device=device).float().requires_grad_(
                             convolution_grad))
                 else:
                     self.net_layers.append(
                         layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, n_kernels=1,
-                                                    bias=True, precision=torch.double).double().requires_grad_(
+                                                    bias=True, precision=torch.double, device=device).double().requires_grad_(
                             convolution_grad))
             else:
                 if self.module_precision == 'float':
@@ -51,7 +51,7 @@ class RuleGNN(nn.Module):
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, out_features=self.aggregation_out_classes,
                                                     bias=True,
-                                                    precision=torch.float).float().requires_grad_(
+                                                    precision=torch.float, device=device).float().requires_grad_(
                             resize_grad))
                 else:
                     self.net_layers.append(
@@ -59,7 +59,7 @@ class RuleGNN(nn.Module):
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, out_features=self.aggregation_out_classes,
                                                     bias=True,
-                                                    precision=torch.double).double().requires_grad_(
+                                                    precision=torch.double, device=device).double().requires_grad_(
                             resize_grad))
 
         if 'linear_layers' in para.configs and para.configs['linear_layers'] > 0:

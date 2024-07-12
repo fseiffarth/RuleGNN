@@ -32,7 +32,8 @@ class ModelEvaluation:
         self.results_path = para.configs['paths']['results']
 
     def Run(self):
-        torch.set_num_threads(1)
+        # get gpu or cpu: not used at the moment
+        device = torch.device(self.para.configs['device'] if torch.cuda.is_available() else "cpu")
         dtype = torch.float
         if 'precision' in self.para.configs:
             if self.para.configs['precision'] == 'double':
@@ -45,11 +46,10 @@ class ModelEvaluation:
 
         net = RuleGNN.RuleGNN(graph_data=self.graph_data,
                               para=self.para,
-                              seed=self.seed)
+                              seed=self.seed, device=device)
+        # set the network to device
+        net.to(device)
 
-        # get gpu or cpu: not used at the moment
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        device = torch.device("cpu")
 
         timer = TimeClass()
 
@@ -156,6 +156,7 @@ class ModelEvaluation:
                 timer.measure("forward")
                 optimizer.zero_grad()
                 outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=dtype))
+                outputs = outputs.to(device)
 
                 # TODO batch in one matrix ?
                 for j, graph_id in enumerate(batch, 0):
@@ -174,7 +175,7 @@ class ModelEvaluation:
                         outputs[j] = net(self.graph_data.inputs[graph_id].to(device), graph_id)
                     timer.measure("forward_step")
 
-                labels = self.graph_data.one_hot_labels[batch]
+                labels = self.graph_data.one_hot_labels[batch].to(device)
 
                 loss = criterion(outputs, labels)
                 timer.measure("forward")
@@ -232,8 +233,8 @@ class ModelEvaluation:
                 # if num classes is one calculate the mae and mae_std or if the task is regression
                 if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
                     # flatten the labels and outputs
-                    flatten_labels = labels.flatten().detach().numpy()
-                    flatten_outputs = outputs.flatten().detach().numpy()
+                    flatten_labels = labels.flatten().detach().cpu().numpy()
+                    flatten_outputs = outputs.flatten().detach().cpu().numpy()
                     batch_mae = np.mean(np.abs(flatten_labels - flatten_outputs))
                     batch_mae_std = np.std(np.abs(flatten_labels - flatten_outputs))
                     epoch_mae += batch_mae * (len(batch) / len(self.training_data))

@@ -107,7 +107,7 @@ class RuleConvolutionLayer(nn.Module):
 
     def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData,
                  in_features, n_kernels=1, bias=True,
-                 precision=torch.float, *args,
+                 precision=torch.float, device='cpu', *args,
                  **kwargs):
         """
         Constructor of the GraphConvLayer
@@ -152,6 +152,7 @@ class RuleConvolutionLayer(nn.Module):
 
         self.para = parameters  # get the all the parameters of the experiment
         self.bias = bias  # use bias or not default is True
+        self.device = device  # set the device
 
         # Initialize the current weight matrix and bias vector
         self.current_W = torch.Tensor()
@@ -256,20 +257,20 @@ class RuleConvolutionLayer(nn.Module):
 
     def set_weights(self, input_size, pos):
         # reshape self.current_W to the size of the weight matrix and fill it with zeros
-        self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision)
+        self.current_W = torch.zeros((input_size, input_size * self.n_kernels), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[pos]
         if len(weight_distr) != 0:
             # get third column of the weight_distribution: the index of self.Param_W
-            param_indices = torch.tensor(weight_distr[:, 2]).long()
-            matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long()
+            param_indices = torch.tensor(weight_distr[:, 2]).long().to(self.device)
+            matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long().to(self.device)
             # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
             self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
 
     def set_bias(self, input_size, pos):
-        self.current_B = torch.zeros((input_size * self.n_kernels), dtype=self.precision)
+        self.current_B = torch.zeros((input_size * self.n_kernels), dtype=self.precision).to(self.device)
         bias_distr = self.bias_distribution[pos]
 
-        self.current_B[bias_distr[:, 0]] = torch.take(self.Param_b, torch.tensor(bias_distr[:, 1]))
+        self.current_B[bias_distr[:, 0]] = torch.take(self.Param_b, torch.tensor(bias_distr[:, 1]).to(self.device))
 
     def print_layer_info(self):
         print("Layer" + self.__class__.__name__)
@@ -309,7 +310,7 @@ class RuleConvolutionLayer(nn.Module):
 class RuleAggregationLayer(nn.Module):
     def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, in_features,
                  out_features, n_kernels=1,
-                 bias=True, precision=torch.float):
+                 bias=True, precision=torch.float, device='cpu'):
         super(RuleAggregationLayer, self).__init__()
 
         # id of the layer
@@ -321,6 +322,8 @@ class RuleAggregationLayer(nn.Module):
         self.precision = precision
         self.in_features = in_features
         self.out_features = out_features
+        # device
+        self.device = device
 
         self.node_labels = graph_data.node_labels[layer_info.get_layer_string()]
         n_node_labels = self.node_labels.num_unique_node_labels
@@ -405,11 +408,11 @@ class RuleAggregationLayer(nn.Module):
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
     def set_weights(self, input_size, pos):
-        self.current_W = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=self.precision)
+        self.current_W = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=self.precision).to(self.device)
         num_graphs_nodes = self.graph_data.graphs[pos].number_of_nodes()
         weight_distr = self.weight_distribution[pos]
-        param_indices = torch.tensor(weight_distr[:, 2])
-        matrix_indices = torch.tensor(weight_distr[:, 0:2]).T
+        param_indices = torch.tensor(weight_distr[:, 2]).long().to(self.device)
+        matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long().to(self.device)
         self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
         # divide the weights by the number of nodes in the graph
         self.current_W = self.current_W / num_graphs_nodes
