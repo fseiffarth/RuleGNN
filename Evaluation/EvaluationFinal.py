@@ -323,13 +323,13 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
         # iterate over the groups
         for name, group in groups:
             # get the maximum validation accuracy
-            max_val_acc = group['ValidationAccuracy'].max()
+            #max_val_acc = group['ValidationAccuracy'].max()
             # get the row with the maximum validation accuracy
-            max_row = group[group['ValidationAccuracy'] == max_val_acc]
+            #max_row = group[group['ValidationAccuracy'] == max_val_acc]
             # get the minimum validation loss if column exists
-            #if 'ValidationLoss' in group.columns:
-            #    max_val_acc = group['ValidationLoss'].min()
-            #    max_row = group[group['ValidationLoss'] == max_val_acc]
+            if 'ValidationLoss' in group.columns:
+                max_val_acc = group['ValidationLoss'].min()
+                max_row = group[group['ValidationLoss'] == max_val_acc]
 
             # get row with the minimum validation loss
             min_val_loss = max_row['ValidationLoss'].min()
@@ -406,8 +406,8 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
     print(f"Top {k} Validation Accuracies for {db_name}")
 
 
-    sort_key = 2
-    reversed_sort = True
+    sort_key = 4
+    reversed_sort = False
     if db_name == 'ZINC_original':
         sort_key = 8
         reversed_sort = False
@@ -690,7 +690,9 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
 
 def main():
-    model_selection_evaluation_mae(db_name='ZINC', path='TEST')
+    #model_selection_evaluation_mae(db_name='ZINC', path='TEST')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/share/experiments/rulegnn/test/')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/')
     #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper_Reproduced')
     #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper')
     #ids = [i for i in range(0, 51)]

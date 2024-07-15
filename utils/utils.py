@@ -115,7 +115,7 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None,
                 f.truncate()
 
 
-def load_graphs(path, db_name):
+def load_graphs(path, db_name, format=None):
     graphs = []
     labels = []
     with open(path + db_name + "_Nodes.txt", "r") as f:
@@ -137,29 +137,56 @@ def load_graphs(path, db_name):
             node2 = int(data[2])
             feature = list(map(float, data[3:]))
             graphs[graph_id].add_edge(node1, node2, label=feature)
-    with open(path + db_name + "_Labels.txt", "r") as f:
-        lines = f.readlines()
-        for line in lines:
-            data = line.strip().split(" ")
-            graph_id = int(data[0])
-            if len(data) == 2:
-                # first try to convert to int
-                try:
-                    label = int(data[1])
-                except:
-                    # if it fails convert to float
+    if format == 'NEL':
+        with open(path + db_name + "_Labels.txt", "r") as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                data = line.strip().split(" ")
+                graph_name = data[0]
+                graphs[i].name = graph_name
+                graph_id = int(data[1])
+                if len(data) == 3:
+                    # first try to convert to int
                     try:
-                        label = float(data[1])
+                        label = int(data[2])
                     except:
-                        # if it fails raise an error
-                        raise ValueError("Label is not in the correct format")
+                        # if it fails convert to float
+                        try:
+                            label = float(data[2])
+                        except:
+                            # if it fails raise an error
+                            raise ValueError("Label is not in the correct format")
 
-            else:
-                label = list(map(float, data[1:]))
+                else:
+                    label = list(map(float, data[2:]))
 
-            while len(labels) <= graph_id:
-                labels.append(label)
-            labels[graph_id] = label
+                while len(labels) <= graph_id:
+                    labels.append(label)
+                labels[graph_id] = label
+    else:
+        with open(path + db_name + "_Labels.txt", "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                data = line.strip().split(" ")
+                graph_id = int(data[0])
+                if len(data) == 2:
+                    # first try to convert to int
+                    try:
+                        label = int(data[1])
+                    except:
+                        # if it fails convert to float
+                        try:
+                            label = float(data[1])
+                        except:
+                            # if it fails raise an error
+                            raise ValueError("Label is not in the correct format")
+
+                else:
+                    label = list(map(float, data[1:]))
+
+                while len(labels) <= graph_id:
+                    labels.append(label)
+                labels[graph_id] = label
     return graphs, labels
 
 
@@ -214,3 +241,6 @@ def convert_to_list(value: Any):
             if type(v) == tuple:
                 value[i] = list(v)
         return value
+
+
+

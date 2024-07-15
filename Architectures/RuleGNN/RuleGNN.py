@@ -26,7 +26,6 @@ class RuleGNN(nn.Module):
         else:
             self.aggregation_out_classes = out_classes
 
-
         self.net_layers = nn.ModuleList()
         for i, layer in enumerate(para.layers):
             if i < len(para.layers) - 1:
@@ -35,21 +34,24 @@ class RuleGNN(nn.Module):
                         layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, n_kernels=1,
-                                                    bias=True, precision=torch.float, device=device).float().requires_grad_(
+                                                    bias=True, precision=torch.float,
+                                                    device=device).float().requires_grad_(
                             convolution_grad))
                 else:
                     self.net_layers.append(
                         layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, n_kernels=1,
-                                                    bias=True, precision=torch.double, device=device).double().requires_grad_(
+                                                    bias=True, precision=torch.double,
+                                                    device=device).double().requires_grad_(
                             convolution_grad))
             else:
                 if self.module_precision == 'float':
                     self.net_layers.append(
                         layers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
-                                                    in_features=n_node_features, out_features=self.aggregation_out_classes,
+                                                    in_features=n_node_features,
+                                                    out_features=self.aggregation_out_classes,
                                                     bias=True,
                                                     precision=torch.float, device=device).float().requires_grad_(
                             resize_grad))
@@ -57,7 +59,8 @@ class RuleGNN(nn.Module):
                     self.net_layers.append(
                         layers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
-                                                    in_features=n_node_features, out_features=self.aggregation_out_classes,
+                                                    in_features=n_node_features,
+                                                    out_features=self.aggregation_out_classes,
                                                     bias=True,
                                                     precision=torch.double, device=device).double().requires_grad_(
                             resize_grad))
@@ -66,9 +69,11 @@ class RuleGNN(nn.Module):
             for i in range(para.configs['linear_layers']):
                 if i < para.configs['linear_layers'] - 1:
                     if self.module_precision == 'float':
-                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).float())
+                        self.net_layers.append(
+                            nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).float())
                     else:
-                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).double())
+                        self.net_layers.append(
+                            nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).double())
                 else:
                     if self.module_precision == 'float':
                         self.net_layers.append(nn.Linear(self.aggregation_out_classes, out_classes, bias=True).float())
@@ -106,11 +111,13 @@ class RuleGNN(nn.Module):
                 else:
                     if i < len(self.net_layers) - 1:
                         x = self.af(layer(x))
+                        x = self.dropout(x)
                     else:
                         x = self.out_af(layer(x))
             else:
                 if i < len(self.net_layers) - 1:
                     x = self.af(layer(x, pos))
+                    x = self.dropout(x)
                 else:
                     x = self.out_af(layer(x, pos))
         return x

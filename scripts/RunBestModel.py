@@ -11,14 +11,14 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from GraphData.DataSplits.load_splits import Load_Splits
 from utils.GraphData import get_graph_data
 from utils.load_labels import load_labels
 from Architectures.RuleGNN.RuleGNNLayers import Layer
 from utils import GraphData, ReadWriteGraphs as gdtgl
 from Methods.ModelEvaluation import ModelEvaluation
 from utils.Parameters import Parameters
-from utils.RunConfiguration import RunConfiguration
+from utils.RunConfiguration import RunConfiguration, get_run_configs
+from ModelSelection import run_configuration
 
 
 @click.command()
@@ -26,21 +26,30 @@ from utils.RunConfiguration import RunConfiguration
 @click.option('--run_id', default=0, type=int)
 @click.option('--validation_number', default=10, type=int)
 @click.option('--validation_id', default=0, type=int)
+@click.option('--graph_format', default=None, type=str)
+@click.option('--transfer', default=None, type=str)
 @click.option('--config', default=None, type=str)
+@click.option('--evaluation_type', default='loss', type=str)
 # current configuration
 #--graph_db_name NCI1 --config config.yml
 
-def main(graph_db_name, run_id, validation_number, validation_id, config):
+def main(graph_db_name, run_id, validation_number, validation_id, graph_format, transfer, config, evaluation_type):
     if config is not None:
+        absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         # read the config yml file
-        configs = yaml.safe_load(open(config))
-        # set best_run to True
-        configs['best_model'] = True
+        configs = yaml.safe_load(open(absolute_path + "/" + config))
         # get the data path from the config file
+        # add absolute path to the config data paths
+        configs['paths']['data'] = absolute_path + "/" + configs['paths']['data']
+        configs['paths']['results'] = absolute_path + "/" + configs['paths']['results']
+        configs['paths']['labels'] = absolute_path + "/" + configs['paths']['labels']
+        configs['paths']['properties'] = absolute_path + "/" + configs['paths']['properties']
+        configs['paths']['splits'] = absolute_path + "/" + configs['paths']['splits']
+        configs['format'] = graph_format
+        configs['transfer'] = transfer
+
         data_path = configs['paths']['data']
         r_path = configs['paths']['results']
-        distance_path = configs['paths']['distances']
-        splits_path = configs['paths']['splits']
 
         # if not exists create the results directory
         if not os.path.exists(r_path):
@@ -81,27 +90,17 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
         """
         Create Input data, information and labels from the graphs for training and testing
         """
-        graph_data = get_graph_data(graph_db_name, data_path, distance_path, use_features=configs['use_features'],
-                                    use_attributes=configs['use_attributes'])
+        graph_data = get_graph_data(db_name=graph_db_name, data_path=data_path, use_features=configs['use_features'],
+                                    use_attributes=configs['use_attributes'], format=graph_format)
+        # adapt the precision of the input data
+        if 'precision' in configs:
+            if configs['precision'] == 'double':
+                for i in range(len(graph_data.inputs)):
+                    graph_data.inputs[i] = graph_data.inputs[i].double()
 
-        # define the network type from the config file
-        run_configs = []
-        # iterate over all network architectures
-        for network_architecture in configs['networks']:
-            layers = []
-            # get all different run configurations
-            for l in network_architecture:
-                layers.append(Layer(l))
-            for b in configs['batch_size']:
-                for lr in configs['learning_rate']:
-                    for e in configs['epochs']:
-                        for d in configs['dropout']:
-                            for o in configs['optimizer']:
-                                for loss in configs['loss']:
-                                    run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
-
+        run_configs = get_run_configs(configs)
         # get the best configuration and run it
-        config_id = get_best_configuration(graph_db_name, configs)
+        config_id = get_best_configuration(graph_db_name, configs, type=evaluation_type)
 
         c_id = f'Best_Configuration_{str(config_id).zfill(6)}'
         run_configuration(c_id, run_configs[config_id], graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
@@ -109,109 +108,7 @@ def main(graph_db_name, run_id, validation_number, validation_id, config):
         #print that config file is not provided
         print("Please provide a configuration file")
 
-
-def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters):
-    """
-    Split the data in training validation and test set
-    """
-    seed = 56874687 + validation_id + para.n_val_runs * run_id
-    data = Load_Splits(para.splits_path, para.db)
-    test_data = np.asarray(data[0][validation_id], dtype=int)
-    training_data = np.asarray(data[1][validation_id], dtype=int)
-    validate_data = np.asarray(data[2][validation_id], dtype=int)
-
-    method = ModelEvaluation(run_id, validation_id, graph_data, training_data, validate_data, test_data, seed, para)
-
-    """
-    Run the method
-    """
-    method.Run()
-
-
-def run_configuration(config_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number, configs):
-    # get the data path from the config file
-    data_path = configs['paths']['data']
-    r_path = configs['paths']['results']
-    distance_path = configs['paths']['distances']
-    splits_path = configs['paths']['splits']
-    # path do db and db
-    results_path = r_path + graph_db_name + "/Results/"
-    print_layer_init = True
-    # if debug mode is on, turn on all print and draw options
-    if configs['mode'] == "debug":
-        draw = configs['additional_options']['draw']
-        print_results = configs['additional_options']['print_results']
-        save_prediction_values = configs['additional_options']['save_prediction_values']
-        save_weights = configs['additional_options']['save_weights']
-        plot_graphs = configs['additional_options']['plot_graphs']
-    # if fast mode is on, turn off all print and draw options
-    if configs['mode'] == "experiments":
-        draw = False
-        print_results = False
-        save_weights = False
-        save_prediction_values = False
-        plot_graphs = False
-        print_layer_init = False
-    for l in run_config.layers:
-        label_path = f"Data/Labels/{graph_db_name}_{l.get_layer_string()}_labels.txt"
-        if os.path.exists(label_path):
-            g_labels = load_labels(path=label_path)
-            graph_data.node_labels[l.get_layer_string()] = g_labels
-        else:
-            # raise an error if the file does not exist
-            raise FileNotFoundError(f"File {label_path} does not exist")
-
-    para = Parameters.Parameters()
-
-    """
-        BenchmarkGraphs parameters
-    """
-    para.set_data_param(path=data_path, results_path=results_path,
-                        splits_path=splits_path,
-                        db=graph_db_name,
-                        max_coding=1,
-                        layers=run_config.layers,
-                        batch_size=run_config.batch_size, node_features=1,
-                        load_splits=configs['load_splits'],
-                        configs=configs,
-                        run_config=run_config, )
-
-    """
-        Network parameters
-    """
-    para.set_evaluation_param(run_id=run_id, n_val_runs=validation_number, validation_id=validation_id,
-                              config_id=config_id,
-                              n_epochs=run_config.epochs,
-                              learning_rate=run_config.lr, dropout=run_config.dropout,
-                              balance_data=configs['balance_training'],
-                              convolution_grad=True,
-                              resize_graph=True)
-
-    """
-    Print, save and draw parameters
-    """
-    para.set_print_param(no_print=False, print_results=print_results, net_print_weights=True, print_number=1,
-                         draw=draw, save_weights=save_weights,
-                         save_prediction_values=save_prediction_values, plot_graphs=plot_graphs,
-                         print_layer_init=print_layer_init)
-
-    """
-        Get the first index in the results directory that is not used
-    """
-    para.set_file_index(size=6)
-
-    if para.plot_graphs:
-        # if not exists create the directory
-        if not os.path.exists(f"{r_path}{para.db}/Plots"):
-            os.makedirs(f"{r_path}{para.db}/Plots")
-        for i in range(0, len(graph_data.graphs)):
-            gdtgl.draw_graph(graph_data.graphs[i], graph_data.graph_labels[i],
-                             f"{r_path}{para.db}/Plots/graph_{str(i).zfill(5)}.png")
-
-    validation_step(para.run_id, para.validation_id, graph_data, para)
-
-
-def get_best_configuration(db_name, configs) -> int:
+def get_best_configuration(db_name, configs, type='loss') -> int:
     evaluation = {}
     # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
     # ge all those files
@@ -245,14 +142,16 @@ def get_best_configuration(db_name, configs) -> int:
         indices = []
         # get the best validation accuracy for each validation run
         for name, group in groups:
-            # get the maximum validation accuracy
-            max_val_acc = group['ValidationAccuracy'].max()
-            # get the row with the maximum validation accuracy
-            max_row = group[group['ValidationAccuracy'] == max_val_acc]
-            # get the minimum validation loss if column exists
-            #if 'ValidationLoss' in group.columns:
-            #    max_val_acc = group['ValidationLoss'].min()
-            #    max_row = group[group['ValidationLoss'] == max_val_acc]
+            if type == 'accuracy':
+                # get the maximum validation accuracy
+                max_val_acc = group['ValidationAccuracy'].max()
+                # get the row with the maximum validation accuracy
+                max_row = group[group['ValidationAccuracy'] == max_val_acc]
+            elif type == 'loss':
+                # get the minimum validation loss if column exists
+                if 'ValidationLoss' in group.columns:
+                    max_val_acc = group['ValidationLoss'].min()
+                    max_row = group[group['ValidationLoss'] == max_val_acc]
 
             # get row with the minimum validation loss
             min_val_loss = max_row['ValidationLoss'].min()
@@ -296,11 +195,17 @@ def get_best_configuration(db_name, configs) -> int:
     # print the evaluation items with the k highest validation accuracies
     print(f"Top 5 Validation Accuracies for {db_name}")
     k = 5
-    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
+    if type == 'accuracy':
+        sort_key = 2
+        reversed_sort = True
+    elif type == 'loss':
+        sort_key = 4
+        reversed_sort = False
+    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sort_key], reverse=reversed_sort)
 
 
     for i in range(min(k, len(sorted_evaluation))):
-        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
+        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sort_key], reverse=reversed_sort)
 
     # print the id of the best configuration
     print(f"Best configuration: {sorted_evaluation[0][0]}")

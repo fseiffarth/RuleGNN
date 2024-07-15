@@ -19,41 +19,22 @@ from utils import GraphData, ReadWriteGraphs as gdtgl
 from Methods.ModelEvaluation import ModelEvaluation
 from utils.GraphLabels import combine_node_labels, Properties
 from utils.Parameters import Parameters
-from utils.RunConfiguration import RunConfiguration
-
-
-def get_run_configs(configs):
-    # define the network type from the config file
-    run_configs = []
-    task = "classification"
-    if 'task' in configs:
-        task = configs['task']
-    # iterate over all network architectures
-    for network_architecture in configs['networks']:
-        layers = []
-        # get all different run configurations
-        for i, l in enumerate(network_architecture):
-            layers.append(Layer(l, i))
-        for b in configs['batch_size']:
-            for lr in configs['learning_rate']:
-                for e in configs['epochs']:
-                    for d in configs['dropout']:
-                        for o in configs['optimizer']:
-                            for loss in configs['loss']:
-                                run_configs.append(
-                                    RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss, task))
-    return run_configs
+from utils.RunConfiguration import RunConfiguration, get_run_configs
 
 
 @click.command()
 @click.option('--graph_db_name', default="MUTAG", type=str, help='Database name')
 @click.option('--validation_number', default=10, type=int)
 @click.option('--validation_id', default=0, type=int)
+@click.option('--graph_format', default=None, type=str)
+@click.option('--transfer', default=None, type=str)
 @click.option('--config', default=None, type=str)
+#@click.option('-−transfer_learning', default='no_transfer', case_sensitive=False, type=str)
 # current configuration
 #--graph_db_name NCI1 --config Configs/config_NCI1_test.yml --validation_number 10 --validation_id 0
+#--graph_db_name IMDB-BINARY_IMDB-MULTI --config Configs/Test/config_IMDB.yml --validation_number 10 --validation_id 0 --format NEL --transfer mixed
 
-def main(graph_db_name, validation_number, validation_id, config, run_id=0):
+def main(graph_db_name, validation_number, validation_id, graph_format, transfer, config, run_id=0):
     if config is not None:
         absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         # read the config yml file
@@ -65,6 +46,8 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         configs['paths']['labels'] = absolute_path + "/" + configs['paths']['labels']
         configs['paths']['properties'] = absolute_path + "/" + configs['paths']['properties']
         configs['paths']['splits'] = absolute_path + "/" + configs['paths']['splits']
+        configs['format'] = graph_format
+        configs['transfer'] = transfer
 
         data_path = configs['paths']['data']
         r_path = configs['paths']['results']
@@ -109,7 +92,7 @@ def main(graph_db_name, validation_number, validation_id, config, run_id=0):
         Create Input data, information and labels from the graphs for training and testing
         """
         graph_data = get_graph_data(db_name=graph_db_name, data_path=data_path, use_features=configs['use_features'],
-                                    use_attributes=configs['use_attributes'])
+                                    use_attributes=configs['use_attributes'], format=graph_format)
         # adapt the precision of the input data
         if 'precision' in configs:
             if configs['precision'] == 'double':
@@ -139,7 +122,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     Split the data in training validation and test set
     """
     seed = 56874687 + validation_id + para.n_val_runs * run_id
-    data = Load_Splits(para.splits_path, para.db)
+    data = Load_Splits(para.splits_path, para.db, para.configs['transfer'])
     test_data = np.asarray(data[0][validation_id], dtype=int)
     training_data = np.asarray(data[1][validation_id], dtype=int)
     validate_data = np.asarray(data[2][validation_id], dtype=int)

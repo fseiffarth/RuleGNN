@@ -152,9 +152,9 @@ class GraphData:
         labels.db_unique_node_labels = db_unique
         pass
 
-    def load_from_benchmark(self, db_name, path, use_features=True, task=None):
+    def load_from_benchmark(self, db_name, path, use_features=True, task=None, format=None):
         self.graph_db_name = db_name
-        self.graphs, self.graph_labels = load_graphs(f'{path}/{db_name}/raw/', db_name)
+        self.graphs, self.graph_labels = load_graphs(f'{path}/{db_name}/raw/', db_name, format=format)
         self.num_graphs = len(self.graphs)
         if task == 'regression':
             self.num_classes = 1
@@ -259,41 +259,47 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, relabel_nodes=True):
+def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, relabel_nodes=True, format=None):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
     :param data_path: str - path to the data
     :param use_features: bool - whether to use node features
     :param use_attributes: bool - whether to use node attributes
+    :param relabel_nodes: bool - whether to relabel nodes
+    :param format: str - format of the data NEL: node edge label format
 
     """
     # load the graph data
-    if db_name == 'CSL_original':
-        from Preprocessing.csl import CSL
-        csl = CSL()
-        graph_data = csl.get_graphs(with_distances=False)
-    elif db_name == 'CSL':
+    if format == 'NEL':
         graph_data = GraphData()
-        graph_data.load_from_benchmark(db_name, data_path, use_features)
-    elif db_name == 'ZINC_original':
-        zinc_train = ZINC(root="../../ZINC_original/", subset=True, split='train')
-        zinc_val = ZINC(root="../../ZINC_original/", subset=True, split='val')
-        zinc_test = ZINC(root="../../ZINC_original/", subset=True, split='test')
-        graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
-    elif db_name == 'ZINC':
-        graph_data = GraphData()
-        graph_data.load_from_benchmark(db_name, data_path, use_features, task='regression')
-    elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or (
-            'Snowflakes' in db_name):
-        graph_data = GraphData()
-        # add db_name and raw to the data path
-        data_path = data_path + db_name + "/raw/"
-        graph_data.load_from_benchmark(db_name, data_path, use_features)
+        graph_data.load_from_benchmark(db_name, data_path, use_features, format='NEL')
     else:
-        graph_data = GraphData()
-        graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=relabel_nodes, use_features=use_features,
-                                      use_attributes=use_attributes)
+        if db_name == 'CSL_original':
+            from Preprocessing.csl import CSL
+            csl = CSL()
+            graph_data = csl.get_graphs(with_distances=False)
+        elif db_name == 'CSL':
+            graph_data = GraphData()
+            graph_data.load_from_benchmark(db_name, data_path, use_features)
+        elif db_name == 'ZINC_original':
+            zinc_train = ZINC(root="../../ZINC_original/", subset=True, split='train')
+            zinc_val = ZINC(root="../../ZINC_original/", subset=True, split='val')
+            zinc_test = ZINC(root="../../ZINC_original/", subset=True, split='test')
+            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
+        elif db_name == 'ZINC':
+            graph_data = GraphData()
+            graph_data.load_from_benchmark(db_name, data_path, use_features, task='regression')
+        elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or (
+                'Snowflakes' in db_name):
+            graph_data = GraphData()
+            # add db_name and raw to the data path
+            data_path = data_path + db_name + "/raw/"
+            graph_data.load_from_benchmark(db_name, data_path, use_features)
+        else:
+            graph_data = GraphData()
+            graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=relabel_nodes, use_features=use_features,
+                                          use_attributes=use_attributes)
     return graph_data
 
 

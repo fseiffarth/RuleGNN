@@ -23,22 +23,9 @@ def write_node_labels(file, node_labels):
 
 
 
-def save_standard_labels_union(data_paths, db_names, label_path=None):
-    data = []
-    # if data_paths is a list then we have multiple data paths
-    if isinstance(data_paths, list):
-        for i, db_name in enumerate(db_names):
-            data.append(GraphData.get_graph_data(db_name, data_paths[i]))
-    else:
-        for i, db_name in enumerate(db_names):
-            data.append(GraphData.get_graph_data(db_name, data_paths))
-    union_graph = GraphDataUnion(db_names, data)
-
-
-
-def save_standard_labels(data_path, db_names, label_path=None):
+def save_standard_labels(data_path, db_names, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path,format=format)
         node_labels = graph_data.node_labels['primary'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
@@ -76,9 +63,9 @@ def save_standard_labels(data_path, db_names, label_path=None):
                 write_node_labels(file, node_labels)
 
 
-def save_trivial_labels(data_path, db_names, label_path=None):
+def save_trivial_labels(data_path, db_names, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
         node_labels = graph_data.node_labels['primary'].node_labels
         # label 0 for all nodes
         node_labels = [[0 for _ in range(len(g_labels))] for g_labels in node_labels]
@@ -101,9 +88,9 @@ def save_node_labels(data_path, db_names, labels, name, max_label_num=None):
         write_node_labels(file, labels)
 
 
-def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
+def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
         l = f'wl_{max_iterations}'
 
         graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
@@ -112,13 +99,16 @@ def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None):
         node_labels = graph_data.node_labels[f'{l}_{max_label_num}'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
-        file = f"../{db_name}_{l}_{max_label_num}_labels.txt"
+        if label_path is None:
+            raise ValueError("No label path given")
+        else:
+            file = f"{label_path}{db_name}_{l}_{max_label_num}_labels.txt"
         write_node_labels(file, node_labels)
 
 
-def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None):
+def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
         cycle_dict = []
         for graph in graph_data.graphs:
             cycle_dict.append({})
@@ -175,9 +165,9 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
         write_node_labels(file, labels)
 
 
-def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None):
+def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
         node_in_cycle = []
         for graph in graph_data.graphs:
             node_in_cycle.append({})
@@ -205,9 +195,9 @@ def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None):
 
 
 
-def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None):
+def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
         subgraph_dict = []
         for i, graph in enumerate(graph_data.graphs):
             # print the progress
@@ -255,9 +245,9 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='su
         write_node_labels(file, labels)
 
 
-def save_clique_labels(data_path, db_names, max_clique=6, label_path=None):
+def save_clique_labels(data_path, db_names, max_clique=6, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path)
+        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
         clique_dict = []
         for graph in graph_data.graphs:
             clique_dict.append({})

@@ -12,11 +12,11 @@ import copy
 from utils.utils import convert_to_list
 
 
-def write_distance_properties(data_path, db_name, cutoff, out_path="") -> None:
+def write_distance_properties(data_path, db_name, cutoff, out_path="", format=None) -> None:
     out = f"{out_path}{db_name}_distances.prop"
     # check if the file already exists and if not create it
     if not os.path.exists(out):
-        graph_data = get_graph_data(db_name=db_name, data_path=data_path)
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path, format=format)
         distances = []
         valid_properties = set()
         for graph in graph_data.graphs:

@@ -1,11 +1,14 @@
 import os
 
-from Preprocessing.create_labels import save_standard_labels
+from Preprocessing.create_labels import save_standard_labels, save_circle_labels, save_subgraph_labels, \
+    save_clique_labels
 from Preprocessing.create_properties import write_distance_properties
+from Preprocessing.create_splits import create_splits, create_transfer_splits
 from utils.GraphData import get_graph_data
 from utils.load_labels import load_labels
 from Architectures.RuleGNN.RuleGNNLayers import Layer
 from utils.utils import save_graphs
+import networkx as nx
 
 
 def create_dataset(dataset_name, layers=None, with_degree=False):
@@ -105,16 +108,19 @@ def combine_nel_graphs(dataset_names):
 
 
 def main():
-    #create_dataset('IMDB-BINARY')
-    #create_dataset('IMDB-MULTI')
     combine_nel_graphs(['IMDB-BINARY', 'IMDB-MULTI'])
     write_distance_properties(data_path="Data/NEL_Format/", db_name='IMDB-BINARY_IMDB-MULTI', cutoff=2, out_path="Data/Properties/", format='NEL')
-    save_standard_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], label_path="Data/Labels/", format='NEL')
-    #create_dataset('NCI109')
-    #create_dataset('NCI1')
-    #create_dataset('Mutagenicity')
-    #create_dataset('DHFR')
-
+    #save_standard_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], label_path="Data/Labels/", format='NEL')
+#    for cycle_type in ['induced']:
+#        for cycle_length in [3,4,5,6,10,20,50]:
+#            save_circle_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], cycle_type=cycle_type, length_bound=cycle_length, label_path="Data/Labels/", format='NEL')
+#    for clique_size in [3,4,5,6,10,20,50]:
+#        save_clique_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], max_clique=clique_size, label_path="Data/Labels/", format='NEL')
+    # create subgraph labels
+#    save_subgraph_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], label_path="Data/Labels/", id=1, format='NEL')
+#    create_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", format='NEL')
+    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", data_format='NEL', split_type='transfer')
+    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", data_format='NEL', split_type='mixed')
 
 
 

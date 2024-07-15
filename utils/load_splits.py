@@ -2,9 +2,18 @@ import json
 import pickle
 
 
-def Load_Splits(path, db_name):
+def Load_Splits(path, db_name, transfer=None):
     splits = None
-    with open(f"{path}/{db_name}_splits.json", "rb") as f:
+    appendix = ""
+    if transfer is not None:
+        if transfer == "transfer":
+            appendix = "_transfer"
+        elif transfer == "transfer_mixed":
+            appendix = "_mixed"
+        elif transfer == "transfer_random":
+            pass
+
+    with open(f"{path}/{db_name}_splits{appendix}.json", "rb") as f:
         splits = json.load(f)
 
     test_indices = [x['test'] for x in splits]
