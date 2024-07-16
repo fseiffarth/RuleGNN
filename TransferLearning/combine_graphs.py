@@ -105,22 +105,57 @@ def combine_nel_graphs(dataset_names):
                 # update the start index for the next dataset
             start_index += num_graphs_per_dataset[i]
 
+def transfer_IMDB():
+    create_dataset('IMDB-BINARY')
+    create_dataset('IMDB-MULTI')
+    combine_nel_graphs(['IMDB-BINARY', 'IMDB-MULTI'])
+    write_distance_properties(data_path="Data/NEL_Format/", db_name='IMDB-BINARY_IMDB-MULTI', cutoff=2,
+                              out_path="Data/Properties/", format='NEL')
+    save_standard_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], label_path="Data/Labels/", format='NEL')
+    for cycle_type in ['induced']:
+        for cycle_length in [3, 4, 5, 6, 10, 20, 50]:
+            save_circle_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], cycle_type=cycle_type,
+                               length_bound=cycle_length, label_path="Data/Labels/", format='NEL')
+    for clique_size in [3, 4, 5, 6, 10, 20, 50]:
+        save_clique_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], max_clique=clique_size,
+                           label_path="Data/Labels/", format='NEL')
+    # create subgraph labels
+    save_subgraph_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'],
+                         subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], label_path="Data/Labels/", id=1, format='NEL')
+    create_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", format='NEL')
+    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",
+                           data_format='NEL', split_type='transfer')
+    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",
+                           data_format='NEL', split_type='mixed')
 
+def transfer_PTC():
+    names = ['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR']
+    for name in names:
+        create_dataset(name)
+    combine_nel_graphs(names)
+    combined_name = '_'.join(names)
+    write_distance_properties(data_path="Data/NEL_Format/", db_name=combined_name, cutoff=2,
+                              out_path="Data/Properties/", format='NEL')
+    save_standard_labels(data_path="Data/NEL_Format/", db_names=[combined_name], label_path="Data/Labels/", format='NEL')
+    for cycle_type in ['induced']:
+        for cycle_length in [3, 4, 5, 6, 10, 20, 50]:
+            save_circle_labels(data_path="Data/NEL_Format/", db_names=[combined_name], cycle_type=cycle_type,
+                               length_bound=cycle_length, label_path="Data/Labels/", format='NEL')
+    for clique_size in [3, 4, 5, 6, 10, 20, 50]:
+        save_clique_labels(data_path="Data/NEL_Format/", db_names=[combined_name], max_clique=clique_size,
+                           label_path="Data/Labels/", format='NEL')
+    # create subgraph labels
+    save_subgraph_labels(data_path="Data/NEL_Format/", db_names=[combined_name],
+                         subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], label_path="Data/Labels/", id=1, format='NEL')
+    create_splits(db_name=combined_name, path="Data/NEL_Format/", output_path="Data/Splits/", format='NEL')
+    create_transfer_splits(db_name=combined_name, path="Data/NEL_Format/", output_path="Data/Splits/",
+                           data_format='NEL', split_type='transfer')
+    create_transfer_splits(db_name=combined_name, path="Data/NEL_Format/", output_path="Data/Splits/",
+                           data_format='NEL', split_type='mixed')
 
 def main():
-    combine_nel_graphs(['IMDB-BINARY', 'IMDB-MULTI'])
-    write_distance_properties(data_path="Data/NEL_Format/", db_name='IMDB-BINARY_IMDB-MULTI', cutoff=2, out_path="Data/Properties/", format='NEL')
-    #save_standard_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], label_path="Data/Labels/", format='NEL')
-#    for cycle_type in ['induced']:
-#        for cycle_length in [3,4,5,6,10,20,50]:
-#            save_circle_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], cycle_type=cycle_type, length_bound=cycle_length, label_path="Data/Labels/", format='NEL')
-#    for clique_size in [3,4,5,6,10,20,50]:
-#        save_clique_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], max_clique=clique_size, label_path="Data/Labels/", format='NEL')
-    # create subgraph labels
-#    save_subgraph_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], label_path="Data/Labels/", id=1, format='NEL')
-#    create_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", format='NEL')
-    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", data_format='NEL', split_type='transfer')
-    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", data_format='NEL', split_type='mixed')
+    # transfer_IMDB()
+    transfer_PTC()
 
 
 

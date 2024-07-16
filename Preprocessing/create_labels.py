@@ -328,7 +328,6 @@ def main():
     data_path = "/home/mlai21/seiffart/Data/GraphData/DS_all/"
     #data_path = "Data/BenchmarkGraphs/"
     label_path = "Data/Labels/"
-    save_standard_labels_union(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], label_path=label_path)
     #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
     #               max_label_num=100000)
     #save_in_circle_labels(data_path, db_names=['ZINC'], length_bound=20, label_path=label_path)

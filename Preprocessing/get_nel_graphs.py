@@ -105,15 +105,11 @@ def combine_nel_graphs(dataset_names):
 
 
 def main():
-    #create_dataset('IMDB-BINARY')
-    #create_dataset('IMDB-MULTI')
-    combine_nel_graphs(['IMDB-BINARY', 'IMDB-MULTI'])
-    write_distance_properties(data_path="Data/NEL_Format/", db_name='IMDB-BINARY_IMDB-MULTI', cutoff=2, out_path="Data/Properties/", format='NEL')
-    save_standard_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], label_path="Data/Labels/", format='NEL')
     #create_dataset('NCI109')
     #create_dataset('NCI1')
     #create_dataset('Mutagenicity')
     #create_dataset('DHFR')
+    pass
 
 
 

@@ -272,7 +272,7 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
                 f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
-def model_selection_evaluation(db_name, path='Results', ids=None):
+def model_selection_evaluation(db_name, path='Results', ids=None, evaluation_type = 'accuracy'):
     # add absolute path to path
     path = os.path.abspath(path)
     print(f"Model Selection Evaluation for {db_name}")
@@ -322,14 +322,16 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
         indices = []
         # iterate over the groups
         for name, group in groups:
-            # get the maximum validation accuracy
-            #max_val_acc = group['ValidationAccuracy'].max()
-            # get the row with the maximum validation accuracy
-            #max_row = group[group['ValidationAccuracy'] == max_val_acc]
-            # get the minimum validation loss if column exists
-            if 'ValidationLoss' in group.columns:
-                max_val_acc = group['ValidationLoss'].min()
-                max_row = group[group['ValidationLoss'] == max_val_acc]
+            if evaluation_type == 'accuracy':
+                # get the maximum validation accuracy
+                max_val_acc = group['ValidationAccuracy'].max()
+                # get the row with the maximum validation accuracy
+                max_row = group[group['ValidationAccuracy'] == max_val_acc]
+            elif evaluation_type == 'loss':
+                # get the minimum validation loss if column exists
+                if 'ValidationLoss' in group.columns:
+                    max_val_acc = group['ValidationLoss'].min()
+                    max_row = group[group['ValidationLoss'] == max_val_acc]
 
             # get row with the minimum validation loss
             min_val_loss = max_row['ValidationLoss'].min()
@@ -405,9 +407,12 @@ def model_selection_evaluation(db_name, path='Results', ids=None):
     k = 10
     print(f"Top {k} Validation Accuracies for {db_name}")
 
-
-    sort_key = 4
-    reversed_sort = False
+    if evaluation_type == 'accuracy':
+        sort_key = 2
+        reversed_sort = True
+    elif evaluation_type == 'loss':
+        sort_key = 4
+        reversed_sort = False
     if db_name == 'ZINC_original':
         sort_key = 8
         reversed_sort = False
@@ -557,7 +562,7 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
             f"Test Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]}")
 
 
-def best_model_evaluation(db_name, path='Results', ids=None):
+def best_model_evaluation(db_name, path='Results', ids=None, evaluation_type = 'loss'):
     evaluation = {}
 
     if ids is None:
@@ -610,14 +615,16 @@ def best_model_evaluation(db_name, path='Results', ids=None):
                 index = max_row.name
                 indices.append(index)
             else:
-                # get the maximum validation accuracy
-                max_val_acc = group['ValidationAccuracy'].max()
-                # get the row with the maximum validation accuracy
-                max_row = group[group['ValidationAccuracy'] == max_val_acc]
-                # get the minimum validation loss if column exists
-                #if 'ValidationLoss' in group.columns:
-                #    max_val_acc = group['ValidationLoss'].min()
-                #    max_row = group[group['ValidationLoss'] == max_val_acc]
+                if evaluation_type == 'accuracy':
+                    # get the maximum validation accuracy
+                    max_val_acc = group['ValidationAccuracy'].max()
+                    # get the row with the maximum validation accuracy
+                    max_row = group[group['ValidationAccuracy'] == max_val_acc]
+                elif evaluation_type == 'loss':
+                    # get the minimum validation loss if column exists
+                    if 'ValidationLoss' in group.columns:
+                        max_val_acc = group['ValidationLoss'].min()
+                        max_row = group[group['ValidationLoss'] == max_val_acc]
 
                 # get row with the minimum validation loss
                 min_val_loss = max_row['ValidationLoss'].min()
@@ -678,11 +685,17 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
     # print the evaluation items with the k highest validation accuracies
     k = 10
+    if evaluation_type == 'accuracy':
+        sorted_key = 2
+        reversed_sort = True
+    elif evaluation_type == 'loss':
+        sorted_key = 4
+        reversed_sort = False
     print(f"Top {k} Validation Accuracies for {db_name}")
-    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][2], reverse=True)
+    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sorted_key], reverse=reversed_sort)
 
     for i in range(min(k, len(sorted_evaluation))):
-        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][2], reverse=True)
+        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sorted_key], reverse=reversed_sort)
         print(
             f"Id: {sorted_evaluation[i][0]} "
             f'Epoch Accuracy: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} '
@@ -691,8 +704,10 @@ def best_model_evaluation(db_name, path='Results', ids=None):
 
 def main():
     #model_selection_evaluation_mae(db_name='ZINC', path='TEST')
-    model_selection_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/share/experiments/rulegnn/test/')
-    model_selection_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/')
+    model_selection_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/share/experiments/rulegnn/test/', evaluation_type='loss')
+    best_model_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/share/experiments/rulegnn/test/', evaluation_type='loss')
+    #model_selection_evaluation(db_name='Mutagenicity', path='/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/')
+    #best_model_evaluation(db_name='Mutagenicity', path='/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/', evaluation_type='loss')
     #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper_Reproduced')
     #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper')
     #ids = [i for i in range(0, 51)]
