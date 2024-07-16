@@ -95,10 +95,16 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
         parts = []
         for i in range(len(graph_datasets)):
             shuffled_indices = np.random.permutation(graph_number_map[graph_datasets[i]])
-            parts.append(np.sort(np.array_split(shuffled_indices, k)))
+            splits = np.array_split(shuffled_indices, k)
+            # sort the splits
+            for i, split in enumerate(splits):
+                splits[i] = np.sort(split)
+            parts.append(splits)
         run_test_indices = []
-        for i in range(parts[0].shape[0]):
-            run_test_indices.append(parts[0][i].tolist() + parts[1][i].tolist())
+        for i in range(k):
+            run_test_indices.append([])
+            for j in parts:
+                run_test_indices[i] += j[i].tolist()
 
         splits = []
         for validation_id in range(0, k):
