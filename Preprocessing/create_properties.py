@@ -12,11 +12,11 @@ import copy
 from utils.utils import convert_to_list
 
 
-def write_distance_properties(data_path, db_name, cutoff, out_path="", format=None) -> None:
+def write_distance_properties(data_path, db_name, cutoff=None, out_path="", data_format=None) -> None:
     out = f"{out_path}{db_name}_distances.prop"
     # check if the file already exists and if not create it
     if not os.path.exists(out):
-        graph_data = get_graph_data(db_name=db_name, data_path=data_path, format=format)
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path, data_format=data_format)
         distances = []
         valid_properties = set()
         for graph in graph_data.graphs:
@@ -45,11 +45,11 @@ def write_distance_properties(data_path, db_name, cutoff, out_path="", format=No
             yaml.dump(valid_properties_dict, f)
 
 
-def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out_path="") -> None:
+def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out_path="", data_format=None) -> None:
     out = f"{out_path}{db_name}_circle_distances.prop"
     # check if the file already exists and if not create it
     if not os.path.exists(out):
-        graph_data = get_graph_data(db_name=db_name, data_path=data_path)
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path, data_format=data_format)
         distances = []
         circle_labels = load_labels(f"{label_path}{db_name}_cycles_20_labels.txt")
         label_combinations = circle_labels.num_unique_node_labels ** 2
@@ -107,11 +107,11 @@ def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out
             yaml.dump(valid_properties_dict, f)
 
 
-def write_distance_edge_properties(data_path, db_name, out_path="") -> None:
+def write_distance_edge_properties(data_path, db_name, out_path="", cutoff=None, data_format=None) -> None:
     out = f"{out_path}{db_name}_edge_label_distances.prop"
     # check if the file already exists and if not create it
     if not os.path.exists(out):
-        graph_data = get_graph_data(db_name=db_name, data_path=data_path, use_features=True)
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path, use_features=True, data_format=data_format)
         distances = []
         valid_properties = set()
         final_properties = []
@@ -125,8 +125,8 @@ def write_distance_edge_properties(data_path, db_name, out_path="") -> None:
                 for key2, value2 in value.items():
                     for path_id, shortest_path in enumerate(value2):
                         edge_label_sequence = []
-                        if len(shortest_path) == 1:
-                            d_edges[key][key2][path_id] = []
+                        if len(shortest_path) == 1 or (cutoff is not None and len(shortest_path) > cutoff + 1):
+                            d_edges[key].pop(key2, None)
                         else:
                             for i in range(0, len(shortest_path) - 1):
                                 edge_start = shortest_path[i]
@@ -136,7 +136,12 @@ def write_distance_edge_properties(data_path, db_name, out_path="") -> None:
                                 if len(edge_label) == 1:
                                     edge_label_sequence.append(int(edge_label[0]))
                                 else:
-                                    raise ValueError("Edge label is not 1-dimensional.")
+                                    # get the first entry of the edge label
+                                    try:
+                                        edge_label_sequence.append(int(edge_label[0]))
+                                    except:
+                                        raise ValueError("Edge label is not 1-dimensional.")
+
                             d_edges[key][key2][path_id] = edge_label_sequence
             for start_node in graph.nodes:
                 for end_node in graph.nodes:

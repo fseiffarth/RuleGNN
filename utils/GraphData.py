@@ -259,7 +259,7 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, relabel_nodes=True, format=None):
+def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, relabel_nodes=True, data_format=None):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
@@ -267,11 +267,11 @@ def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, r
     :param use_features: bool - whether to use node features
     :param use_attributes: bool - whether to use node attributes
     :param relabel_nodes: bool - whether to relabel nodes
-    :param format: str - format of the data NEL: node edge label format
+    :param data_format: str - format of the data NEL: node edge label format
 
     """
     # load the graph data
-    if format == 'NEL':
+    if data_format == 'NEL':
         graph_data = GraphData()
         graph_data.load_from_benchmark(db_name, data_path, use_features, format='NEL')
     else:

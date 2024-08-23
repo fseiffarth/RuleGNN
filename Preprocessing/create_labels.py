@@ -25,7 +25,7 @@ def write_node_labels(file, node_labels):
 
 def save_standard_labels(data_path, db_names, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path,format=format)
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         node_labels = graph_data.node_labels['primary'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
@@ -65,7 +65,7 @@ def save_standard_labels(data_path, db_names, label_path=None, format=None):
 
 def save_trivial_labels(data_path, db_names, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         node_labels = graph_data.node_labels['primary'].node_labels
         # label 0 for all nodes
         node_labels = [[0 for _ in range(len(g_labels))] for g_labels in node_labels]
@@ -90,7 +90,7 @@ def save_node_labels(data_path, db_names, labels, name, max_label_num=None):
 
 def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         l = f'wl_{max_iterations}'
 
         graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
@@ -108,7 +108,7 @@ def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None, labe
 
 def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         cycle_dict = []
         for graph in graph_data.graphs:
             cycle_dict.append({})
@@ -167,7 +167,7 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
 
 def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         node_in_cycle = []
         for graph in graph_data.graphs:
             node_in_cycle.append({})
@@ -197,7 +197,7 @@ def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None, 
 
 def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         subgraph_dict = []
         for i, graph in enumerate(graph_data.graphs):
             # print the progress
@@ -247,7 +247,7 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='su
 
 def save_clique_labels(data_path, db_names, max_clique=6, label_path=None, format=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, format=format)
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         clique_dict = []
         for graph in graph_data.graphs:
             clique_dict.append({})

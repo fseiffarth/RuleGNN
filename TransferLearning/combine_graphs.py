@@ -110,7 +110,7 @@ def transfer_IMDB():
     create_dataset('IMDB-MULTI')
     combine_nel_graphs(['IMDB-BINARY', 'IMDB-MULTI'])
     write_distance_properties(data_path="Data/NEL_Format/", db_name='IMDB-BINARY_IMDB-MULTI', cutoff=2,
-                              out_path="Data/Properties/", format='NEL')
+                              out_path="Data/Properties/", data_format='NEL')
     save_standard_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], label_path="Data/Labels/", format='NEL')
     for cycle_type in ['induced']:
         for cycle_length in [3, 4, 5, 6, 10, 20, 50]:

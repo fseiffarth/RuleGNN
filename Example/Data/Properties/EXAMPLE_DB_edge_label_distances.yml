@@ -1,0 +1,5 @@
+description: Distance, Path number, Edge label occurrences
+list_of_values: '[[1, 1, [0, 1]], [1, 1, [1]]]'
+valid_values:
+- '[1, 1, [0, 1]]'
+- '[1, 1, [1]]'
