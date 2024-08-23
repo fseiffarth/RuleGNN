@@ -1,8 +1,10 @@
 # generate WL labels for the graph data and save them to a file
+from pathlib import Path
 from typing import List
 
 import networkx as nx
 from networkx.algorithms.isomorphism import GraphMatcher
+from scipy.ndimage import label
 
 from utils import NodeLabeling
 from utils import GraphData
@@ -23,7 +25,7 @@ def write_node_labels(file, node_labels):
 
 
 
-def save_standard_labels(data_path, db_names, label_path=None, format=None):
+def save_standard_labels(data_path: Path, db_names, label_path=None, format=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         node_labels = graph_data.node_labels['primary'].node_labels
@@ -32,7 +34,7 @@ def save_standard_labels(data_path, db_names, label_path=None, format=None):
         if label_path is None:
             raise ValueError("No label path given")
         else:
-            file = f"{label_path}{db_name}_primary_labels.txt"
+            file = label_path.joinpath(f"{db_name}_primary_labels.txt")
         write_node_labels(file, node_labels)
 
         graph_data.add_node_labels(node_labeling_name='wl_0', max_label_num=-1,
@@ -43,7 +45,7 @@ def save_standard_labels(data_path, db_names, label_path=None, format=None):
         if label_path is None:
             raise ValueError("No label path given")
         else:
-            file = f"{label_path}{db_name}_wl_0_labels.txt"
+            file = label_path.joinpath(f"{db_name}_wl_0_labels.txt")
         write_node_labels(file, node_labels)
 
         for l in ['wl_1', 'wl_2']:
@@ -59,11 +61,11 @@ def save_standard_labels(data_path, db_names, label_path=None, format=None):
                 if label_path is None:
                     raise ValueError("No label path given")
                 else:
-                    file = f"{label_path}{db_name}_{l}_{n_node_labels}_labels.txt"
+                    file = label_path.joinpath(f'{db_name}_{l}_{n_node_labels}_labels.txt')
                 write_node_labels(file, node_labels)
 
 
-def save_trivial_labels(data_path, db_names, label_path=None, format=None):
+def save_trivial_labels(data_path: Path, db_names, label_path=None, format=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         node_labels = graph_data.node_labels['primary'].node_labels
@@ -74,11 +76,11 @@ def save_trivial_labels(data_path, db_names, label_path=None, format=None):
         if label_path is None:
             file = f"../{db_name}_trivial_labels.txt"
         else:
-            file = f"{label_path}{db_name}_trivial_labels.txt"
+            file = label_path.joinpath(f'{db_name}_trivial_labels.txt')
         write_node_labels(file, node_labels)
 
 
-def save_node_labels(data_path, db_names, labels, name, max_label_num=None):
+def save_node_labels(data_path: Path, db_names, labels, name, max_label_num=None):
     for db_name in db_names:
         if max_label_num  and max_label_num < len(labels):
             labels = relabel_most_frequent_node_labels(labels, max_label_num)
@@ -88,7 +90,7 @@ def save_node_labels(data_path, db_names, labels, name, max_label_num=None):
         write_node_labels(file, labels)
 
 
-def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None, label_path=None, format=None):
+def save_wl_labels(data_path: Path, db_names, max_iterations, max_label_num=None, label_path=None, format=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         l = f'wl_{max_iterations}'
@@ -102,11 +104,11 @@ def save_wl_labels(data_path, db_names, max_iterations, max_label_num=None, labe
         if label_path is None:
             raise ValueError("No label path given")
         else:
-            file = f"{label_path}{db_name}_{l}_{max_label_num}_labels.txt"
+            file = label_path.joinpath(f'{db_name}_{l}_{max_label_num}_labels.txt')
         write_node_labels(file, node_labels)
 
 
-def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None, format=None):
+def save_circle_labels(data_path: Path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None, format=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         cycle_dict = []
@@ -159,13 +161,13 @@ def save_circle_labels(data_path, db_names, length_bound=6, max_node_labels=None
                 file = f"../{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt"
         else:
             if cycle_type == 'simple':
-                file = f"{label_path}{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt"
+                file = label_path.joinpath(f'{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt')
             elif cycle_type == 'induced':
-                file = f"{label_path}{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt"
+                file = label_path.joinpath(f'{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt')
         write_node_labels(file, labels)
 
 
-def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None, format=None):
+def save_in_circle_labels(data_path: Path, db_names, length_bound=6, label_path=None, format=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         node_in_cycle = []
@@ -190,12 +192,12 @@ def save_in_circle_labels(data_path, db_names, length_bound=6, label_path=None, 
         if label_path is None:
             raise ValueError("No label path given")
         else:
-            file = f"{label_path}{db_name}_cycles_{length_bound}_labels.txt"
+            file = label_path.joinpath(f'{db_name}_cycles_{length_bound}_labels.txt')
         write_node_labels(file, labels)
 
 
 
-def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, format=None):
+def save_subgraph_labels(data_path: Path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, format=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         subgraph_dict = []
@@ -241,11 +243,11 @@ def save_subgraph_labels(data_path, db_names, subgraphs=List[nx.Graph], name='su
         if label_path is None:
             raise ValueError("No label path given")
         else:
-            file = f"{label_path}{db_name}_{name}_{id}_labels.txt"
+            file = label_path.joinpath(f'{db_name}_{name}_{id}_labels.txt')
         write_node_labels(file, labels)
 
 
-def save_clique_labels(data_path, db_names, max_clique=6, label_path=None, format=None):
+def save_clique_labels(data_path: Path, db_names, max_clique=6, label_path=None, format=None):
     for db_name in db_names:
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         clique_dict = []
@@ -288,7 +290,7 @@ def save_clique_labels(data_path, db_names, max_clique=6, label_path=None, forma
         if label_path is None:
             raise ValueError("No label path given")
         else:
-            file = f"{label_path}{db_name}_cliques_{max_clique}_labels.txt"
+            file = label_path.joinpath(f'{db_name}_cliques_{max_clique}_labels.txt')
         write_node_labels(file, labels)
 
 
@@ -328,7 +330,7 @@ def main():
     data_path = "/home/mlai21/seiffart/Data/GraphData/DS_all/"
     #data_path = "Data/BenchmarkGraphs/"
     label_path = "Data/Labels/"
-    #save_wl_labels(data_path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
+    #save_wl_labels(data_path: Path, db_names=['DHFR', 'NCI1', 'Mutagenicity', 'NCI109'], max_iterations=50,
     #               max_label_num=100000)
     #save_in_circle_labels(data_path, db_names=['ZINC'], length_bound=20, label_path=label_path)
     #save_in_circle_labels(data_path, db_names=['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR'], length_bound=20, label_path=label_path)

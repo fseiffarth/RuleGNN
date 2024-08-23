@@ -1,5 +1,6 @@
 import copy
 import os
+from pathlib import Path
 from typing import List, Any
 
 import networkx as nx
@@ -28,22 +29,22 @@ def get_k_lowest_nonzero_indices(tensor, k):
     return k_lowest_original_indices
 
 
-def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None, with_degree=False, format=None):
+def save_graphs(path: Path, db_name, graphs: List[nx.Graph], labels: List[int] = None, with_degree=False, format=None):
     # save in two files DBName_Nodes.txt and DBName_Edges.txt
     # DBName_Nodes.txt has the following structure GraphId NodeId Feature1 Feature2 ...
     # DBName_Edges.txt has the following structure GraphId Node1 Node2 Feature1 Feature2 ...
     # DBName_Labels.txt has the following structure GraphId Label
     # if not folder db_name exists in path create it
-    if not os.path.exists(path + db_name):
-        os.makedirs(path + db_name)
+    if not os.path.exists(path.joinpath(Path(db_name))):
+        os.makedirs(path.joinpath(Path(db_name)))
     # create processed and raw folders in path+db_name
-    if not os.path.exists(path + db_name + "/processed"):
-        os.makedirs(path + db_name + "/processed")
-    if not os.path.exists(path + db_name + "/raw"):
-        os.makedirs(path + db_name + "/raw")
+    if not os.path.exists(path.joinpath(Path(db_name + "/processed"))):
+        os.makedirs(path.joinpath(Path(db_name + "/processed")))
+    if not os.path.exists(path.joinpath(Path(db_name + "/raw"))):
+        os.makedirs(path.joinpath(Path(db_name + "/raw")))
     # update path to write into raw folder
-    path = path + db_name + "/raw/"
-    with open(path + db_name + "_Nodes.txt", "w") as f:
+    path = path.joinpath(Path(db_name + "/raw/"))
+    with open(path.joinpath(Path(db_name + "_Nodes.txt")), "w") as f:
         for i, graph in enumerate(graphs):
             for node in graph.nodes(data=True):
                 # get list of all data entries of the node, first label then the rest
@@ -62,7 +63,7 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None,
         # remove last empty line
         f.seek(f.tell() - 1, 0)
         f.truncate()
-    with open(path + db_name + "_Edges.txt", "w") as f:
+    with open(path.joinpath(db_name + "_Edges.txt"), "w") as f:
         for i, graph in enumerate(graphs):
             for edge in graph.edges(data=True):
                 # get list of all data entries of the node, first label then the rest
@@ -80,7 +81,7 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None,
         f.seek(f.tell() - 1, 0)
         f.truncate()
     if format == 'NEL':
-        with open(path + db_name + "_Labels.txt", "w") as f:
+        with open(path.joinpath(db_name + "_Labels.txt"), "w") as f:
             if labels is not None:
                 for i, label in enumerate(labels):
                     if type(label) == int:
@@ -97,7 +98,7 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None,
                 f.seek(f.tell() - 1, 0)
                 f.truncate()
     else:
-        with open(path + db_name + "_Labels.txt", "w") as f:
+        with open(path.joinpath(db_name + "_Labels.txt"), "w") as f:
             if labels is not None:
                 for i, label in enumerate(labels):
                     if type(label) == int:
@@ -115,10 +116,10 @@ def save_graphs(path, db_name, graphs: List[nx.Graph], labels: List[int] = None,
                 f.truncate()
 
 
-def load_graphs(path, db_name, format=None):
+def load_graphs(path: Path, db_name: str, format=None):
     graphs = []
     labels = []
-    with open(path + db_name + "_Nodes.txt", "r") as f:
+    with open(path.joinpath(db_name + "_Nodes.txt"), "r") as f:
         lines = f.readlines()
         for line in lines:
             data = line.strip().split(" ")
@@ -128,7 +129,7 @@ def load_graphs(path, db_name, format=None):
             while len(graphs) <= graph_id:
                 graphs.append(nx.Graph())
             graphs[graph_id].add_node(node_id, label=feature)
-    with open(path + db_name + "_Edges.txt", "r") as f:
+    with open(path.joinpath(db_name + "_Edges.txt"), "r") as f:
         lines = f.readlines()
         for line in lines:
             data = line.strip().split(" ")
@@ -138,7 +139,7 @@ def load_graphs(path, db_name, format=None):
             feature = list(map(float, data[3:]))
             graphs[graph_id].add_edge(node1, node2, label=feature)
     if format == 'NEL':
-        with open(path + db_name + "_Labels.txt", "r") as f:
+        with open(path.joinpath(db_name + "_Labels.txt"), "r") as f:
             lines = f.readlines()
             for i, line in enumerate(lines):
                 data = line.strip().split(" ")
@@ -164,7 +165,7 @@ def load_graphs(path, db_name, format=None):
                     labels.append(label)
                 labels[graph_id] = label
     else:
-        with open(path + db_name + "_Labels.txt", "r") as f:
+        with open(path.joinpath(db_name + "_Labels.txt"), "r") as f:
             lines = f.readlines()
             for line in lines:
                 data = line.strip().split(" ")

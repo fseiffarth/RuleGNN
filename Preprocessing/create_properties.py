@@ -1,6 +1,7 @@
 import gzip
 import os
 import pickle
+from pathlib import Path
 
 import networkx as nx
 import yaml
@@ -12,8 +13,8 @@ import copy
 from utils.utils import convert_to_list
 
 
-def write_distance_properties(data_path, db_name, cutoff=None, out_path="", data_format=None) -> None:
-    out = f"{out_path}{db_name}_distances.prop"
+def write_distance_properties(data_path: Path, db_name: str, cutoff=None, out_path: Path = Path(), data_format=None) -> None:
+    out = out_path.joinpath(f"{db_name}_distances.prop")
     # check if the file already exists and if not create it
     if not os.path.exists(out):
         graph_data = get_graph_data(db_name=db_name, data_path=data_path, data_format=data_format)
@@ -41,12 +42,12 @@ def write_distance_properties(data_path, db_name, cutoff=None, out_path="", data
         # save an additional .info file that stores the set of valid_properties as a yml file
         valid_properties_dict = {"valid_values": list(valid_properties), 'description': 'Distance',
                                  'list_of_values': f'{list(valid_properties)}'}
-        with open(f"{out_path}{db_name}_distances.yml", 'w') as f:
+        with open(out_path.joinpath(f"{db_name}_distances.yml"), 'w') as f:
             yaml.dump(valid_properties_dict, f)
 
 
 def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out_path="", data_format=None) -> None:
-    out = f"{out_path}{db_name}_circle_distances.prop"
+    out = out_path.joinpath(f"{db_name}_circle_distances.prop")
     # check if the file already exists and if not create it
     if not os.path.exists(out):
         graph_data = get_graph_data(db_name=db_name, data_path=data_path, data_format=data_format)
@@ -103,12 +104,12 @@ def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out
         # save an additional .info file that stores the set of valid_properties as a yml file
         valid_properties_dict = {"valid_values": list(v_properties), 'description': 'Distance, In cycle -> In cycle',
                                  'list_of_values': f'{valid_properties}', 'list_of_values_circle': f'{circle_properties}', 'list_of_values_no_circle': f'{no_circle_properties}', 'list_of_values_in_circle': f'{in_circle_properties}', 'list_of_values_out_circle': f'{out_circle_properties}'}
-        with open(f"{out_path}{db_name}_circle_distances.yml", 'w') as f:
+        with open(out_path.joinpath(f"{db_name}_circle_distances.yml"), 'w') as f:
             yaml.dump(valid_properties_dict, f)
 
 
-def write_distance_edge_properties(data_path, db_name, out_path="", cutoff=None, data_format=None) -> None:
-    out = f"{out_path}{db_name}_edge_label_distances.prop"
+def write_distance_edge_properties(data_path: Path, db_name: str, out_path="", cutoff=None, data_format=None) -> None:
+    out = out_path.joinpath(f"{db_name}_edge_label_distances.prop")
     # check if the file already exists and if not create it
     if not os.path.exists(out):
         graph_data = get_graph_data(db_name=db_name, data_path=data_path, use_features=True, data_format=data_format)
@@ -189,7 +190,7 @@ def write_distance_edge_properties(data_path, db_name, out_path="", cutoff=None,
                                  "description": "Distance, Path number, Edge label occurrences",
                                  "list_of_values": list_of_values}
         # save an additional .info file that stores the set of valid_properties as a yml file
-        with open(f"{out_path}{db_name}_edge_label_distances.yml", 'w') as f:
+        with open(out_path.joinpath(f"{db_name}_edge_label_distances.yml"), 'w') as f:
             yaml.dump(valid_properties_dict, f)
 
 

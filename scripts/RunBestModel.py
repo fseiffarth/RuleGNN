@@ -12,12 +12,7 @@ import pandas as pd
 import yaml
 
 from utils.GraphData import get_graph_data
-from utils.load_labels import load_labels
-from Architectures.RuleGNN.RuleGNNLayers import Layer
-from utils import GraphData, ReadWriteGraphs as gdtgl
-from Methods.ModelEvaluation import ModelEvaluation
-from utils.Parameters import Parameters
-from utils.RunConfiguration import RunConfiguration, get_run_configs
+from utils.RunConfiguration import get_run_configs
 from ModelSelection import run_configuration
 
 

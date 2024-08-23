@@ -4,6 +4,7 @@ Created on 15.03.2019
 @author:
 '''
 import os
+from pathlib import Path
 
 import click
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ from utils import GraphData, ReadWriteGraphs as gdtgl
 from Methods.ModelEvaluation import ModelEvaluation
 from utils.GraphLabels import combine_node_labels, Properties
 from utils.Parameters import Parameters
-from utils.RunConfiguration import RunConfiguration, get_run_configs
+from utils.RunConfiguration import get_run_configs
 
 
 @click.command()
@@ -49,8 +50,8 @@ def main(graph_db_name, validation_number, validation_id, graph_format, transfer
         configs['format'] = graph_format
         configs['transfer'] = transfer
 
-        data_path = configs['paths']['data']
-        r_path = configs['paths']['results']
+        data_path = Path(configs['paths']['data'])
+        r_path = Path(configs['paths']['results'])
 
         # if not exists create the results directory
         if not os.path.exists(r_path):
@@ -59,30 +60,30 @@ def main(graph_db_name, validation_number, validation_id, graph_format, transfer
             except:
                 pass
         # if not exists create the directory for db under Results
-        if not os.path.exists(r_path + graph_db_name):
+        if not os.path.exists(r_path.joinpath(graph_db_name)):
             try:
-                os.makedirs(r_path + graph_db_name)
+                os.makedirs(r_path.joinpath(graph_db_name))
             except:
                 pass
         # if not exists create the directory Results, Plots, Weights and Models under db
-        if not os.path.exists(r_path + graph_db_name + "/Results"):
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Results")):
             try:
-                os.makedirs(r_path + graph_db_name + "/Results")
+                os.makedirs(r_path.joinpath(graph_db_name + "/Results"))
             except:
                 pass
-        if not os.path.exists(r_path + graph_db_name + "/Plots"):
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Plots")):
             try:
-                os.makedirs(r_path + graph_db_name + "/Plots")
+                os.makedirs(r_path.joinpath(graph_db_name + "/Plots"))
             except:
                 pass
-        if not os.path.exists(r_path + graph_db_name + "/Weights"):
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Weights")):
             try:
-                os.makedirs(r_path + graph_db_name + "/Weights")
+                os.makedirs(r_path.joinpath(graph_db_name + "/Weights"))
             except:
                 pass
-        if not os.path.exists(r_path + graph_db_name + "/Models"):
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Models")):
             try:
-                os.makedirs(r_path + graph_db_name + "/Models")
+                os.makedirs(r_path.joinpath(graph_db_name + "/Models"))
             except:
                 pass
 
@@ -92,7 +93,7 @@ def main(graph_db_name, validation_number, validation_id, graph_format, transfer
         Create Input data, information and labels from the graphs for training and testing
         """
         graph_data = get_graph_data(db_name=graph_db_name, data_path=data_path, use_features=configs['use_features'],
-                                    use_attributes=configs['use_attributes'], data_format=graph_format)
+                                    use_attributes=configs['use_attributes'], data_format=configs['format'])
         # adapt the precision of the input data
         if 'precision' in configs:
             if configs['precision'] == 'double':
@@ -110,8 +111,10 @@ def main(graph_db_name, validation_number, validation_id, graph_format, transfer
             run_configuration(c_id, run_config, graph_data, graph_db_name, run_id, validation_id, validation_number,
                               configs)
         # copy config file to the results directory if it is not already there
-        if not os.path.exists(f"{r_path}{graph_db_name}/config.yml"):
-            os.system(f"cp {absolute_path}{config} {r_path}{graph_db_name}/config.yml")
+        if not os.path.exists(r_path.joinpath(f"{graph_db_name}/config.yml")):
+            source_path = Path(absolute_path).joinpath(config)
+            destination_path = r_path.joinpath(f"{graph_db_name}/config.yml")
+            os.system(f"cp {source_path} {destination_path}")
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
@@ -139,13 +142,13 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
                       validation_number,
                       configs):
     # get the data path from the config file
-    data_path = configs['paths']['data']
-    r_path = configs['paths']['results']
-    l_path = configs['paths']['labels']
-    properties_path = configs['paths']['properties']
-    splits_path = configs['paths']['splits']
+    data_path = Path(configs['paths']['data'])
+    r_path = Path(configs['paths']['results'])
+    l_path = Path(configs['paths']['labels'])
+    properties_path = Path(configs['paths']['properties'])
+    splits_path = Path(configs['paths']['splits'])
     # path do db and db
-    results_path = r_path + graph_db_name + "/Results/"
+    results_path = r_path.joinpath(graph_db_name + "/Results/")
     print_layer_init = True
     # if debug mode is on, turn on all print and draw options
     if configs['mode'] == "debug":
@@ -165,7 +168,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
 
     for i, l in enumerate(run_config.layers):
         # add the labels to the graph data
-        label_path = f"{l_path}{graph_db_name}_{l.get_layer_string()}_labels.txt"
+        label_path = l_path.joinpath(f"{graph_db_name}_{l.get_layer_string()}_labels.txt")
         if os.path.exists(label_path):
             g_labels = load_labels(path=label_path)
             graph_data.node_labels[l.get_layer_string()] = g_labels
@@ -174,7 +177,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
             # get the labels for each layer in the combined layer
             for x in l.layer_dict['sub_labels']:
                 sub_layer = Layer(x, i)
-                sub_label_path = f"{l_path}/{graph_db_name}_{sub_layer.get_layer_string()}_labels.txt"
+                sub_label_path = l_path.joinpath(f"/{graph_db_name}_{sub_layer.get_layer_string()}_labels.txt")
                 if os.path.exists(sub_label_path):
                     g_labels = load_labels(path=sub_label_path)
                     combined_labels.append(g_labels)
@@ -184,7 +187,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
             # combine the labels and save them
             g_labels = combine_node_labels(combined_labels)
             graph_data.node_labels[l.get_layer_string()] = g_labels
-            save_node_labels(data_path=f'{l_path}/', db_names=[graph_db_name], labels=g_labels.node_labels,
+            save_node_labels(data_path=l_path, db_names=[graph_db_name], labels=g_labels.node_labels,
                              name=l.get_layer_string(), max_label_num=l.node_labels)
         else:
             # raise an error if the file does not exist and add the absolute path to the error message
@@ -242,11 +245,11 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
 
     if para.plot_graphs:
         # if not exists create the directory
-        if not os.path.exists(f"{r_path}{para.db}/Plots"):
-            os.makedirs(f"{r_path}{para.db}/Plots")
+        if not os.path.exists(r_path.joinpath(f"{para.db}/Plots")):
+            os.makedirs(r_path.joinpath(f"{para.db}/Plots"))
         for i in range(0, len(graph_data.graphs)):
             gdtgl.draw_graph(graph_data.graphs[i], graph_data.graph_labels[i],
-                             f"{r_path}{para.db}/Plots/graph_{str(i).zfill(5)}.png")
+                             r_path.joinpath(f"{para.db}/Plots/graph_{str(i).zfill(5)}.png"))
 
     validation_step(para.run_id, para.validation_id, graph_data, para)
 

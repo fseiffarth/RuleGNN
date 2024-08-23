@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Dict
 
 import networkx as nx
@@ -70,7 +71,7 @@ class GraphData:
 
 
 
-    def init_from_graph_db(self, path, graph_db_name, relabel_nodes=False, use_features=True, use_attributes=False):
+    def init_from_graph_db(self, path: Path, graph_db_name: str, relabel_nodes=False, use_features=True, use_attributes=False):
 
         # Define the graph data
         graph_data = gdtgl.graph_data_to_graph_list(path, graph_db_name, relabel_nodes=relabel_nodes)
@@ -152,9 +153,9 @@ class GraphData:
         labels.db_unique_node_labels = db_unique
         pass
 
-    def load_from_benchmark(self, db_name, path, use_features=True, task=None, format=None):
+    def load_from_benchmark(self, db_name: str, path: Path, use_features=True, task=None, format=None):
         self.graph_db_name = db_name
-        self.graphs, self.graph_labels = load_graphs(f'{path}/{db_name}/raw/', db_name, format=format)
+        self.graphs, self.graph_labels = load_graphs(path.joinpath(Path(f'{db_name}/raw/')), db_name, format=format)
         self.num_graphs = len(self.graphs)
         if task == 'regression':
             self.num_classes = 1
@@ -259,11 +260,11 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, relabel_nodes=True, data_format=None):
+def get_graph_data(db_name: str, data_path : Path, use_features=None, use_attributes=None, relabel_nodes=True, data_format=None):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
-    :param data_path: str - path to the data
+    :param data_path: Path - path to the data
     :param use_features: bool - whether to use node features
     :param use_attributes: bool - whether to use node attributes
     :param relabel_nodes: bool - whether to relabel nodes
@@ -294,7 +295,7 @@ def get_graph_data(db_name, data_path, use_features=None, use_attributes=None, r
                 'Snowflakes' in db_name):
             graph_data = GraphData()
             # add db_name and raw to the data path
-            data_path = data_path + db_name + "/raw/"
+            data_path = data_path.joinpath(db_name + "/raw/")
             graph_data.load_from_benchmark(db_name, data_path, use_features)
         else:
             graph_data = GraphData()

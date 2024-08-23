@@ -14,7 +14,7 @@ def attributes_to_np_array(attr_str):
     return np.asfarray(np.array(attr_str.strip().split(",")), float)
 
 
-def graph_data_to_graph_list(path, db, relabel_nodes=False):
+def graph_data_to_graph_list(path: Path, db: str, relabel_nodes=False):
     '''
     Convert graph dataset in the Dortmund collection to a networkx graph with node and edge labels and graph labels and attributes.
 
@@ -30,49 +30,49 @@ def graph_data_to_graph_list(path, db, relabel_nodes=False):
     graph_attribute_list = []
 
     # open the data files and read first line
-    edge_file = open(path + db + "/" + db + "_A.txt", "r")
+    edge_file = open(path.joinpath(db + "/" + db + "_A.txt", "r"))
     edge = edge_file.readline().strip().split(",")
 
     # graph indicator
-    graph_indicator = open(path + db + "/" + db + "_graph_indicator.txt", "r")
+    graph_indicator = open(path.joinpath(db + "/" + db + "_graph_indicator.txt", "r"))
     graph = graph_indicator.readline()
 
     # graph labels
-    graph_label_file = open(path + db + "/" + db + "_graph_labels.txt", "r")
+    graph_label_file = open(path.joinpath(db + "/" + db + "_graph_labels.txt", "r"))
     graph_label = graph_label_file.readline()
 
     # node labels
     node_labels = False
-    if Path(path + db + "/" + db + "_node_labels.txt").is_file():
-        node_label_file = open(path + db + "/" + db + "_node_labels.txt", "r")
+    if path.joinpath(db + "/" + db + "_node_labels.txt").is_file():
+        node_label_file = open(path.joinpath(db + "/" + db + "_node_labels.txt", "r"))
         node_labels = True
         node_label = node_label_file.readline()
 
         # edge labels
     edge_labels = False
-    if Path(path + db + "/" + db + "_edge_labels.txt").is_file():
-        edge_label_file = open(path + db + "/" + db + "_edge_labels.txt", "r")
+    if path.joinpath(db + "/" + db + "_edge_labels.txt").is_file():
+        edge_label_file = open(path.joinpath(db + "/" + db + "_edge_labels.txt", "r"))
         edge_labels = True
         edge_label = edge_label_file.readline()
 
     # edge attribures
     edge_attributes = False
-    if Path(path + db + "/" + db + "_edge_attributes.txt").is_file():
-        edge_attribute_file = open(path + db + "/" + db + "_edge_attributes.txt", "r")
+    if path.joinpath(db + "/" + db + "_edge_attributes.txt").is_file():
+        edge_attribute_file = open(path.joinpath(db + "/" + db + "_edge_attributes.txt", "r"))
         edge_attributes = True
         edge_attribute = edge_attribute_file.readline()
 
     # node attribures
     node_attributes = False
-    if Path(path + db + "/" + db + "_node_attributes.txt").is_file():
-        node_attribute_file = open(path + db + "/" + db + "_node_attributes.txt", "r")
+    if path.joinpath(db + "/" + db + "_node_attributes.txt").is_file():
+        node_attribute_file = open(path.joinpath(db + "/" + db + "_node_attributes.txt", "r"))
         node_attributes = True
         node_attribute = node_attribute_file.readline()
 
     # graph attribures
     graph_attributes = False
-    if Path(path + db + "/" + db + "_graph_attributes.txt").is_file():
-        graph_attribute_file = open(path + db + "/" + db + "_graph_attributes.txt", "r")
+    if path.joinpath(db + "/" + db + "_graph_attributes.txt").is_file():
+        graph_attribute_file = open(path.joinpath(db + "/" + db + "_graph_attributes.txt", "r"))
         graph_attributes = True
         graph_attribute = graph_attribute_file.readline()
 
@@ -192,49 +192,49 @@ def graph_data_generator(path, db):
     G_label = 0
     G_attributes = np.array([])
     # open the data files and read first line
-    edge_file = open(path + db + "/" + db + "_A.txt", "r")
+    edge_file = open(path.joinpath(db + "/" + db + "_A.txt", "r"))
     edge = edge_file.readline().strip().split(",")
 
     # graph indicator
-    graph_indicator = open(path + db + "/" + db + "_graph_indicator.txt", "r")
+    graph_indicator = open(path.joinpath(db + "/" + db + "_graph_indicator.txt", "r"))
     graph = graph_indicator.readline()
 
     # graph labels
-    graph_label_file = open(path + db + "/" + db + "_graph_labels.txt", "r")
+    graph_label_file = open(path.joinpath(db + "/" + db + "_graph_labels.txt", "r"))
     graph_label = graph_label_file.readline()
 
     # node labels
     node_labels = False
-    if Path(path + db + "/" + db + "_node_labels.txt").is_file():
-        node_label_file = open(path + db + "/" + db + "_node_labels.txt", "r")
+    if path.joinpath(db + "/" + db + "_node_labels.txt").is_file():
+        node_label_file = open(path.joinpath(db + "/" + db + "_node_labels.txt", "r"))
         node_labels = True
         node_label = node_label_file.readline()
 
         # edge labels
     edge_labels = False
-    if Path(path + db + "/" + db + "_edge_labels.txt").is_file():
-        edge_label_file = open(path + db + "/" + db + "_edge_labels.txt", "r")
+    if path.joinpath(db + "/" + db + "_edge_labels.txt").is_file():
+        edge_label_file = open(path.joinpath(db + "/" + db + "_edge_labels.txt", "r"))
         edge_labels = True
         edge_label = edge_label_file.readline()
 
     # edge attribures
     edge_attributes = False
-    if Path(path + db + "/" + db + "_edge_attributes.txt").is_file():
-        edge_attribute_file = open(path + db + "/" + db + "_edge_attributes.txt", "r")
+    if path.joinpath(db + "/" + db + "_edge_attributes.txt").is_file():
+        edge_attribute_file = open(path.joinpath(db + "/" + db + "_edge_attributes.txt", "r"))
         edge_attributes = True
         edge_attribute = edge_attribute_file.readline()
 
     # node attribures
     node_attributes = False
-    if Path(path + db + "/" + db + "_node_attributes.txt").is_file():
-        node_attribute_file = open(path + db + "/" + db + "_node_attributes.txt", "r")
+    if path.joinpath(db + "/" + db + "_node_attributes.txt").is_file():
+        node_attribute_file = open(path.joinpath(db + "/" + db + "_node_attributes.txt", "r"))
         node_attributes = True
         node_attribute = node_attribute_file.readline()
 
     # graph attribures
     graph_attributes = False
-    if Path(path + db + "/" + db + "_graph_attributes.txt").is_file():
-        graph_attribute_file = open(path + db + "/" + db + "_graph_attributes.txt", "r")
+    if path.joinpath(db + "/" + db + "_graph_attributes.txt").is_file():
+        graph_attribute_file = open(path.joinpath(db + "/" + db + "_graph_attributes.txt", "r"))
         graph_attributes = True
         graph_attribute = graph_attribute_file.readline()
 

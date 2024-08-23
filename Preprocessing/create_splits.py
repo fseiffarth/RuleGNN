@@ -1,6 +1,7 @@
 import json
 import time
 from collections import defaultdict
+from pathlib import Path
 
 import numpy as np
 
@@ -143,7 +144,7 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
             f.write(json.dumps(splits))
 
 
-def create_splits(db_name, path="../GraphData/DS_all/", output_path="Data/Splits/", format=None):
+def create_splits(db_name: str, path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), format=None):
     splits = []
     run_id = 0
     k = 10
@@ -181,7 +182,7 @@ def create_splits(db_name, path="../GraphData/DS_all/", output_path="Data/Splits
         splits.append({"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
 
     # save splits to json as one line use json.dumps
-    with open(f"{output_path}{db_name}_splits.json", "w") as f:
+    with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
         f.write(json.dumps(splits))
 
 
