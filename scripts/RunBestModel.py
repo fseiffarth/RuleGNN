@@ -91,7 +91,7 @@ def main(graph_db_name, run_id, validation_number, validation_id, graph_format, 
         Create Input data, information and labels from the graphs for training and testing
         """
         graph_data = get_graph_data(db_name=graph_db_name, data_path=data_path, use_features=configs['use_features'],
-                                    use_attributes=configs['use_attributes'], format=graph_format)
+                                    use_attributes=configs['use_attributes'], data_format=graph_format)
         # adapt the precision of the input data
         if 'precision' in configs:
             if configs['precision'] == 'double':
