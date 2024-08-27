@@ -21,3 +21,5 @@
 /Reproduce_RuleGNN/Data/TUDatasets/
 /Reproduce_RuleGNN/Data/generation_times_labels.txt
 /Reproduce_RuleGNN/Data/generation_times_properties.txt
+/Data/tmp/
+/Data/
