@@ -6,15 +6,13 @@ import torch
 import yaml
 
 from ModelSelection import get_run_configs
-from utils.GraphData import get_graph_data
-from utils.load_labels import load_labels
-from Preprocessing.create_labels import save_node_labels
-from Architectures.RuleGNN.RuleGNNLayers import Layer
-from Architectures import RuleGNN
-from utils.GraphLabels import Properties, combine_node_labels
-from utils.Parameters.Parameters import Parameters
-from utils.RunConfiguration import RunConfiguration
-from utils.load_splits import Load_Splits
+from src.utils import get_graph_data
+from src.utils import load_labels
+from src.Preprocessing.create_labels import save_node_labels
+from src.Architectures.RuleGNN.RuleGNNLayers import Layer, RuleGNN
+from src.utils import Properties, combine_node_labels
+from src.utils.Parameters.Parameters import Parameters
+from src.utils import Load_Splits
 
 
 @click.command()

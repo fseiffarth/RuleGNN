@@ -11,16 +11,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
-from utils.load_splits import Load_Splits
-from utils.GraphData import get_graph_data
-from utils.load_labels import load_labels
-from Preprocessing.create_labels import save_node_labels
-from Architectures.RuleGNN.RuleGNNLayers import Layer
-from utils import GraphData, ReadWriteGraphs as gdtgl
-from Methods.ModelEvaluation import ModelEvaluation
-from utils.GraphLabels import combine_node_labels, Properties
-from utils.Parameters import Parameters
-from utils.RunConfiguration import get_run_configs
+from src.utils import load_labels
+from src.Preprocessing.create_labels import save_node_labels
+from src.Architectures.RuleGNN.RuleGNNLayers import Layer
+from src.utils import GraphData, ReadWriteGraphs as gdtgl
+from src.Methods.ModelEvaluation import ModelEvaluation
+from src.utils import Parameters
+from src.utils.GraphData import get_graph_data
+from src.utils.GraphLabels import combine_node_labels, Properties
+from src.utils.RunConfiguration import get_run_configs
+from src.utils.load_splits import Load_Splits
 
 
 @click.command()
@@ -114,7 +114,13 @@ def main(graph_db_name, validation_number, validation_id, graph_format, transfer
         if not os.path.exists(r_path.joinpath(f"{graph_db_name}/config.yml")):
             source_path = Path(absolute_path).joinpath(config)
             destination_path = r_path.joinpath(f"{graph_db_name}/config.yml")
-            os.system(f"cp {source_path} {destination_path}")
+            # copy the config file to the results directory
+            # if linux
+            if os.name == 'posix':
+                os.system(f"cp {source_path} {destination_path}")
+            # if windows
+            elif os.name == 'nt':
+                os.system(f"copy {source_path} {destination_path}")
     else:
         #print that config file is not provided
         print("Please provide a configuration file")

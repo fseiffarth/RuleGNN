@@ -7,12 +7,11 @@ import os
 
 import click
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import yaml
 
-from utils.GraphData import get_graph_data
-from utils.RunConfiguration import get_run_configs
+from src.utils import get_graph_data
+from src.utils import get_run_configs
 from ModelSelection import run_configuration
 
 
