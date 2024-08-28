@@ -1,1200 +1,1200 @@
-0 3
-1 2
-2 0
-3 0
-4 1
-5 3
-6 1
-7 2
-8 1
-9 3
-10 1
-11 3
-12 2
-13 1
-14 1
-15 3
-16 2
-17 1
-18 0
-19 0
-20 1
-21 1
-22 3
-23 1
-24 3
-25 1
-26 0
-27 1
-28 1
-29 2
-30 3
-31 2
-32 1
-33 2
-34 1
-35 2
-36 1
-37 3
-38 0
-39 1
-40 2
-41 2
-42 2
-43 2
-44 2
-45 1
-46 2
-47 3
-48 3
-49 2
-50 1
-51 0
-52 0
-53 0
-54 2
-55 0
-56 3
-57 1
-58 0
-59 2
-60 1
-61 2
-62 2
-63 0
-64 1
-65 2
-66 1
-67 3
-68 2
-69 2
-70 1
-71 0
-72 0
-73 3
-74 2
-75 2
-76 2
-77 2
-78 1
-79 3
-80 1
-81 1
-82 2
-83 1
-84 2
-85 2
-86 3
-87 1
-88 3
-89 3
-90 2
-91 0
-92 1
-93 2
-94 0
-95 3
-96 3
-97 1
-98 1
-99 3
-100 1
-101 0
-102 0
-103 2
-104 2
-105 3
-106 0
-107 3
-108 0
-109 0
-110 0
-111 1
-112 3
-113 2
-114 1
-115 0
-116 2
-117 1
-118 3
-119 0
-120 3
-121 3
-122 3
-123 2
-124 1
-125 2
-126 3
-127 0
-128 2
-129 1
-130 1
-131 2
-132 0
-133 3
-134 0
-135 3
-136 0
-137 2
-138 2
-139 2
-140 1
-141 2
-142 1
-143 0
-144 3
-145 1
-146 0
-147 1
-148 2
-149 2
-150 3
-151 0
-152 0
-153 3
-154 3
-155 2
-156 1
-157 1
-158 2
-159 2
-160 0
-161 1
-162 3
-163 3
-164 3
-165 3
-166 1
-167 1
-168 0
-169 3
-170 2
-171 2
-172 2
-173 0
-174 3
-175 2
-176 1
-177 0
-178 2
-179 0
-180 0
-181 0
-182 3
-183 0
-184 1
-185 1
-186 2
-187 0
-188 2
-189 1
-190 1
-191 0
-192 3
-193 3
-194 0
-195 1
-196 2
-197 3
-198 0
-199 2
-200 3
-201 0
-202 3
-203 2
-204 1
-205 1
-206 1
-207 0
-208 0
-209 2
-210 1
-211 2
-212 3
-213 1
-214 2
-215 1
-216 3
-217 1
-218 3
-219 0
-220 3
-221 2
-222 3
-223 3
-224 3
-225 3
-226 0
-227 0
-228 2
-229 0
-230 2
-231 3
-232 2
-233 0
-234 1
-235 2
-236 2
-237 1
-238 1
-239 0
-240 1
-241 0
-242 3
-243 0
-244 1
-245 1
-246 0
-247 2
-248 1
-249 2
-250 2
-251 0
-252 3
-253 0
-254 0
-255 1
-256 0
-257 0
-258 1
-259 0
-260 3
-261 0
-262 3
-263 1
-264 3
-265 2
-266 0
-267 2
-268 2
-269 3
-270 3
-271 2
-272 3
-273 3
-274 2
-275 2
-276 2
-277 0
-278 2
-279 2
-280 0
-281 0
-282 3
-283 1
-284 2
-285 2
-286 3
-287 1
-288 1
-289 3
-290 2
-291 3
-292 0
-293 1
-294 3
-295 0
-296 1
-297 0
-298 1
-299 1
-300 2
-301 3
-302 3
-303 2
-304 3
-305 1
-306 0
-307 3
-308 2
-309 2
-310 0
-311 2
-312 1
-313 1
-314 2
-315 3
-316 2
-317 2
-318 1
-319 1
-320 1
-321 2
-322 0
-323 3
-324 2
-325 3
-326 1
-327 3
-328 3
-329 3
-330 2
-331 0
-332 1
-333 3
-334 2
-335 0
-336 3
-337 1
-338 0
-339 1
-340 0
-341 2
-342 3
-343 2
-344 2
-345 3
-346 2
-347 3
-348 3
-349 0
-350 1
-351 3
-352 0
-353 1
-354 2
-355 0
-356 3
-357 3
-358 2
-359 3
-360 0
-361 3
-362 3
-363 2
-364 3
-365 1
-366 0
-367 0
-368 2
-369 2
-370 1
-371 3
-372 0
-373 2
-374 0
-375 0
-376 1
-377 0
-378 1
-379 1
-380 1
-381 1
-382 3
-383 3
-384 1
-385 2
-386 3
-387 0
-388 0
-389 0
-390 1
-391 1
-392 0
-393 1
-394 3
-395 2
-396 3
-397 1
-398 1
-399 2
-400 2
-401 1
-402 1
-403 1
-404 2
-405 0
-406 1
-407 1
-408 1
-409 0
-410 3
-411 1
-412 1
-413 0
-414 3
-415 1
-416 0
-417 2
-418 1
-419 2
-420 3
-421 0
-422 0
-423 2
-424 3
-425 2
-426 1
-427 0
-428 0
-429 3
-430 1
-431 0
-432 0
-433 2
-434 3
-435 1
-436 2
-437 0
-438 0
-439 1
-440 1
-441 2
-442 2
-443 3
-444 2
-445 0
-446 2
-447 0
-448 2
-449 0
-450 1
-451 1
-452 0
-453 1
-454 0
-455 2
-456 2
-457 2
-458 2
-459 1
-460 3
-461 2
-462 0
-463 2
-464 1
-465 1
-466 0
-467 0
-468 2
-469 2
-470 3
-471 3
-472 0
-473 2
-474 2
-475 0
-476 1
-477 0
-478 0
-479 3
-480 1
-481 2
-482 1
-483 1
-484 0
-485 1
-486 0
-487 1
-488 3
-489 3
-490 3
-491 3
-492 0
-493 1
-494 3
-495 3
-496 2
-497 0
-498 3
-499 3
-500 1
-501 0
-502 0
-503 2
-504 2
-505 3
-506 2
-507 1
-508 1
-509 1
-510 1
-511 0
-512 3
-513 1
-514 2
-515 3
-516 2
-517 0
-518 3
-519 3
-520 1
-521 2
-522 1
-523 3
-524 3
-525 2
-526 0
-527 2
-528 1
-529 0
-530 0
-531 3
-532 3
-533 3
-534 1
-535 3
-536 2
-537 1
-538 1
-539 2
-540 1
-541 0
-542 1
-543 1
-544 2
-545 3
-546 1
-547 2
-548 1
-549 0
-550 3
-551 0
-552 0
-553 0
-554 0
-555 3
-556 0
-557 1
-558 2
-559 0
-560 3
-561 1
-562 0
-563 1
-564 0
-565 3
-566 0
-567 2
-568 1
-569 1
-570 0
-571 2
-572 0
-573 3
-574 0
-575 0
-576 0
-577 0
-578 3
-579 2
-580 1
-581 1
-582 2
-583 0
-584 1
-585 2
-586 0
-587 1
-588 3
-589 0
-590 0
-591 1
-592 3
-593 3
-594 1
-595 1
-596 2
-597 1
-598 2
-599 2
-600 0
-601 2
-602 1
-603 2
-604 3
-605 3
-606 3
-607 3
-608 1
-609 1
-610 3
-611 2
-612 3
-613 0
-614 2
-615 2
-616 1
-617 2
-618 3
-619 1
-620 0
-621 3
-622 0
-623 1
-624 0
-625 3
-626 1
-627 2
-628 3
-629 3
-630 1
-631 1
-632 0
-633 1
-634 2
-635 3
-636 0
-637 3
-638 0
-639 3
-640 2
-641 0
-642 3
-643 1
-644 1
-645 2
-646 0
-647 0
-648 0
-649 2
-650 3
-651 3
-652 0
-653 2
-654 3
-655 1
-656 3
-657 3
-658 0
-659 2
-660 3
-661 2
-662 1
-663 3
-664 2
-665 1
-666 3
-667 3
-668 0
-669 1
-670 2
-671 2
-672 0
-673 0
-674 0
-675 1
-676 2
-677 3
-678 0
-679 3
-680 3
-681 0
-682 0
-683 0
-684 0
-685 3
-686 0
-687 2
-688 1
-689 0
-690 2
-691 2
-692 1
-693 1
-694 0
-695 0
-696 0
-697 2
-698 0
-699 3
-700 2
-701 3
-702 3
-703 1
-704 1
-705 0
-706 0
-707 0
-708 3
-709 3
-710 0
-711 1
-712 2
-713 0
-714 2
-715 0
-716 1
-717 0
-718 2
-719 2
-720 2
-721 1
-722 0
-723 0
-724 1
-725 1
-726 0
-727 2
-728 2
-729 2
-730 2
-731 2
-732 2
-733 3
-734 1
-735 2
-736 0
-737 2
-738 2
-739 0
-740 2
-741 1
-742 1
-743 2
-744 2
-745 1
-746 0
-747 1
-748 2
-749 3
-750 0
-751 2
-752 0
-753 1
-754 3
-755 2
-756 2
-757 1
-758 0
-759 1
-760 1
-761 3
-762 3
-763 0
-764 3
-765 1
-766 2
-767 3
-768 1
-769 2
-770 1
-771 0
-772 2
-773 0
-774 1
-775 0
-776 1
-777 1
-778 3
-779 2
-780 1
-781 3
-782 3
-783 0
-784 3
-785 2
-786 1
-787 1
-788 1
-789 2
-790 0
-791 1
-792 3
-793 1
-794 2
-795 2
-796 1
-797 1
-798 2
-799 3
-800 2
-801 3
-802 3
-803 0
-804 0
-805 0
-806 3
-807 3
-808 1
-809 0
-810 1
-811 3
-812 0
-813 0
-814 3
-815 1
-816 3
-817 3
-818 3
-819 2
-820 1
-821 3
-822 3
-823 2
-824 2
-825 3
-826 2
-827 2
-828 2
-829 0
-830 1
-831 0
-832 3
-833 2
-834 2
-835 0
-836 0
-837 1
-838 0
-839 3
-840 2
-841 3
-842 2
-843 0
-844 0
-845 1
-846 3
-847 0
-848 1
-849 0
-850 2
-851 1
-852 3
-853 0
-854 0
-855 1
-856 0
-857 0
-858 0
-859 2
-860 3
-861 0
-862 2
-863 1
-864 1
-865 0
-866 2
-867 0
-868 3
-869 0
-870 2
-871 0
-872 3
-873 3
-874 1
-875 0
-876 0
-877 3
-878 3
-879 0
-880 2
-881 1
-882 3
-883 3
-884 3
-885 2
-886 0
-887 3
-888 2
-889 3
-890 0
-891 1
-892 1
-893 0
-894 3
-895 0
-896 1
-897 2
-898 1
-899 2
-900 3
-901 0
-902 1
-903 0
-904 3
-905 0
-906 0
-907 2
-908 1
-909 3
-910 2
-911 1
-912 2
-913 3
-914 2
-915 1
-916 0
-917 0
-918 2
-919 0
-920 1
-921 3
-922 2
-923 3
-924 0
-925 2
-926 1
-927 3
-928 0
-929 0
-930 1
-931 3
-932 0
-933 2
-934 3
-935 3
-936 3
-937 1
-938 1
-939 1
-940 2
-941 3
-942 1
-943 3
-944 1
-945 1
-946 2
-947 2
-948 3
-949 1
-950 3
-951 0
-952 1
-953 3
-954 3
-955 2
-956 1
-957 3
-958 2
-959 3
-960 2
-961 0
-962 3
-963 0
-964 2
-965 3
-966 0
-967 0
-968 3
-969 3
-970 1
-971 0
-972 2
-973 3
-974 2
-975 2
-976 3
-977 0
-978 1
-979 2
-980 1
-981 3
-982 2
-983 2
-984 3
-985 0
-986 1
-987 1
-988 3
-989 3
-990 3
-991 2
-992 0
-993 1
-994 0
-995 0
-996 2
-997 1
-998 0
-999 0
-1000 0
-1001 0
-1002 1
-1003 0
-1004 2
-1005 1
-1006 1
-1007 3
-1008 2
-1009 0
-1010 0
-1011 2
-1012 1
-1013 3
-1014 1
-1015 1
-1016 3
-1017 0
-1018 2
-1019 3
-1020 0
-1021 0
-1022 1
-1023 2
-1024 1
-1025 2
-1026 3
-1027 3
-1028 3
-1029 3
-1030 3
-1031 2
-1032 0
-1033 0
-1034 1
-1035 0
-1036 2
-1037 2
-1038 3
-1039 2
-1040 0
-1041 3
-1042 3
-1043 2
-1044 3
-1045 0
-1046 3
-1047 0
-1048 3
-1049 1
-1050 1
-1051 1
-1052 1
-1053 3
-1054 1
-1055 3
-1056 1
-1057 3
-1058 3
-1059 2
-1060 3
-1061 2
-1062 1
-1063 2
-1064 0
-1065 1
-1066 3
-1067 0
-1068 3
-1069 3
-1070 1
-1071 1
-1072 1
-1073 1
-1074 1
-1075 1
-1076 0
-1077 2
-1078 0
-1079 2
-1080 0
-1081 3
-1082 1
-1083 3
-1084 1
-1085 3
-1086 0
-1087 2
-1088 2
-1089 1
-1090 1
-1091 3
-1092 2
-1093 2
-1094 3
-1095 3
-1096 1
-1097 3
-1098 1
-1099 0
-1100 3
-1101 0
-1102 1
-1103 3
-1104 0
-1105 1
-1106 1
-1107 2
-1108 3
-1109 2
-1110 3
-1111 0
-1112 2
-1113 1
-1114 0
-1115 0
-1116 2
-1117 0
-1118 1
-1119 0
-1120 1
-1121 3
-1122 0
-1123 3
-1124 1
-1125 1
-1126 3
-1127 3
-1128 2
-1129 2
-1130 2
-1131 1
-1132 2
-1133 3
-1134 2
-1135 1
-1136 2
-1137 3
-1138 3
-1139 0
-1140 2
-1141 0
-1142 2
-1143 2
-1144 2
-1145 3
-1146 2
-1147 2
-1148 2
-1149 0
-1150 0
-1151 3
-1152 2
-1153 3
-1154 0
-1155 1
-1156 2
-1157 2
-1158 3
-1159 3
-1160 1
-1161 0
-1162 2
-1163 2
-1164 2
-1165 3
-1166 2
-1167 3
-1168 3
-1169 0
-1170 2
-1171 1
-1172 1
-1173 0
-1174 0
-1175 2
-1176 3
-1177 0
-1178 0
-1179 0
-1180 3
-1181 3
-1182 1
-1183 1
-1184 2
-1185 3
-1186 1
-1187 3
-1188 3
-1189 0
-1190 3
-1191 0
-1192 0
-1193 2
-1194 2
-1195 1
-1196 0
-1197 1
-1198 0
-1199 2
+EvenOddRings2_16 0 3
+EvenOddRings2_16 1 2
+EvenOddRings2_16 2 0
+EvenOddRings2_16 3 0
+EvenOddRings2_16 4 1
+EvenOddRings2_16 5 3
+EvenOddRings2_16 6 1
+EvenOddRings2_16 7 2
+EvenOddRings2_16 8 1
+EvenOddRings2_16 9 3
+EvenOddRings2_16 10 1
+EvenOddRings2_16 11 3
+EvenOddRings2_16 12 2
+EvenOddRings2_16 13 1
+EvenOddRings2_16 14 1
+EvenOddRings2_16 15 3
+EvenOddRings2_16 16 2
+EvenOddRings2_16 17 1
+EvenOddRings2_16 18 0
+EvenOddRings2_16 19 0
+EvenOddRings2_16 20 1
+EvenOddRings2_16 21 1
+EvenOddRings2_16 22 3
+EvenOddRings2_16 23 1
+EvenOddRings2_16 24 3
+EvenOddRings2_16 25 1
+EvenOddRings2_16 26 0
+EvenOddRings2_16 27 1
+EvenOddRings2_16 28 1
+EvenOddRings2_16 29 2
+EvenOddRings2_16 30 3
+EvenOddRings2_16 31 2
+EvenOddRings2_16 32 1
+EvenOddRings2_16 33 2
+EvenOddRings2_16 34 1
+EvenOddRings2_16 35 2
+EvenOddRings2_16 36 1
+EvenOddRings2_16 37 3
+EvenOddRings2_16 38 0
+EvenOddRings2_16 39 1
+EvenOddRings2_16 40 2
+EvenOddRings2_16 41 2
+EvenOddRings2_16 42 2
+EvenOddRings2_16 43 2
+EvenOddRings2_16 44 2
+EvenOddRings2_16 45 1
+EvenOddRings2_16 46 2
+EvenOddRings2_16 47 3
+EvenOddRings2_16 48 3
+EvenOddRings2_16 49 2
+EvenOddRings2_16 50 1
+EvenOddRings2_16 51 0
+EvenOddRings2_16 52 0
+EvenOddRings2_16 53 0
+EvenOddRings2_16 54 2
+EvenOddRings2_16 55 0
+EvenOddRings2_16 56 3
+EvenOddRings2_16 57 1
+EvenOddRings2_16 58 0
+EvenOddRings2_16 59 2
+EvenOddRings2_16 60 1
+EvenOddRings2_16 61 2
+EvenOddRings2_16 62 2
+EvenOddRings2_16 63 0
+EvenOddRings2_16 64 1
+EvenOddRings2_16 65 2
+EvenOddRings2_16 66 1
+EvenOddRings2_16 67 3
+EvenOddRings2_16 68 2
+EvenOddRings2_16 69 2
+EvenOddRings2_16 70 1
+EvenOddRings2_16 71 0
+EvenOddRings2_16 72 0
+EvenOddRings2_16 73 3
+EvenOddRings2_16 74 2
+EvenOddRings2_16 75 2
+EvenOddRings2_16 76 2
+EvenOddRings2_16 77 2
+EvenOddRings2_16 78 1
+EvenOddRings2_16 79 3
+EvenOddRings2_16 80 1
+EvenOddRings2_16 81 1
+EvenOddRings2_16 82 2
+EvenOddRings2_16 83 1
+EvenOddRings2_16 84 2
+EvenOddRings2_16 85 2
+EvenOddRings2_16 86 3
+EvenOddRings2_16 87 1
+EvenOddRings2_16 88 3
+EvenOddRings2_16 89 3
+EvenOddRings2_16 90 2
+EvenOddRings2_16 91 0
+EvenOddRings2_16 92 1
+EvenOddRings2_16 93 2
+EvenOddRings2_16 94 0
+EvenOddRings2_16 95 3
+EvenOddRings2_16 96 3
+EvenOddRings2_16 97 1
+EvenOddRings2_16 98 1
+EvenOddRings2_16 99 3
+EvenOddRings2_16 100 1
+EvenOddRings2_16 101 0
+EvenOddRings2_16 102 0
+EvenOddRings2_16 103 2
+EvenOddRings2_16 104 2
+EvenOddRings2_16 105 3
+EvenOddRings2_16 106 0
+EvenOddRings2_16 107 3
+EvenOddRings2_16 108 0
+EvenOddRings2_16 109 0
+EvenOddRings2_16 110 0
+EvenOddRings2_16 111 1
+EvenOddRings2_16 112 3
+EvenOddRings2_16 113 2
+EvenOddRings2_16 114 1
+EvenOddRings2_16 115 0
+EvenOddRings2_16 116 2
+EvenOddRings2_16 117 1
+EvenOddRings2_16 118 3
+EvenOddRings2_16 119 0
+EvenOddRings2_16 120 3
+EvenOddRings2_16 121 3
+EvenOddRings2_16 122 3
+EvenOddRings2_16 123 2
+EvenOddRings2_16 124 1
+EvenOddRings2_16 125 2
+EvenOddRings2_16 126 3
+EvenOddRings2_16 127 0
+EvenOddRings2_16 128 2
+EvenOddRings2_16 129 1
+EvenOddRings2_16 130 1
+EvenOddRings2_16 131 2
+EvenOddRings2_16 132 0
+EvenOddRings2_16 133 3
+EvenOddRings2_16 134 0
+EvenOddRings2_16 135 3
+EvenOddRings2_16 136 0
+EvenOddRings2_16 137 2
+EvenOddRings2_16 138 2
+EvenOddRings2_16 139 2
+EvenOddRings2_16 140 1
+EvenOddRings2_16 141 2
+EvenOddRings2_16 142 1
+EvenOddRings2_16 143 0
+EvenOddRings2_16 144 3
+EvenOddRings2_16 145 1
+EvenOddRings2_16 146 0
+EvenOddRings2_16 147 1
+EvenOddRings2_16 148 2
+EvenOddRings2_16 149 2
+EvenOddRings2_16 150 3
+EvenOddRings2_16 151 0
+EvenOddRings2_16 152 0
+EvenOddRings2_16 153 3
+EvenOddRings2_16 154 3
+EvenOddRings2_16 155 2
+EvenOddRings2_16 156 1
+EvenOddRings2_16 157 1
+EvenOddRings2_16 158 2
+EvenOddRings2_16 159 2
+EvenOddRings2_16 160 0
+EvenOddRings2_16 161 1
+EvenOddRings2_16 162 3
+EvenOddRings2_16 163 3
+EvenOddRings2_16 164 3
+EvenOddRings2_16 165 3
+EvenOddRings2_16 166 1
+EvenOddRings2_16 167 1
+EvenOddRings2_16 168 0
+EvenOddRings2_16 169 3
+EvenOddRings2_16 170 2
+EvenOddRings2_16 171 2
+EvenOddRings2_16 172 2
+EvenOddRings2_16 173 0
+EvenOddRings2_16 174 3
+EvenOddRings2_16 175 2
+EvenOddRings2_16 176 1
+EvenOddRings2_16 177 0
+EvenOddRings2_16 178 2
+EvenOddRings2_16 179 0
+EvenOddRings2_16 180 0
+EvenOddRings2_16 181 0
+EvenOddRings2_16 182 3
+EvenOddRings2_16 183 0
+EvenOddRings2_16 184 1
+EvenOddRings2_16 185 1
+EvenOddRings2_16 186 2
+EvenOddRings2_16 187 0
+EvenOddRings2_16 188 2
+EvenOddRings2_16 189 1
+EvenOddRings2_16 190 1
+EvenOddRings2_16 191 0
+EvenOddRings2_16 192 3
+EvenOddRings2_16 193 3
+EvenOddRings2_16 194 0
+EvenOddRings2_16 195 1
+EvenOddRings2_16 196 2
+EvenOddRings2_16 197 3
+EvenOddRings2_16 198 0
+EvenOddRings2_16 199 2
+EvenOddRings2_16 200 3
+EvenOddRings2_16 201 0
+EvenOddRings2_16 202 3
+EvenOddRings2_16 203 2
+EvenOddRings2_16 204 1
+EvenOddRings2_16 205 1
+EvenOddRings2_16 206 1
+EvenOddRings2_16 207 0
+EvenOddRings2_16 208 0
+EvenOddRings2_16 209 2
+EvenOddRings2_16 210 1
+EvenOddRings2_16 211 2
+EvenOddRings2_16 212 3
+EvenOddRings2_16 213 1
+EvenOddRings2_16 214 2
+EvenOddRings2_16 215 1
+EvenOddRings2_16 216 3
+EvenOddRings2_16 217 1
+EvenOddRings2_16 218 3
+EvenOddRings2_16 219 0
+EvenOddRings2_16 220 3
+EvenOddRings2_16 221 2
+EvenOddRings2_16 222 3
+EvenOddRings2_16 223 3
+EvenOddRings2_16 224 3
+EvenOddRings2_16 225 3
+EvenOddRings2_16 226 0
+EvenOddRings2_16 227 0
+EvenOddRings2_16 228 2
+EvenOddRings2_16 229 0
+EvenOddRings2_16 230 2
+EvenOddRings2_16 231 3
+EvenOddRings2_16 232 2
+EvenOddRings2_16 233 0
+EvenOddRings2_16 234 1
+EvenOddRings2_16 235 2
+EvenOddRings2_16 236 2
+EvenOddRings2_16 237 1
+EvenOddRings2_16 238 1
+EvenOddRings2_16 239 0
+EvenOddRings2_16 240 1
+EvenOddRings2_16 241 0
+EvenOddRings2_16 242 3
+EvenOddRings2_16 243 0
+EvenOddRings2_16 244 1
+EvenOddRings2_16 245 1
+EvenOddRings2_16 246 0
+EvenOddRings2_16 247 2
+EvenOddRings2_16 248 1
+EvenOddRings2_16 249 2
+EvenOddRings2_16 250 2
+EvenOddRings2_16 251 0
+EvenOddRings2_16 252 3
+EvenOddRings2_16 253 0
+EvenOddRings2_16 254 0
+EvenOddRings2_16 255 1
+EvenOddRings2_16 256 0
+EvenOddRings2_16 257 0
+EvenOddRings2_16 258 1
+EvenOddRings2_16 259 0
+EvenOddRings2_16 260 3
+EvenOddRings2_16 261 0
+EvenOddRings2_16 262 3
+EvenOddRings2_16 263 1
+EvenOddRings2_16 264 3
+EvenOddRings2_16 265 2
+EvenOddRings2_16 266 0
+EvenOddRings2_16 267 2
+EvenOddRings2_16 268 2
+EvenOddRings2_16 269 3
+EvenOddRings2_16 270 3
+EvenOddRings2_16 271 2
+EvenOddRings2_16 272 3
+EvenOddRings2_16 273 3
+EvenOddRings2_16 274 2
+EvenOddRings2_16 275 2
+EvenOddRings2_16 276 2
+EvenOddRings2_16 277 0
+EvenOddRings2_16 278 2
+EvenOddRings2_16 279 2
+EvenOddRings2_16 280 0
+EvenOddRings2_16 281 0
+EvenOddRings2_16 282 3
+EvenOddRings2_16 283 1
+EvenOddRings2_16 284 2
+EvenOddRings2_16 285 2
+EvenOddRings2_16 286 3
+EvenOddRings2_16 287 1
+EvenOddRings2_16 288 1
+EvenOddRings2_16 289 3
+EvenOddRings2_16 290 2
+EvenOddRings2_16 291 3
+EvenOddRings2_16 292 0
+EvenOddRings2_16 293 1
+EvenOddRings2_16 294 3
+EvenOddRings2_16 295 0
+EvenOddRings2_16 296 1
+EvenOddRings2_16 297 0
+EvenOddRings2_16 298 1
+EvenOddRings2_16 299 1
+EvenOddRings2_16 300 2
+EvenOddRings2_16 301 3
+EvenOddRings2_16 302 3
+EvenOddRings2_16 303 2
+EvenOddRings2_16 304 3
+EvenOddRings2_16 305 1
+EvenOddRings2_16 306 0
+EvenOddRings2_16 307 3
+EvenOddRings2_16 308 2
+EvenOddRings2_16 309 2
+EvenOddRings2_16 310 0
+EvenOddRings2_16 311 2
+EvenOddRings2_16 312 1
+EvenOddRings2_16 313 1
+EvenOddRings2_16 314 2
+EvenOddRings2_16 315 3
+EvenOddRings2_16 316 2
+EvenOddRings2_16 317 2
+EvenOddRings2_16 318 1
+EvenOddRings2_16 319 1
+EvenOddRings2_16 320 1
+EvenOddRings2_16 321 2
+EvenOddRings2_16 322 0
+EvenOddRings2_16 323 3
+EvenOddRings2_16 324 2
+EvenOddRings2_16 325 3
+EvenOddRings2_16 326 1
+EvenOddRings2_16 327 3
+EvenOddRings2_16 328 3
+EvenOddRings2_16 329 3
+EvenOddRings2_16 330 2
+EvenOddRings2_16 331 0
+EvenOddRings2_16 332 1
+EvenOddRings2_16 333 3
+EvenOddRings2_16 334 2
+EvenOddRings2_16 335 0
+EvenOddRings2_16 336 3
+EvenOddRings2_16 337 1
+EvenOddRings2_16 338 0
+EvenOddRings2_16 339 1
+EvenOddRings2_16 340 0
+EvenOddRings2_16 341 2
+EvenOddRings2_16 342 3
+EvenOddRings2_16 343 2
+EvenOddRings2_16 344 2
+EvenOddRings2_16 345 3
+EvenOddRings2_16 346 2
+EvenOddRings2_16 347 3
+EvenOddRings2_16 348 3
+EvenOddRings2_16 349 0
+EvenOddRings2_16 350 1
+EvenOddRings2_16 351 3
+EvenOddRings2_16 352 0
+EvenOddRings2_16 353 1
+EvenOddRings2_16 354 2
+EvenOddRings2_16 355 0
+EvenOddRings2_16 356 3
+EvenOddRings2_16 357 3
+EvenOddRings2_16 358 2
+EvenOddRings2_16 359 3
+EvenOddRings2_16 360 0
+EvenOddRings2_16 361 3
+EvenOddRings2_16 362 3
+EvenOddRings2_16 363 2
+EvenOddRings2_16 364 3
+EvenOddRings2_16 365 1
+EvenOddRings2_16 366 0
+EvenOddRings2_16 367 0
+EvenOddRings2_16 368 2
+EvenOddRings2_16 369 2
+EvenOddRings2_16 370 1
+EvenOddRings2_16 371 3
+EvenOddRings2_16 372 0
+EvenOddRings2_16 373 2
+EvenOddRings2_16 374 0
+EvenOddRings2_16 375 0
+EvenOddRings2_16 376 1
+EvenOddRings2_16 377 0
+EvenOddRings2_16 378 1
+EvenOddRings2_16 379 1
+EvenOddRings2_16 380 1
+EvenOddRings2_16 381 1
+EvenOddRings2_16 382 3
+EvenOddRings2_16 383 3
+EvenOddRings2_16 384 1
+EvenOddRings2_16 385 2
+EvenOddRings2_16 386 3
+EvenOddRings2_16 387 0
+EvenOddRings2_16 388 0
+EvenOddRings2_16 389 0
+EvenOddRings2_16 390 1
+EvenOddRings2_16 391 1
+EvenOddRings2_16 392 0
+EvenOddRings2_16 393 1
+EvenOddRings2_16 394 3
+EvenOddRings2_16 395 2
+EvenOddRings2_16 396 3
+EvenOddRings2_16 397 1
+EvenOddRings2_16 398 1
+EvenOddRings2_16 399 2
+EvenOddRings2_16 400 2
+EvenOddRings2_16 401 1
+EvenOddRings2_16 402 1
+EvenOddRings2_16 403 1
+EvenOddRings2_16 404 2
+EvenOddRings2_16 405 0
+EvenOddRings2_16 406 1
+EvenOddRings2_16 407 1
+EvenOddRings2_16 408 1
+EvenOddRings2_16 409 0
+EvenOddRings2_16 410 3
+EvenOddRings2_16 411 1
+EvenOddRings2_16 412 1
+EvenOddRings2_16 413 0
+EvenOddRings2_16 414 3
+EvenOddRings2_16 415 1
+EvenOddRings2_16 416 0
+EvenOddRings2_16 417 2
+EvenOddRings2_16 418 1
+EvenOddRings2_16 419 2
+EvenOddRings2_16 420 3
+EvenOddRings2_16 421 0
+EvenOddRings2_16 422 0
+EvenOddRings2_16 423 2
+EvenOddRings2_16 424 3
+EvenOddRings2_16 425 2
+EvenOddRings2_16 426 1
+EvenOddRings2_16 427 0
+EvenOddRings2_16 428 0
+EvenOddRings2_16 429 3
+EvenOddRings2_16 430 1
+EvenOddRings2_16 431 0
+EvenOddRings2_16 432 0
+EvenOddRings2_16 433 2
+EvenOddRings2_16 434 3
+EvenOddRings2_16 435 1
+EvenOddRings2_16 436 2
+EvenOddRings2_16 437 0
+EvenOddRings2_16 438 0
+EvenOddRings2_16 439 1
+EvenOddRings2_16 440 1
+EvenOddRings2_16 441 2
+EvenOddRings2_16 442 2
+EvenOddRings2_16 443 3
+EvenOddRings2_16 444 2
+EvenOddRings2_16 445 0
+EvenOddRings2_16 446 2
+EvenOddRings2_16 447 0
+EvenOddRings2_16 448 2
+EvenOddRings2_16 449 0
+EvenOddRings2_16 450 1
+EvenOddRings2_16 451 1
+EvenOddRings2_16 452 0
+EvenOddRings2_16 453 1
+EvenOddRings2_16 454 0
+EvenOddRings2_16 455 2
+EvenOddRings2_16 456 2
+EvenOddRings2_16 457 2
+EvenOddRings2_16 458 2
+EvenOddRings2_16 459 1
+EvenOddRings2_16 460 3
+EvenOddRings2_16 461 2
+EvenOddRings2_16 462 0
+EvenOddRings2_16 463 2
+EvenOddRings2_16 464 1
+EvenOddRings2_16 465 1
+EvenOddRings2_16 466 0
+EvenOddRings2_16 467 0
+EvenOddRings2_16 468 2
+EvenOddRings2_16 469 2
+EvenOddRings2_16 470 3
+EvenOddRings2_16 471 3
+EvenOddRings2_16 472 0
+EvenOddRings2_16 473 2
+EvenOddRings2_16 474 2
+EvenOddRings2_16 475 0
+EvenOddRings2_16 476 1
+EvenOddRings2_16 477 0
+EvenOddRings2_16 478 0
+EvenOddRings2_16 479 3
+EvenOddRings2_16 480 1
+EvenOddRings2_16 481 2
+EvenOddRings2_16 482 1
+EvenOddRings2_16 483 1
+EvenOddRings2_16 484 0
+EvenOddRings2_16 485 1
+EvenOddRings2_16 486 0
+EvenOddRings2_16 487 1
+EvenOddRings2_16 488 3
+EvenOddRings2_16 489 3
+EvenOddRings2_16 490 3
+EvenOddRings2_16 491 3
+EvenOddRings2_16 492 0
+EvenOddRings2_16 493 1
+EvenOddRings2_16 494 3
+EvenOddRings2_16 495 3
+EvenOddRings2_16 496 2
+EvenOddRings2_16 497 0
+EvenOddRings2_16 498 3
+EvenOddRings2_16 499 3
+EvenOddRings2_16 500 1
+EvenOddRings2_16 501 0
+EvenOddRings2_16 502 0
+EvenOddRings2_16 503 2
+EvenOddRings2_16 504 2
+EvenOddRings2_16 505 3
+EvenOddRings2_16 506 2
+EvenOddRings2_16 507 1
+EvenOddRings2_16 508 1
+EvenOddRings2_16 509 1
+EvenOddRings2_16 510 1
+EvenOddRings2_16 511 0
+EvenOddRings2_16 512 3
+EvenOddRings2_16 513 1
+EvenOddRings2_16 514 2
+EvenOddRings2_16 515 3
+EvenOddRings2_16 516 2
+EvenOddRings2_16 517 0
+EvenOddRings2_16 518 3
+EvenOddRings2_16 519 3
+EvenOddRings2_16 520 1
+EvenOddRings2_16 521 2
+EvenOddRings2_16 522 1
+EvenOddRings2_16 523 3
+EvenOddRings2_16 524 3
+EvenOddRings2_16 525 2
+EvenOddRings2_16 526 0
+EvenOddRings2_16 527 2
+EvenOddRings2_16 528 1
+EvenOddRings2_16 529 0
+EvenOddRings2_16 530 0
+EvenOddRings2_16 531 3
+EvenOddRings2_16 532 3
+EvenOddRings2_16 533 3
+EvenOddRings2_16 534 1
+EvenOddRings2_16 535 3
+EvenOddRings2_16 536 2
+EvenOddRings2_16 537 1
+EvenOddRings2_16 538 1
+EvenOddRings2_16 539 2
+EvenOddRings2_16 540 1
+EvenOddRings2_16 541 0
+EvenOddRings2_16 542 1
+EvenOddRings2_16 543 1
+EvenOddRings2_16 544 2
+EvenOddRings2_16 545 3
+EvenOddRings2_16 546 1
+EvenOddRings2_16 547 2
+EvenOddRings2_16 548 1
+EvenOddRings2_16 549 0
+EvenOddRings2_16 550 3
+EvenOddRings2_16 551 0
+EvenOddRings2_16 552 0
+EvenOddRings2_16 553 0
+EvenOddRings2_16 554 0
+EvenOddRings2_16 555 3
+EvenOddRings2_16 556 0
+EvenOddRings2_16 557 1
+EvenOddRings2_16 558 2
+EvenOddRings2_16 559 0
+EvenOddRings2_16 560 3
+EvenOddRings2_16 561 1
+EvenOddRings2_16 562 0
+EvenOddRings2_16 563 1
+EvenOddRings2_16 564 0
+EvenOddRings2_16 565 3
+EvenOddRings2_16 566 0
+EvenOddRings2_16 567 2
+EvenOddRings2_16 568 1
+EvenOddRings2_16 569 1
+EvenOddRings2_16 570 0
+EvenOddRings2_16 571 2
+EvenOddRings2_16 572 0
+EvenOddRings2_16 573 3
+EvenOddRings2_16 574 0
+EvenOddRings2_16 575 0
+EvenOddRings2_16 576 0
+EvenOddRings2_16 577 0
+EvenOddRings2_16 578 3
+EvenOddRings2_16 579 2
+EvenOddRings2_16 580 1
+EvenOddRings2_16 581 1
+EvenOddRings2_16 582 2
+EvenOddRings2_16 583 0
+EvenOddRings2_16 584 1
+EvenOddRings2_16 585 2
+EvenOddRings2_16 586 0
+EvenOddRings2_16 587 1
+EvenOddRings2_16 588 3
+EvenOddRings2_16 589 0
+EvenOddRings2_16 590 0
+EvenOddRings2_16 591 1
+EvenOddRings2_16 592 3
+EvenOddRings2_16 593 3
+EvenOddRings2_16 594 1
+EvenOddRings2_16 595 1
+EvenOddRings2_16 596 2
+EvenOddRings2_16 597 1
+EvenOddRings2_16 598 2
+EvenOddRings2_16 599 2
+EvenOddRings2_16 600 0
+EvenOddRings2_16 601 2
+EvenOddRings2_16 602 1
+EvenOddRings2_16 603 2
+EvenOddRings2_16 604 3
+EvenOddRings2_16 605 3
+EvenOddRings2_16 606 3
+EvenOddRings2_16 607 3
+EvenOddRings2_16 608 1
+EvenOddRings2_16 609 1
+EvenOddRings2_16 610 3
+EvenOddRings2_16 611 2
+EvenOddRings2_16 612 3
+EvenOddRings2_16 613 0
+EvenOddRings2_16 614 2
+EvenOddRings2_16 615 2
+EvenOddRings2_16 616 1
+EvenOddRings2_16 617 2
+EvenOddRings2_16 618 3
+EvenOddRings2_16 619 1
+EvenOddRings2_16 620 0
+EvenOddRings2_16 621 3
+EvenOddRings2_16 622 0
+EvenOddRings2_16 623 1
+EvenOddRings2_16 624 0
+EvenOddRings2_16 625 3
+EvenOddRings2_16 626 1
+EvenOddRings2_16 627 2
+EvenOddRings2_16 628 3
+EvenOddRings2_16 629 3
+EvenOddRings2_16 630 1
+EvenOddRings2_16 631 1
+EvenOddRings2_16 632 0
+EvenOddRings2_16 633 1
+EvenOddRings2_16 634 2
+EvenOddRings2_16 635 3
+EvenOddRings2_16 636 0
+EvenOddRings2_16 637 3
+EvenOddRings2_16 638 0
+EvenOddRings2_16 639 3
+EvenOddRings2_16 640 2
+EvenOddRings2_16 641 0
+EvenOddRings2_16 642 3
+EvenOddRings2_16 643 1
+EvenOddRings2_16 644 1
+EvenOddRings2_16 645 2
+EvenOddRings2_16 646 0
+EvenOddRings2_16 647 0
+EvenOddRings2_16 648 0
+EvenOddRings2_16 649 2
+EvenOddRings2_16 650 3
+EvenOddRings2_16 651 3
+EvenOddRings2_16 652 0
+EvenOddRings2_16 653 2
+EvenOddRings2_16 654 3
+EvenOddRings2_16 655 1
+EvenOddRings2_16 656 3
+EvenOddRings2_16 657 3
+EvenOddRings2_16 658 0
+EvenOddRings2_16 659 2
+EvenOddRings2_16 660 3
+EvenOddRings2_16 661 2
+EvenOddRings2_16 662 1
+EvenOddRings2_16 663 3
+EvenOddRings2_16 664 2
+EvenOddRings2_16 665 1
+EvenOddRings2_16 666 3
+EvenOddRings2_16 667 3
+EvenOddRings2_16 668 0
+EvenOddRings2_16 669 1
+EvenOddRings2_16 670 2
+EvenOddRings2_16 671 2
+EvenOddRings2_16 672 0
+EvenOddRings2_16 673 0
+EvenOddRings2_16 674 0
+EvenOddRings2_16 675 1
+EvenOddRings2_16 676 2
+EvenOddRings2_16 677 3
+EvenOddRings2_16 678 0
+EvenOddRings2_16 679 3
+EvenOddRings2_16 680 3
+EvenOddRings2_16 681 0
+EvenOddRings2_16 682 0
+EvenOddRings2_16 683 0
+EvenOddRings2_16 684 0
+EvenOddRings2_16 685 3
+EvenOddRings2_16 686 0
+EvenOddRings2_16 687 2
+EvenOddRings2_16 688 1
+EvenOddRings2_16 689 0
+EvenOddRings2_16 690 2
+EvenOddRings2_16 691 2
+EvenOddRings2_16 692 1
+EvenOddRings2_16 693 1
+EvenOddRings2_16 694 0
+EvenOddRings2_16 695 0
+EvenOddRings2_16 696 0
+EvenOddRings2_16 697 2
+EvenOddRings2_16 698 0
+EvenOddRings2_16 699 3
+EvenOddRings2_16 700 2
+EvenOddRings2_16 701 3
+EvenOddRings2_16 702 3
+EvenOddRings2_16 703 1
+EvenOddRings2_16 704 1
+EvenOddRings2_16 705 0
+EvenOddRings2_16 706 0
+EvenOddRings2_16 707 0
+EvenOddRings2_16 708 3
+EvenOddRings2_16 709 3
+EvenOddRings2_16 710 0
+EvenOddRings2_16 711 1
+EvenOddRings2_16 712 2
+EvenOddRings2_16 713 0
+EvenOddRings2_16 714 2
+EvenOddRings2_16 715 0
+EvenOddRings2_16 716 1
+EvenOddRings2_16 717 0
+EvenOddRings2_16 718 2
+EvenOddRings2_16 719 2
+EvenOddRings2_16 720 2
+EvenOddRings2_16 721 1
+EvenOddRings2_16 722 0
+EvenOddRings2_16 723 0
+EvenOddRings2_16 724 1
+EvenOddRings2_16 725 1
+EvenOddRings2_16 726 0
+EvenOddRings2_16 727 2
+EvenOddRings2_16 728 2
+EvenOddRings2_16 729 2
+EvenOddRings2_16 730 2
+EvenOddRings2_16 731 2
+EvenOddRings2_16 732 2
+EvenOddRings2_16 733 3
+EvenOddRings2_16 734 1
+EvenOddRings2_16 735 2
+EvenOddRings2_16 736 0
+EvenOddRings2_16 737 2
+EvenOddRings2_16 738 2
+EvenOddRings2_16 739 0
+EvenOddRings2_16 740 2
+EvenOddRings2_16 741 1
+EvenOddRings2_16 742 1
+EvenOddRings2_16 743 2
+EvenOddRings2_16 744 2
+EvenOddRings2_16 745 1
+EvenOddRings2_16 746 0
+EvenOddRings2_16 747 1
+EvenOddRings2_16 748 2
+EvenOddRings2_16 749 3
+EvenOddRings2_16 750 0
+EvenOddRings2_16 751 2
+EvenOddRings2_16 752 0
+EvenOddRings2_16 753 1
+EvenOddRings2_16 754 3
+EvenOddRings2_16 755 2
+EvenOddRings2_16 756 2
+EvenOddRings2_16 757 1
+EvenOddRings2_16 758 0
+EvenOddRings2_16 759 1
+EvenOddRings2_16 760 1
+EvenOddRings2_16 761 3
+EvenOddRings2_16 762 3
+EvenOddRings2_16 763 0
+EvenOddRings2_16 764 3
+EvenOddRings2_16 765 1
+EvenOddRings2_16 766 2
+EvenOddRings2_16 767 3
+EvenOddRings2_16 768 1
+EvenOddRings2_16 769 2
+EvenOddRings2_16 770 1
+EvenOddRings2_16 771 0
+EvenOddRings2_16 772 2
+EvenOddRings2_16 773 0
+EvenOddRings2_16 774 1
+EvenOddRings2_16 775 0
+EvenOddRings2_16 776 1
+EvenOddRings2_16 777 1
+EvenOddRings2_16 778 3
+EvenOddRings2_16 779 2
+EvenOddRings2_16 780 1
+EvenOddRings2_16 781 3
+EvenOddRings2_16 782 3
+EvenOddRings2_16 783 0
+EvenOddRings2_16 784 3
+EvenOddRings2_16 785 2
+EvenOddRings2_16 786 1
+EvenOddRings2_16 787 1
+EvenOddRings2_16 788 1
+EvenOddRings2_16 789 2
+EvenOddRings2_16 790 0
+EvenOddRings2_16 791 1
+EvenOddRings2_16 792 3
+EvenOddRings2_16 793 1
+EvenOddRings2_16 794 2
+EvenOddRings2_16 795 2
+EvenOddRings2_16 796 1
+EvenOddRings2_16 797 1
+EvenOddRings2_16 798 2
+EvenOddRings2_16 799 3
+EvenOddRings2_16 800 2
+EvenOddRings2_16 801 3
+EvenOddRings2_16 802 3
+EvenOddRings2_16 803 0
+EvenOddRings2_16 804 0
+EvenOddRings2_16 805 0
+EvenOddRings2_16 806 3
+EvenOddRings2_16 807 3
+EvenOddRings2_16 808 1
+EvenOddRings2_16 809 0
+EvenOddRings2_16 810 1
+EvenOddRings2_16 811 3
+EvenOddRings2_16 812 0
+EvenOddRings2_16 813 0
+EvenOddRings2_16 814 3
+EvenOddRings2_16 815 1
+EvenOddRings2_16 816 3
+EvenOddRings2_16 817 3
+EvenOddRings2_16 818 3
+EvenOddRings2_16 819 2
+EvenOddRings2_16 820 1
+EvenOddRings2_16 821 3
+EvenOddRings2_16 822 3
+EvenOddRings2_16 823 2
+EvenOddRings2_16 824 2
+EvenOddRings2_16 825 3
+EvenOddRings2_16 826 2
+EvenOddRings2_16 827 2
+EvenOddRings2_16 828 2
+EvenOddRings2_16 829 0
+EvenOddRings2_16 830 1
+EvenOddRings2_16 831 0
+EvenOddRings2_16 832 3
+EvenOddRings2_16 833 2
+EvenOddRings2_16 834 2
+EvenOddRings2_16 835 0
+EvenOddRings2_16 836 0
+EvenOddRings2_16 837 1
+EvenOddRings2_16 838 0
+EvenOddRings2_16 839 3
+EvenOddRings2_16 840 2
+EvenOddRings2_16 841 3
+EvenOddRings2_16 842 2
+EvenOddRings2_16 843 0
+EvenOddRings2_16 844 0
+EvenOddRings2_16 845 1
+EvenOddRings2_16 846 3
+EvenOddRings2_16 847 0
+EvenOddRings2_16 848 1
+EvenOddRings2_16 849 0
+EvenOddRings2_16 850 2
+EvenOddRings2_16 851 1
+EvenOddRings2_16 852 3
+EvenOddRings2_16 853 0
+EvenOddRings2_16 854 0
+EvenOddRings2_16 855 1
+EvenOddRings2_16 856 0
+EvenOddRings2_16 857 0
+EvenOddRings2_16 858 0
+EvenOddRings2_16 859 2
+EvenOddRings2_16 860 3
+EvenOddRings2_16 861 0
+EvenOddRings2_16 862 2
+EvenOddRings2_16 863 1
+EvenOddRings2_16 864 1
+EvenOddRings2_16 865 0
+EvenOddRings2_16 866 2
+EvenOddRings2_16 867 0
+EvenOddRings2_16 868 3
+EvenOddRings2_16 869 0
+EvenOddRings2_16 870 2
+EvenOddRings2_16 871 0
+EvenOddRings2_16 872 3
+EvenOddRings2_16 873 3
+EvenOddRings2_16 874 1
+EvenOddRings2_16 875 0
+EvenOddRings2_16 876 0
+EvenOddRings2_16 877 3
+EvenOddRings2_16 878 3
+EvenOddRings2_16 879 0
+EvenOddRings2_16 880 2
+EvenOddRings2_16 881 1
+EvenOddRings2_16 882 3
+EvenOddRings2_16 883 3
+EvenOddRings2_16 884 3
+EvenOddRings2_16 885 2
+EvenOddRings2_16 886 0
+EvenOddRings2_16 887 3
+EvenOddRings2_16 888 2
+EvenOddRings2_16 889 3
+EvenOddRings2_16 890 0
+EvenOddRings2_16 891 1
+EvenOddRings2_16 892 1
+EvenOddRings2_16 893 0
+EvenOddRings2_16 894 3
+EvenOddRings2_16 895 0
+EvenOddRings2_16 896 1
+EvenOddRings2_16 897 2
+EvenOddRings2_16 898 1
+EvenOddRings2_16 899 2
+EvenOddRings2_16 900 3
+EvenOddRings2_16 901 0
+EvenOddRings2_16 902 1
+EvenOddRings2_16 903 0
+EvenOddRings2_16 904 3
+EvenOddRings2_16 905 0
+EvenOddRings2_16 906 0
+EvenOddRings2_16 907 2
+EvenOddRings2_16 908 1
+EvenOddRings2_16 909 3
+EvenOddRings2_16 910 2
+EvenOddRings2_16 911 1
+EvenOddRings2_16 912 2
+EvenOddRings2_16 913 3
+EvenOddRings2_16 914 2
+EvenOddRings2_16 915 1
+EvenOddRings2_16 916 0
+EvenOddRings2_16 917 0
+EvenOddRings2_16 918 2
+EvenOddRings2_16 919 0
+EvenOddRings2_16 920 1
+EvenOddRings2_16 921 3
+EvenOddRings2_16 922 2
+EvenOddRings2_16 923 3
+EvenOddRings2_16 924 0
+EvenOddRings2_16 925 2
+EvenOddRings2_16 926 1
+EvenOddRings2_16 927 3
+EvenOddRings2_16 928 0
+EvenOddRings2_16 929 0
+EvenOddRings2_16 930 1
+EvenOddRings2_16 931 3
+EvenOddRings2_16 932 0
+EvenOddRings2_16 933 2
+EvenOddRings2_16 934 3
+EvenOddRings2_16 935 3
+EvenOddRings2_16 936 3
+EvenOddRings2_16 937 1
+EvenOddRings2_16 938 1
+EvenOddRings2_16 939 1
+EvenOddRings2_16 940 2
+EvenOddRings2_16 941 3
+EvenOddRings2_16 942 1
+EvenOddRings2_16 943 3
+EvenOddRings2_16 944 1
+EvenOddRings2_16 945 1
+EvenOddRings2_16 946 2
+EvenOddRings2_16 947 2
+EvenOddRings2_16 948 3
+EvenOddRings2_16 949 1
+EvenOddRings2_16 950 3
+EvenOddRings2_16 951 0
+EvenOddRings2_16 952 1
+EvenOddRings2_16 953 3
+EvenOddRings2_16 954 3
+EvenOddRings2_16 955 2
+EvenOddRings2_16 956 1
+EvenOddRings2_16 957 3
+EvenOddRings2_16 958 2
+EvenOddRings2_16 959 3
+EvenOddRings2_16 960 2
+EvenOddRings2_16 961 0
+EvenOddRings2_16 962 3
+EvenOddRings2_16 963 0
+EvenOddRings2_16 964 2
+EvenOddRings2_16 965 3
+EvenOddRings2_16 966 0
+EvenOddRings2_16 967 0
+EvenOddRings2_16 968 3
+EvenOddRings2_16 969 3
+EvenOddRings2_16 970 1
+EvenOddRings2_16 971 0
+EvenOddRings2_16 972 2
+EvenOddRings2_16 973 3
+EvenOddRings2_16 974 2
+EvenOddRings2_16 975 2
+EvenOddRings2_16 976 3
+EvenOddRings2_16 977 0
+EvenOddRings2_16 978 1
+EvenOddRings2_16 979 2
+EvenOddRings2_16 980 1
+EvenOddRings2_16 981 3
+EvenOddRings2_16 982 2
+EvenOddRings2_16 983 2
+EvenOddRings2_16 984 3
+EvenOddRings2_16 985 0
+EvenOddRings2_16 986 1
+EvenOddRings2_16 987 1
+EvenOddRings2_16 988 3
+EvenOddRings2_16 989 3
+EvenOddRings2_16 990 3
+EvenOddRings2_16 991 2
+EvenOddRings2_16 992 0
+EvenOddRings2_16 993 1
+EvenOddRings2_16 994 0
+EvenOddRings2_16 995 0
+EvenOddRings2_16 996 2
+EvenOddRings2_16 997 1
+EvenOddRings2_16 998 0
+EvenOddRings2_16 999 0
+EvenOddRings2_16 1000 0
+EvenOddRings2_16 1001 0
+EvenOddRings2_16 1002 1
+EvenOddRings2_16 1003 0
+EvenOddRings2_16 1004 2
+EvenOddRings2_16 1005 1
+EvenOddRings2_16 1006 1
+EvenOddRings2_16 1007 3
+EvenOddRings2_16 1008 2
+EvenOddRings2_16 1009 0
+EvenOddRings2_16 1010 0
+EvenOddRings2_16 1011 2
+EvenOddRings2_16 1012 1
+EvenOddRings2_16 1013 3
+EvenOddRings2_16 1014 1
+EvenOddRings2_16 1015 1
+EvenOddRings2_16 1016 3
+EvenOddRings2_16 1017 0
+EvenOddRings2_16 1018 2
+EvenOddRings2_16 1019 3
+EvenOddRings2_16 1020 0
+EvenOddRings2_16 1021 0
+EvenOddRings2_16 1022 1
+EvenOddRings2_16 1023 2
+EvenOddRings2_16 1024 1
+EvenOddRings2_16 1025 2
+EvenOddRings2_16 1026 3
+EvenOddRings2_16 1027 3
+EvenOddRings2_16 1028 3
+EvenOddRings2_16 1029 3
+EvenOddRings2_16 1030 3
+EvenOddRings2_16 1031 2
+EvenOddRings2_16 1032 0
+EvenOddRings2_16 1033 0
+EvenOddRings2_16 1034 1
+EvenOddRings2_16 1035 0
+EvenOddRings2_16 1036 2
+EvenOddRings2_16 1037 2
+EvenOddRings2_16 1038 3
+EvenOddRings2_16 1039 2
+EvenOddRings2_16 1040 0
+EvenOddRings2_16 1041 3
+EvenOddRings2_16 1042 3
+EvenOddRings2_16 1043 2
+EvenOddRings2_16 1044 3
+EvenOddRings2_16 1045 0
+EvenOddRings2_16 1046 3
+EvenOddRings2_16 1047 0
+EvenOddRings2_16 1048 3
+EvenOddRings2_16 1049 1
+EvenOddRings2_16 1050 1
+EvenOddRings2_16 1051 1
+EvenOddRings2_16 1052 1
+EvenOddRings2_16 1053 3
+EvenOddRings2_16 1054 1
+EvenOddRings2_16 1055 3
+EvenOddRings2_16 1056 1
+EvenOddRings2_16 1057 3
+EvenOddRings2_16 1058 3
+EvenOddRings2_16 1059 2
+EvenOddRings2_16 1060 3
+EvenOddRings2_16 1061 2
+EvenOddRings2_16 1062 1
+EvenOddRings2_16 1063 2
+EvenOddRings2_16 1064 0
+EvenOddRings2_16 1065 1
+EvenOddRings2_16 1066 3
+EvenOddRings2_16 1067 0
+EvenOddRings2_16 1068 3
+EvenOddRings2_16 1069 3
+EvenOddRings2_16 1070 1
+EvenOddRings2_16 1071 1
+EvenOddRings2_16 1072 1
+EvenOddRings2_16 1073 1
+EvenOddRings2_16 1074 1
+EvenOddRings2_16 1075 1
+EvenOddRings2_16 1076 0
+EvenOddRings2_16 1077 2
+EvenOddRings2_16 1078 0
+EvenOddRings2_16 1079 2
+EvenOddRings2_16 1080 0
+EvenOddRings2_16 1081 3
+EvenOddRings2_16 1082 1
+EvenOddRings2_16 1083 3
+EvenOddRings2_16 1084 1
+EvenOddRings2_16 1085 3
+EvenOddRings2_16 1086 0
+EvenOddRings2_16 1087 2
+EvenOddRings2_16 1088 2
+EvenOddRings2_16 1089 1
+EvenOddRings2_16 1090 1
+EvenOddRings2_16 1091 3
+EvenOddRings2_16 1092 2
+EvenOddRings2_16 1093 2
+EvenOddRings2_16 1094 3
+EvenOddRings2_16 1095 3
+EvenOddRings2_16 1096 1
+EvenOddRings2_16 1097 3
+EvenOddRings2_16 1098 1
+EvenOddRings2_16 1099 0
+EvenOddRings2_16 1100 3
+EvenOddRings2_16 1101 0
+EvenOddRings2_16 1102 1
+EvenOddRings2_16 1103 3
+EvenOddRings2_16 1104 0
+EvenOddRings2_16 1105 1
+EvenOddRings2_16 1106 1
+EvenOddRings2_16 1107 2
+EvenOddRings2_16 1108 3
+EvenOddRings2_16 1109 2
+EvenOddRings2_16 1110 3
+EvenOddRings2_16 1111 0
+EvenOddRings2_16 1112 2
+EvenOddRings2_16 1113 1
+EvenOddRings2_16 1114 0
+EvenOddRings2_16 1115 0
+EvenOddRings2_16 1116 2
+EvenOddRings2_16 1117 0
+EvenOddRings2_16 1118 1
+EvenOddRings2_16 1119 0
+EvenOddRings2_16 1120 1
+EvenOddRings2_16 1121 3
+EvenOddRings2_16 1122 0
+EvenOddRings2_16 1123 3
+EvenOddRings2_16 1124 1
+EvenOddRings2_16 1125 1
+EvenOddRings2_16 1126 3
+EvenOddRings2_16 1127 3
+EvenOddRings2_16 1128 2
+EvenOddRings2_16 1129 2
+EvenOddRings2_16 1130 2
+EvenOddRings2_16 1131 1
+EvenOddRings2_16 1132 2
+EvenOddRings2_16 1133 3
+EvenOddRings2_16 1134 2
+EvenOddRings2_16 1135 1
+EvenOddRings2_16 1136 2
+EvenOddRings2_16 1137 3
+EvenOddRings2_16 1138 3
+EvenOddRings2_16 1139 0
+EvenOddRings2_16 1140 2
+EvenOddRings2_16 1141 0
+EvenOddRings2_16 1142 2
+EvenOddRings2_16 1143 2
+EvenOddRings2_16 1144 2
+EvenOddRings2_16 1145 3
+EvenOddRings2_16 1146 2
+EvenOddRings2_16 1147 2
+EvenOddRings2_16 1148 2
+EvenOddRings2_16 1149 0
+EvenOddRings2_16 1150 0
+EvenOddRings2_16 1151 3
+EvenOddRings2_16 1152 2
+EvenOddRings2_16 1153 3
+EvenOddRings2_16 1154 0
+EvenOddRings2_16 1155 1
+EvenOddRings2_16 1156 2
+EvenOddRings2_16 1157 2
+EvenOddRings2_16 1158 3
+EvenOddRings2_16 1159 3
+EvenOddRings2_16 1160 1
+EvenOddRings2_16 1161 0
+EvenOddRings2_16 1162 2
+EvenOddRings2_16 1163 2
+EvenOddRings2_16 1164 2
+EvenOddRings2_16 1165 3
+EvenOddRings2_16 1166 2
+EvenOddRings2_16 1167 3
+EvenOddRings2_16 1168 3
+EvenOddRings2_16 1169 0
+EvenOddRings2_16 1170 2
+EvenOddRings2_16 1171 1
+EvenOddRings2_16 1172 1
+EvenOddRings2_16 1173 0
+EvenOddRings2_16 1174 0
+EvenOddRings2_16 1175 2
+EvenOddRings2_16 1176 3
+EvenOddRings2_16 1177 0
+EvenOddRings2_16 1178 0
+EvenOddRings2_16 1179 0
+EvenOddRings2_16 1180 3
+EvenOddRings2_16 1181 3
+EvenOddRings2_16 1182 1
+EvenOddRings2_16 1183 1
+EvenOddRings2_16 1184 2
+EvenOddRings2_16 1185 3
+EvenOddRings2_16 1186 1
+EvenOddRings2_16 1187 3
+EvenOddRings2_16 1188 3
+EvenOddRings2_16 1189 0
+EvenOddRings2_16 1190 3
+EvenOddRings2_16 1191 0
+EvenOddRings2_16 1192 0
+EvenOddRings2_16 1193 2
+EvenOddRings2_16 1194 2
+EvenOddRings2_16 1195 1
+EvenOddRings2_16 1196 0
+EvenOddRings2_16 1197 1
+EvenOddRings2_16 1198 0
+EvenOddRings2_16 1199 2

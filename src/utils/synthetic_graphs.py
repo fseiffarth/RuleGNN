@@ -1,4 +1,3 @@
-### create example graphs
 from typing import List
 
 import networkx as nx
@@ -57,4 +56,3 @@ def ring_diagonals(data_size=1200, ring_size=100) -> (List[nx.Graph], List[int])
             graphs.append(G)
 
     return graphs, labels
-

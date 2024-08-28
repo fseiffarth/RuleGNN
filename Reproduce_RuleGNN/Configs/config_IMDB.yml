@@ -1,15 +1,15 @@
 paths:
   # all the paths are relative to the PYTHONPATH path
   data:
-    "Reproduce_RuleGNN/TUDatasets/" # Path to the folder containing the graph data
+    "Reproduce_RuleGNN/Data/TUDatasets/" # Path to the folder containing the graph data
   properties:
-    "Reproduce_RuleGNN/TUDatasets/Properties/" # Precomputed properties will be loaded from this folder
+    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "Reproduce_RuleGNN/TUDatasets/Labels/" # Path to the folder containing the labels
+    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
   results:
     "Reproduce_RuleGNN/Results/" # Results will be saved in this folder
   splits:
-    "Reproduce_RuleGNN/TUDatasets/Splits/" # Path to the folder containing the data splits
+    "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
 mode:
   experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
@@ -940,17 +940,8 @@ additional_options:
   print_results: # Print accuracy and loss in the console
     True
 
-prune:
-  enabled:
-    False
-  epochs: # prune after this many epochs
-    25
-  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
-    - 0.999
-    - 0.5
-
 precision:
   double
 
 best_model:
-  True
+  False

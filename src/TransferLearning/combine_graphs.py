@@ -120,7 +120,7 @@ def transfer_IMDB():
     # create subgraph labels
     save_subgraph_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'],
                          subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], label_path="Data/Labels/", id=1, format='NEL')
-    create_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/", format='NEL')
+    create_splits(db_name='IMDB-BINARY_IMDB-MULTI', data_path="Data/NEL_Format/", output_path="Data/Splits/", format='NEL')
     create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",
                            data_format='NEL', split_type='transfer')
     create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",

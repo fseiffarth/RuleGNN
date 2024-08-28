@@ -22,6 +22,53 @@ def write_node_labels(file, node_labels):
                     else:
                         f.write(f"{l}")
 
+def save_primary_labels(data_path: Path, db_names, label_path=None, format=None, save_times=None):
+    for db_name in db_names:
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
+        node_labels = graph_data.node_labels['primary'].node_labels
+        # save the node labels to a file
+        # save node_labels as numpy array
+        if label_path is None:
+            raise ValueError("No label path given")
+        else:
+            file = label_path.joinpath(f"{db_name}_primary_labels.txt")
+        # check whether the file already exists
+        if not file.exists():
+            start_time = time.time()
+            write_node_labels(file, node_labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, primary, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
+
+def save_degree_labels(data_path: Path, db_names, label_path=None, format=None, save_times=None):
+    for db_name in db_names:
+        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
+        start_time = time.time()
+        graph_data.add_node_labels(node_labeling_name='wl_0', max_label_num=-1,
+                                   node_labeling_method=NodeLabeling.degree_node_labeling)
+        node_labels = graph_data.node_labels['wl_0'].node_labels
+        # save the node labels to a file
+        # save node_labels as numpy array
+        if label_path is None:
+            raise ValueError("No label path given")
+        else:
+            file = label_path.joinpath(f"{db_name}_wl_0_labels.txt")
+        # check whether the file already exists
+        if not file.exists():
+            write_node_labels(file, node_labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, wl_0, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
 
 def save_standard_labels(data_path: Path, db_names, label_path=None, format=None, save_times=None):
@@ -34,14 +81,18 @@ def save_standard_labels(data_path: Path, db_names, label_path=None, format=None
             raise ValueError("No label path given")
         else:
             file = label_path.joinpath(f"{db_name}_primary_labels.txt")
-        start_time = time.time()
-        write_node_labels(file, node_labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, primary, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        # check whether the file already exists
+        if not file.exists():
+            start_time = time.time()
+            write_node_labels(file, node_labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, primary, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
         start_time = time.time()
         graph_data.add_node_labels(node_labeling_name='wl_0', max_label_num=-1,
@@ -53,61 +104,73 @@ def save_standard_labels(data_path: Path, db_names, label_path=None, format=None
             raise ValueError("No label path given")
         else:
             file = label_path.joinpath(f"{db_name}_wl_0_labels.txt")
-        write_node_labels(file, node_labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, wl_0, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        # check whether the file already exists
+        if not file.exists():
+            write_node_labels(file, node_labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, wl_0, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
         for l in ['wl_1', 'wl_2']:
             iterations = int(l.split("_")[1])
             for n_node_labels in [100, 500, 50000]:
-                start_time = time.time()
-                if iterations > 0:
-                    graph_data.add_node_labels(node_labeling_name=l, max_label_num=n_node_labels,
-                                               node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
-                                               max_iterations=iterations)
-                node_labels = graph_data.node_labels[f'{l}_{n_node_labels}'].node_labels
                 # save the node labels to a file
                 # save node_labels as numpy array
                 if label_path is None:
                     raise ValueError("No label path given")
                 else:
                     file = label_path.joinpath(f'{db_name}_{l}_{n_node_labels}_labels.txt')
-                write_node_labels(file, node_labels)
-                if save_times is not None:
-                    try:
-                        with open(save_times, 'a') as f:
-                            f.write(f"{db_name}, {l}_{n_node_labels}, {time.time() - start_time}\n")
-                    except:
-                        raise ValueError("No save time path given")
+                if not file.exists():
+                    start_time = time.time()
+                    if iterations > 0:
+                        graph_data.add_node_labels(node_labeling_name=l, max_label_num=n_node_labels,
+                                                   node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
+                                                   max_iterations=iterations)
+                    node_labels = graph_data.node_labels[f'{l}_{n_node_labels}'].node_labels
+
+                    write_node_labels(file, node_labels)
+                    if save_times is not None:
+                        try:
+                            with open(save_times, 'a') as f:
+                                f.write(f"{db_name}, {l}_{n_node_labels}, {time.time() - start_time}\n")
+                        except:
+                            raise ValueError("No save time path given")
+                else:
+                    print(f"File {file} already exists. Skipping.")
 
 
 def save_trivial_labels(data_path: Path, db_names, label_path=None, format=None, save_times=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
-        start_time = time.time()
-        node_labels = graph_data.node_labels['primary'].node_labels
-        # label 0 for all nodes
-        node_labels = [[0 for _ in range(len(g_labels))] for g_labels in node_labels]
         # save the node labels to a file
         # save node_labels as numpy array
         if label_path is None:
             file = f"../{db_name}_trivial_labels.txt"
         else:
             file = label_path.joinpath(f'{db_name}_trivial_labels.txt')
-        write_node_labels(file, node_labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, trivial, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        if not file.exists():
+            graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
+            start_time = time.time()
+            node_labels = graph_data.node_labels['primary'].node_labels
+            # label 0 for all nodes
+            node_labels = [[0 for _ in range(len(g_labels))] for g_labels in node_labels]
+
+            write_node_labels(file, node_labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, trivial, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
 
-def save_node_labels(data_path: Path, db_names, labels, name, max_label_num=None, save_times=None):
+def save_node_labels(data_path: Path, db_names, labels, name, max_label_num=None, format=None, save_times=None):
     for db_name in db_names:
         start_time = time.time()
         if max_label_num  and max_label_num < len(labels):
@@ -125,27 +188,30 @@ def save_node_labels(data_path: Path, db_names, labels, name, max_label_num=None
 
 def save_wl_labels(data_path: Path, db_names, max_iterations, max_label_num=None, label_path=None, format=None, save_times=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
-        start_time = time.time()
-        l = f'wl_{max_iterations}'
-
-        graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
-                                   node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
-                                   max_iterations=max_iterations)
-        node_labels = graph_data.node_labels[f'{l}_{max_label_num}'].node_labels
         # save the node labels to a file
         # save node_labels as numpy array
+        l = f'wl_{max_iterations}'
         if label_path is None:
             raise ValueError("No label path given")
         else:
             file = label_path.joinpath(f'{db_name}_{l}_{max_label_num}_labels.txt')
-        write_node_labels(file, node_labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, {l}_{max_label_num}, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        if not file.exists():
+            graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
+            start_time = time.time()
+            graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
+                                       node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
+                                       max_iterations=max_iterations)
+            node_labels = graph_data.node_labels[f'{l}_{max_label_num}'].node_labels
+
+            write_node_labels(file, node_labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, {l}_{max_label_num}, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
 
 def save_cycle_labels(data_path: Path, db_names, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None, format=None, save_times=None):
@@ -153,48 +219,6 @@ def save_cycle_labels(data_path: Path, db_names, length_bound=6, max_node_labels
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         start_time = time.time()
         cycle_dict = []
-        for graph in graph_data.graphs:
-            cycle_dict.append({})
-            if cycle_type == 'simple':
-                cycles = nx.simple_cycles(graph, length_bound)
-            elif cycle_type == 'induced':
-                cycles = nx.chordless_cycles(graph, length_bound)
-            for cycle in cycles:
-                for node in cycle:
-                    if node in cycle_dict[-1]:
-                        if len(cycle) in cycle_dict[-1][node]:
-                            cycle_dict[-1][node][len(cycle)] += 1
-                        else:
-                            cycle_dict[-1][node][len(cycle)] = 1
-                    else:
-                        cycle_dict[-1][node] = {}
-                        cycle_dict[-1][node][len(cycle)] = 1
-
-        # get all unique dicts of cycles
-        dict_list = []
-        for g in cycle_dict:
-            for node_id, c_dict in g.items():
-                dict_list.append(c_dict)
-
-        dict_list = list({str(i) for i in dict_list})
-        # sort the dict_list
-        dict_list = sorted(dict_list)
-        label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
-
-        # set the node labels
-        labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
-            labels.append([])
-            for node in graph.nodes():
-                if node in cycle_dict[graph_id]:
-                    cycle_d = str(cycle_dict[graph_id][node])
-                    labels[-1].append(label_dict[cycle_d])
-                else:
-                    labels[-1].append(len(label_dict))
-        max_node_labels_str = ''
-        if max_node_labels is not None:
-            max_node_labels_str = f"_{max_node_labels}"
-            relabel_most_frequent_node_labels(labels, max_node_labels)
         if label_path is None:
             if cycle_type == 'simple':
                 file = f"../{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt"
@@ -205,161 +229,220 @@ def save_cycle_labels(data_path: Path, db_names, length_bound=6, max_node_labels
                 file = label_path.joinpath(f'{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt')
             elif cycle_type == 'induced':
                 file = label_path.joinpath(f'{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt')
-        write_node_labels(file, labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, {cycle_type}_cycles_{length_bound}{max_node_labels_str}, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        if not file.exists():
+            for graph in graph_data.graphs:
+                cycle_dict.append({})
+                if cycle_type == 'simple':
+                    cycles = nx.simple_cycles(graph, length_bound)
+                elif cycle_type == 'induced':
+                    cycles = nx.chordless_cycles(graph, length_bound)
+                for cycle in cycles:
+                    for node in cycle:
+                        if node in cycle_dict[-1]:
+                            if len(cycle) in cycle_dict[-1][node]:
+                                cycle_dict[-1][node][len(cycle)] += 1
+                            else:
+                                cycle_dict[-1][node][len(cycle)] = 1
+                        else:
+                            cycle_dict[-1][node] = {}
+                            cycle_dict[-1][node][len(cycle)] = 1
+
+            # get all unique dicts of cycles
+            dict_list = []
+            for g in cycle_dict:
+                for node_id, c_dict in g.items():
+                    dict_list.append(c_dict)
+
+            dict_list = list({str(i) for i in dict_list})
+            # sort the dict_list
+            dict_list = sorted(dict_list)
+            label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
+
+            # set the node labels
+            labels = []
+            for graph_id, graph in enumerate(graph_data.graphs):
+                labels.append([])
+                for node in graph.nodes():
+                    if node in cycle_dict[graph_id]:
+                        cycle_d = str(cycle_dict[graph_id][node])
+                        labels[-1].append(label_dict[cycle_d])
+                    else:
+                        labels[-1].append(len(label_dict))
+            max_node_labels_str = ''
+            if max_node_labels is not None:
+                max_node_labels_str = f"_{max_node_labels}"
+                relabel_most_frequent_node_labels(labels, max_node_labels)
+
+            write_node_labels(file, labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, {cycle_type}_cycles_{length_bound}{max_node_labels_str}, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
 
 def save_in_circle_labels(data_path: Path, db_names, length_bound=6, label_path=None, format=None, save_times=None):
+
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
-        start_time = time.time()
-        node_in_cycle = []
-        for graph in graph_data.graphs:
-            node_in_cycle.append({})
-            cycles = nx.chordless_cycles(graph, length_bound)
-            for cycle in cycles:
-                for node in cycle:
-                    node_in_cycle[-1][node] = 1
-
-
-        # set the node labels, if node is in a cycle label 1, else 0
-        labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
-            labels.append([])
-            for node in graph.nodes():
-                if node in node_in_cycle[graph_id]:
-                    labels[-1].append(1)
-                else:
-                    labels[-1].append(0)
-
         if label_path is None:
             raise ValueError("No label path given")
         else:
             file = label_path.joinpath(f'{db_name}_cycles_{length_bound}_labels.txt')
-        write_node_labels(file, labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, cycles_{length_bound}, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        if not file.exists():
+            graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
+            start_time = time.time()
+            node_in_cycle = []
+            for graph in graph_data.graphs:
+                node_in_cycle.append({})
+                cycles = nx.chordless_cycles(graph, length_bound)
+                for cycle in cycles:
+                    for node in cycle:
+                        node_in_cycle[-1][node] = 1
+
+
+            # set the node labels, if node is in a cycle label 1, else 0
+            labels = []
+            for graph_id, graph in enumerate(graph_data.graphs):
+                labels.append([])
+                for node in graph.nodes():
+                    if node in node_in_cycle[graph_id]:
+                        labels[-1].append(1)
+                    else:
+                        labels[-1].append(0)
+
+
+            write_node_labels(file, labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, cycles_{length_bound}, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
 
 
 def save_subgraph_labels(data_path: Path, db_names, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, format=None, save_times=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
-        start_time = time.time()
-        subgraph_dict = []
-        for i, graph in enumerate(graph_data.graphs):
-            # print the progress
-            print(f"Graph {i + 1}/{len(graph_data.graphs)}")
-            subgraph_dict.append({})
-            for i, subgraph in enumerate(subgraphs):
-                GM = GraphMatcher(graph, subgraph)
-                for x in GM.subgraph_isomorphisms_iter():
-                    for node in x:
-                        if node in subgraph_dict[-1]:
-                            if i in subgraph_dict[-1][node]:
-                                subgraph_dict[-1][node][i] += 1
-                            else:
-                                subgraph_dict[-1][node][i] = 1
-                        else:
-                            subgraph_dict[-1][node] = {}
-                            subgraph_dict[-1][node][i] = 1
-
-        # get all unique dicts of cycles
-        dict_list = []
-        for g in subgraph_dict:
-            for node_id, c_dict in g.items():
-                dict_list.append(c_dict)
-
-        dict_list = list({str(i) for i in dict_list})
-        # sort the dict_list
-        dict_list = sorted(dict_list)
-        label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
-
-        # set the node labels
-        labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
-            labels.append([])
-            for node in graph.nodes():
-                if node in subgraph_dict[graph_id]:
-                    cycle_d = str(subgraph_dict[graph_id][node])
-                    labels[-1].append(label_dict[cycle_d])
-                else:
-                    labels[-1].append(len(label_dict))
-
         if label_path is None:
             raise ValueError("No label path given")
         else:
             file = label_path.joinpath(f'{db_name}_{name}_{id}_labels.txt')
-        write_node_labels(file, labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, {name}_{id}, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        if not file.exists():
+            graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
+            start_time = time.time()
+            subgraph_dict = []
+            for i, graph in enumerate(graph_data.graphs):
+                # print the progress
+                print(f"Graph {i + 1}/{len(graph_data.graphs)}")
+                subgraph_dict.append({})
+                for i, subgraph in enumerate(subgraphs):
+                    GM = GraphMatcher(graph, subgraph)
+                    for x in GM.subgraph_isomorphisms_iter():
+                        for node in x:
+                            if node in subgraph_dict[-1]:
+                                if i in subgraph_dict[-1][node]:
+                                    subgraph_dict[-1][node][i] += 1
+                                else:
+                                    subgraph_dict[-1][node][i] = 1
+                            else:
+                                subgraph_dict[-1][node] = {}
+                                subgraph_dict[-1][node][i] = 1
+
+            # get all unique dicts of cycles
+            dict_list = []
+            for g in subgraph_dict:
+                for node_id, c_dict in g.items():
+                    dict_list.append(c_dict)
+
+            dict_list = list({str(i) for i in dict_list})
+            # sort the dict_list
+            dict_list = sorted(dict_list)
+            label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
+
+            # set the node labels
+            labels = []
+            for graph_id, graph in enumerate(graph_data.graphs):
+                labels.append([])
+                for node in graph.nodes():
+                    if node in subgraph_dict[graph_id]:
+                        cycle_d = str(subgraph_dict[graph_id][node])
+                        labels[-1].append(label_dict[cycle_d])
+                    else:
+                        labels[-1].append(len(label_dict))
+
+
+            write_node_labels(file, labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, {name}_{id}, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
 
 def save_clique_labels(data_path: Path, db_names, max_clique=6, label_path=None, format=None, save_times=None):
     for db_name in db_names:
-        graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
-        start_time = time.time()
-        clique_dict = []
-        for graph in graph_data.graphs:
-            clique_dict.append({})
-            cliques = list(nx.find_cliques(graph))
-            for clique in cliques:
-                if len(clique) <= max_clique:
-                    for node in clique:
-                        if node in clique_dict[-1]:
-                            if len(clique) in clique_dict[-1][node]:
-                                clique_dict[-1][node][len(clique)] += 1
-                            else:
-                                clique_dict[-1][node][len(clique)] = 1
-                        else:
-                            clique_dict[-1][node] = {}
-                            clique_dict[-1][node][len(clique)] = 1
-
-        # get all unique dicts of cycles
-        dict_list = []
-        for g in clique_dict:
-            for node_id, c_dict in g.items():
-                dict_list.append(c_dict)
-
-        dict_list = list({str(i) for i in dict_list})
-        # sort the dict_list
-        dict_list = sorted(dict_list)
-        label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
-
-        # set the node labels
-        labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
-            labels.append([])
-            for node in graph.nodes():
-                if node in clique_dict[graph_id]:
-                    cycle_d = str(clique_dict[graph_id][node])
-                    labels[-1].append(label_dict[cycle_d])
-                else:
-                    labels[-1].append(len(label_dict))
         if label_path is None:
             raise ValueError("No label path given")
         else:
             file = label_path.joinpath(f'{db_name}_cliques_{max_clique}_labels.txt')
-        write_node_labels(file, labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{db_name}, cliques_{max_clique}, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
+        if not file.exists():
+            graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
+            start_time = time.time()
+            clique_dict = []
+            for graph in graph_data.graphs:
+                clique_dict.append({})
+                cliques = list(nx.find_cliques(graph))
+                for clique in cliques:
+                    if len(clique) <= max_clique:
+                        for node in clique:
+                            if node in clique_dict[-1]:
+                                if len(clique) in clique_dict[-1][node]:
+                                    clique_dict[-1][node][len(clique)] += 1
+                                else:
+                                    clique_dict[-1][node][len(clique)] = 1
+                            else:
+                                clique_dict[-1][node] = {}
+                                clique_dict[-1][node][len(clique)] = 1
+
+            # get all unique dicts of cycles
+            dict_list = []
+            for g in clique_dict:
+                for node_id, c_dict in g.items():
+                    dict_list.append(c_dict)
+
+            dict_list = list({str(i) for i in dict_list})
+            # sort the dict_list
+            dict_list = sorted(dict_list)
+            label_dict = {key: value for key, value in zip(dict_list, range(len(dict_list)))}
+
+            # set the node labels
+            labels = []
+            for graph_id, graph in enumerate(graph_data.graphs):
+                labels.append([])
+                for node in graph.nodes():
+                    if node in clique_dict[graph_id]:
+                        cycle_d = str(clique_dict[graph_id][node])
+                        labels[-1].append(label_dict[cycle_d])
+                    else:
+                        labels[-1].append(len(label_dict))
+
+            write_node_labels(file, labels)
+            if save_times is not None:
+                try:
+                    with open(save_times, 'a') as f:
+                        f.write(f"{db_name}, cliques_{max_clique}, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {file} already exists. Skipping.")
 
 
 def relabel_most_frequent_node_labels(node_labels, max_node_labels):

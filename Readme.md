@@ -4,44 +4,23 @@ This repository contains an explanation on how to [reproduce](#Reproduce-RuleGNN
 Moreover, we give a detailed explanation on how to use RuleGNNs for [custom datasets](#Custom-Datasets).
 
 # Reproduce RuleGNN Experiments
+To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
+1. Clone the repository using
+    ```bash
+    git clone git@github.com:fseiffarth/RuleGNN.git
+    ```
+2. Install the required packages using the environment.yml file using the following command:
+   ```bash
+   conda env create -f environment.yml
+   ```
+3. Run the file [Reproduce_RuleGNN/main.py](Reproduce_RuleGNN/main.py) to reproduce the experiments of the paper. This will:
+   - download the datasets
+   - preprocess the datasets
+   - find the best hyperparameters for different models
+   - run the best models three times with different seeds
+   - evaluate the results
 
-## Preparation:
-1. Clone the repository
-2. Install the required packages using the environment.yml file
-3. Download the TUDataset from here https://chrsmrrs.github.io/datasets/docs/datasets/ and place the extracted folder in GraphData/TUGraphs/
-4. Preprocess the distances by running GraphData/Distances/save_distances.py
-
-## Run the experiments:
-Using the ModelSelection.sh script, you can run the experiments for the different datasets and models. 
-The DATABASE_NAMES and the CONFIG_FILE variable in the script can be adjusted to run the experiments for different datasets and models.
-
-Possible combinations of DATABASE_NAMES and CONFIG_FILE are:
-
-DATABASE_NAMES = ["NCI1", "NCI109", "Mutagenicity"] <br>
-CONFIG_FILE = "Configs/config_NCI1.yml"
-
-DATABASE_NAMES = ["DHFR"] <br>
-CONFIG_FILE = "Configs/config_DHFR.yml"
-
-DATABASE_NAMES = ["IMDB-BINARY", "IMDB-MULTI"] <br>
-CONFIG_FILE = "Configs/config_IMDB-BINARY.yml"
-
-DATABASE_NAMES = ["LongRings100"] <br>
-CONFIG_FILE = "Configs/config_LongRings.yml"
-
-DATABASE_NAMES = ["EvenOddRings2_16] <br>
-CONFIG_FILE = "Configs/config_EvenOddRings.yml"
-
-DATABASE_NAMES = ["EvenOddRingsCount16"] <br>
-CONFIG_FILE = "Configs/config_EvenOddRingsCount.yml"
-
-DATABASE_NAMES = ["Snowflakes"] <br>
-CONFIG_FILE = "Configs/config_Snowflakes.yml"
-
-Using the RunBestModels.sh script, the model with the best validation accuracy is chosen and the model is trained three times with different seeds.
-
-## Evaluation
-The results of the experiments can be evaluated running EvaluationFinal.py
+   All results will be saved in the [Reproduce_RuleGNN/Results](Reproduce_RuleGNN/Results) folder.
 
 # Custom Datasets
 
@@ -54,14 +33,14 @@ The preprocessing steps are explained below.
 
 Custom datasets can be created using the following four steps below.
 We have created an example that can be found in the [Example](Examples) folder.
-In the [Example/main.py](Examples/CustomDataset/main.py) file, we give the code for a detailed example of how to preprocess a custom dataset.
+In the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file, we give the code for a detailed example of how to preprocess a custom dataset.
 If your graph dataset is already in the correct format, you can skip the first step.
 If your graph dataset is given in a different format use the [utils.py](utils.py) file to convert the dataset to the correct format.
 
 1. Create the graph dataset (the data format is explained in the [Data Format](##Data Format) section)
-2. Create the training, validation and test splits (use the function ```generate_splits``` in the [Example/main.py](Examples/CustomDataset/main.py) file)
-3. Create the node labels (use the function ```generate_node_labels``` in the [Example/main.py](Examples/CustomDataset/main.py) file)
-4. Create the properties between pairs of nodes in the graphs (use the function ```generate_properties``` in the [Example/main.py](Examples/CustomDataset/main.py) file)
+2. Create the training, validation and test splits (use the function ```generate_splits``` in the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file)
+3. Create the node labels (use the function ```generate_node_labels``` in the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file)
+4. Create the properties between pairs of nodes in the graphs (use the function ```generate_properties``` in the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file)
 
 ## Run the experiments (using bash script only)
 If the custom dataset is created as explained above, the experiments can be run using the ModelSelection.sh script.

@@ -1,19 +1,19 @@
 paths:
   data:
-    "Examples/Data/" # Path to the folder containing the graph data
+    "Examples/CustomDataset/Data/" # Path to the folder containing the graph data
   properties:
-    "Examples/Data/Properties/" # Precomputed properties will be loaded from this folder
+    "Examples/CustomDataset/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "Examples/Data/Labels/" # Path to the folder containing the labels
+    "Examples/CustomDataset/Data/Labels/" # Path to the folder containing the labels
   results:
-    "Examples/Results/" # Results will be saved in this folder
+    "Examples/CustomDataset/Results/" # Results will be saved in this folder
   splits:
-    "Examples/Data/Splits/" # Path to the folder containing the data splits
+    "Examples/CustomDataset/Data/Splits/" # Path to the folder containing the data splits
 
 device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
   cpu
 mode:
-  debug # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
   - 128
 learning_rate:
@@ -84,6 +84,6 @@ precision:
   double
 
 best_model:
-  True
+  False
 save_last:
-  True
+  False

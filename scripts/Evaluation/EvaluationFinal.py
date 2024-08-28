@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -274,15 +275,16 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
 
 def model_selection_evaluation(db_name, path='Results', ids=None, evaluation_type = 'accuracy'):
     # add absolute path to path
-    path = os.path.abspath(path)
+    path = Path(os.path.abspath(path))
     print(f"Model Selection Evaluation for {db_name}")
     evaluation = {}
 
     if ids is None:
         # get all ids
         ids = []
-        for file in os.listdir(f"{path}/{db_name}/Results"):
-            if file.endswith(".txt"):
+        search_path = path.joinpath(db_name).joinpath('Results')
+        for file in os.listdir(search_path):
+            if file.endswith(".txt") and 'Best' not in file:
                 id = int(file.split('_')[-2])
                 ids.append(id)
         # sort the ids
@@ -294,7 +296,8 @@ def model_selection_evaluation(db_name, path='Results', ids=None, evaluation_typ
         # ge all those files
         files = []
         network_files = []
-        for file in os.listdir(f"{path}/{db_name}/Results"):
+        search_path = path.joinpath(db_name).joinpath('Results')
+        for file in os.listdir(search_path):
             if file.startswith(f"{db_name}_Configuration_{id_str}_Results_run_id_") and file.endswith(".csv"):
                 files.append(file)
             elif file.startswith(f"{db_name}_Configuration_{id_str}_Network") and file.endswith(".txt"):
@@ -306,7 +309,8 @@ def model_selection_evaluation(db_name, path='Results', ids=None, evaluation_typ
             continue
         df_all = None
         for i, file in enumerate(files):
-            df = pd.read_csv(f"{path}/{db_name}/Results/{file}", delimiter=";")
+            file_path = path.joinpath(db_name).joinpath('Results').joinpath(file)
+            df = pd.read_csv(file_path, delimiter=";")
             # concatenate the dataframes
             if df_all is None:
                 df_all = df
@@ -419,6 +423,13 @@ def model_selection_evaluation(db_name, path='Results', ids=None, evaluation_typ
 
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sort_key], reverse=reversed_sort)
 
+    # write results to file called summary.csv
+    summary_path = path.joinpath(db_name).joinpath('summary.csv')
+    with open(summary_path, 'w') as f:
+        f.write('Id, Test Accuracy, Test Accuracy Std, Validation Accuracy, Validation Accuracy Std, Validation Loss, Validation Loss Std, Test Loss, Test Loss Std, Epoch Loss, Epoch Loss Std\n')
+        for i in range(min(k, len(sorted_evaluation))):
+            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sort_key], reverse=reversed_sort)
+            f.write(f"{sorted_evaluation[i][0]}, {sorted_evaluation[i][1][0]}, {sorted_evaluation[i][1][1]}, {sorted_evaluation[i][1][2]}, {sorted_evaluation[i][1][3]}, {sorted_evaluation[i][1][4]}, {sorted_evaluation[i][1][5]}, {sorted_evaluation[i][1][6]}, {sorted_evaluation[i][1][7]}, {sorted_evaluation[i][1][8]}, {sorted_evaluation[i][1][9]}\n")
     for i in range(min(k, len(sorted_evaluation))):
         sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sort_key], reverse=reversed_sort)
         print(
@@ -426,7 +437,10 @@ def model_selection_evaluation(db_name, path='Results', ids=None, evaluation_typ
             f" Epoch Loss: {sorted_evaluation[i][1][8]} +/- {sorted_evaluation[i][1][9]} "
             f" Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]} Test Loss: {sorted_evaluation[i][1][6]} +/- {sorted_evaluation[i][1][7]}")
 
-def model_selection_evaluation_mae(db_name, path='Results', ids=None):
+
+
+
+def model_selection_evaluation_mae(db_name, path:Path, ids=None):
     # add absolute path to path
     path = os.path.abspath(path)
     print(f"Model Selection Evaluation for {db_name}")
@@ -435,7 +449,8 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
     if ids is None:
         # get all ids
         ids = []
-        for file in os.listdir(f"{path}/{db_name}/Results"):
+        search_path = path.joinpath(db_name).joinpath('Results')
+        for file in os.listdir(search_path):
             if file.endswith(".txt"):
                 id = int(file.split('_')[-2])
                 ids.append(id)
@@ -448,7 +463,8 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
         # ge all those files
         files = []
         network_files = []
-        for file in os.listdir(f"{path}/{db_name}/Results"):
+        search_path = path.joinpath(db_name).joinpath('Results')
+        for file in os.listdir(search_path):
             if file.startswith(f"{db_name}_Configuration_{id_str}_Results_run_id_") and file.endswith(".csv"):
                 files.append(file)
             elif file.startswith(f"{db_name}_Configuration_{id_str}_Network") and file.endswith(".txt"):
@@ -460,7 +476,8 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
             continue
         df_all = None
         for i, file in enumerate(files):
-            df = pd.read_csv(f"{path}/{db_name}/Results/{file}", delimiter=";")
+            file_path = path.joinpath(db_name).joinpath('Results').joinpath(file)
+            df = pd.read_csv(file_path, delimiter=";")
             # concatenate the dataframes
             if df_all is None:
                 df_all = df
@@ -553,6 +570,14 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
 
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sort_key], reverse=False)
 
+    # write results to file called summary.csv
+    summary_path = path.joinpath(db_name).joinpath('summary.csv')
+    with open(summary_path, 'w') as f:
+        f.write('Id, Epoch Loss, Epoch Loss Std, Validation Loss, Validation Loss Std, Test Loss, Test Loss Std\n')
+        for i in range(min(k, len(sorted_evaluation))):
+            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sort_key], reverse=False)
+            f.write(f"{sorted_evaluation[i][0]}, {sorted_evaluation[i][1][0]}, {sorted_evaluation[i][1][1]}, {sorted_evaluation[i][1][2]}, {sorted_evaluation[i][1][3]}, {sorted_evaluation[i][1][4]}, {sorted_evaluation[i][1][5]}\n")
+
     for i in range(min(k, len(sorted_evaluation))):
         sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sort_key], reverse=False)
         print(
@@ -562,13 +587,14 @@ def model_selection_evaluation_mae(db_name, path='Results', ids=None):
             f"Test Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]}")
 
 
-def best_model_evaluation(db_name, path='Results', ids=None, evaluation_type = 'loss'):
+def best_model_evaluation(db_name, path:Path, ids=None, evaluation_type = 'accuracy'):
     evaluation = {}
 
     if ids is None:
         # get all ids
         ids = []
-        for file in os.listdir(f"{path}/{db_name}/Results"):
+        search_path = path.joinpath(db_name).joinpath('Results')
+        for file in os.listdir(search_path):
             if file.endswith(".txt") and "Best" in file:
                 id = int(file.split('_')[-2])
                 ids.append(id)
@@ -581,7 +607,8 @@ def best_model_evaluation(db_name, path='Results', ids=None, evaluation_type = '
         # ge all those files
         files = []
         network_files = []
-        for file in os.listdir(f"{path}/{db_name}/Results"):
+        search_path = path.joinpath(db_name).joinpath('Results')
+        for file in os.listdir(search_path):
             if file.startswith(f"{db_name}_Best_Configuration_{id_str}_Results_run_id_") and file.endswith(".csv"):
                 files.append(file)
             elif file.startswith(f"{db_name}_Best_Configuration_{id_str}_Network") and file.endswith(".txt"):
@@ -589,7 +616,8 @@ def best_model_evaluation(db_name, path='Results', ids=None, evaluation_type = '
 
         df_all = None
         for i, file in enumerate(files):
-            df = pd.read_csv(f"{path}/{db_name}/Results/{file}", delimiter=";")
+            file_path = path.joinpath(db_name).joinpath('Results').joinpath(file)
+            df = pd.read_csv(file_path, delimiter=";")
             # concatenate the dataframes
             if df_all is None:
                 df_all = df
@@ -693,6 +721,14 @@ def best_model_evaluation(db_name, path='Results', ids=None, evaluation_type = '
         reversed_sort = False
     print(f"Top {k} Validation Accuracies for {db_name}")
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sorted_key], reverse=reversed_sort)
+
+    # write results to file called summary_best_model.csv
+    summary_path = path.joinpath(db_name).joinpath('summary_best_model.csv')
+    with open(summary_path, 'w') as f:
+        f.write('Id, Test Accuracy, Test Accuracy Std, Validation Accuracy, Validation Accuracy Std, Validation Loss, Validation Loss Std\n')
+        for i in range(min(k, len(sorted_evaluation))):
+            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sorted_key], reverse=reversed_sort)
+            f.write(f"{sorted_evaluation[i][0]}, {sorted_evaluation[i][1][0]}, {sorted_evaluation[i][1][1]}, {sorted_evaluation[i][1][2]}, {sorted_evaluation[i][1][3]}, {sorted_evaluation[i][1][4]}, {sorted_evaluation[i][1][5]}\n")
 
     for i in range(min(k, len(sorted_evaluation))):
         sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sorted_key], reverse=reversed_sort)

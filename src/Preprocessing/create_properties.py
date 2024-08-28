@@ -49,6 +49,8 @@ def write_distance_properties(data_path: Path, db_name: str, cutoff=None, out_pa
         if save_times is not None:
             with open(save_times, 'a') as f:
                 f.write(f"{db_name}, distance, {time.time() - start_time}\n")
+    else:
+        print(f"File {out} already exists. Skipping.")
 
 
 def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out_path="", data_format=None, save_times=None) -> None:
@@ -119,6 +121,8 @@ def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out
             except:
                 print("Could not write to file")
                 pass
+    else:
+        print(f"File {out} already exists. Skipping.")
 
 
 
@@ -214,7 +218,8 @@ def write_distance_edge_properties(data_path: Path, db_name: str, out_path="", c
             except:
                 print("Could not write to file")
                 pass
-
+    else:
+        print(f"File {out} already exists. Skipping.")
 
 def main():
     data_path = "../GraphData/DS_all/"

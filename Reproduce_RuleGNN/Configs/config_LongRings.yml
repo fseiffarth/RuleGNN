@@ -1,15 +1,15 @@
 paths:
   # all the paths are relative to the PYTHONPATH path
   data:
-    "../../Data/GraphData/DS_all/" # Path to the folder containing the graph data
+    "Reproduce_RuleGNN/Data/SyntheticDatasets/" # Path to the folder containing the graph data
   properties:
-    "../../Data/GraphData/Properties/" # Precomputed properties will be loaded from this folder
+    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "Data/Labels/" # Path to the folder containing the labels
+    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
   results:
-    "../../RESULTS/RuleGNN/TEST/" # Results will be saved in this folder
+    "Reproduce_RuleGNN/Results/" # Results will be saved in this folder
   splits:
-    "Data/Splits/" # Path to the folder containing the data splits
+    "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
 device:
   cpu
 mode:
@@ -66,9 +66,6 @@ additional_options:
     False
   print_results: # Print accuracy and loss in the console
     True
-
-prune:
-  False
 
 precision:
   double

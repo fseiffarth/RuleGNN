@@ -174,63 +174,63 @@ def main(output_path="BenchmarkGraphs/", benchmarks=None):
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "EvenOddRings2_16":
             graphs, labels = even_odd_rings(data_size=1200, ring_size=16, difficulty=2, count=False)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "EvenOddRings2_100":
             graphs, labels = even_odd_rings(data_size=1200, ring_size=100, difficulty=2, count=False)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "EvenOddRings3_16":
             graphs, labels = even_odd_rings(data_size=1200, ring_size=16, difficulty=3, count=False)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "EvenOddRingsCount16":
             graphs, labels = even_odd_rings(data_size=1200, ring_size=16, count=True)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "EvenOddRingsCount100":
             graphs, labels = even_odd_rings(data_size=1200, ring_size=100, count=True)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "LongRings100":
             graphs, labels = long_rings(data_size=1200, ring_size=100)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "LongRings8":
             graphs, labels = long_rings(data_size=1200, ring_size=8)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "LongRings16":
             graphs, labels = long_rings(data_size=1200, ring_size=16)
             save_graphs(output_path, name, graphs, labels)
             # create distance files
             save_distances(output_path, [name], cutoff=None, distance_path="../../Data/Distances/")
             save_standard_labels(output_path, [name], label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "SnowflakesCount":
             graphs, labels = Snowflakes(smallest_snowflake=3, largest_snowflake=6, flakes_per_size=200, seed=764, generation_type="count")
             save_graphs(output_path, name, graphs, labels)
@@ -242,7 +242,7 @@ def main(output_path="BenchmarkGraphs/", benchmarks=None):
             save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(5)], id=0, label_path="../../Data/Labels/")
             save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4)], id=1, label_path="../../Data/Labels/")
             save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4), nx.cycle_graph(5)], id=2, label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "Snowflakes":
             graphs, labels = Snowflakes(smallest_snowflake=3, largest_snowflake=12, flakes_per_size=100, seed=764, generation_type="binary")
             save_graphs(output_path, name, graphs, labels)
@@ -255,7 +255,7 @@ def main(output_path="BenchmarkGraphs/", benchmarks=None):
             #save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(5)], id=0, label_path="../BenchmarkGraphs/Labels/")
             #save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4)], id=1, label_path="../BenchmarkGraphs/Labels/")
             save_subgraph_labels(output_path, [name], subgraphs=[nx.cycle_graph(4), nx.cycle_graph(5)], id=2, label_path="../../Data/Labels/")
-            create_splits(name, path=output_path, output_path="../../Data/Splits/")
+            create_splits(name, data_path=output_path, output_path="../../Data/Splits/")
         if name == "CSL_original":
             from src.Preprocessing.csl import CSL
             csl = CSL()

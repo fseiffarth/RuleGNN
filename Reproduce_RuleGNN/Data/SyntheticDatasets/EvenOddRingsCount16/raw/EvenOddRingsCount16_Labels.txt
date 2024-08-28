@@ -1,1200 +1,1200 @@
-0 1
-1 0
-2 1
-3 0
-4 0
-5 1
-6 0
-7 1
-8 1
-9 0
-10 0
-11 1
-12 0
-13 0
-14 1
-15 0
-16 0
-17 1
-18 0
-19 1
-20 1
-21 0
-22 0
-23 0
-24 1
-25 1
-26 1
-27 1
-28 1
-29 0
-30 1
-31 0
-32 1
-33 1
-34 1
-35 0
-36 1
-37 0
-38 1
-39 1
-40 0
-41 1
-42 0
-43 1
-44 1
-45 0
-46 0
-47 0
-48 0
-49 0
-50 0
-51 0
-52 0
-53 0
-54 1
-55 0
-56 0
-57 0
-58 0
-59 0
-60 0
-61 0
-62 0
-63 1
-64 1
-65 1
-66 1
-67 1
-68 1
-69 0
-70 0
-71 0
-72 0
-73 0
-74 0
-75 0
-76 0
-77 0
-78 1
-79 0
-80 0
-81 1
-82 1
-83 0
-84 1
-85 1
-86 0
-87 1
-88 1
-89 1
-90 0
-91 1
-92 0
-93 1
-94 0
-95 0
-96 1
-97 0
-98 0
-99 0
-100 1
-101 1
-102 1
-103 0
-104 0
-105 0
-106 1
-107 1
-108 1
-109 0
-110 0
-111 1
-112 0
-113 1
-114 0
-115 1
-116 1
-117 1
-118 1
-119 0
-120 0
-121 0
-122 0
-123 1
-124 1
-125 1
-126 0
-127 0
-128 0
-129 1
-130 0
-131 0
-132 0
-133 1
-134 1
-135 1
-136 1
-137 1
-138 1
-139 1
-140 1
-141 1
-142 1
-143 0
-144 1
-145 1
-146 1
-147 1
-148 1
-149 1
-150 1
-151 0
-152 0
-153 0
-154 0
-155 1
-156 1
-157 1
-158 1
-159 0
-160 1
-161 1
-162 1
-163 0
-164 0
-165 1
-166 0
-167 1
-168 0
-169 0
-170 1
-171 0
-172 1
-173 0
-174 0
-175 1
-176 0
-177 0
-178 1
-179 1
-180 1
-181 1
-182 0
-183 1
-184 0
-185 1
-186 0
-187 1
-188 0
-189 1
-190 0
-191 0
-192 0
-193 1
-194 1
-195 1
-196 1
-197 1
-198 1
-199 1
-200 1
-201 0
-202 1
-203 1
-204 1
-205 1
-206 0
-207 0
-208 0
-209 1
-210 0
-211 0
-212 1
-213 0
-214 0
-215 0
-216 1
-217 1
-218 1
-219 0
-220 0
-221 1
-222 0
-223 0
-224 1
-225 1
-226 1
-227 1
-228 0
-229 1
-230 1
-231 1
-232 1
-233 0
-234 0
-235 1
-236 0
-237 1
-238 0
-239 0
-240 0
-241 0
-242 0
-243 0
-244 0
-245 1
-246 0
-247 1
-248 1
-249 1
-250 0
-251 1
-252 1
-253 1
-254 1
-255 1
-256 1
-257 0
-258 0
-259 1
-260 0
-261 0
-262 1
-263 1
-264 1
-265 0
-266 1
-267 0
-268 1
-269 1
-270 1
-271 0
-272 1
-273 1
-274 1
-275 0
-276 0
-277 0
-278 0
-279 1
-280 1
-281 1
-282 0
-283 1
-284 1
-285 1
-286 0
-287 1
-288 0
-289 1
-290 0
-291 1
-292 0
-293 0
-294 0
-295 1
-296 0
-297 0
-298 1
-299 1
-300 0
-301 1
-302 0
-303 1
-304 0
-305 1
-306 1
-307 1
-308 1
-309 1
-310 0
-311 0
-312 1
-313 1
-314 1
-315 1
-316 1
-317 0
-318 0
-319 0
-320 1
-321 0
-322 0
-323 0
-324 1
-325 0
-326 0
-327 0
-328 0
-329 0
-330 1
-331 1
-332 0
-333 0
-334 1
-335 0
-336 1
-337 0
-338 0
-339 0
-340 0
-341 1
-342 1
-343 0
-344 0
-345 0
-346 0
-347 0
-348 0
-349 0
-350 0
-351 0
-352 1
-353 0
-354 0
-355 0
-356 1
-357 1
-358 0
-359 0
-360 0
-361 1
-362 0
-363 0
-364 1
-365 1
-366 0
-367 0
-368 1
-369 0
-370 0
-371 0
-372 0
-373 0
-374 1
-375 1
-376 1
-377 0
-378 0
-379 1
-380 0
-381 1
-382 0
-383 0
-384 1
-385 0
-386 0
-387 0
-388 1
-389 0
-390 1
-391 1
-392 0
-393 1
-394 1
-395 1
-396 1
-397 0
-398 1
-399 1
-400 1
-401 0
-402 1
-403 1
-404 0
-405 1
-406 1
-407 1
-408 0
-409 1
-410 1
-411 0
-412 0
-413 0
-414 1
-415 0
-416 1
-417 0
-418 0
-419 1
-420 0
-421 0
-422 0
-423 0
-424 1
-425 0
-426 1
-427 0
-428 0
-429 1
-430 1
-431 1
-432 1
-433 1
-434 1
-435 1
-436 1
-437 1
-438 0
-439 1
-440 1
-441 1
-442 1
-443 0
-444 0
-445 1
-446 1
-447 1
-448 1
-449 0
-450 1
-451 1
-452 0
-453 0
-454 1
-455 1
-456 1
-457 0
-458 1
-459 0
-460 1
-461 1
-462 0
-463 1
-464 0
-465 0
-466 0
-467 0
-468 1
-469 1
-470 1
-471 0
-472 0
-473 1
-474 1
-475 0
-476 0
-477 0
-478 0
-479 0
-480 0
-481 0
-482 0
-483 0
-484 1
-485 1
-486 1
-487 0
-488 0
-489 1
-490 0
-491 0
-492 1
-493 1
-494 1
-495 1
-496 0
-497 0
-498 1
-499 1
-500 0
-501 0
-502 0
-503 1
-504 1
-505 0
-506 1
-507 1
-508 0
-509 1
-510 1
-511 1
-512 1
-513 1
-514 0
-515 1
-516 1
-517 1
-518 1
-519 1
-520 1
-521 0
-522 1
-523 0
-524 0
-525 0
-526 1
-527 0
-528 1
-529 0
-530 1
-531 1
-532 1
-533 0
-534 1
-535 0
-536 0
-537 0
-538 0
-539 0
-540 0
-541 0
-542 0
-543 0
-544 0
-545 1
-546 1
-547 1
-548 1
-549 0
-550 0
-551 1
-552 1
-553 1
-554 0
-555 0
-556 1
-557 0
-558 1
-559 1
-560 0
-561 0
-562 0
-563 0
-564 1
-565 0
-566 1
-567 1
-568 0
-569 1
-570 0
-571 0
-572 1
-573 0
-574 1
-575 0
-576 0
-577 1
-578 1
-579 1
-580 0
-581 1
-582 0
-583 0
-584 0
-585 0
-586 0
-587 1
-588 0
-589 0
-590 0
-591 1
-592 1
-593 0
-594 0
-595 1
-596 1
-597 1
-598 0
-599 1
-600 1
-601 1
-602 1
-603 1
-604 0
-605 0
-606 0
-607 1
-608 1
-609 0
-610 0
-611 1
-612 0
-613 0
-614 1
-615 0
-616 0
-617 0
-618 0
-619 0
-620 1
-621 0
-622 0
-623 1
-624 1
-625 1
-626 0
-627 0
-628 1
-629 1
-630 1
-631 1
-632 1
-633 1
-634 0
-635 1
-636 0
-637 1
-638 1
-639 1
-640 1
-641 0
-642 1
-643 0
-644 1
-645 1
-646 1
-647 0
-648 1
-649 0
-650 0
-651 0
-652 1
-653 0
-654 1
-655 0
-656 1
-657 0
-658 0
-659 1
-660 0
-661 0
-662 0
-663 1
-664 0
-665 1
-666 1
-667 1
-668 1
-669 0
-670 0
-671 0
-672 0
-673 0
-674 0
-675 0
-676 1
-677 0
-678 1
-679 0
-680 0
-681 1
-682 1
-683 1
-684 1
-685 0
-686 1
-687 0
-688 0
-689 0
-690 1
-691 0
-692 0
-693 1
-694 0
-695 0
-696 1
-697 1
-698 1
-699 0
-700 1
-701 1
-702 0
-703 0
-704 0
-705 1
-706 0
-707 1
-708 1
-709 1
-710 0
-711 1
-712 0
-713 0
-714 1
-715 0
-716 0
-717 1
-718 0
-719 1
-720 0
-721 1
-722 1
-723 0
-724 0
-725 0
-726 0
-727 0
-728 1
-729 1
-730 0
-731 0
-732 0
-733 1
-734 1
-735 1
-736 0
-737 1
-738 1
-739 0
-740 1
-741 0
-742 0
-743 0
-744 1
-745 0
-746 1
-747 0
-748 1
-749 0
-750 0
-751 1
-752 1
-753 1
-754 0
-755 0
-756 1
-757 0
-758 0
-759 0
-760 0
-761 1
-762 1
-763 1
-764 0
-765 1
-766 0
-767 0
-768 0
-769 1
-770 1
-771 0
-772 0
-773 1
-774 0
-775 1
-776 1
-777 0
-778 1
-779 1
-780 0
-781 0
-782 0
-783 0
-784 0
-785 1
-786 0
-787 1
-788 1
-789 0
-790 0
-791 0
-792 1
-793 0
-794 0
-795 1
-796 1
-797 1
-798 1
-799 1
-800 0
-801 0
-802 1
-803 1
-804 1
-805 1
-806 0
-807 1
-808 0
-809 0
-810 1
-811 1
-812 1
-813 1
-814 1
-815 1
-816 0
-817 1
-818 0
-819 0
-820 0
-821 0
-822 1
-823 0
-824 1
-825 1
-826 1
-827 0
-828 1
-829 1
-830 1
-831 1
-832 0
-833 0
-834 0
-835 0
-836 0
-837 1
-838 1
-839 0
-840 1
-841 1
-842 0
-843 1
-844 0
-845 0
-846 1
-847 0
-848 0
-849 0
-850 0
-851 1
-852 1
-853 0
-854 0
-855 1
-856 0
-857 1
-858 0
-859 1
-860 0
-861 1
-862 1
-863 0
-864 0
-865 1
-866 0
-867 1
-868 1
-869 0
-870 1
-871 0
-872 0
-873 0
-874 0
-875 1
-876 1
-877 0
-878 0
-879 0
-880 0
-881 1
-882 0
-883 0
-884 1
-885 0
-886 0
-887 0
-888 1
-889 0
-890 1
-891 0
-892 0
-893 1
-894 1
-895 1
-896 1
-897 1
-898 1
-899 0
-900 0
-901 1
-902 1
-903 1
-904 0
-905 0
-906 0
-907 0
-908 0
-909 0
-910 1
-911 1
-912 1
-913 1
-914 0
-915 1
-916 0
-917 0
-918 0
-919 1
-920 0
-921 1
-922 0
-923 0
-924 0
-925 1
-926 1
-927 0
-928 1
-929 0
-930 1
-931 1
-932 0
-933 0
-934 0
-935 0
-936 0
-937 1
-938 0
-939 1
-940 0
-941 1
-942 1
-943 0
-944 0
-945 1
-946 0
-947 1
-948 1
-949 1
-950 0
-951 1
-952 0
-953 1
-954 0
-955 1
-956 1
-957 1
-958 1
-959 1
-960 0
-961 1
-962 0
-963 1
-964 1
-965 0
-966 1
-967 0
-968 0
-969 0
-970 1
-971 1
-972 1
-973 1
-974 1
-975 1
-976 1
-977 0
-978 0
-979 1
-980 0
-981 0
-982 0
-983 1
-984 0
-985 1
-986 0
-987 1
-988 0
-989 0
-990 0
-991 0
-992 1
-993 1
-994 0
-995 0
-996 1
-997 1
-998 1
-999 1
-1000 1
-1001 0
-1002 0
-1003 0
-1004 0
-1005 1
-1006 0
-1007 1
-1008 0
-1009 0
-1010 0
-1011 0
-1012 1
-1013 1
-1014 0
-1015 0
-1016 0
-1017 1
-1018 1
-1019 0
-1020 1
-1021 1
-1022 0
-1023 1
-1024 0
-1025 0
-1026 0
-1027 1
-1028 0
-1029 0
-1030 1
-1031 1
-1032 0
-1033 1
-1034 1
-1035 1
-1036 0
-1037 1
-1038 1
-1039 0
-1040 1
-1041 0
-1042 0
-1043 1
-1044 0
-1045 1
-1046 1
-1047 0
-1048 0
-1049 0
-1050 1
-1051 0
-1052 1
-1053 1
-1054 1
-1055 1
-1056 1
-1057 0
-1058 1
-1059 0
-1060 0
-1061 1
-1062 0
-1063 0
-1064 0
-1065 0
-1066 1
-1067 1
-1068 0
-1069 1
-1070 1
-1071 0
-1072 1
-1073 1
-1074 0
-1075 1
-1076 0
-1077 1
-1078 0
-1079 1
-1080 0
-1081 1
-1082 0
-1083 1
-1084 0
-1085 0
-1086 1
-1087 0
-1088 0
-1089 0
-1090 1
-1091 1
-1092 0
-1093 0
-1094 1
-1095 1
-1096 1
-1097 1
-1098 0
-1099 1
-1100 0
-1101 0
-1102 1
-1103 0
-1104 1
-1105 0
-1106 0
-1107 1
-1108 1
-1109 1
-1110 0
-1111 0
-1112 1
-1113 1
-1114 0
-1115 1
-1116 1
-1117 0
-1118 1
-1119 1
-1120 0
-1121 0
-1122 0
-1123 1
-1124 0
-1125 0
-1126 0
-1127 1
-1128 0
-1129 0
-1130 1
-1131 1
-1132 1
-1133 0
-1134 0
-1135 1
-1136 1
-1137 0
-1138 1
-1139 0
-1140 0
-1141 1
-1142 0
-1143 1
-1144 1
-1145 0
-1146 1
-1147 1
-1148 0
-1149 1
-1150 1
-1151 0
-1152 0
-1153 1
-1154 0
-1155 0
-1156 1
-1157 1
-1158 0
-1159 1
-1160 1
-1161 0
-1162 0
-1163 0
-1164 1
-1165 1
-1166 0
-1167 1
-1168 1
-1169 0
-1170 1
-1171 1
-1172 0
-1173 1
-1174 1
-1175 1
-1176 1
-1177 1
-1178 0
-1179 1
-1180 0
-1181 0
-1182 0
-1183 1
-1184 1
-1185 0
-1186 0
-1187 0
-1188 1
-1189 1
-1190 1
-1191 1
-1192 1
-1193 0
-1194 0
-1195 1
-1196 1
-1197 1
-1198 0
-1199 0
+EvenOddRingsCount16 0 1
+EvenOddRingsCount16 1 0
+EvenOddRingsCount16 2 1
+EvenOddRingsCount16 3 0
+EvenOddRingsCount16 4 0
+EvenOddRingsCount16 5 1
+EvenOddRingsCount16 6 0
+EvenOddRingsCount16 7 1
+EvenOddRingsCount16 8 1
+EvenOddRingsCount16 9 0
+EvenOddRingsCount16 10 0
+EvenOddRingsCount16 11 1
+EvenOddRingsCount16 12 0
+EvenOddRingsCount16 13 0
+EvenOddRingsCount16 14 1
+EvenOddRingsCount16 15 0
+EvenOddRingsCount16 16 0
+EvenOddRingsCount16 17 1
+EvenOddRingsCount16 18 0
+EvenOddRingsCount16 19 1
+EvenOddRingsCount16 20 1
+EvenOddRingsCount16 21 0
+EvenOddRingsCount16 22 0
+EvenOddRingsCount16 23 0
+EvenOddRingsCount16 24 1
+EvenOddRingsCount16 25 1
+EvenOddRingsCount16 26 1
+EvenOddRingsCount16 27 1
+EvenOddRingsCount16 28 1
+EvenOddRingsCount16 29 0
+EvenOddRingsCount16 30 1
+EvenOddRingsCount16 31 0
+EvenOddRingsCount16 32 1
+EvenOddRingsCount16 33 1
+EvenOddRingsCount16 34 1
+EvenOddRingsCount16 35 0
+EvenOddRingsCount16 36 1
+EvenOddRingsCount16 37 0
+EvenOddRingsCount16 38 1
+EvenOddRingsCount16 39 1
+EvenOddRingsCount16 40 0
+EvenOddRingsCount16 41 1
+EvenOddRingsCount16 42 0
+EvenOddRingsCount16 43 1
+EvenOddRingsCount16 44 1
+EvenOddRingsCount16 45 0
+EvenOddRingsCount16 46 0
+EvenOddRingsCount16 47 0
+EvenOddRingsCount16 48 0
+EvenOddRingsCount16 49 0
+EvenOddRingsCount16 50 0
+EvenOddRingsCount16 51 0
+EvenOddRingsCount16 52 0
+EvenOddRingsCount16 53 0
+EvenOddRingsCount16 54 1
+EvenOddRingsCount16 55 0
+EvenOddRingsCount16 56 0
+EvenOddRingsCount16 57 0
+EvenOddRingsCount16 58 0
+EvenOddRingsCount16 59 0
+EvenOddRingsCount16 60 0
+EvenOddRingsCount16 61 0
+EvenOddRingsCount16 62 0
+EvenOddRingsCount16 63 1
+EvenOddRingsCount16 64 1
+EvenOddRingsCount16 65 1
+EvenOddRingsCount16 66 1
+EvenOddRingsCount16 67 1
+EvenOddRingsCount16 68 1
+EvenOddRingsCount16 69 0
+EvenOddRingsCount16 70 0
+EvenOddRingsCount16 71 0
+EvenOddRingsCount16 72 0
+EvenOddRingsCount16 73 0
+EvenOddRingsCount16 74 0
+EvenOddRingsCount16 75 0
+EvenOddRingsCount16 76 0
+EvenOddRingsCount16 77 0
+EvenOddRingsCount16 78 1
+EvenOddRingsCount16 79 0
+EvenOddRingsCount16 80 0
+EvenOddRingsCount16 81 1
+EvenOddRingsCount16 82 1
+EvenOddRingsCount16 83 0
+EvenOddRingsCount16 84 1
+EvenOddRingsCount16 85 1
+EvenOddRingsCount16 86 0
+EvenOddRingsCount16 87 1
+EvenOddRingsCount16 88 1
+EvenOddRingsCount16 89 1
+EvenOddRingsCount16 90 0
+EvenOddRingsCount16 91 1
+EvenOddRingsCount16 92 0
+EvenOddRingsCount16 93 1
+EvenOddRingsCount16 94 0
+EvenOddRingsCount16 95 0
+EvenOddRingsCount16 96 1
+EvenOddRingsCount16 97 0
+EvenOddRingsCount16 98 0
+EvenOddRingsCount16 99 0
+EvenOddRingsCount16 100 1
+EvenOddRingsCount16 101 1
+EvenOddRingsCount16 102 1
+EvenOddRingsCount16 103 0
+EvenOddRingsCount16 104 0
+EvenOddRingsCount16 105 0
+EvenOddRingsCount16 106 1
+EvenOddRingsCount16 107 1
+EvenOddRingsCount16 108 1
+EvenOddRingsCount16 109 0
+EvenOddRingsCount16 110 0
+EvenOddRingsCount16 111 1
+EvenOddRingsCount16 112 0
+EvenOddRingsCount16 113 1
+EvenOddRingsCount16 114 0
+EvenOddRingsCount16 115 1
+EvenOddRingsCount16 116 1
+EvenOddRingsCount16 117 1
+EvenOddRingsCount16 118 1
+EvenOddRingsCount16 119 0
+EvenOddRingsCount16 120 0
+EvenOddRingsCount16 121 0
+EvenOddRingsCount16 122 0
+EvenOddRingsCount16 123 1
+EvenOddRingsCount16 124 1
+EvenOddRingsCount16 125 1
+EvenOddRingsCount16 126 0
+EvenOddRingsCount16 127 0
+EvenOddRingsCount16 128 0
+EvenOddRingsCount16 129 1
+EvenOddRingsCount16 130 0
+EvenOddRingsCount16 131 0
+EvenOddRingsCount16 132 0
+EvenOddRingsCount16 133 1
+EvenOddRingsCount16 134 1
+EvenOddRingsCount16 135 1
+EvenOddRingsCount16 136 1
+EvenOddRingsCount16 137 1
+EvenOddRingsCount16 138 1
+EvenOddRingsCount16 139 1
+EvenOddRingsCount16 140 1
+EvenOddRingsCount16 141 1
+EvenOddRingsCount16 142 1
+EvenOddRingsCount16 143 0
+EvenOddRingsCount16 144 1
+EvenOddRingsCount16 145 1
+EvenOddRingsCount16 146 1
+EvenOddRingsCount16 147 1
+EvenOddRingsCount16 148 1
+EvenOddRingsCount16 149 1
+EvenOddRingsCount16 150 1
+EvenOddRingsCount16 151 0
+EvenOddRingsCount16 152 0
+EvenOddRingsCount16 153 0
+EvenOddRingsCount16 154 0
+EvenOddRingsCount16 155 1
+EvenOddRingsCount16 156 1
+EvenOddRingsCount16 157 1
+EvenOddRingsCount16 158 1
+EvenOddRingsCount16 159 0
+EvenOddRingsCount16 160 1
+EvenOddRingsCount16 161 1
+EvenOddRingsCount16 162 1
+EvenOddRingsCount16 163 0
+EvenOddRingsCount16 164 0
+EvenOddRingsCount16 165 1
+EvenOddRingsCount16 166 0
+EvenOddRingsCount16 167 1
+EvenOddRingsCount16 168 0
+EvenOddRingsCount16 169 0
+EvenOddRingsCount16 170 1
+EvenOddRingsCount16 171 0
+EvenOddRingsCount16 172 1
+EvenOddRingsCount16 173 0
+EvenOddRingsCount16 174 0
+EvenOddRingsCount16 175 1
+EvenOddRingsCount16 176 0
+EvenOddRingsCount16 177 0
+EvenOddRingsCount16 178 1
+EvenOddRingsCount16 179 1
+EvenOddRingsCount16 180 1
+EvenOddRingsCount16 181 1
+EvenOddRingsCount16 182 0
+EvenOddRingsCount16 183 1
+EvenOddRingsCount16 184 0
+EvenOddRingsCount16 185 1
+EvenOddRingsCount16 186 0
+EvenOddRingsCount16 187 1
+EvenOddRingsCount16 188 0
+EvenOddRingsCount16 189 1
+EvenOddRingsCount16 190 0
+EvenOddRingsCount16 191 0
+EvenOddRingsCount16 192 0
+EvenOddRingsCount16 193 1
+EvenOddRingsCount16 194 1
+EvenOddRingsCount16 195 1
+EvenOddRingsCount16 196 1
+EvenOddRingsCount16 197 1
+EvenOddRingsCount16 198 1
+EvenOddRingsCount16 199 1
+EvenOddRingsCount16 200 1
+EvenOddRingsCount16 201 0
+EvenOddRingsCount16 202 1
+EvenOddRingsCount16 203 1
+EvenOddRingsCount16 204 1
+EvenOddRingsCount16 205 1
+EvenOddRingsCount16 206 0
+EvenOddRingsCount16 207 0
+EvenOddRingsCount16 208 0
+EvenOddRingsCount16 209 1
+EvenOddRingsCount16 210 0
+EvenOddRingsCount16 211 0
+EvenOddRingsCount16 212 1
+EvenOddRingsCount16 213 0
+EvenOddRingsCount16 214 0
+EvenOddRingsCount16 215 0
+EvenOddRingsCount16 216 1
+EvenOddRingsCount16 217 1
+EvenOddRingsCount16 218 1
+EvenOddRingsCount16 219 0
+EvenOddRingsCount16 220 0
+EvenOddRingsCount16 221 1
+EvenOddRingsCount16 222 0
+EvenOddRingsCount16 223 0
+EvenOddRingsCount16 224 1
+EvenOddRingsCount16 225 1
+EvenOddRingsCount16 226 1
+EvenOddRingsCount16 227 1
+EvenOddRingsCount16 228 0
+EvenOddRingsCount16 229 1
+EvenOddRingsCount16 230 1
+EvenOddRingsCount16 231 1
+EvenOddRingsCount16 232 1
+EvenOddRingsCount16 233 0
+EvenOddRingsCount16 234 0
+EvenOddRingsCount16 235 1
+EvenOddRingsCount16 236 0
+EvenOddRingsCount16 237 1
+EvenOddRingsCount16 238 0
+EvenOddRingsCount16 239 0
+EvenOddRingsCount16 240 0
+EvenOddRingsCount16 241 0
+EvenOddRingsCount16 242 0
+EvenOddRingsCount16 243 0
+EvenOddRingsCount16 244 0
+EvenOddRingsCount16 245 1
+EvenOddRingsCount16 246 0
+EvenOddRingsCount16 247 1
+EvenOddRingsCount16 248 1
+EvenOddRingsCount16 249 1
+EvenOddRingsCount16 250 0
+EvenOddRingsCount16 251 1
+EvenOddRingsCount16 252 1
+EvenOddRingsCount16 253 1
+EvenOddRingsCount16 254 1
+EvenOddRingsCount16 255 1
+EvenOddRingsCount16 256 1
+EvenOddRingsCount16 257 0
+EvenOddRingsCount16 258 0
+EvenOddRingsCount16 259 1
+EvenOddRingsCount16 260 0
+EvenOddRingsCount16 261 0
+EvenOddRingsCount16 262 1
+EvenOddRingsCount16 263 1
+EvenOddRingsCount16 264 1
+EvenOddRingsCount16 265 0
+EvenOddRingsCount16 266 1
+EvenOddRingsCount16 267 0
+EvenOddRingsCount16 268 1
+EvenOddRingsCount16 269 1
+EvenOddRingsCount16 270 1
+EvenOddRingsCount16 271 0
+EvenOddRingsCount16 272 1
+EvenOddRingsCount16 273 1
+EvenOddRingsCount16 274 1
+EvenOddRingsCount16 275 0
+EvenOddRingsCount16 276 0
+EvenOddRingsCount16 277 0
+EvenOddRingsCount16 278 0
+EvenOddRingsCount16 279 1
+EvenOddRingsCount16 280 1
+EvenOddRingsCount16 281 1
+EvenOddRingsCount16 282 0
+EvenOddRingsCount16 283 1
+EvenOddRingsCount16 284 1
+EvenOddRingsCount16 285 1
+EvenOddRingsCount16 286 0
+EvenOddRingsCount16 287 1
+EvenOddRingsCount16 288 0
+EvenOddRingsCount16 289 1
+EvenOddRingsCount16 290 0
+EvenOddRingsCount16 291 1
+EvenOddRingsCount16 292 0
+EvenOddRingsCount16 293 0
+EvenOddRingsCount16 294 0
+EvenOddRingsCount16 295 1
+EvenOddRingsCount16 296 0
+EvenOddRingsCount16 297 0
+EvenOddRingsCount16 298 1
+EvenOddRingsCount16 299 1
+EvenOddRingsCount16 300 0
+EvenOddRingsCount16 301 1
+EvenOddRingsCount16 302 0
+EvenOddRingsCount16 303 1
+EvenOddRingsCount16 304 0
+EvenOddRingsCount16 305 1
+EvenOddRingsCount16 306 1
+EvenOddRingsCount16 307 1
+EvenOddRingsCount16 308 1
+EvenOddRingsCount16 309 1
+EvenOddRingsCount16 310 0
+EvenOddRingsCount16 311 0
+EvenOddRingsCount16 312 1
+EvenOddRingsCount16 313 1
+EvenOddRingsCount16 314 1
+EvenOddRingsCount16 315 1
+EvenOddRingsCount16 316 1
+EvenOddRingsCount16 317 0
+EvenOddRingsCount16 318 0
+EvenOddRingsCount16 319 0
+EvenOddRingsCount16 320 1
+EvenOddRingsCount16 321 0
+EvenOddRingsCount16 322 0
+EvenOddRingsCount16 323 0
+EvenOddRingsCount16 324 1
+EvenOddRingsCount16 325 0
+EvenOddRingsCount16 326 0
+EvenOddRingsCount16 327 0
+EvenOddRingsCount16 328 0
+EvenOddRingsCount16 329 0
+EvenOddRingsCount16 330 1
+EvenOddRingsCount16 331 1
+EvenOddRingsCount16 332 0
+EvenOddRingsCount16 333 0
+EvenOddRingsCount16 334 1
+EvenOddRingsCount16 335 0
+EvenOddRingsCount16 336 1
+EvenOddRingsCount16 337 0
+EvenOddRingsCount16 338 0
+EvenOddRingsCount16 339 0
+EvenOddRingsCount16 340 0
+EvenOddRingsCount16 341 1
+EvenOddRingsCount16 342 1
+EvenOddRingsCount16 343 0
+EvenOddRingsCount16 344 0
+EvenOddRingsCount16 345 0
+EvenOddRingsCount16 346 0
+EvenOddRingsCount16 347 0
+EvenOddRingsCount16 348 0
+EvenOddRingsCount16 349 0
+EvenOddRingsCount16 350 0
+EvenOddRingsCount16 351 0
+EvenOddRingsCount16 352 1
+EvenOddRingsCount16 353 0
+EvenOddRingsCount16 354 0
+EvenOddRingsCount16 355 0
+EvenOddRingsCount16 356 1
+EvenOddRingsCount16 357 1
+EvenOddRingsCount16 358 0
+EvenOddRingsCount16 359 0
+EvenOddRingsCount16 360 0
+EvenOddRingsCount16 361 1
+EvenOddRingsCount16 362 0
+EvenOddRingsCount16 363 0
+EvenOddRingsCount16 364 1
+EvenOddRingsCount16 365 1
+EvenOddRingsCount16 366 0
+EvenOddRingsCount16 367 0
+EvenOddRingsCount16 368 1
+EvenOddRingsCount16 369 0
+EvenOddRingsCount16 370 0
+EvenOddRingsCount16 371 0
+EvenOddRingsCount16 372 0
+EvenOddRingsCount16 373 0
+EvenOddRingsCount16 374 1
+EvenOddRingsCount16 375 1
+EvenOddRingsCount16 376 1
+EvenOddRingsCount16 377 0
+EvenOddRingsCount16 378 0
+EvenOddRingsCount16 379 1
+EvenOddRingsCount16 380 0
+EvenOddRingsCount16 381 1
+EvenOddRingsCount16 382 0
+EvenOddRingsCount16 383 0
+EvenOddRingsCount16 384 1
+EvenOddRingsCount16 385 0
+EvenOddRingsCount16 386 0
+EvenOddRingsCount16 387 0
+EvenOddRingsCount16 388 1
+EvenOddRingsCount16 389 0
+EvenOddRingsCount16 390 1
+EvenOddRingsCount16 391 1
+EvenOddRingsCount16 392 0
+EvenOddRingsCount16 393 1
+EvenOddRingsCount16 394 1
+EvenOddRingsCount16 395 1
+EvenOddRingsCount16 396 1
+EvenOddRingsCount16 397 0
+EvenOddRingsCount16 398 1
+EvenOddRingsCount16 399 1
+EvenOddRingsCount16 400 1
+EvenOddRingsCount16 401 0
+EvenOddRingsCount16 402 1
+EvenOddRingsCount16 403 1
+EvenOddRingsCount16 404 0
+EvenOddRingsCount16 405 1
+EvenOddRingsCount16 406 1
+EvenOddRingsCount16 407 1
+EvenOddRingsCount16 408 0
+EvenOddRingsCount16 409 1
+EvenOddRingsCount16 410 1
+EvenOddRingsCount16 411 0
+EvenOddRingsCount16 412 0
+EvenOddRingsCount16 413 0
+EvenOddRingsCount16 414 1
+EvenOddRingsCount16 415 0
+EvenOddRingsCount16 416 1
+EvenOddRingsCount16 417 0
+EvenOddRingsCount16 418 0
+EvenOddRingsCount16 419 1
+EvenOddRingsCount16 420 0
+EvenOddRingsCount16 421 0
+EvenOddRingsCount16 422 0
+EvenOddRingsCount16 423 0
+EvenOddRingsCount16 424 1
+EvenOddRingsCount16 425 0
+EvenOddRingsCount16 426 1
+EvenOddRingsCount16 427 0
+EvenOddRingsCount16 428 0
+EvenOddRingsCount16 429 1
+EvenOddRingsCount16 430 1
+EvenOddRingsCount16 431 1
+EvenOddRingsCount16 432 1
+EvenOddRingsCount16 433 1
+EvenOddRingsCount16 434 1
+EvenOddRingsCount16 435 1
+EvenOddRingsCount16 436 1
+EvenOddRingsCount16 437 1
+EvenOddRingsCount16 438 0
+EvenOddRingsCount16 439 1
+EvenOddRingsCount16 440 1
+EvenOddRingsCount16 441 1
+EvenOddRingsCount16 442 1
+EvenOddRingsCount16 443 0
+EvenOddRingsCount16 444 0
+EvenOddRingsCount16 445 1
+EvenOddRingsCount16 446 1
+EvenOddRingsCount16 447 1
+EvenOddRingsCount16 448 1
+EvenOddRingsCount16 449 0
+EvenOddRingsCount16 450 1
+EvenOddRingsCount16 451 1
+EvenOddRingsCount16 452 0
+EvenOddRingsCount16 453 0
+EvenOddRingsCount16 454 1
+EvenOddRingsCount16 455 1
+EvenOddRingsCount16 456 1
+EvenOddRingsCount16 457 0
+EvenOddRingsCount16 458 1
+EvenOddRingsCount16 459 0
+EvenOddRingsCount16 460 1
+EvenOddRingsCount16 461 1
+EvenOddRingsCount16 462 0
+EvenOddRingsCount16 463 1
+EvenOddRingsCount16 464 0
+EvenOddRingsCount16 465 0
+EvenOddRingsCount16 466 0
+EvenOddRingsCount16 467 0
+EvenOddRingsCount16 468 1
+EvenOddRingsCount16 469 1
+EvenOddRingsCount16 470 1
+EvenOddRingsCount16 471 0
+EvenOddRingsCount16 472 0
+EvenOddRingsCount16 473 1
+EvenOddRingsCount16 474 1
+EvenOddRingsCount16 475 0
+EvenOddRingsCount16 476 0
+EvenOddRingsCount16 477 0
+EvenOddRingsCount16 478 0
+EvenOddRingsCount16 479 0
+EvenOddRingsCount16 480 0
+EvenOddRingsCount16 481 0
+EvenOddRingsCount16 482 0
+EvenOddRingsCount16 483 0
+EvenOddRingsCount16 484 1
+EvenOddRingsCount16 485 1
+EvenOddRingsCount16 486 1
+EvenOddRingsCount16 487 0
+EvenOddRingsCount16 488 0
+EvenOddRingsCount16 489 1
+EvenOddRingsCount16 490 0
+EvenOddRingsCount16 491 0
+EvenOddRingsCount16 492 1
+EvenOddRingsCount16 493 1
+EvenOddRingsCount16 494 1
+EvenOddRingsCount16 495 1
+EvenOddRingsCount16 496 0
+EvenOddRingsCount16 497 0
+EvenOddRingsCount16 498 1
+EvenOddRingsCount16 499 1
+EvenOddRingsCount16 500 0
+EvenOddRingsCount16 501 0
+EvenOddRingsCount16 502 0
+EvenOddRingsCount16 503 1
+EvenOddRingsCount16 504 1
+EvenOddRingsCount16 505 0
+EvenOddRingsCount16 506 1
+EvenOddRingsCount16 507 1
+EvenOddRingsCount16 508 0
+EvenOddRingsCount16 509 1
+EvenOddRingsCount16 510 1
+EvenOddRingsCount16 511 1
+EvenOddRingsCount16 512 1
+EvenOddRingsCount16 513 1
+EvenOddRingsCount16 514 0
+EvenOddRingsCount16 515 1
+EvenOddRingsCount16 516 1
+EvenOddRingsCount16 517 1
+EvenOddRingsCount16 518 1
+EvenOddRingsCount16 519 1
+EvenOddRingsCount16 520 1
+EvenOddRingsCount16 521 0
+EvenOddRingsCount16 522 1
+EvenOddRingsCount16 523 0
+EvenOddRingsCount16 524 0
+EvenOddRingsCount16 525 0
+EvenOddRingsCount16 526 1
+EvenOddRingsCount16 527 0
+EvenOddRingsCount16 528 1
+EvenOddRingsCount16 529 0
+EvenOddRingsCount16 530 1
+EvenOddRingsCount16 531 1
+EvenOddRingsCount16 532 1
+EvenOddRingsCount16 533 0
+EvenOddRingsCount16 534 1
+EvenOddRingsCount16 535 0
+EvenOddRingsCount16 536 0
+EvenOddRingsCount16 537 0
+EvenOddRingsCount16 538 0
+EvenOddRingsCount16 539 0
+EvenOddRingsCount16 540 0
+EvenOddRingsCount16 541 0
+EvenOddRingsCount16 542 0
+EvenOddRingsCount16 543 0
+EvenOddRingsCount16 544 0
+EvenOddRingsCount16 545 1
+EvenOddRingsCount16 546 1
+EvenOddRingsCount16 547 1
+EvenOddRingsCount16 548 1
+EvenOddRingsCount16 549 0
+EvenOddRingsCount16 550 0
+EvenOddRingsCount16 551 1
+EvenOddRingsCount16 552 1
+EvenOddRingsCount16 553 1
+EvenOddRingsCount16 554 0
+EvenOddRingsCount16 555 0
+EvenOddRingsCount16 556 1
+EvenOddRingsCount16 557 0
+EvenOddRingsCount16 558 1
+EvenOddRingsCount16 559 1
+EvenOddRingsCount16 560 0
+EvenOddRingsCount16 561 0
+EvenOddRingsCount16 562 0
+EvenOddRingsCount16 563 0
+EvenOddRingsCount16 564 1
+EvenOddRingsCount16 565 0
+EvenOddRingsCount16 566 1
+EvenOddRingsCount16 567 1
+EvenOddRingsCount16 568 0
+EvenOddRingsCount16 569 1
+EvenOddRingsCount16 570 0
+EvenOddRingsCount16 571 0
+EvenOddRingsCount16 572 1
+EvenOddRingsCount16 573 0
+EvenOddRingsCount16 574 1
+EvenOddRingsCount16 575 0
+EvenOddRingsCount16 576 0
+EvenOddRingsCount16 577 1
+EvenOddRingsCount16 578 1
+EvenOddRingsCount16 579 1
+EvenOddRingsCount16 580 0
+EvenOddRingsCount16 581 1
+EvenOddRingsCount16 582 0
+EvenOddRingsCount16 583 0
+EvenOddRingsCount16 584 0
+EvenOddRingsCount16 585 0
+EvenOddRingsCount16 586 0
+EvenOddRingsCount16 587 1
+EvenOddRingsCount16 588 0
+EvenOddRingsCount16 589 0
+EvenOddRingsCount16 590 0
+EvenOddRingsCount16 591 1
+EvenOddRingsCount16 592 1
+EvenOddRingsCount16 593 0
+EvenOddRingsCount16 594 0
+EvenOddRingsCount16 595 1
+EvenOddRingsCount16 596 1
+EvenOddRingsCount16 597 1
+EvenOddRingsCount16 598 0
+EvenOddRingsCount16 599 1
+EvenOddRingsCount16 600 1
+EvenOddRingsCount16 601 1
+EvenOddRingsCount16 602 1
+EvenOddRingsCount16 603 1
+EvenOddRingsCount16 604 0
+EvenOddRingsCount16 605 0
+EvenOddRingsCount16 606 0
+EvenOddRingsCount16 607 1
+EvenOddRingsCount16 608 1
+EvenOddRingsCount16 609 0
+EvenOddRingsCount16 610 0
+EvenOddRingsCount16 611 1
+EvenOddRingsCount16 612 0
+EvenOddRingsCount16 613 0
+EvenOddRingsCount16 614 1
+EvenOddRingsCount16 615 0
+EvenOddRingsCount16 616 0
+EvenOddRingsCount16 617 0
+EvenOddRingsCount16 618 0
+EvenOddRingsCount16 619 0
+EvenOddRingsCount16 620 1
+EvenOddRingsCount16 621 0
+EvenOddRingsCount16 622 0
+EvenOddRingsCount16 623 1
+EvenOddRingsCount16 624 1
+EvenOddRingsCount16 625 1
+EvenOddRingsCount16 626 0
+EvenOddRingsCount16 627 0
+EvenOddRingsCount16 628 1
+EvenOddRingsCount16 629 1
+EvenOddRingsCount16 630 1
+EvenOddRingsCount16 631 1
+EvenOddRingsCount16 632 1
+EvenOddRingsCount16 633 1
+EvenOddRingsCount16 634 0
+EvenOddRingsCount16 635 1
+EvenOddRingsCount16 636 0
+EvenOddRingsCount16 637 1
+EvenOddRingsCount16 638 1
+EvenOddRingsCount16 639 1
+EvenOddRingsCount16 640 1
+EvenOddRingsCount16 641 0
+EvenOddRingsCount16 642 1
+EvenOddRingsCount16 643 0
+EvenOddRingsCount16 644 1
+EvenOddRingsCount16 645 1
+EvenOddRingsCount16 646 1
+EvenOddRingsCount16 647 0
+EvenOddRingsCount16 648 1
+EvenOddRingsCount16 649 0
+EvenOddRingsCount16 650 0
+EvenOddRingsCount16 651 0
+EvenOddRingsCount16 652 1
+EvenOddRingsCount16 653 0
+EvenOddRingsCount16 654 1
+EvenOddRingsCount16 655 0
+EvenOddRingsCount16 656 1
+EvenOddRingsCount16 657 0
+EvenOddRingsCount16 658 0
+EvenOddRingsCount16 659 1
+EvenOddRingsCount16 660 0
+EvenOddRingsCount16 661 0
+EvenOddRingsCount16 662 0
+EvenOddRingsCount16 663 1
+EvenOddRingsCount16 664 0
+EvenOddRingsCount16 665 1
+EvenOddRingsCount16 666 1
+EvenOddRingsCount16 667 1
+EvenOddRingsCount16 668 1
+EvenOddRingsCount16 669 0
+EvenOddRingsCount16 670 0
+EvenOddRingsCount16 671 0
+EvenOddRingsCount16 672 0
+EvenOddRingsCount16 673 0
+EvenOddRingsCount16 674 0
+EvenOddRingsCount16 675 0
+EvenOddRingsCount16 676 1
+EvenOddRingsCount16 677 0
+EvenOddRingsCount16 678 1
+EvenOddRingsCount16 679 0
+EvenOddRingsCount16 680 0
+EvenOddRingsCount16 681 1
+EvenOddRingsCount16 682 1
+EvenOddRingsCount16 683 1
+EvenOddRingsCount16 684 1
+EvenOddRingsCount16 685 0
+EvenOddRingsCount16 686 1
+EvenOddRingsCount16 687 0
+EvenOddRingsCount16 688 0
+EvenOddRingsCount16 689 0
+EvenOddRingsCount16 690 1
+EvenOddRingsCount16 691 0
+EvenOddRingsCount16 692 0
+EvenOddRingsCount16 693 1
+EvenOddRingsCount16 694 0
+EvenOddRingsCount16 695 0
+EvenOddRingsCount16 696 1
+EvenOddRingsCount16 697 1
+EvenOddRingsCount16 698 1
+EvenOddRingsCount16 699 0
+EvenOddRingsCount16 700 1
+EvenOddRingsCount16 701 1
+EvenOddRingsCount16 702 0
+EvenOddRingsCount16 703 0
+EvenOddRingsCount16 704 0
+EvenOddRingsCount16 705 1
+EvenOddRingsCount16 706 0
+EvenOddRingsCount16 707 1
+EvenOddRingsCount16 708 1
+EvenOddRingsCount16 709 1
+EvenOddRingsCount16 710 0
+EvenOddRingsCount16 711 1
+EvenOddRingsCount16 712 0
+EvenOddRingsCount16 713 0
+EvenOddRingsCount16 714 1
+EvenOddRingsCount16 715 0
+EvenOddRingsCount16 716 0
+EvenOddRingsCount16 717 1
+EvenOddRingsCount16 718 0
+EvenOddRingsCount16 719 1
+EvenOddRingsCount16 720 0
+EvenOddRingsCount16 721 1
+EvenOddRingsCount16 722 1
+EvenOddRingsCount16 723 0
+EvenOddRingsCount16 724 0
+EvenOddRingsCount16 725 0
+EvenOddRingsCount16 726 0
+EvenOddRingsCount16 727 0
+EvenOddRingsCount16 728 1
+EvenOddRingsCount16 729 1
+EvenOddRingsCount16 730 0
+EvenOddRingsCount16 731 0
+EvenOddRingsCount16 732 0
+EvenOddRingsCount16 733 1
+EvenOddRingsCount16 734 1
+EvenOddRingsCount16 735 1
+EvenOddRingsCount16 736 0
+EvenOddRingsCount16 737 1
+EvenOddRingsCount16 738 1
+EvenOddRingsCount16 739 0
+EvenOddRingsCount16 740 1
+EvenOddRingsCount16 741 0
+EvenOddRingsCount16 742 0
+EvenOddRingsCount16 743 0
+EvenOddRingsCount16 744 1
+EvenOddRingsCount16 745 0
+EvenOddRingsCount16 746 1
+EvenOddRingsCount16 747 0
+EvenOddRingsCount16 748 1
+EvenOddRingsCount16 749 0
+EvenOddRingsCount16 750 0
+EvenOddRingsCount16 751 1
+EvenOddRingsCount16 752 1
+EvenOddRingsCount16 753 1
+EvenOddRingsCount16 754 0
+EvenOddRingsCount16 755 0
+EvenOddRingsCount16 756 1
+EvenOddRingsCount16 757 0
+EvenOddRingsCount16 758 0
+EvenOddRingsCount16 759 0
+EvenOddRingsCount16 760 0
+EvenOddRingsCount16 761 1
+EvenOddRingsCount16 762 1
+EvenOddRingsCount16 763 1
+EvenOddRingsCount16 764 0
+EvenOddRingsCount16 765 1
+EvenOddRingsCount16 766 0
+EvenOddRingsCount16 767 0
+EvenOddRingsCount16 768 0
+EvenOddRingsCount16 769 1
+EvenOddRingsCount16 770 1
+EvenOddRingsCount16 771 0
+EvenOddRingsCount16 772 0
+EvenOddRingsCount16 773 1
+EvenOddRingsCount16 774 0
+EvenOddRingsCount16 775 1
+EvenOddRingsCount16 776 1
+EvenOddRingsCount16 777 0
+EvenOddRingsCount16 778 1
+EvenOddRingsCount16 779 1
+EvenOddRingsCount16 780 0
+EvenOddRingsCount16 781 0
+EvenOddRingsCount16 782 0
+EvenOddRingsCount16 783 0
+EvenOddRingsCount16 784 0
+EvenOddRingsCount16 785 1
+EvenOddRingsCount16 786 0
+EvenOddRingsCount16 787 1
+EvenOddRingsCount16 788 1
+EvenOddRingsCount16 789 0
+EvenOddRingsCount16 790 0
+EvenOddRingsCount16 791 0
+EvenOddRingsCount16 792 1
+EvenOddRingsCount16 793 0
+EvenOddRingsCount16 794 0
+EvenOddRingsCount16 795 1
+EvenOddRingsCount16 796 1
+EvenOddRingsCount16 797 1
+EvenOddRingsCount16 798 1
+EvenOddRingsCount16 799 1
+EvenOddRingsCount16 800 0
+EvenOddRingsCount16 801 0
+EvenOddRingsCount16 802 1
+EvenOddRingsCount16 803 1
+EvenOddRingsCount16 804 1
+EvenOddRingsCount16 805 1
+EvenOddRingsCount16 806 0
+EvenOddRingsCount16 807 1
+EvenOddRingsCount16 808 0
+EvenOddRingsCount16 809 0
+EvenOddRingsCount16 810 1
+EvenOddRingsCount16 811 1
+EvenOddRingsCount16 812 1
+EvenOddRingsCount16 813 1
+EvenOddRingsCount16 814 1
+EvenOddRingsCount16 815 1
+EvenOddRingsCount16 816 0
+EvenOddRingsCount16 817 1
+EvenOddRingsCount16 818 0
+EvenOddRingsCount16 819 0
+EvenOddRingsCount16 820 0
+EvenOddRingsCount16 821 0
+EvenOddRingsCount16 822 1
+EvenOddRingsCount16 823 0
+EvenOddRingsCount16 824 1
+EvenOddRingsCount16 825 1
+EvenOddRingsCount16 826 1
+EvenOddRingsCount16 827 0
+EvenOddRingsCount16 828 1
+EvenOddRingsCount16 829 1
+EvenOddRingsCount16 830 1
+EvenOddRingsCount16 831 1
+EvenOddRingsCount16 832 0
+EvenOddRingsCount16 833 0
+EvenOddRingsCount16 834 0
+EvenOddRingsCount16 835 0
+EvenOddRingsCount16 836 0
+EvenOddRingsCount16 837 1
+EvenOddRingsCount16 838 1
+EvenOddRingsCount16 839 0
+EvenOddRingsCount16 840 1
+EvenOddRingsCount16 841 1
+EvenOddRingsCount16 842 0
+EvenOddRingsCount16 843 1
+EvenOddRingsCount16 844 0
+EvenOddRingsCount16 845 0
+EvenOddRingsCount16 846 1
+EvenOddRingsCount16 847 0
+EvenOddRingsCount16 848 0
+EvenOddRingsCount16 849 0
+EvenOddRingsCount16 850 0
+EvenOddRingsCount16 851 1
+EvenOddRingsCount16 852 1
+EvenOddRingsCount16 853 0
+EvenOddRingsCount16 854 0
+EvenOddRingsCount16 855 1
+EvenOddRingsCount16 856 0
+EvenOddRingsCount16 857 1
+EvenOddRingsCount16 858 0
+EvenOddRingsCount16 859 1
+EvenOddRingsCount16 860 0
+EvenOddRingsCount16 861 1
+EvenOddRingsCount16 862 1
+EvenOddRingsCount16 863 0
+EvenOddRingsCount16 864 0
+EvenOddRingsCount16 865 1
+EvenOddRingsCount16 866 0
+EvenOddRingsCount16 867 1
+EvenOddRingsCount16 868 1
+EvenOddRingsCount16 869 0
+EvenOddRingsCount16 870 1
+EvenOddRingsCount16 871 0
+EvenOddRingsCount16 872 0
+EvenOddRingsCount16 873 0
+EvenOddRingsCount16 874 0
+EvenOddRingsCount16 875 1
+EvenOddRingsCount16 876 1
+EvenOddRingsCount16 877 0
+EvenOddRingsCount16 878 0
+EvenOddRingsCount16 879 0
+EvenOddRingsCount16 880 0
+EvenOddRingsCount16 881 1
+EvenOddRingsCount16 882 0
+EvenOddRingsCount16 883 0
+EvenOddRingsCount16 884 1
+EvenOddRingsCount16 885 0
+EvenOddRingsCount16 886 0
+EvenOddRingsCount16 887 0
+EvenOddRingsCount16 888 1
+EvenOddRingsCount16 889 0
+EvenOddRingsCount16 890 1
+EvenOddRingsCount16 891 0
+EvenOddRingsCount16 892 0
+EvenOddRingsCount16 893 1
+EvenOddRingsCount16 894 1
+EvenOddRingsCount16 895 1
+EvenOddRingsCount16 896 1
+EvenOddRingsCount16 897 1
+EvenOddRingsCount16 898 1
+EvenOddRingsCount16 899 0
+EvenOddRingsCount16 900 0
+EvenOddRingsCount16 901 1
+EvenOddRingsCount16 902 1
+EvenOddRingsCount16 903 1
+EvenOddRingsCount16 904 0
+EvenOddRingsCount16 905 0
+EvenOddRingsCount16 906 0
+EvenOddRingsCount16 907 0
+EvenOddRingsCount16 908 0
+EvenOddRingsCount16 909 0
+EvenOddRingsCount16 910 1
+EvenOddRingsCount16 911 1
+EvenOddRingsCount16 912 1
+EvenOddRingsCount16 913 1
+EvenOddRingsCount16 914 0
+EvenOddRingsCount16 915 1
+EvenOddRingsCount16 916 0
+EvenOddRingsCount16 917 0
+EvenOddRingsCount16 918 0
+EvenOddRingsCount16 919 1
+EvenOddRingsCount16 920 0
+EvenOddRingsCount16 921 1
+EvenOddRingsCount16 922 0
+EvenOddRingsCount16 923 0
+EvenOddRingsCount16 924 0
+EvenOddRingsCount16 925 1
+EvenOddRingsCount16 926 1
+EvenOddRingsCount16 927 0
+EvenOddRingsCount16 928 1
+EvenOddRingsCount16 929 0
+EvenOddRingsCount16 930 1
+EvenOddRingsCount16 931 1
+EvenOddRingsCount16 932 0
+EvenOddRingsCount16 933 0
+EvenOddRingsCount16 934 0
+EvenOddRingsCount16 935 0
+EvenOddRingsCount16 936 0
+EvenOddRingsCount16 937 1
+EvenOddRingsCount16 938 0
+EvenOddRingsCount16 939 1
+EvenOddRingsCount16 940 0
+EvenOddRingsCount16 941 1
+EvenOddRingsCount16 942 1
+EvenOddRingsCount16 943 0
+EvenOddRingsCount16 944 0
+EvenOddRingsCount16 945 1
+EvenOddRingsCount16 946 0
+EvenOddRingsCount16 947 1
+EvenOddRingsCount16 948 1
+EvenOddRingsCount16 949 1
+EvenOddRingsCount16 950 0
+EvenOddRingsCount16 951 1
+EvenOddRingsCount16 952 0
+EvenOddRingsCount16 953 1
+EvenOddRingsCount16 954 0
+EvenOddRingsCount16 955 1
+EvenOddRingsCount16 956 1
+EvenOddRingsCount16 957 1
+EvenOddRingsCount16 958 1
+EvenOddRingsCount16 959 1
+EvenOddRingsCount16 960 0
+EvenOddRingsCount16 961 1
+EvenOddRingsCount16 962 0
+EvenOddRingsCount16 963 1
+EvenOddRingsCount16 964 1
+EvenOddRingsCount16 965 0
+EvenOddRingsCount16 966 1
+EvenOddRingsCount16 967 0
+EvenOddRingsCount16 968 0
+EvenOddRingsCount16 969 0
+EvenOddRingsCount16 970 1
+EvenOddRingsCount16 971 1
+EvenOddRingsCount16 972 1
+EvenOddRingsCount16 973 1
+EvenOddRingsCount16 974 1
+EvenOddRingsCount16 975 1
+EvenOddRingsCount16 976 1
+EvenOddRingsCount16 977 0
+EvenOddRingsCount16 978 0
+EvenOddRingsCount16 979 1
+EvenOddRingsCount16 980 0
+EvenOddRingsCount16 981 0
+EvenOddRingsCount16 982 0
+EvenOddRingsCount16 983 1
+EvenOddRingsCount16 984 0
+EvenOddRingsCount16 985 1
+EvenOddRingsCount16 986 0
+EvenOddRingsCount16 987 1
+EvenOddRingsCount16 988 0
+EvenOddRingsCount16 989 0
+EvenOddRingsCount16 990 0
+EvenOddRingsCount16 991 0
+EvenOddRingsCount16 992 1
+EvenOddRingsCount16 993 1
+EvenOddRingsCount16 994 0
+EvenOddRingsCount16 995 0
+EvenOddRingsCount16 996 1
+EvenOddRingsCount16 997 1
+EvenOddRingsCount16 998 1
+EvenOddRingsCount16 999 1
+EvenOddRingsCount16 1000 1
+EvenOddRingsCount16 1001 0
+EvenOddRingsCount16 1002 0
+EvenOddRingsCount16 1003 0
+EvenOddRingsCount16 1004 0
+EvenOddRingsCount16 1005 1
+EvenOddRingsCount16 1006 0
+EvenOddRingsCount16 1007 1
+EvenOddRingsCount16 1008 0
+EvenOddRingsCount16 1009 0
+EvenOddRingsCount16 1010 0
+EvenOddRingsCount16 1011 0
+EvenOddRingsCount16 1012 1
+EvenOddRingsCount16 1013 1
+EvenOddRingsCount16 1014 0
+EvenOddRingsCount16 1015 0
+EvenOddRingsCount16 1016 0
+EvenOddRingsCount16 1017 1
+EvenOddRingsCount16 1018 1
+EvenOddRingsCount16 1019 0
+EvenOddRingsCount16 1020 1
+EvenOddRingsCount16 1021 1
+EvenOddRingsCount16 1022 0
+EvenOddRingsCount16 1023 1
+EvenOddRingsCount16 1024 0
+EvenOddRingsCount16 1025 0
+EvenOddRingsCount16 1026 0
+EvenOddRingsCount16 1027 1
+EvenOddRingsCount16 1028 0
+EvenOddRingsCount16 1029 0
+EvenOddRingsCount16 1030 1
+EvenOddRingsCount16 1031 1
+EvenOddRingsCount16 1032 0
+EvenOddRingsCount16 1033 1
+EvenOddRingsCount16 1034 1
+EvenOddRingsCount16 1035 1
+EvenOddRingsCount16 1036 0
+EvenOddRingsCount16 1037 1
+EvenOddRingsCount16 1038 1
+EvenOddRingsCount16 1039 0
+EvenOddRingsCount16 1040 1
+EvenOddRingsCount16 1041 0
+EvenOddRingsCount16 1042 0
+EvenOddRingsCount16 1043 1
+EvenOddRingsCount16 1044 0
+EvenOddRingsCount16 1045 1
+EvenOddRingsCount16 1046 1
+EvenOddRingsCount16 1047 0
+EvenOddRingsCount16 1048 0
+EvenOddRingsCount16 1049 0
+EvenOddRingsCount16 1050 1
+EvenOddRingsCount16 1051 0
+EvenOddRingsCount16 1052 1
+EvenOddRingsCount16 1053 1
+EvenOddRingsCount16 1054 1
+EvenOddRingsCount16 1055 1
+EvenOddRingsCount16 1056 1
+EvenOddRingsCount16 1057 0
+EvenOddRingsCount16 1058 1
+EvenOddRingsCount16 1059 0
+EvenOddRingsCount16 1060 0
+EvenOddRingsCount16 1061 1
+EvenOddRingsCount16 1062 0
+EvenOddRingsCount16 1063 0
+EvenOddRingsCount16 1064 0
+EvenOddRingsCount16 1065 0
+EvenOddRingsCount16 1066 1
+EvenOddRingsCount16 1067 1
+EvenOddRingsCount16 1068 0
+EvenOddRingsCount16 1069 1
+EvenOddRingsCount16 1070 1
+EvenOddRingsCount16 1071 0
+EvenOddRingsCount16 1072 1
+EvenOddRingsCount16 1073 1
+EvenOddRingsCount16 1074 0
+EvenOddRingsCount16 1075 1
+EvenOddRingsCount16 1076 0
+EvenOddRingsCount16 1077 1
+EvenOddRingsCount16 1078 0
+EvenOddRingsCount16 1079 1
+EvenOddRingsCount16 1080 0
+EvenOddRingsCount16 1081 1
+EvenOddRingsCount16 1082 0
+EvenOddRingsCount16 1083 1
+EvenOddRingsCount16 1084 0
+EvenOddRingsCount16 1085 0
+EvenOddRingsCount16 1086 1
+EvenOddRingsCount16 1087 0
+EvenOddRingsCount16 1088 0
+EvenOddRingsCount16 1089 0
+EvenOddRingsCount16 1090 1
+EvenOddRingsCount16 1091 1
+EvenOddRingsCount16 1092 0
+EvenOddRingsCount16 1093 0
+EvenOddRingsCount16 1094 1
+EvenOddRingsCount16 1095 1
+EvenOddRingsCount16 1096 1
+EvenOddRingsCount16 1097 1
+EvenOddRingsCount16 1098 0
+EvenOddRingsCount16 1099 1
+EvenOddRingsCount16 1100 0
+EvenOddRingsCount16 1101 0
+EvenOddRingsCount16 1102 1
+EvenOddRingsCount16 1103 0
+EvenOddRingsCount16 1104 1
+EvenOddRingsCount16 1105 0
+EvenOddRingsCount16 1106 0
+EvenOddRingsCount16 1107 1
+EvenOddRingsCount16 1108 1
+EvenOddRingsCount16 1109 1
+EvenOddRingsCount16 1110 0
+EvenOddRingsCount16 1111 0
+EvenOddRingsCount16 1112 1
+EvenOddRingsCount16 1113 1
+EvenOddRingsCount16 1114 0
+EvenOddRingsCount16 1115 1
+EvenOddRingsCount16 1116 1
+EvenOddRingsCount16 1117 0
+EvenOddRingsCount16 1118 1
+EvenOddRingsCount16 1119 1
+EvenOddRingsCount16 1120 0
+EvenOddRingsCount16 1121 0
+EvenOddRingsCount16 1122 0
+EvenOddRingsCount16 1123 1
+EvenOddRingsCount16 1124 0
+EvenOddRingsCount16 1125 0
+EvenOddRingsCount16 1126 0
+EvenOddRingsCount16 1127 1
+EvenOddRingsCount16 1128 0
+EvenOddRingsCount16 1129 0
+EvenOddRingsCount16 1130 1
+EvenOddRingsCount16 1131 1
+EvenOddRingsCount16 1132 1
+EvenOddRingsCount16 1133 0
+EvenOddRingsCount16 1134 0
+EvenOddRingsCount16 1135 1
+EvenOddRingsCount16 1136 1
+EvenOddRingsCount16 1137 0
+EvenOddRingsCount16 1138 1
+EvenOddRingsCount16 1139 0
+EvenOddRingsCount16 1140 0
+EvenOddRingsCount16 1141 1
+EvenOddRingsCount16 1142 0
+EvenOddRingsCount16 1143 1
+EvenOddRingsCount16 1144 1
+EvenOddRingsCount16 1145 0
+EvenOddRingsCount16 1146 1
+EvenOddRingsCount16 1147 1
+EvenOddRingsCount16 1148 0
+EvenOddRingsCount16 1149 1
+EvenOddRingsCount16 1150 1
+EvenOddRingsCount16 1151 0
+EvenOddRingsCount16 1152 0
+EvenOddRingsCount16 1153 1
+EvenOddRingsCount16 1154 0
+EvenOddRingsCount16 1155 0
+EvenOddRingsCount16 1156 1
+EvenOddRingsCount16 1157 1
+EvenOddRingsCount16 1158 0
+EvenOddRingsCount16 1159 1
+EvenOddRingsCount16 1160 1
+EvenOddRingsCount16 1161 0
+EvenOddRingsCount16 1162 0
+EvenOddRingsCount16 1163 0
+EvenOddRingsCount16 1164 1
+EvenOddRingsCount16 1165 1
+EvenOddRingsCount16 1166 0
+EvenOddRingsCount16 1167 1
+EvenOddRingsCount16 1168 1
+EvenOddRingsCount16 1169 0
+EvenOddRingsCount16 1170 1
+EvenOddRingsCount16 1171 1
+EvenOddRingsCount16 1172 0
+EvenOddRingsCount16 1173 1
+EvenOddRingsCount16 1174 1
+EvenOddRingsCount16 1175 1
+EvenOddRingsCount16 1176 1
+EvenOddRingsCount16 1177 1
+EvenOddRingsCount16 1178 0
+EvenOddRingsCount16 1179 1
+EvenOddRingsCount16 1180 0
+EvenOddRingsCount16 1181 0
+EvenOddRingsCount16 1182 0
+EvenOddRingsCount16 1183 1
+EvenOddRingsCount16 1184 1
+EvenOddRingsCount16 1185 0
+EvenOddRingsCount16 1186 0
+EvenOddRingsCount16 1187 0
+EvenOddRingsCount16 1188 1
+EvenOddRingsCount16 1189 1
+EvenOddRingsCount16 1190 1
+EvenOddRingsCount16 1191 1
+EvenOddRingsCount16 1192 1
+EvenOddRingsCount16 1193 0
+EvenOddRingsCount16 1194 0
+EvenOddRingsCount16 1195 1
+EvenOddRingsCount16 1196 1
+EvenOddRingsCount16 1197 1
+EvenOddRingsCount16 1198 0
+EvenOddRingsCount16 1199 0

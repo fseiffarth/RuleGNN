@@ -1,1000 +1,1000 @@
-0 2
-1 3
-2 1
-3 0
-4 3
-5 3
-6 2
-7 2
-8 2
-9 0
-10 0
-11 0
-12 2
-13 2
-14 0
-15 3
-16 2
-17 2
-18 2
-19 1
-20 1
-21 2
-22 1
-23 3
-24 3
-25 1
-26 1
-27 0
-28 1
-29 3
-30 3
-31 3
-32 1
-33 3
-34 0
-35 1
-36 0
-37 3
-38 1
-39 2
-40 1
-41 3
-42 1
-43 1
-44 3
-45 0
-46 2
-47 3
-48 0
-49 1
-50 1
-51 2
-52 0
-53 0
-54 2
-55 3
-56 2
-57 1
-58 2
-59 3
-60 2
-61 0
-62 3
-63 0
-64 0
-65 2
-66 3
-67 3
-68 3
-69 2
-70 0
-71 3
-72 3
-73 2
-74 0
-75 1
-76 1
-77 3
-78 3
-79 1
-80 2
-81 3
-82 0
-83 0
-84 0
-85 3
-86 0
-87 0
-88 2
-89 0
-90 3
-91 0
-92 1
-93 0
-94 3
-95 2
-96 3
-97 0
-98 1
-99 3
-100 3
-101 3
-102 1
-103 1
-104 1
-105 3
-106 1
-107 0
-108 1
-109 1
-110 0
-111 0
-112 1
-113 1
-114 2
-115 0
-116 2
-117 2
-118 1
-119 3
-120 1
-121 3
-122 3
-123 0
-124 3
-125 2
-126 1
-127 2
-128 2
-129 2
-130 1
-131 3
-132 0
-133 0
-134 3
-135 1
-136 0
-137 2
-138 0
-139 3
-140 2
-141 0
-142 2
-143 3
-144 2
-145 0
-146 3
-147 2
-148 0
-149 2
-150 0
-151 2
-152 1
-153 3
-154 0
-155 3
-156 1
-157 1
-158 2
-159 3
-160 3
-161 1
-162 3
-163 0
-164 1
-165 0
-166 0
-167 2
-168 3
-169 1
-170 1
-171 0
-172 2
-173 0
-174 1
-175 3
-176 2
-177 0
-178 1
-179 2
-180 0
-181 2
-182 0
-183 3
-184 0
-185 2
-186 1
-187 2
-188 1
-189 2
-190 2
-191 2
-192 1
-193 3
-194 1
-195 1
-196 0
-197 3
-198 3
-199 3
-200 0
-201 1
-202 0
-203 2
-204 0
-205 3
-206 3
-207 3
-208 3
-209 2
-210 1
-211 2
-212 1
-213 2
-214 0
-215 1
-216 2
-217 2
-218 1
-219 2
-220 2
-221 3
-222 0
-223 1
-224 0
-225 2
-226 0
-227 3
-228 2
-229 2
-230 3
-231 0
-232 0
-233 2
-234 3
-235 3
-236 2
-237 3
-238 2
-239 0
-240 2
-241 1
-242 3
-243 3
-244 2
-245 2
-246 1
-247 3
-248 0
-249 0
-250 1
-251 2
-252 1
-253 0
-254 1
-255 1
-256 0
-257 2
-258 2
-259 2
-260 3
-261 1
-262 2
-263 2
-264 3
-265 1
-266 3
-267 3
-268 1
-269 0
-270 1
-271 2
-272 3
-273 0
-274 2
-275 1
-276 3
-277 0
-278 0
-279 1
-280 0
-281 2
-282 2
-283 1
-284 3
-285 3
-286 3
-287 0
-288 3
-289 2
-290 0
-291 3
-292 3
-293 3
-294 1
-295 1
-296 1
-297 2
-298 1
-299 1
-300 3
-301 1
-302 1
-303 0
-304 3
-305 1
-306 1
-307 2
-308 2
-309 0
-310 3
-311 2
-312 2
-313 2
-314 1
-315 0
-316 1
-317 3
-318 2
-319 3
-320 0
-321 3
-322 0
-323 3
-324 1
-325 2
-326 0
-327 1
-328 3
-329 3
-330 2
-331 0
-332 0
-333 2
-334 0
-335 1
-336 0
-337 0
-338 2
-339 1
-340 3
-341 2
-342 3
-343 1
-344 2
-345 2
-346 3
-347 0
-348 3
-349 2
-350 3
-351 2
-352 2
-353 0
-354 1
-355 2
-356 3
-357 0
-358 2
-359 1
-360 2
-361 1
-362 1
-363 0
-364 0
-365 3
-366 1
-367 3
-368 0
-369 3
-370 2
-371 1
-372 2
-373 1
-374 2
-375 0
-376 2
-377 1
-378 3
-379 2
-380 0
-381 0
-382 1
-383 2
-384 0
-385 1
-386 2
-387 2
-388 0
-389 0
-390 0
-391 0
-392 0
-393 2
-394 3
-395 1
-396 3
-397 0
-398 0
-399 1
-400 2
-401 1
-402 0
-403 0
-404 0
-405 3
-406 2
-407 3
-408 1
-409 2
-410 3
-411 3
-412 0
-413 2
-414 2
-415 3
-416 0
-417 2
-418 3
-419 2
-420 3
-421 1
-422 1
-423 0
-424 2
-425 0
-426 1
-427 2
-428 0
-429 3
-430 1
-431 2
-432 3
-433 2
-434 1
-435 1
-436 0
-437 3
-438 1
-439 1
-440 1
-441 2
-442 1
-443 0
-444 1
-445 0
-446 3
-447 1
-448 3
-449 2
-450 0
-451 2
-452 1
-453 0
-454 0
-455 2
-456 1
-457 1
-458 3
-459 1
-460 2
-461 3
-462 3
-463 3
-464 1
-465 2
-466 3
-467 0
-468 3
-469 1
-470 3
-471 0
-472 0
-473 3
-474 3
-475 1
-476 2
-477 3
-478 1
-479 3
-480 1
-481 3
-482 2
-483 0
-484 0
-485 3
-486 1
-487 0
-488 1
-489 3
-490 2
-491 3
-492 2
-493 3
-494 0
-495 1
-496 1
-497 3
-498 0
-499 3
-500 0
-501 3
-502 3
-503 3
-504 3
-505 0
-506 2
-507 0
-508 0
-509 3
-510 0
-511 1
-512 3
-513 3
-514 3
-515 2
-516 3
-517 1
-518 3
-519 1
-520 2
-521 0
-522 3
-523 3
-524 0
-525 1
-526 3
-527 0
-528 1
-529 2
-530 3
-531 2
-532 1
-533 2
-534 0
-535 1
-536 2
-537 1
-538 1
-539 0
-540 1
-541 1
-542 1
-543 0
-544 3
-545 3
-546 3
-547 2
-548 2
-549 0
-550 1
-551 2
-552 0
-553 1
-554 2
-555 1
-556 3
-557 3
-558 3
-559 2
-560 2
-561 3
-562 0
-563 2
-564 2
-565 0
-566 1
-567 2
-568 3
-569 0
-570 2
-571 1
-572 1
-573 0
-574 3
-575 1
-576 2
-577 3
-578 1
-579 1
-580 2
-581 2
-582 2
-583 2
-584 0
-585 1
-586 2
-587 0
-588 3
-589 2
-590 0
-591 2
-592 1
-593 1
-594 3
-595 3
-596 0
-597 2
-598 0
-599 3
-600 0
-601 2
-602 3
-603 1
-604 0
-605 2
-606 0
-607 3
-608 2
-609 2
-610 3
-611 0
-612 2
-613 3
-614 0
-615 3
-616 1
-617 0
-618 2
-619 2
-620 3
-621 2
-622 2
-623 0
-624 2
-625 3
-626 3
-627 3
-628 1
-629 0
-630 0
-631 1
-632 1
-633 2
-634 0
-635 3
-636 1
-637 3
-638 0
-639 0
-640 0
-641 3
-642 3
-643 0
-644 0
-645 0
-646 0
-647 3
-648 1
-649 0
-650 2
-651 3
-652 1
-653 3
-654 2
-655 3
-656 2
-657 2
-658 3
-659 0
-660 1
-661 3
-662 1
-663 0
-664 3
-665 0
-666 2
-667 2
-668 2
-669 2
-670 0
-671 1
-672 3
-673 0
-674 3
-675 1
-676 2
-677 1
-678 3
-679 1
-680 0
-681 2
-682 1
-683 2
-684 1
-685 3
-686 1
-687 3
-688 3
-689 1
-690 3
-691 2
-692 0
-693 3
-694 1
-695 1
-696 1
-697 0
-698 3
-699 3
-700 1
-701 2
-702 1
-703 1
-704 1
-705 3
-706 1
-707 1
-708 2
-709 3
-710 0
-711 0
-712 1
-713 3
-714 0
-715 2
-716 2
-717 1
-718 3
-719 3
-720 1
-721 1
-722 3
-723 0
-724 1
-725 1
-726 0
-727 3
-728 2
-729 2
-730 0
-731 2
-732 0
-733 3
-734 0
-735 3
-736 2
-737 1
-738 3
-739 0
-740 0
-741 0
-742 2
-743 2
-744 0
-745 2
-746 0
-747 2
-748 1
-749 0
-750 1
-751 2
-752 2
-753 3
-754 2
-755 1
-756 1
-757 0
-758 0
-759 0
-760 0
-761 1
-762 1
-763 2
-764 3
-765 0
-766 1
-767 0
-768 3
-769 2
-770 3
-771 1
-772 3
-773 0
-774 0
-775 1
-776 3
-777 3
-778 1
-779 3
-780 0
-781 0
-782 3
-783 2
-784 1
-785 3
-786 1
-787 3
-788 3
-789 1
-790 0
-791 0
-792 1
-793 1
-794 1
-795 2
-796 3
-797 1
-798 2
-799 1
-800 2
-801 0
-802 2
-803 2
-804 1
-805 2
-806 0
-807 2
-808 1
-809 3
-810 1
-811 1
-812 0
-813 2
-814 3
-815 3
-816 2
-817 2
-818 3
-819 3
-820 0
-821 2
-822 1
-823 0
-824 3
-825 0
-826 0
-827 0
-828 3
-829 0
-830 2
-831 1
-832 2
-833 2
-834 2
-835 1
-836 1
-837 1
-838 2
-839 3
-840 2
-841 1
-842 2
-843 3
-844 1
-845 2
-846 3
-847 2
-848 2
-849 2
-850 0
-851 2
-852 2
-853 1
-854 3
-855 3
-856 2
-857 1
-858 2
-859 2
-860 3
-861 2
-862 0
-863 1
-864 1
-865 2
-866 2
-867 2
-868 2
-869 0
-870 3
-871 3
-872 2
-873 1
-874 2
-875 2
-876 3
-877 2
-878 3
-879 3
-880 1
-881 2
-882 1
-883 2
-884 0
-885 3
-886 1
-887 3
-888 1
-889 0
-890 2
-891 0
-892 3
-893 1
-894 0
-895 2
-896 1
-897 2
-898 2
-899 1
-900 0
-901 0
-902 1
-903 2
-904 3
-905 0
-906 3
-907 0
-908 2
-909 0
-910 0
-911 0
-912 3
-913 0
-914 2
-915 1
-916 1
-917 0
-918 3
-919 2
-920 1
-921 2
-922 0
-923 1
-924 1
-925 2
-926 0
-927 1
-928 0
-929 0
-930 0
-931 0
-932 1
-933 2
-934 0
-935 3
-936 1
-937 1
-938 0
-939 0
-940 0
-941 2
-942 1
-943 1
-944 2
-945 2
-946 2
-947 0
-948 1
-949 0
-950 1
-951 3
-952 0
-953 3
-954 0
-955 1
-956 3
-957 3
-958 0
-959 2
-960 3
-961 2
-962 2
-963 0
-964 1
-965 0
-966 2
-967 1
-968 0
-969 3
-970 2
-971 0
-972 2
-973 3
-974 1
-975 0
-976 1
-977 1
-978 0
-979 3
-980 1
-981 0
-982 0
-983 2
-984 2
-985 2
-986 2
-987 0
-988 2
-989 3
-990 0
-991 0
-992 0
-993 2
-994 0
-995 3
-996 1
-997 3
-998 2
-999 2
+Snowflakes 0 2
+Snowflakes 1 3
+Snowflakes 2 1
+Snowflakes 3 0
+Snowflakes 4 3
+Snowflakes 5 3
+Snowflakes 6 2
+Snowflakes 7 2
+Snowflakes 8 2
+Snowflakes 9 0
+Snowflakes 10 0
+Snowflakes 11 0
+Snowflakes 12 2
+Snowflakes 13 2
+Snowflakes 14 0
+Snowflakes 15 3
+Snowflakes 16 2
+Snowflakes 17 2
+Snowflakes 18 2
+Snowflakes 19 1
+Snowflakes 20 1
+Snowflakes 21 2
+Snowflakes 22 1
+Snowflakes 23 3
+Snowflakes 24 3
+Snowflakes 25 1
+Snowflakes 26 1
+Snowflakes 27 0
+Snowflakes 28 1
+Snowflakes 29 3
+Snowflakes 30 3
+Snowflakes 31 3
+Snowflakes 32 1
+Snowflakes 33 3
+Snowflakes 34 0
+Snowflakes 35 1
+Snowflakes 36 0
+Snowflakes 37 3
+Snowflakes 38 1
+Snowflakes 39 2
+Snowflakes 40 1
+Snowflakes 41 3
+Snowflakes 42 1
+Snowflakes 43 1
+Snowflakes 44 3
+Snowflakes 45 0
+Snowflakes 46 2
+Snowflakes 47 3
+Snowflakes 48 0
+Snowflakes 49 1
+Snowflakes 50 1
+Snowflakes 51 2
+Snowflakes 52 0
+Snowflakes 53 0
+Snowflakes 54 2
+Snowflakes 55 3
+Snowflakes 56 2
+Snowflakes 57 1
+Snowflakes 58 2
+Snowflakes 59 3
+Snowflakes 60 2
+Snowflakes 61 0
+Snowflakes 62 3
+Snowflakes 63 0
+Snowflakes 64 0
+Snowflakes 65 2
+Snowflakes 66 3
+Snowflakes 67 3
+Snowflakes 68 3
+Snowflakes 69 2
+Snowflakes 70 0
+Snowflakes 71 3
+Snowflakes 72 3
+Snowflakes 73 2
+Snowflakes 74 0
+Snowflakes 75 1
+Snowflakes 76 1
+Snowflakes 77 3
+Snowflakes 78 3
+Snowflakes 79 1
+Snowflakes 80 2
+Snowflakes 81 3
+Snowflakes 82 0
+Snowflakes 83 0
+Snowflakes 84 0
+Snowflakes 85 3
+Snowflakes 86 0
+Snowflakes 87 0
+Snowflakes 88 2
+Snowflakes 89 0
+Snowflakes 90 3
+Snowflakes 91 0
+Snowflakes 92 1
+Snowflakes 93 0
+Snowflakes 94 3
+Snowflakes 95 2
+Snowflakes 96 3
+Snowflakes 97 0
+Snowflakes 98 1
+Snowflakes 99 3
+Snowflakes 100 3
+Snowflakes 101 3
+Snowflakes 102 1
+Snowflakes 103 1
+Snowflakes 104 1
+Snowflakes 105 3
+Snowflakes 106 1
+Snowflakes 107 0
+Snowflakes 108 1
+Snowflakes 109 1
+Snowflakes 110 0
+Snowflakes 111 0
+Snowflakes 112 1
+Snowflakes 113 1
+Snowflakes 114 2
+Snowflakes 115 0
+Snowflakes 116 2
+Snowflakes 117 2
+Snowflakes 118 1
+Snowflakes 119 3
+Snowflakes 120 1
+Snowflakes 121 3
+Snowflakes 122 3
+Snowflakes 123 0
+Snowflakes 124 3
+Snowflakes 125 2
+Snowflakes 126 1
+Snowflakes 127 2
+Snowflakes 128 2
+Snowflakes 129 2
+Snowflakes 130 1
+Snowflakes 131 3
+Snowflakes 132 0
+Snowflakes 133 0
+Snowflakes 134 3
+Snowflakes 135 1
+Snowflakes 136 0
+Snowflakes 137 2
+Snowflakes 138 0
+Snowflakes 139 3
+Snowflakes 140 2
+Snowflakes 141 0
+Snowflakes 142 2
+Snowflakes 143 3
+Snowflakes 144 2
+Snowflakes 145 0
+Snowflakes 146 3
+Snowflakes 147 2
+Snowflakes 148 0
+Snowflakes 149 2
+Snowflakes 150 0
+Snowflakes 151 2
+Snowflakes 152 1
+Snowflakes 153 3
+Snowflakes 154 0
+Snowflakes 155 3
+Snowflakes 156 1
+Snowflakes 157 1
+Snowflakes 158 2
+Snowflakes 159 3
+Snowflakes 160 3
+Snowflakes 161 1
+Snowflakes 162 3
+Snowflakes 163 0
+Snowflakes 164 1
+Snowflakes 165 0
+Snowflakes 166 0
+Snowflakes 167 2
+Snowflakes 168 3
+Snowflakes 169 1
+Snowflakes 170 1
+Snowflakes 171 0
+Snowflakes 172 2
+Snowflakes 173 0
+Snowflakes 174 1
+Snowflakes 175 3
+Snowflakes 176 2
+Snowflakes 177 0
+Snowflakes 178 1
+Snowflakes 179 2
+Snowflakes 180 0
+Snowflakes 181 2
+Snowflakes 182 0
+Snowflakes 183 3
+Snowflakes 184 0
+Snowflakes 185 2
+Snowflakes 186 1
+Snowflakes 187 2
+Snowflakes 188 1
+Snowflakes 189 2
+Snowflakes 190 2
+Snowflakes 191 2
+Snowflakes 192 1
+Snowflakes 193 3
+Snowflakes 194 1
+Snowflakes 195 1
+Snowflakes 196 0
+Snowflakes 197 3
+Snowflakes 198 3
+Snowflakes 199 3
+Snowflakes 200 0
+Snowflakes 201 1
+Snowflakes 202 0
+Snowflakes 203 2
+Snowflakes 204 0
+Snowflakes 205 3
+Snowflakes 206 3
+Snowflakes 207 3
+Snowflakes 208 3
+Snowflakes 209 2
+Snowflakes 210 1
+Snowflakes 211 2
+Snowflakes 212 1
+Snowflakes 213 2
+Snowflakes 214 0
+Snowflakes 215 1
+Snowflakes 216 2
+Snowflakes 217 2
+Snowflakes 218 1
+Snowflakes 219 2
+Snowflakes 220 2
+Snowflakes 221 3
+Snowflakes 222 0
+Snowflakes 223 1
+Snowflakes 224 0
+Snowflakes 225 2
+Snowflakes 226 0
+Snowflakes 227 3
+Snowflakes 228 2
+Snowflakes 229 2
+Snowflakes 230 3
+Snowflakes 231 0
+Snowflakes 232 0
+Snowflakes 233 2
+Snowflakes 234 3
+Snowflakes 235 3
+Snowflakes 236 2
+Snowflakes 237 3
+Snowflakes 238 2
+Snowflakes 239 0
+Snowflakes 240 2
+Snowflakes 241 1
+Snowflakes 242 3
+Snowflakes 243 3
+Snowflakes 244 2
+Snowflakes 245 2
+Snowflakes 246 1
+Snowflakes 247 3
+Snowflakes 248 0
+Snowflakes 249 0
+Snowflakes 250 1
+Snowflakes 251 2
+Snowflakes 252 1
+Snowflakes 253 0
+Snowflakes 254 1
+Snowflakes 255 1
+Snowflakes 256 0
+Snowflakes 257 2
+Snowflakes 258 2
+Snowflakes 259 2
+Snowflakes 260 3
+Snowflakes 261 1
+Snowflakes 262 2
+Snowflakes 263 2
+Snowflakes 264 3
+Snowflakes 265 1
+Snowflakes 266 3
+Snowflakes 267 3
+Snowflakes 268 1
+Snowflakes 269 0
+Snowflakes 270 1
+Snowflakes 271 2
+Snowflakes 272 3
+Snowflakes 273 0
+Snowflakes 274 2
+Snowflakes 275 1
+Snowflakes 276 3
+Snowflakes 277 0
+Snowflakes 278 0
+Snowflakes 279 1
+Snowflakes 280 0
+Snowflakes 281 2
+Snowflakes 282 2
+Snowflakes 283 1
+Snowflakes 284 3
+Snowflakes 285 3
+Snowflakes 286 3
+Snowflakes 287 0
+Snowflakes 288 3
+Snowflakes 289 2
+Snowflakes 290 0
+Snowflakes 291 3
+Snowflakes 292 3
+Snowflakes 293 3
+Snowflakes 294 1
+Snowflakes 295 1
+Snowflakes 296 1
+Snowflakes 297 2
+Snowflakes 298 1
+Snowflakes 299 1
+Snowflakes 300 3
+Snowflakes 301 1
+Snowflakes 302 1
+Snowflakes 303 0
+Snowflakes 304 3
+Snowflakes 305 1
+Snowflakes 306 1
+Snowflakes 307 2
+Snowflakes 308 2
+Snowflakes 309 0
+Snowflakes 310 3
+Snowflakes 311 2
+Snowflakes 312 2
+Snowflakes 313 2
+Snowflakes 314 1
+Snowflakes 315 0
+Snowflakes 316 1
+Snowflakes 317 3
+Snowflakes 318 2
+Snowflakes 319 3
+Snowflakes 320 0
+Snowflakes 321 3
+Snowflakes 322 0
+Snowflakes 323 3
+Snowflakes 324 1
+Snowflakes 325 2
+Snowflakes 326 0
+Snowflakes 327 1
+Snowflakes 328 3
+Snowflakes 329 3
+Snowflakes 330 2
+Snowflakes 331 0
+Snowflakes 332 0
+Snowflakes 333 2
+Snowflakes 334 0
+Snowflakes 335 1
+Snowflakes 336 0
+Snowflakes 337 0
+Snowflakes 338 2
+Snowflakes 339 1
+Snowflakes 340 3
+Snowflakes 341 2
+Snowflakes 342 3
+Snowflakes 343 1
+Snowflakes 344 2
+Snowflakes 345 2
+Snowflakes 346 3
+Snowflakes 347 0
+Snowflakes 348 3
+Snowflakes 349 2
+Snowflakes 350 3
+Snowflakes 351 2
+Snowflakes 352 2
+Snowflakes 353 0
+Snowflakes 354 1
+Snowflakes 355 2
+Snowflakes 356 3
+Snowflakes 357 0
+Snowflakes 358 2
+Snowflakes 359 1
+Snowflakes 360 2
+Snowflakes 361 1
+Snowflakes 362 1
+Snowflakes 363 0
+Snowflakes 364 0
+Snowflakes 365 3
+Snowflakes 366 1
+Snowflakes 367 3
+Snowflakes 368 0
+Snowflakes 369 3
+Snowflakes 370 2
+Snowflakes 371 1
+Snowflakes 372 2
+Snowflakes 373 1
+Snowflakes 374 2
+Snowflakes 375 0
+Snowflakes 376 2
+Snowflakes 377 1
+Snowflakes 378 3
+Snowflakes 379 2
+Snowflakes 380 0
+Snowflakes 381 0
+Snowflakes 382 1
+Snowflakes 383 2
+Snowflakes 384 0
+Snowflakes 385 1
+Snowflakes 386 2
+Snowflakes 387 2
+Snowflakes 388 0
+Snowflakes 389 0
+Snowflakes 390 0
+Snowflakes 391 0
+Snowflakes 392 0
+Snowflakes 393 2
+Snowflakes 394 3
+Snowflakes 395 1
+Snowflakes 396 3
+Snowflakes 397 0
+Snowflakes 398 0
+Snowflakes 399 1
+Snowflakes 400 2
+Snowflakes 401 1
+Snowflakes 402 0
+Snowflakes 403 0
+Snowflakes 404 0
+Snowflakes 405 3
+Snowflakes 406 2
+Snowflakes 407 3
+Snowflakes 408 1
+Snowflakes 409 2
+Snowflakes 410 3
+Snowflakes 411 3
+Snowflakes 412 0
+Snowflakes 413 2
+Snowflakes 414 2
+Snowflakes 415 3
+Snowflakes 416 0
+Snowflakes 417 2
+Snowflakes 418 3
+Snowflakes 419 2
+Snowflakes 420 3
+Snowflakes 421 1
+Snowflakes 422 1
+Snowflakes 423 0
+Snowflakes 424 2
+Snowflakes 425 0
+Snowflakes 426 1
+Snowflakes 427 2
+Snowflakes 428 0
+Snowflakes 429 3
+Snowflakes 430 1
+Snowflakes 431 2
+Snowflakes 432 3
+Snowflakes 433 2
+Snowflakes 434 1
+Snowflakes 435 1
+Snowflakes 436 0
+Snowflakes 437 3
+Snowflakes 438 1
+Snowflakes 439 1
+Snowflakes 440 1
+Snowflakes 441 2
+Snowflakes 442 1
+Snowflakes 443 0
+Snowflakes 444 1
+Snowflakes 445 0
+Snowflakes 446 3
+Snowflakes 447 1
+Snowflakes 448 3
+Snowflakes 449 2
+Snowflakes 450 0
+Snowflakes 451 2
+Snowflakes 452 1
+Snowflakes 453 0
+Snowflakes 454 0
+Snowflakes 455 2
+Snowflakes 456 1
+Snowflakes 457 1
+Snowflakes 458 3
+Snowflakes 459 1
+Snowflakes 460 2
+Snowflakes 461 3
+Snowflakes 462 3
+Snowflakes 463 3
+Snowflakes 464 1
+Snowflakes 465 2
+Snowflakes 466 3
+Snowflakes 467 0
+Snowflakes 468 3
+Snowflakes 469 1
+Snowflakes 470 3
+Snowflakes 471 0
+Snowflakes 472 0
+Snowflakes 473 3
+Snowflakes 474 3
+Snowflakes 475 1
+Snowflakes 476 2
+Snowflakes 477 3
+Snowflakes 478 1
+Snowflakes 479 3
+Snowflakes 480 1
+Snowflakes 481 3
+Snowflakes 482 2
+Snowflakes 483 0
+Snowflakes 484 0
+Snowflakes 485 3
+Snowflakes 486 1
+Snowflakes 487 0
+Snowflakes 488 1
+Snowflakes 489 3
+Snowflakes 490 2
+Snowflakes 491 3
+Snowflakes 492 2
+Snowflakes 493 3
+Snowflakes 494 0
+Snowflakes 495 1
+Snowflakes 496 1
+Snowflakes 497 3
+Snowflakes 498 0
+Snowflakes 499 3
+Snowflakes 500 0
+Snowflakes 501 3
+Snowflakes 502 3
+Snowflakes 503 3
+Snowflakes 504 3
+Snowflakes 505 0
+Snowflakes 506 2
+Snowflakes 507 0
+Snowflakes 508 0
+Snowflakes 509 3
+Snowflakes 510 0
+Snowflakes 511 1
+Snowflakes 512 3
+Snowflakes 513 3
+Snowflakes 514 3
+Snowflakes 515 2
+Snowflakes 516 3
+Snowflakes 517 1
+Snowflakes 518 3
+Snowflakes 519 1
+Snowflakes 520 2
+Snowflakes 521 0
+Snowflakes 522 3
+Snowflakes 523 3
+Snowflakes 524 0
+Snowflakes 525 1
+Snowflakes 526 3
+Snowflakes 527 0
+Snowflakes 528 1
+Snowflakes 529 2
+Snowflakes 530 3
+Snowflakes 531 2
+Snowflakes 532 1
+Snowflakes 533 2
+Snowflakes 534 0
+Snowflakes 535 1
+Snowflakes 536 2
+Snowflakes 537 1
+Snowflakes 538 1
+Snowflakes 539 0
+Snowflakes 540 1
+Snowflakes 541 1
+Snowflakes 542 1
+Snowflakes 543 0
+Snowflakes 544 3
+Snowflakes 545 3
+Snowflakes 546 3
+Snowflakes 547 2
+Snowflakes 548 2
+Snowflakes 549 0
+Snowflakes 550 1
+Snowflakes 551 2
+Snowflakes 552 0
+Snowflakes 553 1
+Snowflakes 554 2
+Snowflakes 555 1
+Snowflakes 556 3
+Snowflakes 557 3
+Snowflakes 558 3
+Snowflakes 559 2
+Snowflakes 560 2
+Snowflakes 561 3
+Snowflakes 562 0
+Snowflakes 563 2
+Snowflakes 564 2
+Snowflakes 565 0
+Snowflakes 566 1
+Snowflakes 567 2
+Snowflakes 568 3
+Snowflakes 569 0
+Snowflakes 570 2
+Snowflakes 571 1
+Snowflakes 572 1
+Snowflakes 573 0
+Snowflakes 574 3
+Snowflakes 575 1
+Snowflakes 576 2
+Snowflakes 577 3
+Snowflakes 578 1
+Snowflakes 579 1
+Snowflakes 580 2
+Snowflakes 581 2
+Snowflakes 582 2
+Snowflakes 583 2
+Snowflakes 584 0
+Snowflakes 585 1
+Snowflakes 586 2
+Snowflakes 587 0
+Snowflakes 588 3
+Snowflakes 589 2
+Snowflakes 590 0
+Snowflakes 591 2
+Snowflakes 592 1
+Snowflakes 593 1
+Snowflakes 594 3
+Snowflakes 595 3
+Snowflakes 596 0
+Snowflakes 597 2
+Snowflakes 598 0
+Snowflakes 599 3
+Snowflakes 600 0
+Snowflakes 601 2
+Snowflakes 602 3
+Snowflakes 603 1
+Snowflakes 604 0
+Snowflakes 605 2
+Snowflakes 606 0
+Snowflakes 607 3
+Snowflakes 608 2
+Snowflakes 609 2
+Snowflakes 610 3
+Snowflakes 611 0
+Snowflakes 612 2
+Snowflakes 613 3
+Snowflakes 614 0
+Snowflakes 615 3
+Snowflakes 616 1
+Snowflakes 617 0
+Snowflakes 618 2
+Snowflakes 619 2
+Snowflakes 620 3
+Snowflakes 621 2
+Snowflakes 622 2
+Snowflakes 623 0
+Snowflakes 624 2
+Snowflakes 625 3
+Snowflakes 626 3
+Snowflakes 627 3
+Snowflakes 628 1
+Snowflakes 629 0
+Snowflakes 630 0
+Snowflakes 631 1
+Snowflakes 632 1
+Snowflakes 633 2
+Snowflakes 634 0
+Snowflakes 635 3
+Snowflakes 636 1
+Snowflakes 637 3
+Snowflakes 638 0
+Snowflakes 639 0
+Snowflakes 640 0
+Snowflakes 641 3
+Snowflakes 642 3
+Snowflakes 643 0
+Snowflakes 644 0
+Snowflakes 645 0
+Snowflakes 646 0
+Snowflakes 647 3
+Snowflakes 648 1
+Snowflakes 649 0
+Snowflakes 650 2
+Snowflakes 651 3
+Snowflakes 652 1
+Snowflakes 653 3
+Snowflakes 654 2
+Snowflakes 655 3
+Snowflakes 656 2
+Snowflakes 657 2
+Snowflakes 658 3
+Snowflakes 659 0
+Snowflakes 660 1
+Snowflakes 661 3
+Snowflakes 662 1
+Snowflakes 663 0
+Snowflakes 664 3
+Snowflakes 665 0
+Snowflakes 666 2
+Snowflakes 667 2
+Snowflakes 668 2
+Snowflakes 669 2
+Snowflakes 670 0
+Snowflakes 671 1
+Snowflakes 672 3
+Snowflakes 673 0
+Snowflakes 674 3
+Snowflakes 675 1
+Snowflakes 676 2
+Snowflakes 677 1
+Snowflakes 678 3
+Snowflakes 679 1
+Snowflakes 680 0
+Snowflakes 681 2
+Snowflakes 682 1
+Snowflakes 683 2
+Snowflakes 684 1
+Snowflakes 685 3
+Snowflakes 686 1
+Snowflakes 687 3
+Snowflakes 688 3
+Snowflakes 689 1
+Snowflakes 690 3
+Snowflakes 691 2
+Snowflakes 692 0
+Snowflakes 693 3
+Snowflakes 694 1
+Snowflakes 695 1
+Snowflakes 696 1
+Snowflakes 697 0
+Snowflakes 698 3
+Snowflakes 699 3
+Snowflakes 700 1
+Snowflakes 701 2
+Snowflakes 702 1
+Snowflakes 703 1
+Snowflakes 704 1
+Snowflakes 705 3
+Snowflakes 706 1
+Snowflakes 707 1
+Snowflakes 708 2
+Snowflakes 709 3
+Snowflakes 710 0
+Snowflakes 711 0
+Snowflakes 712 1
+Snowflakes 713 3
+Snowflakes 714 0
+Snowflakes 715 2
+Snowflakes 716 2
+Snowflakes 717 1
+Snowflakes 718 3
+Snowflakes 719 3
+Snowflakes 720 1
+Snowflakes 721 1
+Snowflakes 722 3
+Snowflakes 723 0
+Snowflakes 724 1
+Snowflakes 725 1
+Snowflakes 726 0
+Snowflakes 727 3
+Snowflakes 728 2
+Snowflakes 729 2
+Snowflakes 730 0
+Snowflakes 731 2
+Snowflakes 732 0
+Snowflakes 733 3
+Snowflakes 734 0
+Snowflakes 735 3
+Snowflakes 736 2
+Snowflakes 737 1
+Snowflakes 738 3
+Snowflakes 739 0
+Snowflakes 740 0
+Snowflakes 741 0
+Snowflakes 742 2
+Snowflakes 743 2
+Snowflakes 744 0
+Snowflakes 745 2
+Snowflakes 746 0
+Snowflakes 747 2
+Snowflakes 748 1
+Snowflakes 749 0
+Snowflakes 750 1
+Snowflakes 751 2
+Snowflakes 752 2
+Snowflakes 753 3
+Snowflakes 754 2
+Snowflakes 755 1
+Snowflakes 756 1
+Snowflakes 757 0
+Snowflakes 758 0
+Snowflakes 759 0
+Snowflakes 760 0
+Snowflakes 761 1
+Snowflakes 762 1
+Snowflakes 763 2
+Snowflakes 764 3
+Snowflakes 765 0
+Snowflakes 766 1
+Snowflakes 767 0
+Snowflakes 768 3
+Snowflakes 769 2
+Snowflakes 770 3
+Snowflakes 771 1
+Snowflakes 772 3
+Snowflakes 773 0
+Snowflakes 774 0
+Snowflakes 775 1
+Snowflakes 776 3
+Snowflakes 777 3
+Snowflakes 778 1
+Snowflakes 779 3
+Snowflakes 780 0
+Snowflakes 781 0
+Snowflakes 782 3
+Snowflakes 783 2
+Snowflakes 784 1
+Snowflakes 785 3
+Snowflakes 786 1
+Snowflakes 787 3
+Snowflakes 788 3
+Snowflakes 789 1
+Snowflakes 790 0
+Snowflakes 791 0
+Snowflakes 792 1
+Snowflakes 793 1
+Snowflakes 794 1
+Snowflakes 795 2
+Snowflakes 796 3
+Snowflakes 797 1
+Snowflakes 798 2
+Snowflakes 799 1
+Snowflakes 800 2
+Snowflakes 801 0
+Snowflakes 802 2
+Snowflakes 803 2
+Snowflakes 804 1
+Snowflakes 805 2
+Snowflakes 806 0
+Snowflakes 807 2
+Snowflakes 808 1
+Snowflakes 809 3
+Snowflakes 810 1
+Snowflakes 811 1
+Snowflakes 812 0
+Snowflakes 813 2
+Snowflakes 814 3
+Snowflakes 815 3
+Snowflakes 816 2
+Snowflakes 817 2
+Snowflakes 818 3
+Snowflakes 819 3
+Snowflakes 820 0
+Snowflakes 821 2
+Snowflakes 822 1
+Snowflakes 823 0
+Snowflakes 824 3
+Snowflakes 825 0
+Snowflakes 826 0
+Snowflakes 827 0
+Snowflakes 828 3
+Snowflakes 829 0
+Snowflakes 830 2
+Snowflakes 831 1
+Snowflakes 832 2
+Snowflakes 833 2
+Snowflakes 834 2
+Snowflakes 835 1
+Snowflakes 836 1
+Snowflakes 837 1
+Snowflakes 838 2
+Snowflakes 839 3
+Snowflakes 840 2
+Snowflakes 841 1
+Snowflakes 842 2
+Snowflakes 843 3
+Snowflakes 844 1
+Snowflakes 845 2
+Snowflakes 846 3
+Snowflakes 847 2
+Snowflakes 848 2
+Snowflakes 849 2
+Snowflakes 850 0
+Snowflakes 851 2
+Snowflakes 852 2
+Snowflakes 853 1
+Snowflakes 854 3
+Snowflakes 855 3
+Snowflakes 856 2
+Snowflakes 857 1
+Snowflakes 858 2
+Snowflakes 859 2
+Snowflakes 860 3
+Snowflakes 861 2
+Snowflakes 862 0
+Snowflakes 863 1
+Snowflakes 864 1
+Snowflakes 865 2
+Snowflakes 866 2
+Snowflakes 867 2
+Snowflakes 868 2
+Snowflakes 869 0
+Snowflakes 870 3
+Snowflakes 871 3
+Snowflakes 872 2
+Snowflakes 873 1
+Snowflakes 874 2
+Snowflakes 875 2
+Snowflakes 876 3
+Snowflakes 877 2
+Snowflakes 878 3
+Snowflakes 879 3
+Snowflakes 880 1
+Snowflakes 881 2
+Snowflakes 882 1
+Snowflakes 883 2
+Snowflakes 884 0
+Snowflakes 885 3
+Snowflakes 886 1
+Snowflakes 887 3
+Snowflakes 888 1
+Snowflakes 889 0
+Snowflakes 890 2
+Snowflakes 891 0
+Snowflakes 892 3
+Snowflakes 893 1
+Snowflakes 894 0
+Snowflakes 895 2
+Snowflakes 896 1
+Snowflakes 897 2
+Snowflakes 898 2
+Snowflakes 899 1
+Snowflakes 900 0
+Snowflakes 901 0
+Snowflakes 902 1
+Snowflakes 903 2
+Snowflakes 904 3
+Snowflakes 905 0
+Snowflakes 906 3
+Snowflakes 907 0
+Snowflakes 908 2
+Snowflakes 909 0
+Snowflakes 910 0
+Snowflakes 911 0
+Snowflakes 912 3
+Snowflakes 913 0
+Snowflakes 914 2
+Snowflakes 915 1
+Snowflakes 916 1
+Snowflakes 917 0
+Snowflakes 918 3
+Snowflakes 919 2
+Snowflakes 920 1
+Snowflakes 921 2
+Snowflakes 922 0
+Snowflakes 923 1
+Snowflakes 924 1
+Snowflakes 925 2
+Snowflakes 926 0
+Snowflakes 927 1
+Snowflakes 928 0
+Snowflakes 929 0
+Snowflakes 930 0
+Snowflakes 931 0
+Snowflakes 932 1
+Snowflakes 933 2
+Snowflakes 934 0
+Snowflakes 935 3
+Snowflakes 936 1
+Snowflakes 937 1
+Snowflakes 938 0
+Snowflakes 939 0
+Snowflakes 940 0
+Snowflakes 941 2
+Snowflakes 942 1
+Snowflakes 943 1
+Snowflakes 944 2
+Snowflakes 945 2
+Snowflakes 946 2
+Snowflakes 947 0
+Snowflakes 948 1
+Snowflakes 949 0
+Snowflakes 950 1
+Snowflakes 951 3
+Snowflakes 952 0
+Snowflakes 953 3
+Snowflakes 954 0
+Snowflakes 955 1
+Snowflakes 956 3
+Snowflakes 957 3
+Snowflakes 958 0
+Snowflakes 959 2
+Snowflakes 960 3
+Snowflakes 961 2
+Snowflakes 962 2
+Snowflakes 963 0
+Snowflakes 964 1
+Snowflakes 965 0
+Snowflakes 966 2
+Snowflakes 967 1
+Snowflakes 968 0
+Snowflakes 969 3
+Snowflakes 970 2
+Snowflakes 971 0
+Snowflakes 972 2
+Snowflakes 973 3
+Snowflakes 974 1
+Snowflakes 975 0
+Snowflakes 976 1
+Snowflakes 977 1
+Snowflakes 978 0
+Snowflakes 979 3
+Snowflakes 980 1
+Snowflakes 981 0
+Snowflakes 982 0
+Snowflakes 983 2
+Snowflakes 984 2
+Snowflakes 985 2
+Snowflakes 986 2
+Snowflakes 987 0
+Snowflakes 988 2
+Snowflakes 989 3
+Snowflakes 990 0
+Snowflakes 991 0
+Snowflakes 992 0
+Snowflakes 993 2
+Snowflakes 994 0
+Snowflakes 995 3
+Snowflakes 996 1
+Snowflakes 997 3
+Snowflakes 998 2
+Snowflakes 999 2

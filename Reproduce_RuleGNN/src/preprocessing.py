@@ -2,10 +2,9 @@ from pathlib import Path
 
 import networkx as nx
 
-from Examples.CustomDataset.main import generate_properties
 from src.Preprocessing.create_labels import save_standard_labels, save_wl_labels, save_cycle_labels, \
     save_subgraph_labels, save_clique_labels
-from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
+from src.Preprocessing.create_properties import write_distance_properties
 
 
 def generate_labels(db_name:str, data_path: Path, label_path: Path, label_generation_times: Path):
@@ -16,7 +15,7 @@ def generate_labels(db_name:str, data_path: Path, label_path: Path, label_genera
         save_cycle_labels(data_path, db_names=[db_name], length_bound=10, cycle_type='simple', label_path=label_path, format='NEL', save_times=label_generation_times)
         save_cycle_labels(data_path, db_names=[db_name], length_bound=20, cycle_type='simple', label_path=label_path, format='NEL', save_times=label_generation_times)
     if db_name == 'CSL':
-        save_cycle_labels(data_path, db_names=[db_name], length_bound=10, max_node_labels=500, cycle_type='simple', label_path=label_path, format='NEL', save_times=label_generation_times)
+        save_cycle_labels(data_path, db_names=[db_name], length_bound=10, cycle_type='simple', label_path=label_path, format='NEL', save_times=label_generation_times)
     if db_name in ['IMDB-BINARY', 'IMDB-MULTI']:
         save_cycle_labels(data_path, db_names=[db_name], length_bound=3, cycle_type='simple', label_path=label_path, format='NEL', save_times=label_generation_times)
         save_cycle_labels(data_path, db_names=[db_name], length_bound=4, max_node_labels=500, cycle_type='simple', label_path=label_path, format='NEL', save_times=label_generation_times)
@@ -68,7 +67,7 @@ def preprocessing(with_labels=True, with_properties=True):
     property_path = Path('Reproduce_RuleGNN/Data/Properties/')
     # make file to store generation times
     with open('Reproduce_RuleGNN/Data/generation_times_properties.txt', 'w') as f:
-        f.write('Database, PropertyName, Time')
+        f.write('Database, PropertyName, Time\n')
     property_generation_times = Path('Reproduce_RuleGNN/Data/generation_times_properties.txt')
     real_world_db_names = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
     synthetic_db_names = ['Snowflakes', 'CSL', 'EvenOddRings2_16', 'EvenOddRingsCount16', 'LongRings100']

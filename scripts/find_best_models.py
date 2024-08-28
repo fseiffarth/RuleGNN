@@ -11,42 +11,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
-from src.utils import load_labels
 from src.Preprocessing.create_labels import save_node_labels
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
 from src.utils import GraphData, ReadWriteGraphs as gdtgl
 from src.Methods.ModelEvaluation import ModelEvaluation
-from src.utils import Parameters
 from src.utils.GraphData import get_graph_data
 from src.utils.GraphLabels import combine_node_labels, Properties
+from src.utils.Parameters.Parameters import Parameters
 from src.utils.RunConfiguration import get_run_configs
+from src.utils.load_labels import load_labels
 from src.utils.load_splits import Load_Splits
 
-
-@click.command()
-@click.option('--graph_db_name', default="MUTAG", type=str, help='Database name', required=False)
-@click.option('--validation_number', default=10, type=int)
-@click.option('--validation_id', default=0, type=int)
-@click.option('--graph_format', default=None, type=str)
-@click.option('--transfer', default=None, type=str)
-@click.option('--config', default=None, type=str)
-#@click.option('-−transfer_learning', default='no_transfer', case_sensitive=False, type=str)
-# current configuration
-#--graph_db_name NCI1 --config Configs/config_NCI1_test.yml --validation_number 10 --validation_id 0
-#--graph_db_name IMDB-BINARY_IMDB-MULTI --config Configs/Test/config_IMDB.yml --validation_number 10 --validation_id 0 --format NEL --transfer mixed
-
-def main(graph_db_name, validation_number, validation_id, graph_format, transfer, config, run_id=0):
+def find_best_models(graph_db_name, validation_number, validation_id, graph_format, transfer, config, run_id=0):
     if config is not None:
         absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        absolute_path = Path(absolute_path)
         # read the config yml file
-        configs = yaml.safe_load(open(absolute_path + "/" + config))
+        configs = yaml.safe_load(open(absolute_path.joinpath(config)))
         # get the data path from the config file
         # add absolute path to the config data paths
-        configs['paths']['data'] = absolute_path + "/" + configs['paths']['data']
-        configs['paths']['results'] = absolute_path + "/" + configs['paths']['results']
-        configs['paths']['labels'] = absolute_path + "/" + configs['paths']['labels']
-        configs['paths']['properties'] = absolute_path + "/" + configs['paths']['properties']
-        configs['paths']['splits'] = absolute_path + "/" + configs['paths']['splits']
+        configs['paths']['data'] = absolute_path.joinpath(configs['paths']['data'])
+        configs['paths']['results'] = absolute_path.joinpath(configs['paths']['results'])
+        configs['paths']['labels'] = absolute_path.joinpath(configs['paths']['labels'])
+        configs['paths']['properties'] = absolute_path.joinpath(configs['paths']['properties'])
+        configs['paths']['splits'] = absolute_path.joinpath(configs['paths']['splits'])
         configs['format'] = graph_format
         configs['transfer'] = transfer
 
@@ -126,7 +114,7 @@ def main(graph_db_name, validation_number, validation_id, graph_format, transfer
         print("Please provide a configuration file")
 
 
-def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters.Parameters):
+def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para: Parameters):
     """
     Split the data in training validation and test set
     """
@@ -210,7 +198,7 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
                 graph_data.properties[prop_name].add_properties(prop_dict['values'], l.layer_id)
         pass
 
-    para = Parameters.Parameters()
+    para = Parameters()
 
     """
         BenchmarkGraphs parameters
@@ -261,4 +249,4 @@ def run_configuration(config_id, run_config, graph_data: GraphData, graph_db_nam
 
 
 if __name__ == '__main__':
-    main()
+    find_best_models()

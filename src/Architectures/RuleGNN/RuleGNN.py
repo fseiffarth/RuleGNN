@@ -1,4 +1,4 @@
-from src import Architectures as layers
+from src.Architectures.RuleGNN import RuleGNNLayers as layers
 import torch
 import torch.nn as nn
 from src.utils import GraphData

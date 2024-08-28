@@ -144,25 +144,22 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
             f.write(json.dumps(splits))
 
 
-def create_splits(db_name: str, path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), format=None):
+def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, format=None, seed=2045287):
     splits = []
-    run_id = 0
-    k = 10
-    graph_data = get_graph_data(db_name, path, data_format=format)
-
-    run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=run_id, kFold=k)
-    for validation_id in range(0, k):
-        seed = 687384987 + validation_id + k * run_id
+    graph_data = get_graph_data(db_name, data_path, data_format=format)
+    run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=seed, kFold=folds)
+    for validation_id in range(0, folds):
+        validation_seed = seed + validation_id
 
         """
         Create the data
         """
         training_data, validate_data, test_data = ttd.get_train_validation_test_list(test_indices=run_test_indices,
                                                                                      validation_step=validation_id,
-                                                                                     seed=seed,
+                                                                                     seed=validation_seed,
                                                                                      balanced=False,
                                                                                      graph_labels=graph_data.graph_labels,
-                                                                                     val_size=1.0 / k)
+                                                                                     val_size=1.0 / folds)
 
         # Dict use double quotes
         training_data = [int(x) for x in training_data]
@@ -182,8 +179,12 @@ def create_splits(db_name: str, path: Path = Path("../GraphData/DS_all/"), outpu
         splits.append({"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
 
     # save splits to json as one line use json.dumps
-    with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
-        f.write(json.dumps(splits))
+    # check if the output path exists
+    if not output_path.joinpath(f"{db_name}_splits.json").exists():
+        with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
+            f.write(json.dumps(splits))
+    else:
+        print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping.")
 
 
 if __name__ == "__main__":

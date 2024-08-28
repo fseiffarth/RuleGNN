@@ -72,7 +72,8 @@ class ModelEvaluation:
             # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
             file_name = f'{self.para.db}_{self.para.new_file_index}_Network.txt'
             file_name = f'{self.para.db}_{self.para.config_id}_Network.txt'
-            with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
+            final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
+            with open(final_path, "a") as file_obj:
                 file_obj.write(f"Network architecture: {self.para.run_config.network_architecture}\n"
                                f"Optimizer: {optimizer}\n"
                                f"Loss function: {criterion}\n"
@@ -109,8 +110,9 @@ class ModelEvaluation:
                      "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
 
         # Save file for results and add header if the file is new
-        with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
-            if os.stat(f'{self.results_path}{self.para.db}/Results/{file_name}').st_size == 0:
+        final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
+        with open(final_path, "a") as file_obj:
+            if os.stat(final_path).st_size == 0:
                 file_obj.write(header)
 
         """
@@ -358,12 +360,13 @@ class ModelEvaluation:
                         best_epoch["val_mae"] = validation_mae
                         best_epoch["val_mae_std"] = validation_mae_std
                         # save the best model
-                        if not os.path.exists(f'{self.results_path}{self.para.db}/Models/'):
-                            os.makedirs(f'{self.results_path}{self.para.db}/Models/')
+                        best_model_path = self.results_path.joinpath(f'{self.para.db}/Models/')
+                        if not os.path.exists(best_model_path):
+                            os.makedirs(best_model_path)
                         # Save the model if best model is used
                         if 'best_model' in self.para.configs and self.para.configs['best_model']:
-                            torch.save(net.state_dict(),
-                                       f'{self.results_path}{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
+                            final_path = self.results_path.joinpath(f'{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
+                            torch.save(net.state_dict(),final_path)
 
 
                 else:
@@ -375,12 +378,13 @@ class ModelEvaluation:
                         best_epoch["val_acc"] = validation_acc
                         best_epoch["val_loss"] = validation_loss
                         # save the best model
-                        if not os.path.exists(f'{self.results_path}{self.para.db}/Models/'):
-                            os.makedirs(f'{self.results_path}{self.para.db}/Models/')
+                        best_model_path = self.results_path.joinpath(f'{self.para.db}/Models/')
+                        if not os.path.exists(best_model_path):
+                            os.makedirs(best_model_path)
                         # Save the model if best model is used
                         if 'best_model' in self.para.configs and self.para.configs['best_model']:
-                            torch.save(net.state_dict(),
-                                       f'{self.results_path}{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
+                            final_path = self.results_path.joinpath(f'{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
+                            torch.save(net.state_dict(), final_path)
 
             if self.para.save_prediction_values:
                 # print outputs and labels to a csv file
@@ -475,7 +479,8 @@ class ModelEvaluation:
                           f"{epoch_loss};{epoch_acc};{epoch_time};{validation_acc};{validation_loss};{test_acc};{test_loss}\n"
 
             # Save file for results
-            with open(f'{self.results_path}{self.para.db}/Results/{file_name}', "a") as file_obj:
+            final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
+            with open(final_path, "a") as file_obj:
                 file_obj.write(res_str)
 
             if self.para.draw:
