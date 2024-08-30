@@ -100,12 +100,12 @@ class Preprocessing:
                     save_subgraph_labels(Path(self.configs['paths']['data']), db_names=[self.db_name], subgraphs=subgraph_list, id=layer['id'], label_path=Path(self.configs['paths']['labels']), format='NEL', save_times=self.generation_times_labels_path)
             else:
                 raise ValueError(f'Please specify the id of the subgraph in the layer with description {layer_strings}.')
-        elif layer['layer_type'] == 'clique':
+        elif layer['layer_type'] == 'cliques':
             if 'max_node_labels' not in layer:
                 layer['max_node_labels'] = None
             if 'max_clique_size' not in layer:
                 layer['max_clique_size'] = None
-            save_clique_labels(Path(self.configs['paths']['data']), db_names=[self.db_name], max_clique_size=layer['max_clique_size'], max_node_labels=layer['max_node_labels'], label_path=Path(self.configs['paths']['labels']), format='NEL', save_times=self.generation_times_labels_path)
+            save_clique_labels(Path(self.configs['paths']['data']), db_names=[self.db_name], max_clique=layer['max_clique_size'], max_node_labels=layer['max_node_labels'], label_path=Path(self.configs['paths']['labels']), format='NEL', save_times=self.generation_times_labels_path)
         else:
             # print in red in the console
             print(f'The automatic generation of labels for the layer type {layer["layer_type"]} is not supported yet.')
