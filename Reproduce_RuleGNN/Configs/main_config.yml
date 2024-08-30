@@ -1,14 +1,14 @@
 datasets:
   # real-world datasets
-  #- {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
-  #- {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
-  #- {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
-  #- {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset"}
-  #- {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
-  #- {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
+  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset"}
+  - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
+  - {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
  #  synthetic datasets
   - {name: "CSL", validation_folds: 5, experiment_config_file: "Reproduce_RuleGNN/Configs/config_CSL.yml", type: "generate_from_function", generate_function: csl_graphs}
-  #- {name: "EvenOddRings2_16", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_EvenOddRings.yml", type: "generate_from_function", generate_function: even_odd_rings, generate_function_args: {data_size: 1200, ring_size: 16, difficulty: 2, count: False, seed: 764}}
-  #- {name: "EvenOddRingsCount16", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_EvenOddRingsCount.yml", type: "generate_from_function", generate_function: even_odd_rings, generate_function_args: {data_size: 1200, ring_size: 16, count: True, seed: 764}}
-  #- {name: "LongRings100", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_LongRings.yml", type: "generate_from_function", generate_function: long_rings, generate_function_args: {data_size: 1200, ring_size: 100, seed: 764}}
-  #- {name: "Snowflakes", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_Snowflakes.yml", type: "generate_from_function", generate_function: snowflakes, generate_function_args: {smallest_snowflake: 3, largest_snowflake: 12, flakes_per_size: 100, seed: 764, generation_type: 'binary'}}
+  - {name: "EvenOddRings2_16", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_EvenOddRings.yml", type: "generate_from_function", generate_function: even_odd_rings, generate_function_args: {data_size: 1200, ring_size: 16, difficulty: 2, count: False, seed: 764}}
+  - {name: "EvenOddRingsCount16", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_EvenOddRingsCount.yml", type: "generate_from_function", generate_function: even_odd_rings, generate_function_args: {data_size: 1200, ring_size: 16, count: True, seed: 764}}
+  - {name: "LongRings100", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_LongRings.yml", type: "generate_from_function", generate_function: long_rings, generate_function_args: {data_size: 1200, ring_size: 100, seed: 764}}
+  - {name: "Snowflakes", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_Snowflakes.yml", type: "generate_from_function", generate_function: snowflakes, generate_function_args: {smallest_snowflake: 3, largest_snowflake: 12, flakes_per_size: 100, seed: 764, generation_type: 'binary'}}
