@@ -1,0 +1,1 @@
+# Example of running RuleGNNs on a custom dataset

@@ -18,8 +18,15 @@ def tu_to_nel(db_name: str, out_path: Path = Path('Data/TUDatasets')):
     :param out_path: path to save the converted graphs
     '''
 
+    # check if the dataset in out_path already exists, i.e., in the raw folder
+    if Path(out_path / db_name / 'raw').exists() and len(list(Path(out_path / db_name / 'raw').iterdir())) > 0:
+        print(f"Dataset {db_name} already exists in {out_path} . Skip the data generation.")
+        return
     # download the dataset
-    tu_dataset = TUDataset(root=Path('Data/tmp/'), name=db_name, use_node_attr=True, use_edge_attr=True)
+    #create a tmp folder to store the dataset
+    if not Path('tmp').exists():
+        Path('tmp').mkdir()
+    tu_dataset = TUDataset(root=Path('tmp/'), name=db_name, use_node_attr=True, use_edge_attr=True)
     # get the graphs and labels
     labels = []
     # get single graphs from tu_dataset

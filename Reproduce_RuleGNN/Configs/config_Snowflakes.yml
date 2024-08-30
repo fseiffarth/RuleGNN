@@ -35,8 +35,12 @@ early_stopping:
     25
 networks:
   # mixed models
-  - - { layer_type: subgraph, id: 2, properties: { name: distances, values: [ 3 ] }}
+  - - { layer_type: subgraph, id: 0, properties: { name: distances, values: [ 3 ] }}
     - { layer_type: wl, wl_iterations: 0}
+
+# if subgraph labels are used the corresponding list of subgraphs should be provided here:
+subgraphs:
+  - "[nx.cycle_graph(4), nx.cycle_graph(5)]"
 
 
 

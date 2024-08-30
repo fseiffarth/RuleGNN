@@ -175,7 +175,7 @@ def Snowflake(part_list=[0, 1, 2, 3], size=4, plot=False):
     return G
 
 
-def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, plot=False, seed=4837257, generation_type='count'):
+def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, plot=False, seed=4837257, generation_type='binary'):
     '''
     Create a list of snowflake graphs with sizes from smallest_snowflake to largest_snowflake
     '''

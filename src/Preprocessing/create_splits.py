@@ -181,10 +181,11 @@ def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), 
     # save splits to json as one line use json.dumps
     # check if the output path exists
     if not output_path.joinpath(f"{db_name}_splits.json").exists():
+        print(f"Creating new split file at {output_path.joinpath(f'{db_name}_splits.json')}")
         with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
             f.write(json.dumps(splits))
     else:
-        print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping.")
+        print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
 
 
 if __name__ == "__main__":

@@ -913,6 +913,13 @@ networks:
   - - { layer_type: cliques, max_clique_size: 50, properties: { name: distances, values: [ 1,2 ] } }
     - { layer_type: cliques, max_clique_size: 50 }
 
+# if subgraph labels are used the corresponding list of subgraphs should be provided here:
+subgraphs:
+  - "[nx.complete_graph(4)]"
+  - "[nx.cycle_graph(3), nx.star_graph(1)]"
+  - "[nx.cycle_graph(4), nx.star_graph(1)]"
+  - "[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)]"
+
 
 use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
   False

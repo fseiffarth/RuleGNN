@@ -1,4 +1,4 @@
-/Results/
+Results/
 /Rest/
 *.pkl
 /gnn-comparison/
@@ -23,5 +23,15 @@
 /Reproduce_RuleGNN/Data/generation_times_properties.txt
 /Data/tmp/
 /Data/
-/Examples/CustomDataset/Data/
-/Examples/CustomDataset/Results/
+/Examples/CustomExample/Data/
+/Examples/CustomExample/Results/
+/Examples/TUExample/Data/
+/Examples/TUExample/Results/
+/Reproduce_RuleGNN/Results/
+/tmp/
+/Reproduce_RuleGNN/Data/SyntheticDatasets/EvenOddRings2_16/
+/Reproduce_RuleGNN/Data/SyntheticDatasets/EvenOddRingsCount16/
+/Reproduce_RuleGNN/Data/SyntheticDatasets/LongRings100/
+/Reproduce_RuleGNN/Data/SyntheticDatasets/Snowflakes/
+/Reproduce_RuleGNN/Data/SyntheticDatasets/
+/Reproduce_RuleGNN/Data/

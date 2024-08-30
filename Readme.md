@@ -22,38 +22,61 @@ To reproduce the experiments of the paper, follow the steps below. All necessary
 
    All results will be saved in the [Reproduce_RuleGNN/Results](Reproduce_RuleGNN/Results) folder.
 
-# Custom Datasets
+# Experiments on the TU Dortmund Graph Benchmark
+All datasets from the TU Dortmund Benchmark available [here](https://chrsmrrs.github.io/datasets/docs/datasets/) can be used directly for experiments as shown in [Examples/TUExample](Examples/TUExample).
 
-The easiest way to run RuleGNNs on custom datasets is if the dataset is in the [format](#Data-Format)
-described below.
-For an example of the format, see the files in [Example/Data/EXAMPLE_DB/raw](Examples/CustomDataset/Data/EXAMPLE_DB/raw).
-The preprocessing steps are explained below.
+# Customize Experiments
+First of all your dataset needs to be in the correct format.
+At the moment, the code supports two different options.
 
-## Preprocessing
-
-Custom datasets can be created using the following four steps below.
-We have created an example that can be found in the [Example](Examples) folder.
-In the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file, we give the code for a detailed example of how to preprocess a custom dataset.
-If your graph dataset is already in the correct format, you can skip the first step.
-If your graph dataset is given in a different format use the [utils.py](utils.py) file to convert the dataset to the correct format.
-
-1. Create the graph dataset (the data format is explained in the [Data Format](##Data Format) section)
-2. Create the training, validation and test splits (use the function ```generate_splits``` in the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file)
-3. Create the node labels (use the function ```generate_node_labels``` in the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file)
-4. Create the properties between pairs of nodes in the graphs (use the function ```generate_properties``` in the [Example/main.py](Examples/CustomDataset/src/preprocessing.py) file)
-
-## Run the experiments (using bash script only)
-If the custom dataset is created as explained above, the experiments can be run using the ModelSelection.sh script.
-1. Set the following variables in the ModelSelection.sh script:
-   - DATABASE_NAMES = "Example"
-   - CONFIG_FILE = "Example/Config/config_example.yml"
-2. Run the ModelSelection.sh script by running the following command in the terminal:
-   ```bash
-   chmod u+x ModelSelection.sh
-    ./ModelSelection.sh
+- Option 1: Add a function ```favorite_graph_dataset``` to [src/utils/SyntheticGraphs.py](src/utils/SyntheticGraphs.py) 
+   that returns a tuple of the form 
+    ```python
+      (List[networkx.Graph], List[int/float])
    ```
+   where the first list contains the graphs (optional with node and edge labels) and the second list contains the labels of the graphs. 
+
+- Option 2 (preferred): Save your favorite graph dataset in the format described below in [Data Format](#Data-Format).
+
+To run the experiment you only need the following code:
+   ```python
+   from pathlib import Path
+   
+   from scripts.ExperimentMain import ExperimentMain
+   
+   
+   def main():
+       experiment = ExperimentMain(Path('Path/To/Your/Main/Config/File.yml'))
+       experiment.Preprocess()
+       experiment.Run()
+   
+   if __name__ == '__main__':
+       main()
+   ```
+In the preprocessing step, the data will be downloaded, generated and labels and properties according to the configuration file described below are precomputed.
+The run step consists of first finding the best hyperparameters for the model using a 10-fold cross-validation.
+The best model according to the validation set is then trained three times with different seeds and evaluated on the test set.
+The results are saved as ```summary.csv``` resp. ```summary_best_model.csv``` in the results folder specified in the configuration file.
 
 
+All the details are defined in two configuration files.
+
+### Main Config File
+In the main config file, you define which datasets you want to use and how to split the data into training, validation, and test sets.
+The file should look like this:
+```yaml
+datasets:
+  # in case of a given generation function called ring_diagonals in this case
+  - {name: "EXAMPLE_DB", validation_folds: 10, experiment_config_file: "Examples/CustomExample/Configs/config_experiment.yml", type: "generate_from_function", generate_function: ring_diagonals, generate_function_args: {data_size: 1000, ring_size: 50}}
+  # in case of a dataset from the TU Dortmund Benchmark
+  - {name: "PTC_FM", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  # in case of a dataset in the correct format (the path to the data is given in the experiment config file)
+  - {name: "CSL", validation_folds: 5, experiment_config_file: "Reproduce_RuleGNN/Configs/config_CSL.yml"}
+```
+### Experiment Config File
+
+The experiment config file defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.).
+For each dataset, you need to link an experiment config file in the main config file using the key ```experiment_config_file```.
 
 ## Data Format
 
@@ -78,12 +101,40 @@ The graph dataset is represented using three files:
         ```
       where `graph_name` is the name of the graph, `graph_id` is the id of the graph, and `graph_label` is the label of the graph.
 
-### Multi-Class Classification vs Regression
+## Layers
+At the moment, the following layers are implemented:
+- WL-Layer
+  ```yaml
+  - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [1] }}
+  ```
+    The WL-Layer uses the Weisfeiler-Lehman algorithm to generate node labels. The parameter ```wl_iterations``` specifies the number of iterations of the Weisfeiler-Lehman algorithm. The parameter ```max_node_labels``` specifies the maximum number of node labels used in the layer. The parameter ```properties``` specifies the inter-node properties used, see [Property Functions](#Property-Functions).
+- Subgraph-Layer
+    ```yaml
+    - { layer_type: subgraph, id: 0, properties: { name: distances, values: [ 3 ] }}
+    ```
+    For the subgraph layer, you need to specify under the keyword ```subgraph```  the list of subgraphs as nx.Graph objects, e.g.
+   ```yaml
+   subgraphs:
+     - "[nx.cycle_graph(4), nx.cycle_graph(5)]"
+    ```
+  The parameter ```id``` specifies which list of subgraphs to use.
+  In this example the layer uses the labels of the nodes induced by the embeddings of the subgraphs (in this case cycles of length 4 and 5).
+  
+- Cycle-Layer (special case of Subgraph-Layer)
+  ```yaml
+    - { layer_type: simple_cycles, max_cycle_length: 10, properties: { name: distances, values: [1,2,3,4,5,6] }}
+    ```
+  generates the node labels using the embeddings of simple_cycles of length 1 to 10.
+  ```yaml
+   - { layer_type: induced_cycles, max_cycle_length: 10, properties: { name: distances, values: [1,2,3,4,5,6] }}
+  ```
+    generates the node labels using the embeddings of induced_cycles of length 1 to 10.
+- Cliques-Layer (special case of Subgraph-Layer)
 
-## Rules
+## Property Functions
 
-## Run the experiments
+## Add new labeling functions
 
-## Evaluation
+## Add new property functions
 
 ## Plotting

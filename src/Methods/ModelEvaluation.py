@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import List
 
 import numpy as np
@@ -98,8 +99,21 @@ class ModelEvaluation:
                 for name, param in net.named_parameters():
                     file_obj.write(f"Layer: {name} -> {param.requires_grad}\n")
 
-        file_name = f'{self.para.db}_{self.para.new_file_index}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
         file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
+
+        does_run_exist = False
+        # check if the file already exists
+        if Path(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')).exists():
+            # load the file with pandas and get the last epoch completed
+            df = pd.read_csv(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), delimiter=';')
+            last_epoch = df['Epoch'].iloc[-1]
+            # if the last_epoch equals the number of epochs the run is already completed
+            if last_epoch != self.para.n_epochs:
+                does_run_exist = True
+                print(f'The file {file_name} already exists and recomputation is skipped')
+            else:
+                print(f'The file {file_name} already exists but the run was not completed, recomputation is started')
+
 
         # header use semicolon as delimiter
         if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':

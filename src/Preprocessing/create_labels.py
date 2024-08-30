@@ -34,6 +34,7 @@ def save_primary_labels(data_path: Path, db_names, label_path=None, format=None,
             file = label_path.joinpath(f"{db_name}_primary_labels.txt")
         # check whether the file already exists
         if not file.exists():
+            print(f"Saving primary labels for {db_name} to {file}")
             start_time = time.time()
             write_node_labels(file, node_labels)
             if save_times is not None:
@@ -60,6 +61,7 @@ def save_degree_labels(data_path: Path, db_names, label_path=None, format=None, 
             file = label_path.joinpath(f"{db_name}_wl_0_labels.txt")
         # check whether the file already exists
         if not file.exists():
+            print(f"Saving wl_0 labels for {db_name} to {file}")
             write_node_labels(file, node_labels)
             if save_times is not None:
                 try:
@@ -83,6 +85,7 @@ def save_standard_labels(data_path: Path, db_names, label_path=None, format=None
             file = label_path.joinpath(f"{db_name}_primary_labels.txt")
         # check whether the file already exists
         if not file.exists():
+            print(f"Saving standard labels for {db_name} to {file}")
             start_time = time.time()
             write_node_labels(file, node_labels)
             if save_times is not None:
@@ -153,6 +156,7 @@ def save_trivial_labels(data_path: Path, db_names, label_path=None, format=None,
         else:
             file = label_path.joinpath(f'{db_name}_trivial_labels.txt')
         if not file.exists():
+            print(f"Saving trivial labels for {db_name} to {file}")
             graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
             start_time = time.time()
             node_labels = graph_data.node_labels['primary'].node_labels
@@ -196,6 +200,7 @@ def save_wl_labels(data_path: Path, db_names, max_iterations, max_label_num=None
         else:
             file = label_path.joinpath(f'{db_name}_{l}_{max_label_num}_labels.txt')
         if not file.exists():
+            print(f"Saving {l} labels for {db_name} to {file}")
             graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
             start_time = time.time()
             graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
@@ -219,6 +224,9 @@ def save_cycle_labels(data_path: Path, db_names, length_bound=6, max_node_labels
         graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
         start_time = time.time()
         cycle_dict = []
+        max_node_labels_str = ''
+        if max_node_labels is not None:
+            max_node_labels_str = f"_{max_node_labels}"
         if label_path is None:
             if cycle_type == 'simple':
                 file = f"../{db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt"
@@ -230,6 +238,7 @@ def save_cycle_labels(data_path: Path, db_names, length_bound=6, max_node_labels
             elif cycle_type == 'induced':
                 file = label_path.joinpath(f'{db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt')
         if not file.exists():
+            print(f"Saving {cycle_type} cycles for {db_name} to {file}")
             for graph in graph_data.graphs:
                 cycle_dict.append({})
                 if cycle_type == 'simple':
@@ -268,9 +277,8 @@ def save_cycle_labels(data_path: Path, db_names, length_bound=6, max_node_labels
                         labels[-1].append(label_dict[cycle_d])
                     else:
                         labels[-1].append(len(label_dict))
-            max_node_labels_str = ''
+
             if max_node_labels is not None:
-                max_node_labels_str = f"_{max_node_labels}"
                 relabel_most_frequent_node_labels(labels, max_node_labels)
 
             write_node_labels(file, labels)
@@ -292,6 +300,7 @@ def save_in_circle_labels(data_path: Path, db_names, length_bound=6, label_path=
         else:
             file = label_path.joinpath(f'{db_name}_cycles_{length_bound}_labels.txt')
         if not file.exists():
+            print(f"Saving in circle labels for {db_name} to {file}")
             graph_data = GraphData.get_graph_data(db_name, data_path, data_format=format)
             start_time = time.time()
             node_in_cycle = []
@@ -387,7 +396,7 @@ def save_subgraph_labels(data_path: Path, db_names, subgraphs=List[nx.Graph], na
             print(f"File {file} already exists. Skipping.")
 
 
-def save_clique_labels(data_path: Path, db_names, max_clique=6, label_path=None, format=None, save_times=None):
+def save_clique_labels(data_path: Path, db_names, max_clique=6, max_node_labels=None, label_path=None, format=None, save_times=None):
     for db_name in db_names:
         if label_path is None:
             raise ValueError("No label path given")

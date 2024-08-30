@@ -2,13 +2,13 @@ import networkx as nx
 import torch
 from torch_geometric.datasets import GNNBenchmarkDataset
 
-from GraphData import NodeLabeling, EdgeLabeling
+from src.utils import NodeLabeling, EdgeLabeling
 from src.utils.GraphData import GraphData
 
 
 class CSL:
     def __init__(self):
-        self.data = GNNBenchmarkDataset("", 'CSL_original').data
+        self.data = GNNBenchmarkDataset("tmp/", 'CSL').data
 
     def get_graphs(self, with_distances=True):
         nx_graphs = []
