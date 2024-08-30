@@ -26,7 +26,7 @@ def tu_to_nel(db_name: str, out_path: Path = Path('Data/TUDatasets')):
     #create a tmp folder to store the dataset
     if not Path('tmp').exists():
         Path('tmp').mkdir()
-    tu_dataset = TUDataset(root=Path('tmp/'), name=db_name, use_node_attr=True, use_edge_attr=True)
+    tu_dataset = TUDataset(root='tmp/', name=db_name, use_node_attr=True, use_edge_attr=True)
     # get the graphs and labels
     labels = []
     # get single graphs from tu_dataset

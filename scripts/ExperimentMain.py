@@ -15,7 +15,7 @@ class ExperimentMain:
     '''
     This is the main class to run the experiments for RuleGNNs. It reads the main config file which defines the datasets and the corresponding experiment config files.
     '''
-    def __init__(self, main_config_path: Path):
+    def __init__(self, main_config_path: os.path):
         self.main_config_path = main_config_path
         try:
             self.main_config = yaml.safe_load(open(main_config_path))
@@ -77,6 +77,8 @@ class ExperimentMain:
     def parallel_preprocessing(self, experiment_configuration):
         db_name = experiment_configuration['name']
         experiment_config_file = experiment_configuration['experiment_config_file']
+        data_generation = None
+        data_generation_args = None
         if 'type' in experiment_configuration:
             if experiment_configuration['type'] == 'generate_from_function':
                 if 'generate_function' in experiment_configuration:
@@ -94,9 +96,6 @@ class ExperimentMain:
             else:
                 print(
                     f"The type {experiment_configuration['type']} is not supported. Please use 'generate_from_function' or 'TUDataset'")
-        else:
-            data_generation = None
-            data_generation_args = None
 
         if 'with_splits' in experiment_configuration:
             with_splits = experiment_configuration['with_splits']
