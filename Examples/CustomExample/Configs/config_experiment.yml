@@ -19,7 +19,7 @@ batch_size:
 learning_rate:
   - 0.05
 epochs:
-  - 500
+  - 20
 scheduler:
   False
 dropout:
@@ -34,9 +34,9 @@ early_stopping:
   patience:
     25
 networks:
-  - - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
-    - { layer_type: wl, wl_iterations: 0, properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ] } }
-    - { layer_type: wl, wl_iterations: 0 }
+  #- - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
+  #  - { layer_type: wl, wl_iterations: 0, properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ] } }
+  #  - { layer_type: wl, wl_iterations: 0 }
 
   # wl model
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: {name: distances, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]} }
