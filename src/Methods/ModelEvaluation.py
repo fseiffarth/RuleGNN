@@ -34,7 +34,10 @@ class ModelEvaluation:
 
     def Run(self):
         # get gpu or cpu: not used at the moment
-        device = torch.device(self.para.configs['device'] if torch.cuda.is_available() else "cpu")
+        if 'device' in self.para.configs:
+            device = torch.device(self.para.configs['device'] if torch.cuda.is_available() else "cpu")
+        else:
+            device = torch.device("cpu")
         dtype = torch.float
         if 'precision' in self.para.configs:
             if self.para.configs['precision'] == 'double':
