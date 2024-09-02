@@ -6,7 +6,6 @@ Created on 04.12.2019
 
 import os
 
-
 class Parameters(object):
     '''
     classdocs
@@ -22,19 +21,20 @@ class Parameters(object):
         """
         self.path = ""
         self.results_path = ""
+        self.splits_path = ""
         self.db = ""
+        self.layers = None
         self.max_coding = 1
         self.network_type = "wl_1"
         self.batch_size = 60
         self.node_features = self.max_coding
-        #self.node_labels = 18
-        #self.edge_labels = 4
         self.load_splits = False
         self.run_config = None
         """
         Evaluation parameters
         """
         self.run_id = 0
+        self.config_id = 0
         self.n_val_runs = 10
         self.validation_id = 0
         self.n_epochs = 100
@@ -68,17 +68,16 @@ class Parameters(object):
 
         self.new_file_index = ''
 
-    def set_data_param(self, path, results_path, splits_path, db, max_coding, layers, batch_size, node_features, load_splits, configs, run_config):
-        self.path = path
-        self.results_path = results_path
-        self.splits_path = splits_path
+    def set_data_param(self, db, max_coding, layers, node_features, run_config):
+        self.path = run_config.config['paths']['data']
+        self.results_path = run_config.config['paths']['results']
+        self.splits_path = run_config.config['paths']['splits']
         self.db = db
         self.max_coding = max_coding
         self.layers = layers
-        self.batch_size = batch_size
+        self.batch_size = run_config.config['batch_size']
         self.node_features = node_features
-        self.load_splits = load_splits
-        self.configs = configs
+        self.load_splits = run_config.config['load_splits']
         self.run_config = run_config
 
     def set_evaluation_param(self, run_id, n_val_runs, validation_id, config_id, n_epochs, learning_rate, dropout, balance_data, convolution_grad, resize_graph):

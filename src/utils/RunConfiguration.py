@@ -1,7 +1,7 @@
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
 class RunConfiguration():
-    def __init__(self, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, loss,
-                 task="classification"):
+    def __init__(self, config, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, loss, task="classification"):
+        self.config = config
         self.network_architecture = network_architecture
         self.layers = layers
         self.batch_size = batch_size
@@ -10,7 +10,7 @@ class RunConfiguration():
         self.dropout = dropout
         self.optimizer = optimizer
         self.loss = loss
-        self.task = "classification"
+        self.task = task
 
     def print(self):
         print(f"Network architecture: {self.network_architecture}")
@@ -23,24 +23,24 @@ class RunConfiguration():
         print(f"Loss: {self.loss}")
 
 
-def get_run_configs(configs):
+def get_run_configs(experiment_configuration):
     # define the network type from the config file
     run_configs = []
     task = "classification"
-    if 'task' in configs:
-        task = configs['task']
+    if 'task' in experiment_configuration:
+        task = experiment_configuration['task']
     # iterate over all network architectures
-    for network_architecture in configs['networks']:
+    for network_architecture in experiment_configuration['networks']:
         layers = []
         # get all different run configurations
         for i, l in enumerate(network_architecture):
             layers.append(Layer(l, i))
-        for b in configs['batch_size']:
-            for lr in configs['learning_rate']:
-                for e in configs['epochs']:
-                    for d in configs['dropout']:
-                        for o in configs['optimizer']:
-                            for loss in configs['loss']:
+        for b in experiment_configuration['batch_size']:
+            for lr in experiment_configuration['learning_rate']:
+                for e in experiment_configuration['epochs']:
+                    for d in experiment_configuration['dropout']:
+                        for o in experiment_configuration['optimizer']:
+                            for loss in experiment_configuration['loss']:
                                 run_configs.append(
-                                    RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss, task))
+                                    RunConfiguration(experiment_configuration, network_architecture, layers, b, lr, e, d, o, loss, task))
     return run_configs

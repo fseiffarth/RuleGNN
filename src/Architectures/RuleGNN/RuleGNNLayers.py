@@ -164,7 +164,7 @@ class RuleConvolutionLayer(nn.Module):
 
         # Determine the number of weights and biases
         # There are two cases assymetric and symmetric, assymetric is the default
-        if 'symmetric' in self.para.configs and self.para.configs['symmetric']:  #TODO
+        if 'symmetric' in self.para.run_config.config and self.para.run_config.config['symmetric']:  #TODO
             self.weight_num = self.in_features * self.in_features * self.n_kernels * (
                         (self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_properties
             # np upper triangular matrix
@@ -194,7 +194,7 @@ class RuleConvolutionLayer(nn.Module):
         # in case of pruning is turned on, save the original weights
         self.Param_W_original = None
         self.mask = None
-        if 'prune' in self.para.configs and self.para.configs['prune']['enabled']:
+        if 'prune' in self.para.run_config.config and self.para.run_config.config['prune']['enabled']:
             self.Param_W_original = self.Param_W.detach().clone()
             self.mask = torch.ones(self.Param_W.size())
 
@@ -355,7 +355,7 @@ class RuleAggregationLayer(nn.Module):
         # in case of pruning is turned on, save the original weights
         self.Param_W_original = None
         self.mask = None
-        if 'prune' in self.para.configs and self.para.configs['prune']['enabled']:
+        if 'prune' in self.para.run_config.config and self.para.run_config.config['prune']['enabled']:
             self.Param_W_original = self.Param_W.detach().clone()
             self.mask = torch.ones(self.Param_W.size(), requires_grad=False)
 

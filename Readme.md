@@ -1,10 +1,11 @@
-# Using RuleGNNs for Graph Classification
+# RuleGNN
 
-This repository contains an explanation on how to [reproduce](#Reproduce-RuleGNN-Experiments) the results of our paper [Rule Based Learning with Dynamic (Graph) Neural Networks](https://arxiv.org/abs/2406.09954).
-Moreover, we give a detailed explanation on how to use RuleGNNs for [custom datasets](#Custom-Datasets).
+This repository contains the code for experiments with RuleGNNs as described in the paper [Rule Based Learning with Dynamic (Graph) Neural Networks](https://arxiv.org/abs/2406.09954).
+First, we give an overview of the repository and how to reproduce the experiments of the paper.
+Then, we explain how to use RuleGNNs for [custom datasets](#Customize-Experiments) and how to add new [layers](#Layers), [labeling functions](#Add-new-labeling-functions), and [property functions](#Add-new-property-functions).
 
-# Reproduce RuleGNN Experiments
-To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
+## Setting up the Environment
+
 1. Clone the repository using
     ```bash
     git clone git@github.com:fseiffarth/RuleGNN.git
@@ -13,6 +14,10 @@ To reproduce the experiments of the paper, follow the steps below. All necessary
    ```bash
    conda env create -f environment.yml
    ```
+## Reproduce RuleGNN Experiments
+To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
+
+
 3. Run the file [Reproduce_RuleGNN/main.py](Reproduce_RuleGNN/main.py) to reproduce the experiments of the paper. This will:
    - download the datasets
    - preprocess the datasets
@@ -26,17 +31,22 @@ To reproduce the experiments of the paper, follow the steps below. All necessary
 All datasets from the TU Dortmund Benchmark available [here](https://chrsmrrs.github.io/datasets/docs/datasets/) can be used directly for experiments as shown in [Examples/TUExample](Examples/TUExample).
 
 # Customize Experiments
-First of all your dataset needs to be in the correct format.
+An example of how to use RuleGNNs for custom datasets can be found in [Examples/CustomExample](Examples/CustomExample).
+Most importantly, your dataset needs to be in the correct format.
 At the moment, the code supports two different options.
 
-- Option 1: Add a function ```favorite_graph_dataset``` to [src/utils/SyntheticGraphs.py](src/utils/SyntheticGraphs.py) 
+- Option 1 (preferred): Save your favorite graph dataset in the format described below in [Data Format](#Data-Format).
+
+- Option 2: Add your function ```favorite_graph_dataset_generator``` to [src/utils/SyntheticGraphs.py](src/utils/SyntheticGraphs.py) 
    that returns a tuple of the form 
-    ```python
+    ```
       (List[networkx.Graph], List[int/float])
    ```
-   where the first list contains the graphs (optional with node and edge labels) and the second list contains the labels of the graphs. 
+   where the first list contains the networkx graphs (optional with node and edge labels) and the second list contains the labels of the graphs. 
 
-- Option 2 (preferred): Save your favorite graph dataset in the format described below in [Data Format](#Data-Format).
+All the experiment details are defined in two configuration files:
+- the [main config file](#main-config-file)  that defines which datasets you want to use and how many splits are used for validation
+- the [experiment config file](#experiment-config-file) that defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.)
 
 To run the experiment you only need the following code:
    ```python
@@ -53,13 +63,11 @@ To run the experiment you only need the following code:
    if __name__ == '__main__':
        main()
    ```
-In the preprocessing step, the data will be downloaded, generated and labels and properties according to the configuration file described below are precomputed.
-The run step consists of first finding the best hyperparameters for the model using a 10-fold cross-validation.
+- In the preprocessing step ```experiment.Preprocess()```, the data will be downloaded or generated and labels and properties according to the experiment configuration file described below are precomputed.
+- The run step ```experiment.Run()``` consists of first finding the best hyperparameters for the model using a 10-fold cross-validation.
 The best model according to the validation set is then trained three times with different seeds and evaluated on the test set.
-The results are saved as ```summary.csv``` resp. ```summary_best_model.csv``` in the results folder specified in the configuration file.
+The results are saved as ```summary.csv``` resp. ```summary_best_model.csv``` in the results folder specified in the experiment configuration file.
 
-
-All the details are defined in two configuration files.
 
 ### Main Config File
 In the main config file, you define which datasets you want to use and how to split the data into training, validation, and test sets.
@@ -73,10 +81,149 @@ datasets:
   # in case of a dataset in the correct format (the path to the data is given in the experiment config file)
   - {name: "CSL", validation_folds: 5, experiment_config_file: "Reproduce_RuleGNN/Configs/config_CSL.yml"}
 ```
+The following keys are used:
+- ```name```: the name of the dataset
+- ```validation_folds```: the number of splits used for validation
+- ```experiment_config_file```: the path to the experiment config file
+- ```type``` (optional): the type of the dataset, if not given the dataset is assumed to be in the correct format in the path given in the experiment config file, if given it should be one of the following:
+  - ```generate_from_function```: the dataset is generated using a function defined in [src/utils/SyntheticGraphs.py](src/utils/SyntheticGraphs.py)
+  - ```TUDataset```: the dataset is from the TU Dortmund Benchmark
+- ```generate_function``` (optional): the name of the function used to generate the dataset if the type is ```generate_from_function```
+- ```generate_function_args``` (optional): the arguments of the function used to generate the dataset as a dictionary if the type is ```generate_from_function```
 ### Experiment Config File
 
 The experiment config file defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.).
 For each dataset, you need to link an experiment config file in the main config file using the key ```experiment_config_file```.
+```yaml
+paths:
+  data:
+    "Examples/CustomExample/Data/" # Path to the folder containing the graph data
+  properties:
+    "Examples/CustomExample/Data/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Examples/CustomExample/Data/Labels/" # Path to the folder containing the labels
+  results:
+    "Examples/CustomExample/Results/" # Results will be saved in this folder
+  splits:
+    "Examples/CustomExample/Data/Splits/" # Path to the folder containing the data splits
+
+device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
+  cpu
+mode:
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+batch_size:
+  - 128
+learning_rate:
+  - 0.05
+epochs:
+  - 10
+scheduler:
+  False
+dropout:
+  - 0.0
+optimizer:
+  - Adam
+loss:
+  - CrossEntropyLoss
+early_stopping:
+  enabled:
+    False
+  patience:
+    25
+networks:
+  #- - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
+  #  - { layer_type: wl, wl_iterations: 0, properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ] } }
+  #  - { layer_type: wl, wl_iterations: 0 }
+
+  # wl model
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: {name: distances, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]} }
+    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500 }
+
+
+
+use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
+  False
+use_attributes: # if True uses node attributes instead of node labels
+  False
+random_variation: # if True adds random variation to the input features
+  False
+load_splits: # if True loads precomputed data splits (use False only for new datasets)
+  True
+
+# data options
+balance_training:
+  False
+
+# Additional options for analysis only possible in debug mode
+additional_options:
+  draw: # draw the accuracy and loss during training
+    True
+  save_weights: # save the weights of the model
+    False
+  save_prediction_values:
+    False
+  plot_graphs: # Plot all graphs in the dataset
+    False
+  print_results: # Print accuracy and loss in the console
+    True
+
+
+prune:
+  enabled:
+    False
+  epochs: # prune after this many epochs
+    25
+  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+    - 0.999
+    - 0.5
+
+precision:
+  double
+
+best_model:
+  False
+save_last:
+  False
+```
+The current available keys are:
+- ```paths```: the paths to the data, properties, labels, results, and splits
+ - ```data```: the path to the folder containing the graph data or where the data will be saved if generated or downloaded
+ - ```properties```: the path to the folder containing the precomputed properties
+ - ```labels```: the path to the folder containing the labels
+ - ```results```: the path to the folder where the results will be saved
+ - ```splits```: the path to the folder containing the data splits
+- ```device```: the device used for training, either 'cpu' or 'cuda' (recommended: 'cpu')
+- ```mode```: the mode of the experiment, either 'experiments' or 'debug' (recommended: 'experiments' for experiments and 'debug' for debugging)
+- ```batch_size```: the batch size used for training
+- ```learning_rate```: the learning rate used for training
+- ```epochs```: the number of epochs used for training
+- ```scheduler```: if True, a scheduler is used
+- ```dropout```: the dropout rate used for training (not tested yet)
+- ```optimizer```: the optimizer used for training
+- ```loss```: the loss function used for training
+- ```early_stopping```: if True, early stopping is used
+ - ```enabled```: if True, early stopping is enabled
+ - ```patience```: the patience of the early stopping, after how many epochs without improvement of the validation accuracy the training stops
+- ```networks```: the network architecture used for training (see [Layers](#Layers)) for more details)
+- ```use_features```: if True, uses the normalized node labels as input features, if False uses the 1-vector as input features
+- ```use_attributes```: if True, uses node attributes instead of node labels
+- ```random_variation```: if True, adds random variation to the input features
+- ```balance_training```: if True, balances the training set
+- ```additional_options```: additional options for analysis only possible in debug mode
+ - ```draw```: if True, draws the accuracy and loss during training
+ - ```save_weights```: if True, saves the weights of the model
+ - ```save_prediction_values```: if True, saves the prediction values
+ - ```plot_graphs```: if True, plots all graphs in the dataset
+ - ```print_results```: if True, prints accuracy and loss in the console
+ - ```prune```: if True, prunes the model
+   - ```enabled```: if True, pruning is enabled
+   - ```epochs```: prune after this many epochs
+   - ```percentage```: the number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+- ```precision```: the precision used for training
+- ```best_model```: if True, also test accuracy is evaluated for all models
+- ```save_last```: if True, saves the last model
+
+
 
 ## Data Format
 
@@ -126,10 +273,14 @@ At the moment, the following layers are implemented:
     ```
   generates the node labels using the embeddings of simple_cycles of length 1 to 10.
   ```yaml
-   - { layer_type: induced_cycles, max_cycle_length: 10, properties: { name: distances, values: [1,2,3,4,5,6] }}
+   - { layer_type: induced_cycles, max_cycle_length: 10, max_node_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
   ```
     generates the node labels using the embeddings of induced_cycles of length 1 to 10.
 - Cliques-Layer (special case of Subgraph-Layer)
+    ```yaml
+        - { layer_type: cliques, max_clique_size: 10, max_node_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
+    ```
+    generates the node labels using the embeddings of cliques of size 1 to 10.
 
 ## Property Functions
 
@@ -138,3 +289,5 @@ At the moment, the following layers are implemented:
 ## Add new property functions
 
 ## Plotting
+
+For plotting you need ```graphviz```

@@ -86,15 +86,15 @@ def run_best_models(graph_db_name, run_id, validation_number, validation_id, gra
 
         run_configs = get_run_configs(configs)
         # get the best configuration and run it
-        config_id = get_best_configuration(graph_db_name, configs, type=evaluation_type)
+        config_id = get_best_configuration(graph_db_name, configs, evaluation_type=evaluation_type)
 
         c_id = f'Best_Configuration_{str(config_id).zfill(6)}'
-        run_configuration(c_id, run_configs[config_id], graph_data, graph_db_name, run_id, validation_id, validation_number, configs)
+        run_configuration(config_id=c_id, run_config=run_configs[config_id], graph_data=graph_data, graph_db_name=graph_db_name, run_id=run_id, validation_id=validation_id, validation_folds=validation_folds)
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
 
-def get_best_configuration(db_name, configs, type='loss') -> int:
+def get_best_configuration(db_name, configs, evaluation_type='loss') -> int:
     evaluation = {}
     # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
     # ge all those files
@@ -130,12 +130,12 @@ def get_best_configuration(db_name, configs, type='loss') -> int:
         indices = []
         # get the best validation accuracy for each validation run
         for name, group in groups:
-            if type == 'accuracy':
+            if evaluation_type == 'accuracy':
                 # get the maximum validation accuracy
                 max_val_acc = group['ValidationAccuracy'].max()
                 # get the row with the maximum validation accuracy
                 max_row = group[group['ValidationAccuracy'] == max_val_acc]
-            elif type == 'loss':
+            elif evaluation_type == 'loss':
                 # get the minimum validation loss if column exists
                 if 'ValidationLoss' in group.columns:
                     max_val_acc = group['ValidationLoss'].min()
@@ -183,10 +183,10 @@ def get_best_configuration(db_name, configs, type='loss') -> int:
     # print the evaluation items with the k highest validation accuracies
     print(f"Top 5 Validation Accuracies for {db_name}")
     k = 5
-    if type == 'accuracy':
+    if evaluation_type == 'accuracy':
         sort_key = 2
         reversed_sort = True
-    elif type == 'loss':
+    elif evaluation_type == 'loss':
         sort_key = 4
         reversed_sort = False
     sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sort_key], reverse=reversed_sort)

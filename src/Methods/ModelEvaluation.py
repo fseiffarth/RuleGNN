@@ -20,8 +20,8 @@ from src.utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configur
 
 
 class ModelEvaluation:
-    def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: List[int],
-                 validate_data: List[int], test_data: List[int], seed: int, para: Parameters.Parameters):
+    def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: np.ndarray,
+                 validate_data: np.ndarray, test_data: np.ndarray, seed: int, para: Parameters.Parameters):
         self.run_id = run_id
         self.k_val = k_val
         self.graph_data = graph_data
@@ -30,7 +30,7 @@ class ModelEvaluation:
         self.test_data = test_data
         self.seed = seed
         self.para = para
-        self.results_path = para.configs['paths']['results']
+        self.results_path = para.run_config.config['paths']['results']
 
     def Run(self):
         # get gpu or cpu: not used at the moment
@@ -109,13 +109,24 @@ class ModelEvaluation:
         if Path(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')).exists():
             # load the file with pandas and get the last epoch completed
             df = pd.read_csv(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), delimiter=';')
-            last_epoch = df['Epoch'].iloc[-1]
+            if df['Epoch'].size <= 1:
+                last_epoch = 0
+            else:
+                last_epoch = df['Epoch'].iloc[-1]
             # if the last_epoch equals the number of epochs the run is already completed
             if last_epoch != self.para.n_epochs:
+                does_run_exist = False
+                print(f'The file {file_name} already exists but the run was not completed, or new parameters are used')
+            else:
                 does_run_exist = True
                 print(f'The file {file_name} already exists and recomputation is skipped')
-            else:
-                print(f'The file {file_name} already exists but the run was not completed, recomputation is started')
+
+        if does_run_exist:
+            return
+        else:
+            # if the file does not exist create a new file
+            with open(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), "w") as file_obj:
+                file_obj.write("")
 
 
         # header use semicolon as delimiter

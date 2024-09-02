@@ -3,8 +3,8 @@ import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src.utils import M0, M1, M3
-from src.utils import GraphData, get_graph_data
+from src.utils.GraphData import GraphData, get_graph_data
+from src.utils.snowflake_generation import M0, M1, M3
 
 
 def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, edge_color='black',

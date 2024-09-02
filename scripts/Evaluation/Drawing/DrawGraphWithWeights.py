@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import click
 import matplotlib
@@ -8,18 +9,19 @@ import torch
 import yaml
 from matplotlib import pyplot as plt
 
-from GraphData.DataSplits.load_splits import Load_Splits
-from src.utils import GraphData, get_graph_data
-from src.utils import load_labels
-from src.Preprocessing.create_labels import save_node_labels
-from src.Architectures.RuleGNN.RuleGNNLayers import Layer
-from src.utils import combine_node_labels
+from scripts.find_best_models import load_preprocessed_data_and_parameters, config_paths_to_absolute
+from src.Architectures.RuleGNN import RuleGNN
+from src.utils.GraphData import GraphData, get_graph_data
 from src.utils.Parameters.Parameters import Parameters
-from src.utils import RunConfiguration
+from src.utils.RunConfiguration import get_run_configs
+from src.utils.load_splits import Load_Splits
 
 
 def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, edge_color='black',
                edge_width=0.5, draw_type='circle'):
+    '''
+    Draw a graph with the given graph_id from the graph_data set
+    '''
     graph = graph_data.graphs[graph_id]
 
     # draw the graph
@@ -75,7 +77,7 @@ def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, edge_color='bl
     nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors, node_size=node_size)
 
 
-def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50,
+def draw_graph_layer(results_path: Path, graph_data: GraphData, graph_id, layer, ax, cmap='seismic', node_size=50,
                      edge_width: float = 5.0, draw_type='circle', filter_weights=True, percentage=0.1, absolute=None,
                      with_graph=False):
     if with_graph:
@@ -226,135 +228,64 @@ def draw_graph_layer(results_path: str, graph_data: GraphData, graph_id, layer, 
 
 
 @click.command()
-@click.option('--data_path', default="../GraphBenchmarks/BenchmarkGraphs/", help='Path to the graph data')
-@click.option('--db', default="EvenOddRings2_16", help='Database to use')
+@click.option('--db_name', default="DHFR", help='Database to use')
+@click.option('--graph_ids', default="0", help='Graph ids to use')
 @click.option('--config', default="", help='Path to the configuration file')
 @click.option('--out', default="")
 @click.option('--draw_type', default='circle')
 # --data_path ../GraphBenchmarks/BenchmarkGraphs/ --db EvenOddRings2_16 --config ../TEMP/EvenOddRings2_16/config.yml
-def main(data_path, db, config, out, draw_type):
+def main(db_name, graph_ids, config, out, draw_type, data_format='NEL'):
+    # get the absolute path
+    absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../'))
+    absolute_path = Path(absolute_path)
     run = 0
-    k_val = 0
-    kFold = 10
+    validation_id = 0
+    validation_folds = 10
     # load the model
-    configs = yaml.safe_load(open(config))
+    try:
+        configs = yaml.safe_load(open(config))
+    except FileNotFoundError:
+        print(f"Config file {config} not found")
+        return
     # get the data path from the config file
-    data_path = f"../{configs['paths']['data']}"
-    r_path = f"../{configs['paths']['results']}"
-    distance_path = f"../{configs['paths']['distances']}"
-    splits_path = f"../{configs['paths']['splits']}"
-    results_path = r_path + db + "/Results/"
+    config_paths_to_absolute(configs, absolute_path)
+    results_path = absolute_path.joinpath(configs['paths']['results']).joinpath(db_name).joinpath('Results')
+    if out == "":
+        out = results_path
+    else:
+        out = Path(out)
+    m_path = absolute_path.joinpath(configs['paths']['results']).joinpath(db_name).joinpath('Models')
 
-    graph_data = get_graph_data(data_path=data_path, db_name=db, distance_path=distance_path,
-                                use_features=configs['use_features'], use_attributes=configs['use_attributes'])
+    graph_data = get_graph_data(db_name=db_name, data_path=configs['paths']['data'], use_features=configs['use_features'], use_attributes=configs['use_attributes'], data_format=data_format)
     # adapt the precision of the input data
     if 'precision' in configs:
         if configs['precision'] == 'double':
             for i in range(len(graph_data.inputs)):
                 graph_data.inputs[i] = graph_data.inputs[i].double()
 
-    #create run config from first config
-    # get all different run configurations
-    # define the network type from the config file
-    run_configs = []
-    # iterate over all network architectures
-    for network_architecture in configs['networks']:
-        layers = []
-        # get all different run configurations
-        for l in network_architecture:
-            layers.append(Layer(l))
-        for b in configs['batch_size']:
-            for lr in configs['learning_rate']:
-                for e in configs['epochs']:
-                    for d in configs['dropout']:
-                        for o in configs['optimizer']:
-                            for loss in configs['loss']:
-                                run_configs.append(RunConfiguration(network_architecture, layers, b, lr, e, d, o, loss))
+    run_configs = get_run_configs(configs)
+
     for i, run_config in enumerate(run_configs):
         config_id = str(i).zfill(6)
-        model_path = f'{r_path}{db}/Models/model_Configuration_{config_id}_run_{run}_val_step_{k_val}.pt'
-        seed = k_val + kFold * run
-        data = Load_Splits(f"../{configs['paths']['splits']}", db)
-        test_data = np.asarray(data[0][k_val], dtype=int)
-        training_data = np.asarray(data[1][k_val], dtype=int)
-        validate_data = np.asarray(data[2][k_val], dtype=int)
+        model_path = m_path.joinpath(f'model_Best_Configuration_{config_id}_run_{run}_val_step_{validation_id}.pt')
+        seed = validation_id + validation_folds * run
+        split_data = Load_Splits(absolute_path.joinpath(configs['paths']['splits']), db_name)
+        test_data = np.asarray(split_data[0][validation_id], dtype=int)
         # check if the model exists
         try:
             with open(model_path, 'r'):
-                """
-                Set up the network and the parameters
-                """
-
                 para = Parameters()
-                """
-                    BenchmarkGraphs parameters
-                """
-                para.set_data_param(path=data_path, results_path=results_path,
-                                    splits_path=splits_path,
-                                    db=db,
-                                    max_coding=1,
-                                    layers=run_config.layers,
-                                    batch_size=run_config.batch_size, node_features=1,
-                                    load_splits=configs['load_splits'],
-                                    configs=configs,
-                                    run_config=run_config, )
-
-                """
-                    Network parameters
-                """
-                para.set_evaluation_param(run_id=run, n_val_runs=kFold, validation_id=k_val,
-                                          config_id=config_id,
-                                          n_epochs=run_config.epochs,
-                                          learning_rate=run_config.lr, dropout=run_config.dropout,
-                                          balance_data=configs['balance_training'],
-                                          convolution_grad=True,
-                                          resize_graph=True)
-
-                """
-                Print, save and draw parameters
-                """
-                para.set_print_param(no_print=False, print_results=False, net_print_weights=True,
-                                     print_number=1,
-                                     draw=False, save_weights=False,
-                                     save_prediction_values=False, plot_graphs=False,
-                                     print_layer_init=False)
-
-                for l in run_config.layers:
-                    label_path = f"../Data/Labels/{db}_{l.get_layer_string()}_labels.txt"
-                    if os.path.exists(label_path):
-                        g_labels = load_labels(path=label_path)
-                        graph_data.node_labels[l.get_layer_string()] = g_labels
-                    elif l.layer_type == "combined":  # create combined file if it is a combined layer and the file does not exist
-                        combined_labels = []
-                        # get the labels for each layer in the combined layer
-                        for x in l.layer_dict['sub_labels']:
-                            sub_layer = Layer(x)
-                            sub_label_path = f"BenchmarkGraphs/Labels/{db}_{sub_layer.get_layer_string()}_labels.txt"
-                            if os.path.exists(sub_label_path):
-                                g_labels = load_labels(path=sub_label_path)
-                                combined_labels.append(g_labels)
-                            else:
-                                # raise an error if the file does not exist
-                                raise FileNotFoundError(f"File {sub_label_path} does not exist")
-                        # combine the labels and save them
-                        g_labels = combine_node_labels(combined_labels)
-                        graph_data.node_labels[l.get_layer_string()] = g_labels
-                        save_node_labels(data_path='BenchmarkGraphs/Labels/', db_names=[db],
-                                         labels=g_labels.node_labels, name=l.get_layer_string(),
-                                         max_label_num=l.node_labels)
-
-                    else:
-                        # raise an error if the file does not exist
-                        raise FileNotFoundError(f"File {label_path} does not exist")
+                load_preprocessed_data_and_parameters(config_id=config_id, run_id=run, validation_id=validation_id,
+                                                      graph_db_name=db_name, graph_data=graph_data,
+                                                      run_config=run_config, para=para, validation_folds=validation_folds)
 
                 """
                     Get the first index in the results directory that is not used
                 """
                 para.set_file_index(size=6)
-
-                net = GraphNN.RuleGNN(graph_data=graph_data,
+                net = RuleGNN.RuleGNN(graph_data=graph_data,
                                       para=para,
-                                      seed=seed)
+                                      seed=seed, device=run_config.config.get('device', 'cpu'))
 
                 net.load_state_dict(torch.load(model_path))
                 # evaluate the performance of the model on the test data
@@ -394,7 +325,7 @@ def main(data_path, db, config, out, draw_type):
                             else:
                                 if i == 0:
                                     ax.set_title(f"Layer: ${j}$")
-                                draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id,
+                                draw_graph_layer(results_path=results_path, graph_data=graph_data, graph_id=graph_id,
                                                  layer=layers[j - 1], ax=ax, node_size=40, edge_width=1,
                                                  draw_type=draw_type, filter_weights=False, percentage=1, absolute=None,
                                                  with_graph=True)
@@ -416,15 +347,15 @@ def main(data_path, db, config, out, draw_type):
                             ax = x[k + 1]
                             if i == 0:
                                 ax.set_title(titles[k])
-                            draw_graph_layer(results_path=r_path, graph_data=graph_data, graph_id=graph_id,
+                            draw_graph_layer(results_path=results_path, graph_data=graph_data, graph_id=graph_id,
                                              layer=layers[0], ax=ax, node_size=40, edge_width=1,
                                              draw_type=draw_type, filter_weights=True, percentage=1,
                                              absolute=filter_size, with_graph=True)
 
                 # draw_graph_layer(graph_data, graph_id, net.lr)
                 # save the figure as pdf using latex font
-                plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{k_val}.pdf', bbox_inches='tight', backend='pgf')
-                #plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{k_val}.svg', bbox_inches='tight')
+                plt.savefig(f'{out}/{db_name}_weights_run_{run}_val_step_{validation_id}.pdf', bbox_inches='tight', backend='pgf')
+                #plt.savefig(f'{out}/{db}_weights_run_{run}_val_step_{validation_id}.svg', bbox_inches='tight')
                 plt.show()
 
 

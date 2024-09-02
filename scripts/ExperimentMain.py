@@ -44,7 +44,8 @@ class ExperimentMain:
             # find the best model hyperparameters using grid search and cross-validation
             print(f"Find the best hyperparameters for dataset {dataset['name']} using {validation_folds}-fold cross-validation and {validation_folds} number of parallel jobs")
             joblib.Parallel(n_jobs=validation_folds)(
-                joblib.delayed(find_best_models)(graph_db_name=dataset['name'], validation_number=validation_folds,
+                joblib.delayed(find_best_models)(graph_db_name=dataset['name'],
+                                                 validation_folds=validation_folds,
                                                  validation_id=id, graph_format="NEL", transfer=None,
                                                  config=config_file) for id in range(validation_folds))
 
@@ -55,8 +56,8 @@ class ExperimentMain:
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
             num_jobs = len(parallelization_pairs)
             joblib.Parallel(n_jobs=num_jobs)(joblib.delayed(run_best_models)(graph_db_name=dataset['name'], run_id=run_id,
-                                                                             validation_number=validation_folds,
                                                                              validation_id=validation_id,
+                                                                             validation_number=validation_folds,
                                                                              graph_format="NEL", transfer=None,
                                                                              config=config_file,
                                                                              evaluation_type='accuracy')

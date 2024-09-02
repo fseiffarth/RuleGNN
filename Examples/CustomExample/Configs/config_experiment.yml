@@ -19,7 +19,7 @@ batch_size:
 learning_rate:
   - 0.05
 epochs:
-  - 20
+  - 10
 scheduler:
   False
 dropout:

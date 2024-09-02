@@ -19,10 +19,10 @@ class RuleGNN(nn.Module):
         convolution_grad = self.para.convolution_grad
         resize_grad = self.para.resize_grad
         out_classes = self.graph_data.num_classes
-        if 'precision' in para.configs:
-            self.module_precision = para.configs['precision']
-        if 'aggregation_out_features' in para.configs:
-            self.aggregation_out_classes = para.configs['aggregation_out_features']
+        if 'precision' in para.run_config.config:
+            self.module_precision = para.run_config.config['precision']
+        if 'aggregation_out_features' in para.run_config.config:
+            self.aggregation_out_classes = para.run_config.config['aggregation_out_features']
         else:
             self.aggregation_out_classes = out_classes
 
@@ -65,9 +65,9 @@ class RuleGNN(nn.Module):
                                                     precision=torch.double, device=device).double().requires_grad_(
                             resize_grad))
 
-        if 'linear_layers' in para.configs and para.configs['linear_layers'] > 0:
-            for i in range(para.configs['linear_layers']):
-                if i < para.configs['linear_layers'] - 1:
+        if 'linear_layers' in para.run_config.config and para.run_config.config['linear_layers'] > 0:
+            for i in range(para.run_config.config['linear_layers']):
+                if i < para.run_config.config['linear_layers'] - 1:
                     if self.module_precision == 'float':
                         self.net_layers.append(
                             nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).float())
@@ -81,19 +81,19 @@ class RuleGNN(nn.Module):
                         self.net_layers.append(nn.Linear(self.aggregation_out_classes, out_classes, bias=True).double())
 
         self.dropout = nn.Dropout(dropout)
-        if 'activation' in para.configs and para.configs['activation'] == 'None':
+        if 'activation' in para.run_config.config and para.run_config.config['activation'] == 'None':
             self.af = nn.Identity()
-        elif 'activation' in para.configs and para.configs['activation'] == 'Relu':
+        elif 'activation' in para.run_config.config and para.run_config.config['activation'] == 'Relu':
             self.af = nn.ReLU()
-        elif 'activation' in para.configs and para.configs['activation'] == 'LeakyRelu':
+        elif 'activation' in para.run_config.config and para.run_config.config['activation'] == 'LeakyRelu':
             self.af = nn.LeakyReLU()
         else:
             self.af = nn.Tanh()
-        if 'output_activation' in para.configs and para.configs['output_activation'] == 'None':
+        if 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] == 'None':
             self.out_af = nn.Identity()
-        elif 'output_activation' in para.configs and para.configs['output_activation'] == 'Relu':
+        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] == 'Relu':
             self.out_af = nn.ReLU()
-        elif 'output_activation' in para.configs and para.configs['output_activation'] == 'LeakyRelu':
+        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] == 'LeakyRelu':
             self.out_af = nn.LeakyReLU()
         else:
             self.out_af = nn.Tanh()
@@ -103,8 +103,8 @@ class RuleGNN(nn.Module):
     def forward(self, x, pos):
         for i, layer in enumerate(self.net_layers):
             num_linear_layers = 0
-            if 'linear_layers' in self.para.configs and self.para.configs['linear_layers'] > 0:
-                num_linear_layers = self.para.configs['linear_layers']
+            if 'linear_layers' in self.para.run_config.config and self.para.run_config.config['linear_layers'] > 0:
+                num_linear_layers = self.para.run_config.config['linear_layers']
             if num_linear_layers > 0:
                 if i < len(self.net_layers) - num_linear_layers:
                     x = self.af(layer(x, pos))
