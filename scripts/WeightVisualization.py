@@ -1,6 +1,7 @@
 
 import os
 from pathlib import Path
+from typing import Tuple
 
 import click
 import matplotlib
@@ -9,6 +10,7 @@ import numpy as np
 import torch
 import yaml
 from matplotlib import pyplot as plt
+from pydot import Graph
 
 from scripts.find_best_models import load_preprocessed_data_and_parameters, config_paths_to_absolute
 from src.Architectures.RuleGNN import RuleGNN
@@ -16,6 +18,17 @@ from src.utils.GraphData import GraphData, get_graph_data
 from src.utils.Parameters.Parameters import Parameters
 from src.utils.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
+
+class GraphDrawing:
+    def __init__(self, node_size=10.0, edge_width=1.0, edge_arrow_size=5.0, edge_color='black', edge_alpha=1, node_color='black', draw_type=None, colormap=plt.get_cmap('tab20')):
+        self.node_size = node_size
+        self.edge_width = edge_width
+        self.edge_color = edge_color
+        self.edge_alpha = edge_alpha
+        self.node_color = node_color
+        self.arrow_size = edge_arrow_size
+        self.draw_type = draw_type
+        self.colormap = colormap
 
 class WeightVisualization:
     def __init__(self, db_name, main_config, experiment_config, out="", data_format='NEL'):
@@ -53,8 +66,7 @@ class WeightVisualization:
 
 
 
-    def draw_graph(self, graph_id, ax, node_size=50, edge_color='black',
-                   edge_width=0.5, draw_type='circle'):
+    def draw_graph(self, graph_id, ax, graph_drawing: Tuple[GraphDrawing, GraphDrawing]):
         '''
         Draw a graph with the given graph_id from the graph_data set
         '''
@@ -81,7 +93,7 @@ class WeightVisualization:
                 edge_labels[(key1, key2)] = ""
         # if graph is circular use the circular layout
         pos = dict()
-        if draw_type == 'circle':
+        if graph_drawing[0].draw_type == 'circle':
             # get circular positions around (0,0) starting with the root node at (-400,0)
             pos[root_node] = (400, 0)
             angle = 2 * np.pi / (graph.number_of_nodes())
@@ -98,23 +110,22 @@ class WeightVisualization:
                         last_node = cur_node
                         cur_node = next_node
                         break
-        elif draw_type == 'kawai':
+        elif graph_drawing[0].draw_type == 'kawai':
             pos = nx.kamada_kawai_layout(graph)
         else:
             pos = nx.nx_pydot.graphviz_layout(graph)
         # keys to ints
         pos = {int(k): v for k, v in pos.items()}
-        nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=edge_color, width=edge_width)
+        nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[0].edge_color, width=graph_drawing[0].edge_width)
         nx.draw_networkx_edge_labels(graph, pos=pos, edge_labels=edge_labels, ax=ax, font_size=8, font_color='black')
         # get node colors from the node labels using the plasma colormap
-        cmap = plt.get_cmap('tab20')
+        cmap = graph_drawing[0].colormap
         norm = matplotlib.colors.Normalize(vmin=0, vmax=self.graph_data.node_labels['primary'].num_unique_node_labels)
         node_colors = [cmap(norm(self.graph_data.node_labels['primary'].node_labels[graph_id][node])) for node in graph.nodes()]
-        nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors, node_size=node_size)
+        nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors, node_size=graph_drawing[0].node_size)
 
 
-    def draw_graph_layer(self, graph_id, layer, ax, cmap='seismic', node_size=50,
-                         edge_width: float = 5.0, draw_type='circle', filter_weights=True, percentage=0.1, absolute=None,
+    def draw_graph_layer(self, graph_id, layer, ax, graph_drawing: Tuple[GraphDrawing, GraphDrawing], filter_weights=True, percentage=0.1, absolute=None,
                          with_graph=False):
         if with_graph:
             graph = self.graph_data.graphs[graph_id]
@@ -129,7 +140,7 @@ class WeightVisualization:
 
             # if graph is circular use the circular layout
             pos = dict()
-            if draw_type == 'circle':
+            if graph_drawing[0].draw_type == 'circle':
                 # get circular positions around (0,0) starting with the root node at (-400,0)
                 pos[root_node] = (400, 0)
                 angle = 2 * np.pi / (graph.number_of_nodes())
@@ -146,13 +157,13 @@ class WeightVisualization:
                             last_node = cur_node
                             cur_node = next_node
                             break
-            elif draw_type == 'kawai':
+            elif graph_drawing[0].draw_type == 'kawai':
                 pos = nx.kamada_kawai_layout(graph)
             else:
                 pos = nx.nx_pydot.graphviz_layout(graph)
             # keys to ints
             pos = {int(k): v for k, v in pos.items()}
-            nx.draw_networkx_edges(graph, pos, ax=ax, edge_color='black', width=edge_width, alpha=0.5)
+            nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[0].edge_color, width=graph_drawing[0].edge_width, alpha=graph_drawing[0].edge_alpha*0.5)
 
         all_weights = layer.get_weights()
         bias = layer.get_bias()
@@ -189,7 +200,7 @@ class WeightVisualization:
         bias_max_abs = max(abs(bias_min), abs(bias_max))
 
         # use seismic colormap with maximum and minimum values from the weight matrix
-        cmap = plt.get_cmap(cmap)
+        cmap = graph_drawing[1].colormap
         # normalize item number values to colormap
         norm_weight = matplotlib.colors.Normalize(vmin=weight_min, vmax=weight_max)
         norm_bias = matplotlib.colors.Normalize(vmin=bias_min, vmax=bias_max)
@@ -207,7 +218,7 @@ class WeightVisualization:
                 break
         # if graph is circular use the circular layout
         pos = dict()
-        if draw_type == 'circle':
+        if graph_drawing[0].draw_type == 'circle':
             # get circular positions around (0,0) starting with the root node at (-400,0)
             pos[root_node] = (400, 0)
             angle = 2 * np.pi / (graph.number_of_nodes())
@@ -224,7 +235,7 @@ class WeightVisualization:
                         last_node = cur_node
                         cur_node = next_node
                         break
-        elif draw_type == 'kawai':
+        elif graph_drawing[0].draw_type == 'kawai':
             pos = nx.kamada_kawai_layout(graph)
         else:
             pos = nx.nx_pydot.graphviz_layout(graph)
@@ -247,23 +258,23 @@ class WeightVisualization:
 
         for edge in curved_edges:
             curved_edges_colors.append(weight_colors[edge[2]['weight']])
-            edge_widths.append(edge_width * abs(weights[edge[2]['weight']]) / weight_max_abs)
+            edge_widths.append(graph_drawing[1].edge_width * abs(weights[edge[2]['weight']]) / weight_max_abs)
         arc_rad = 0.25
         nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors,
                                width=edge_widths,
-                               connectionstyle=f'arc3, rad = {arc_rad}', arrows=True, arrowsize=5, node_size=5)
+                               connectionstyle=f'arc3, rad = {arc_rad}', arrows=True, arrowsize=graph_drawing[1].arrow_size, node_size=graph_drawing[1].node_size)
 
         node_colors = []
         node_sizes = []
         for node in digraph.nodes():
             node_label = self.graph_data.node_labels['primary'].node_labels[graph_id][node]
             node_colors.append(bias_colors[node_label])
-            node_sizes.append(node_size * abs(bias_vector[node_label]) / bias_max_abs)
+            node_sizes.append(graph_drawing[1].node_size * abs(bias_vector[node_label]) / bias_max_abs)
 
         nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
 
 
-    def visualize(self, graph_ids, run=0, validation_id=0, draw_type=None):
+    def visualize(self, graph_ids, run=0, validation_id=0, graph_drawing: Tuple[GraphDrawing, GraphDrawing] = None, filter_sizes = (None, 10, 3)):
         # adapt the precision of the input data
         if self.experiment_config.get('precision', 'double') == 'double':
             for i in range(len(self.graph_data.inputs)):
@@ -271,6 +282,9 @@ class WeightVisualization:
 
 
         run_configs = get_run_configs(self.experiment_config)
+
+        if graph_drawing is None:
+            graph_drawing = (GraphDrawing(node_size=10, edge_width=0.5), GraphDrawing(node_size=10, edge_width=3))
 
         for i, run_config in enumerate(run_configs):
             config_id = str(i).zfill(6)
@@ -311,9 +325,6 @@ class WeightVisualization:
                             counter += 1
                         accuracy = correct / counter
                         print(f"Accuracy for model {model_path} is {accuracy}")
-                    # get the first three graphs from the test data
-                    graph_ids = test_data[[0, 20, 40]]
-                    #graph_ids = test_data[[0, 40, 80]]
                     rows = len(graph_ids)
                     cols = len(net.net_layers)
                     with_filter = True
@@ -326,19 +337,18 @@ class WeightVisualization:
                             graph_id = graph_ids[i]
                             for j, ax in enumerate(x):
                                 if j == 0:
-                                    self.draw_graph(self.graph_data, graph_id, ax, node_size=40, edge_width=1, draw_type=draw_type)
+                                    self.draw_graph(graph_id, ax, graph_drawing)
                                     # set title on the left side of the plot
                                     ax.set_ylabel(f"Graph Label: ${self.graph_data.graph_labels[graph_id]}$")
                                 else:
                                     if i == 0:
                                         ax.set_title(f"Layer: ${j}$")
-                                    self.draw_graph_layer(results_path=self.results_path, graph_data=self.graph_data, graph_id=graph_id,
-                                                     layer=layers[j - 1], ax=ax, node_size=40, edge_width=1,
-                                                     draw_type=draw_type, filter_weights=False, percentage=1, absolute=None,
+                                    self.draw_graph_layer(graph_id=graph_id,
+                                                     layer=layers[j - 1], ax=ax, graph_drawing=graph_drawing, filter_weights=False, percentage=1, absolute=None,
                                                      with_graph=True)
                     else:
                         titles = ['All Weights', 'Top $10$ Weights', 'Top $3$ Weights']
-                        filter_sizes = [None, 10, 3]
+
                         cols = len(filter_sizes) + 1
                         fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(3 * cols, 3 * rows))
                         plt.subplots_adjust(wspace=0, hspace=0)
@@ -347,7 +357,7 @@ class WeightVisualization:
                         for i, x in enumerate(axes):
                             graph_id = graph_ids[i]
                             ax = x[0]
-                            self.draw_graph(graph_id, ax, node_size=20, edge_width=0.5, draw_type=draw_type)
+                            self.draw_graph(graph_id, ax, graph_drawing=graph_drawing)
                             # set title on the left side of the plot
                             ax.set_ylabel(f"Graph Label: ${self.graph_data.graph_labels[graph_id]}$")
                             for k, filter_size in enumerate(filter_sizes):
@@ -355,8 +365,7 @@ class WeightVisualization:
                                 if i == 0:
                                     ax.set_title(titles[k])
                                 self.draw_graph_layer(graph_id=graph_id,
-                                                 layer=layers[0], ax=ax, node_size=40, edge_width=1,
-                                                 draw_type=draw_type, filter_weights=True, percentage=1,
+                                                 layer=layers[0], ax=ax, graph_drawing=graph_drawing, filter_weights=True, percentage=1,
                                                  absolute=filter_size, with_graph=True)
 
                     # draw_graph_layer(self.graph_data, graph_id, net.lr)
