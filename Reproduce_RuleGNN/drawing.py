@@ -39,7 +39,7 @@ def main():
     )
     ww = WeightVisualization(db_name=db_name, main_config=main_config_file, experiment_config=experiment_config_file)
     ww.visualize(graph_ids, run=0, validation_id=0, graph_drawing=graph_drawing, filter_sizes=filter_sizes)
-
+    ### NCI1
 
 if __name__ == '__main__':
     main()
