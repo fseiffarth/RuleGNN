@@ -289,12 +289,13 @@ class WeightVisualization:
         for i, run_config in enumerate(run_configs):
             config_id = str(i).zfill(6)
             model_path = self.m_path.joinpath(f'model_Best_Configuration_{config_id}_run_{run}_val_step_{validation_id}.pt')
-            seed = validation_id + self.validation_folds * run
-            split_data = Load_Splits(self.experiment_config['paths']['splits'], self.db_name)
-            test_data = np.asarray(split_data[0][validation_id], dtype=int)
             # check if the model exists
             if model_path.exists():
                 with open(model_path, 'r'):
+                    seed = validation_id + self.validation_folds * run
+                    split_data = Load_Splits(self.experiment_config['paths']['splits'], self.db_name)
+                    test_data = np.asarray(split_data[0][validation_id], dtype=int)
+                    graph_ids = test_data[graph_ids]
                     para = Parameters()
                     load_preprocessed_data_and_parameters(config_id=config_id, run_id=run, validation_id=validation_id,
                                                           graph_db_name=self.db_name, graph_data=self.graph_data,
@@ -372,7 +373,7 @@ class WeightVisualization:
                     # save the figure as pdf using latex font
                     save_path = self.out_path.joinpath(f'{self.db_name}_weights_run_{run}_val_step_{validation_id}.pdf')
                     plt.savefig(save_path, bbox_inches='tight')
-                    plt.show()
+                    #plt.show()
             else:
                 print(f"Model {model_path} not found")
 
