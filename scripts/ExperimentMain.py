@@ -25,7 +25,50 @@ class ExperimentMain:
         self.dataset_names = [dataset['name'] for dataset in self.main_config['datasets']]
 
 
-    def Run(self, dataset_names=None):
+    def GridSearch(self, dataset_names=None):
+        '''
+        Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
+        '''
+        # set omp_num_threads to 1 to avoid conflicts with OpenMP
+        os.environ['OMP_NUM_THREADS'] = '1'
+        if dataset_names is not None:
+            self.dataset_names = dataset_names
+        # iterate over the databases
+        for dataset in self.main_config['datasets']:
+            print(f"Running experiment for dataset {dataset['name']}")
+            validation_folds = dataset.get('validation_folds', 10)
+            config_file = dataset.get('experiment_config_file', '')
+            num_runs = dataset.get('num_runs', 1)
+            # load the config file
+            config = yaml.load(open(config_file), Loader=yaml.FullLoader)
+
+            for run_id in range(num_runs):
+                print(f"Run {run_id + 1} of {num_runs}")
+                # find the best model hyperparameters using grid search and cross-validation
+                print(f"Find the best hyperparameters for dataset {dataset['name']} using {validation_folds}-fold cross-validation and {validation_folds} number of parallel jobs")
+                joblib.Parallel(n_jobs=validation_folds)(
+                    joblib.delayed(find_best_models)(graph_db_name=dataset['name'],
+                                                     validation_folds=validation_folds,
+                                                     validation_id=validation_id, graph_format="NEL", transfer=None,
+                                                     config=config_file, run_id=run_id) for validation_id in range(validation_folds))
+
+    def EvaluateResults(self, dataset_names=None, evaluation_type='accuracy', evaluate_best_model=False):
+        # set omp_num_threads to 1 to avoid conflicts with OpenMP
+        os.environ['OMP_NUM_THREADS'] = '1'
+        if dataset_names is not None:
+            self.dataset_names = dataset_names
+        # iterate over the databases
+        for dataset in self.main_config['datasets']:
+            if evaluate_best_model:
+                print(f"Evaluate the best model of the experiment for dataset {dataset['name']}")
+            else:
+                print(f"Evaluate the results of the experiment for dataset {dataset['name']}")
+            config_file = dataset.get('experiment_config_file', '')
+            # load the config file
+            config = yaml.load(open(config_file), Loader=yaml.FullLoader)
+            model_selection_evaluation(dataset['name'], Path(config['paths']['results']), evaluation_type=evaluation_type, evaluate_best_model=evaluate_best_model)
+
+    def RunBestModel(self, dataset_names=None):
         '''
         Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
         '''
@@ -39,16 +82,6 @@ class ExperimentMain:
             validation_folds = dataset['validation_folds']
             config_file = dataset['experiment_config_file']
             # load the config file
-            config = yaml.load(open(config_file), Loader=yaml.FullLoader)
-
-            # find the best model hyperparameters using grid search and cross-validation
-            print(f"Find the best hyperparameters for dataset {dataset['name']} using {validation_folds}-fold cross-validation and {validation_folds} number of parallel jobs")
-            joblib.Parallel(n_jobs=validation_folds)(
-                joblib.delayed(find_best_models)(graph_db_name=dataset['name'],
-                                                 validation_folds=validation_folds,
-                                                 validation_id=id, graph_format="NEL", transfer=None,
-                                                 config=config_file) for id in range(validation_folds))
-
             # run the best models
             # parallelize over (run_id, validation_id) pairs
             evaluation_run_number = 3
@@ -63,10 +96,23 @@ class ExperimentMain:
                                                                              evaluation_type='accuracy')
                                              for run_id, validation_id in parallelization_pairs)
 
-            print(f"Evaluate all models and the best ones and write the results to {Path(config['paths']['results'])}/{dataset['name']}/summary.csv and {Path(config['paths']['results'])}/{dataset['name']}/summary_best_models.csv")
-            # evaluate the best models
-            model_selection_evaluation(dataset['name'], Path(config['paths']['results']), evaluation_type='accuracy')
-            best_model_evaluation(dataset['name'], Path(config['paths']['results']), evaluation_type='accuracy')
+
+
+
+    def EvaluateBestModel(self, dataset_names=None, evaluation_type='accuracy'):
+        # set omp_num_threads to 1 to avoid conflicts with OpenMP
+        os.environ['OMP_NUM_THREADS'] = '1'
+        if dataset_names is not None:
+            self.dataset_names = dataset_names
+        # iterate over the databases
+        for dataset in self.main_config['datasets']:
+            print(f"Running experiment for dataset {dataset['name']}")
+            validation_folds = dataset.get('validation_folds', 10)
+            config_file = dataset.get('experiment_config_file', '')
+            num_runs = dataset.get('num_runs', 1)
+            # load the config file
+            config = yaml.load(open(config_file), Loader=yaml.FullLoader)
+            best_model_evaluation(dataset['name'], Path(config['paths']['results']), evaluation_type=evaluation_type)
 
 
     def Preprocess(self, num_jobs=-1):

@@ -26,9 +26,7 @@ class Parameters(object):
         self.layers = None
         self.max_coding = 1
         self.network_type = "wl_1"
-        self.batch_size = 60
         self.node_features = self.max_coding
-        self.load_splits = False
         self.run_config = None
         """
         Evaluation parameters
@@ -37,9 +35,6 @@ class Parameters(object):
         self.config_id = 0
         self.n_val_runs = 10
         self.validation_id = 0
-        self.n_epochs = 100
-        self.learning_rate = 0.001
-        self.dropout = 0.0
         self.balance_data = False
         self.convolution_grad = True
         self.resize_grad = True

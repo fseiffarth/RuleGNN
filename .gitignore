@@ -29,3 +29,5 @@ Results/
 /Reproduce_RuleGNN/Results/
 /tmp/
 /Reproduce_RuleGNN/Data/
+/Competitors/GNN/Datasets/
+/Examples/Pruning/Data/

@@ -1,3 +1,5 @@
+from sympy.physics.control.control_plots import matplotlibfrom numpy.matrixlib.defmatrix import matrixfrom networkx import max_flow_min_costfrom distutils.command.install import main_key
+
 # RuleGNN
 
 This repository contains the code for experiments with RuleGNNs as described in the paper [Rule Based Learning with Dynamic (Graph) Neural Networks](https://arxiv.org/abs/2406.09954).
@@ -14,23 +16,31 @@ Then, we explain how to use RuleGNNs for [custom datasets](#Customize-Experiment
    ```bash
    conda env create -f environment.yml
    ```
+3. To run the scripts with the correct paths please set your PYTHONPATH (working directory) to the root directory of the repository.
+   ```bash
+   export PYTHONPATH=/path/to/RuleGNN
+   ```
+
 ## Reproduce RuleGNN Experiments
 To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
 
 
-3. Run the file [Reproduce_RuleGNN/main.py](Reproduce_RuleGNN/main.py) to reproduce the experiments of the paper. This will:
+1. Run the script [Reproduce_RuleGNN/main.py](Reproduce_RuleGNN/main.py) to reproduce the experiments of the paper. This will:
    - download the datasets
    - preprocess the datasets
-   - find the best hyperparameters for different models
+   - run the grid search to find the best hyperparameters for different models
    - run the best models three times with different seeds
    - evaluate the results
 
-   All results will be saved in the [Reproduce_RuleGNN/Results](Reproduce_RuleGNN/Results) folder.
+   All results will be saved in the [Reproduce_RuleGNN/Results](Reproduce_RuleGNN/Results) folder. The details per dataset can be found in the corresponding subfolder saved under ```summary.csv``` for the grid search results and ```summary_best_model.csv``` for the best model results.
 
-# Experiments on the TU Dortmund Graph Benchmark
+2. Visualize the learned parameters using the script [Reproduce_RuleGNN/plotting.py](Reproduce_RuleGNN/plotting.py).
+   The results will be saved in the corresponding ```Plots``` folder under ```Reproduce_RuleGNN/Results/<DB_NAME>```.
+
+## Experiments on the TU Dortmund Graph Benchmark
 All datasets from the TU Dortmund Benchmark available [here](https://chrsmrrs.github.io/datasets/docs/datasets/) can be used directly for experiments as shown in [Examples/TUExample](Examples/TUExample).
 
-# Customize Experiments
+## Customize Experiments
 An example of how to use RuleGNNs for custom datasets can be found in [Examples/CustomExample](Examples/CustomExample).
 Most importantly, your dataset needs to be in the correct format.
 At the moment, the code supports two different options.
@@ -49,24 +59,29 @@ All the experiment details are defined in two configuration files:
 - the [experiment config file](#experiment-config-file) that defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.)
 
 To run the experiment you only need the following code:
+
    ```python
    from pathlib import Path
-   
-   from scripts.ExperimentMain import ExperimentMain
-   
-   
-   def main():
-       experiment = ExperimentMain(Path('Path/To/Your/Main/Config/File.yml'))
-       experiment.Preprocess()
-       experiment.Run()
-   
-   if __name__ == '__main__':
-       main()
+
+from scripts.ExperimentMain import ExperimentMain
+
+
+def main():
+    experiment = ExperimentMain(Path('Path/To/Your/Main/Config/File.yml'))
+    experiment.Preprocess()
+    experiment.GridSearch()
+    experiment.RunBestModel()
+    experiment.EvaluateResults()
+    experiment.EvaluateResults(evaluate_best_model=True)
+
+
+if __name__ == '__main__':
+    main()
    ```
 - In the preprocessing step ```experiment.Preprocess()```, the data will be downloaded or generated and labels and properties according to the experiment configuration file described below are precomputed.
-- The run step ```experiment.Run()``` consists of first finding the best hyperparameters for the model using a 10-fold cross-validation.
-The best model according to the validation set is then trained three times with different seeds and evaluated on the test set.
-The results are saved as ```summary.csv``` resp. ```summary_best_model.csv``` in the results folder specified in the experiment configuration file.
+- Then in ```experiment.GridSearch()```, the best model hyperparameters for the dataset are found using a 10-fold cross-validation.
+- Finally, in ```experiment.RunBestModel()```, the best model is trained three times with different seeds and evaluated on the test set.
+- The results are evaluated in ```experiment.EvaluateResults()``` saved as ```summary.csv``` resp. ```summary_best.csv``` and ```summary_best_mean.csv``` in the results folder specified in the experiment configuration file under the database name.
 
 
 ### Main Config File
@@ -284,10 +299,62 @@ At the moment, the following layers are implemented:
 
 ## Property Functions
 
+The property functions assign each pair of nodes in a graph a property value. This can be distances, information about edge labels between the nodes or different values if one node is in a circle and the other is not.
+At the moment, the following property functions are implemented:
+- Distances
+    ```yaml
+    - properties: { name: distances, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25] }
+    ```
+    Each distance in values is considered. If the distance between two nodes is not in the values list, then no corresponding learnable parameter (weight) is created.
+- Edge Label Distances
+    ```yaml
+    - properties: { name: edge_label_distances, values: [1] }
+    ```
+    Not only distances are considered but also the counts of all edge labels between all shortest paths of the nodes.
+- Circle Distances
+    ```yaml
+    - properties: { name: circle_distances, values: [1] }
+    ```
+    For each distance depicted in values, there are four different values: 0 if both nodes are not in a circle, 1 if both nodes are in a circle, 2 if only the first node is in a circle, and 3 if only the second node is in a circle.
+
 ## Add new labeling functions
+To define a new node labeling function, go to [src/Preprocessing/create_labels.py](src/Preprocessing/create_labels.py) and add a new function called ```save_<your_labeling_function>_labels```.
+The node labels should be generated as list of lists of integers (one list of node labels per graph). 
+Moreover, give your new labeling function a unique ```label_type``` used as argument in the config file.
+- **Save Labels:** Use ```write_node_labels(file, node_labels)``` to save the labels to the path ```file```.
+The file name should be ```<DB_NAME>_<your_characteristic_labeling_function_string>_labels.txt```.
+- **Load Labels**: Go to [src/Architectures/RuleGNN/RuleGNNLayers.py](src/Architectures/RuleGNN/RuleGNNLayers.py) and add a new case to the function ```get_layer_string``` that gives you the string ```<your_characteristic_labeling_function_string>``` for your labeling function based on possible additional arguments.
+- **Automatic Label Generation**: If you want to automatically generate the labels based on the config file you need to go to
+[scripts/Preprocessing.py](scripts/Preprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
 
 ## Add new property functions
+To define a new property function, go to [src/Preprocessing/create_properties.py](src/Preprocessing/create_properties.py) and add a new function called ```write_<your_property_function>_properties```.
+Moreover, give your new property function a unique ```properties``` key used as argument in the config file.
+- **Save Properties:**
+- **Load Properties:**
+- **Automatic Property Generation**: If you want to automatically generate the properties based on the config file you need to go to 
+[scripts/Preprocessing.py](scripts/Preprocessing.py) and add a new case in the function ```property_to_properties``` that calls your property function based on the ```properties``` given in the config file.
 
 ## Plotting
 
 For plotting you need ```graphviz```
+
+Use the following code to plot the learned parameters of the model:
+```python
+    db_name = 'DB_NAME'
+    main_config_file = 'path/from/root/to/main_config_file.yml'
+    experiment_config_file = 'path/from/root/to/experiment_config_file.yml'
+    colormap = matplotlib.cm.get_cmap('viridis') # colormap for the weights
+    graph_ids = [0,1,2] # list of graph ids to plot (test set ids
+    filter_sizes = (None, 10, 3) #filter by largest absolute values, None means no filter
+    # parameters for the graph drawing (node_size, edge_width, weight_edge_width, weight_arrow_size, colormap, etc.)
+    # The first entry is for the original graph, the second for the learned parameters
+    graph_drawing = (
+        GraphDrawing(node_size=40, edge_width=1),
+        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10, colormap=colormap)
+    ) 
+    ww = WeightVisualization(db_name=db_name, main_config=main_config_file, experiment_config=experiment_config_file)
+    for validation_id in range(10):
+        for run in range(3):
+            ww.visualize(graph_ids, run=run, validation_id=validation_id, graph_drawing=graph_drawing, filter_sizes=filter_sizes)
+```

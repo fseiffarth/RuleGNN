@@ -9,7 +9,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import yaml
+from torch.cuda import graph
 
+from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
 from scripts.find_best_models import run_configuration
 from src.utils.GraphData import get_graph_data
 from src.utils.RunConfiguration import get_run_configs
@@ -86,15 +88,16 @@ def run_best_models(graph_db_name, run_id, validation_number, validation_id, gra
 
         run_configs = get_run_configs(configs)
         # get the best configuration and run it
-        config_id = get_best_configuration(graph_db_name, configs, evaluation_type=evaluation_type)
+        best_config_id = model_selection_evaluation(db_name=graph_db_name,path=configs['paths']['results'], evaluation_type=evaluation_type)
+        #config_id = get_best_configuration(graph_db_name, configs, evaluation_type=evaluation_type)
 
-        c_id = f'Best_Configuration_{str(config_id).zfill(6)}'
-        run_configuration(config_id=c_id, run_config=run_configs[config_id], graph_data=graph_data, graph_db_name=graph_db_name, run_id=run_id, validation_id=validation_id, validation_folds=validation_folds)
+        c_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'
+        run_configuration(config_id=c_id, run_config=run_configs[best_config_id], graph_data=graph_data, graph_db_name=graph_db_name, run_id=run_id, validation_id=validation_id, validation_folds=validation_number)
     else:
         #print that config file is not provided
         print("Please provide a configuration file")
 
-def get_best_configuration(db_name, configs, evaluation_type='loss') -> int:
+def get_best_configuration(db_name, configs, evaluation_type='accuracy') -> int:
     evaluation = {}
     # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
     # ge all those files
@@ -182,6 +185,7 @@ def get_best_configuration(db_name, configs, evaluation_type='loss') -> int:
 
     # print the evaluation items with the k highest validation accuracies
     print(f"Top 5 Validation Accuracies for {db_name}")
+    reversed_sort = False
     k = 5
     if evaluation_type == 'accuracy':
         sort_key = 2

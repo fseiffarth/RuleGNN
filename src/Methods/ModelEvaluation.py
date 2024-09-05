@@ -34,13 +34,13 @@ class ModelEvaluation:
 
     def Run(self):
         # get gpu or cpu: not used at the moment
-        if 'device' in self.para.configs:
-            device = torch.device(self.para.configs['device'] if torch.cuda.is_available() else "cpu")
+        if 'device' in self.para.run_config.config:
+            device = torch.device(self.para.run_config.config['device'] if torch.cuda.is_available() else "cpu")
         else:
             device = torch.device("cpu")
         dtype = torch.float
-        if 'precision' in self.para.configs:
-            if self.para.configs['precision'] == 'double':
+        if 'precision' in self.para.run_config.config:
+            if self.para.run_config.config['precision'] == 'double':
                 dtype = torch.double
                 # set the inputs in graph_data to double precision
                 self.graph_data.inputs = [x.double() for x in self.graph_data.inputs]
@@ -114,7 +114,7 @@ class ModelEvaluation:
             else:
                 last_epoch = df['Epoch'].iloc[-1]
             # if the last_epoch equals the number of epochs the run is already completed
-            if last_epoch != self.para.n_epochs:
+            if last_epoch != self.para.run_config.epochs - 1:
                 does_run_exist = False
                 print(f'The file {file_name} already exists but the run was not completed, or new parameters are used')
             else:
@@ -146,7 +146,7 @@ class ModelEvaluation:
         """
         Variable learning rate
         """
-        scheduler_on = self.para.configs['scheduler']
+        scheduler_on = self.para.run_config.config['scheduler']
         if scheduler_on:
             scheduler = StepLR(optimizer, step_size=10, gamma=0.5)
 
@@ -161,8 +161,8 @@ class ModelEvaluation:
         for epoch in range(self.para.n_epochs):
 
             # Test stopping criterion
-            if self.para.configs['early_stopping']['enabled']:
-                if epoch - best_epoch["epoch"] > self.para.configs['early_stopping']['patience']:
+            if self.para.run_config.config['early_stopping']['enabled']:
+                if epoch - best_epoch["epoch"] > self.para.run_config.config['early_stopping']['patience']:
                     if self.para.print_results:
                         print(f"Early stopping at epoch {epoch}")
                     break
@@ -180,7 +180,7 @@ class ModelEvaluation:
             """
             np.random.seed(epoch + 687497)
             np.random.shuffle(self.training_data)
-            train_batches = np.array_split(self.training_data, self.training_data.size // self.para.batch_size)
+            train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
 
             for batch_counter, batch in enumerate(train_batches, 0):
                 timer.measure("forward")
@@ -192,11 +192,11 @@ class ModelEvaluation:
                 for j, graph_id in enumerate(batch, 0):
                     net.train(True)
                     timer.measure("forward_step")
-                    if 'random_variation' in self.para.configs and self.para.configs['random_variation']:
+                    if 'random_variation' in self.para.run_config.config and self.para.run_config.config['random_variation']:
                         scale = 1.0
                         # random variation as torch tensor
                         random_variation = np.random.normal(0, scale, self.graph_data.inputs[graph_id].shape)
-                        if 'precision' in self.para.configs and self.para.configs['precision'] == 'float':
+                        if 'precision' in self.para.run_config.config and self.para.run_config.config['precision'] == 'float':
                             random_variation = torch.FloatTensor(random_variation)
                         else:
                             random_variation = torch.DoubleTensor(random_variation)
@@ -308,9 +308,9 @@ class ModelEvaluation:
                 print('Pruning')
                 # iterate over the layers of the neural net
                 for i, layer in enumerate(net.net_layers):
-                    pruning_per_layer = self.para.configs['prune']['percentage'][i]
+                    pruning_per_layer = self.para.run_config.config['prune']['percentage'][i]
                     # use total number of epochs, the epoch step and the pruning percentage
-                    pruning_per_layer /= (self.para.n_epochs / self.para.configs['prune']['epochs']) - 1
+                    pruning_per_layer /= (self.para.n_epochs / self.para.run_config.config['prune']['epochs']) - 1
 
                     # get tensor from the parameter_list layer.Param_W
                     layer_tensor = torch.abs(torch.tensor(layer.Param_W) * torch.tensor(layer.mask))
@@ -392,7 +392,7 @@ class ModelEvaluation:
                         if not os.path.exists(best_model_path):
                             os.makedirs(best_model_path)
                         # Save the model if best model is used
-                        if 'best_model' in self.para.configs and self.para.configs['best_model']:
+                        if 'best_model' in self.para.run_config.config and self.para.run_config.config['best_model']:
                             final_path = self.results_path.joinpath(f'{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
                             torch.save(net.state_dict(),final_path)
 
@@ -410,7 +410,7 @@ class ModelEvaluation:
                         if not os.path.exists(best_model_path):
                             os.makedirs(best_model_path)
                         # Save the model if best model is used
-                        if 'best_model' in self.para.configs and self.para.configs['best_model']:
+                        if 'best_model' in self.para.run_config.config and self.para.run_config.config['best_model']:
                             final_path = self.results_path.joinpath(f'{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
                             torch.save(net.state_dict(), final_path)
 
@@ -435,7 +435,7 @@ class ModelEvaluation:
             test_loss = 0
             test_mae = 0
             test_mae_std = 0
-            if 'best_model' in self.para.configs and self.para.configs['best_model']:
+            if 'best_model' in self.para.run_config.config and self.para.run_config.config['best_model']:
                 # Test accuracy
                 outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=dtype)
                 with torch.no_grad():
@@ -459,7 +459,7 @@ class ModelEvaluation:
                     labels_argmax = np_labels.argmax(axis=1)
                     outputs_argmax = np_outputs.argmax(axis=1)
                     # change if task is regression
-                    if 'task' in self.para.configs and self.para.configs['task'] == 'regression':
+                    if 'task' in self.para.run_config.config and self.para.run_config.config['task'] == 'regression':
                         np_correct = np_labels - np_outputs
                     else:
                         np_correct = labels_argmax == outputs_argmax

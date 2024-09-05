@@ -20,13 +20,14 @@ from src.utils.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
 
 class GraphDrawing:
-    def __init__(self, node_size=10.0, edge_width=1.0, edge_arrow_size=5.0, edge_color='black', edge_alpha=1, node_color='black', draw_type=None, colormap=plt.get_cmap('tab20')):
+    def __init__(self, node_size=10.0, edge_width=1.0, weight_edge_width=1.0, weight_arrow_size=5.0, edge_color='black', edge_alpha=1, node_color='black', draw_type=None, colormap=plt.get_cmap('tab20')):
         self.node_size = node_size
         self.edge_width = edge_width
+        self.weight_edge_width = weight_edge_width
         self.edge_color = edge_color
         self.edge_alpha = edge_alpha
         self.node_color = node_color
-        self.arrow_size = edge_arrow_size
+        self.arrow_size = weight_arrow_size
         self.draw_type = draw_type
         self.colormap = colormap
 
@@ -163,7 +164,7 @@ class WeightVisualization:
                 pos = nx.nx_pydot.graphviz_layout(graph)
             # keys to ints
             pos = {int(k): v for k, v in pos.items()}
-            nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[0].edge_color, width=graph_drawing[0].edge_width, alpha=graph_drawing[0].edge_alpha*0.5)
+            nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[1].edge_color, width=graph_drawing[1].edge_width, alpha=graph_drawing[1].edge_alpha*0.5)
 
         all_weights = layer.get_weights()
         bias = layer.get_bias()
@@ -204,8 +205,10 @@ class WeightVisualization:
         # normalize item number values to colormap
         norm_weight = matplotlib.colors.Normalize(vmin=weight_min, vmax=weight_max)
         norm_bias = matplotlib.colors.Normalize(vmin=bias_min, vmax=bias_max)
-        weight_colors = cmap(norm_weight(graph_weights))
-        bias_colors = cmap(norm_bias(bias_vector))
+        normed_weight = (graph_weights + (-weight_min)) / (weight_max - weight_min)
+        weight_colors = cmap(normed_weight)
+        normed_bias = (bias_vector + (-bias_min)) / (bias_max - bias_min)
+        bias_colors = cmap(normed_bias)
 
         # draw the graph
         # root node is the one with label 0
@@ -246,6 +249,17 @@ class WeightVisualization:
         for node in graph.nodes():
             digraph.add_node(node)
 
+
+
+        node_colors = []
+        node_sizes = []
+        for node in digraph.nodes():
+            node_label = layer.node_labels.node_labels[graph_id][node]
+            node_colors.append(bias_colors[node_label])
+            node_sizes.append(graph_drawing[1].node_size * abs(bias_vector[node_label]) / bias_max_abs)
+
+        nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
+
         edge_widths = []
         for entry in weight_distribution:
             i = entry[0]
@@ -258,20 +272,13 @@ class WeightVisualization:
 
         for edge in curved_edges:
             curved_edges_colors.append(weight_colors[edge[2]['weight']])
-            edge_widths.append(graph_drawing[1].edge_width * abs(weights[edge[2]['weight']]) / weight_max_abs)
+            edge_widths.append(graph_drawing[1].weight_edge_width * abs(weights[edge[2]['weight']]) / weight_max_abs)
         arc_rad = 0.25
         nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors,
                                width=edge_widths,
                                connectionstyle=f'arc3, rad = {arc_rad}', arrows=True, arrowsize=graph_drawing[1].arrow_size, node_size=graph_drawing[1].node_size)
 
-        node_colors = []
-        node_sizes = []
-        for node in digraph.nodes():
-            node_label = self.graph_data.node_labels['primary'].node_labels[graph_id][node]
-            node_colors.append(bias_colors[node_label])
-            node_sizes.append(graph_drawing[1].node_size * abs(bias_vector[node_label]) / bias_max_abs)
 
-        nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
 
 
     def visualize(self, graph_ids, run=0, validation_id=0, graph_drawing: Tuple[GraphDrawing, GraphDrawing] = None, filter_sizes = (None, 10, 3)):
@@ -372,7 +379,7 @@ class WeightVisualization:
                     # draw_graph_layer(self.graph_data, graph_id, net.lr)
                     # save the figure as pdf using latex font
                     save_path = self.out_path.joinpath(f'{self.db_name}_weights_run_{run}_val_step_{validation_id}.pdf')
-                    plt.savefig(save_path, bbox_inches='tight')
+                    plt.savefig(save_path, bbox_inches='tight', backend='pgf', dpi=600)
                     #plt.show()
             else:
                 print(f"Model {model_path} not found")
