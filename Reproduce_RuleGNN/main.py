@@ -19,8 +19,8 @@ def main():
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config.yml'))
     experiment.Preprocess()
     experiment.GridSearch()
-    experiment.RunBestModel()
     experiment.EvaluateResults()
+    experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
 if __name__ == '__main__':

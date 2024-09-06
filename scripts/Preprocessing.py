@@ -15,7 +15,7 @@ import networkx as nx
 
 
 class Preprocessing:
-    def __init__(self, db_name:str, config_file: Path, with_splits=True, data_generation=None, data_generation_args=None, create_pt_files = True):
+    def __init__(self, db_name:str, config_file: Path, with_splits=True, with_labels_and_properties=True, data_generation=None, data_generation_args=None, create_pt_files = True):
         self.db_name = db_name
         # load the config file
         self.configs = yaml.safe_load(open(config_file))
@@ -65,8 +65,9 @@ class Preprocessing:
             # generate splits
             create_splits(db_name, Path(self.configs['paths']['data']), Path(self.configs['paths']['splits']), folds=10, format='NEL')
 
-        # creates the labels and properties automatically
-        self.preprocessing_from_config()
+        if with_labels_and_properties:
+            # creates the labels and properties automatically
+            self.preprocessing_from_config()
 
 
 
