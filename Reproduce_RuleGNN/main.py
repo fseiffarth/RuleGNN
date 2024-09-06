@@ -17,9 +17,9 @@ def get_existing_splits():
 def main():
     get_existing_splits()
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config.yml'))
-    #experiment.Preprocess()
-    #experiment.GridSearch()
-    #experiment.RunBestModel()
+    experiment.Preprocess()
+    experiment.GridSearch()
+    experiment.RunBestModel()
     experiment.EvaluateResults()
     experiment.EvaluateResults(evaluate_best_model=True)
 
