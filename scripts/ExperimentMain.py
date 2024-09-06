@@ -85,9 +85,9 @@ class ExperimentMain:
             # run the best models
             # parallelize over (run_id, validation_id) pairs
             evaluation_run_number = 3
-            print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {evaluation_run_number * validation_folds}")
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
-            num_jobs = len(parallelization_pairs)
+            num_jobs = min(len(parallelization_pairs), os.cpu_count())
+            print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {num_jobs}")
             joblib.Parallel(n_jobs=num_jobs)(joblib.delayed(run_best_models)(graph_db_name=dataset['name'], run_id=run_id,
                                                                              validation_id=validation_id,
                                                                              validation_number=validation_folds,

@@ -1,2 +1,3 @@
 datasets:
   - {name: "PTC_FM", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  - {name: "PTC_FR", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}

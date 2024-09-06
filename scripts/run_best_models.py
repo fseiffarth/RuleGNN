@@ -88,7 +88,7 @@ def run_best_models(graph_db_name, run_id, validation_number, validation_id, gra
 
         run_configs = get_run_configs(configs)
         # get the best configuration and run it
-        best_config_id = model_selection_evaluation(db_name=graph_db_name,path=configs['paths']['results'], evaluation_type=evaluation_type)
+        best_config_id = model_selection_evaluation(db_name=graph_db_name,path=configs['paths']['results'], evaluation_type=evaluation_type, get_best_model=True)
         #config_id = get_best_configuration(graph_db_name, configs, evaluation_type=evaluation_type)
 
         c_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'

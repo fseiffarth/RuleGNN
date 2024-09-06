@@ -15,7 +15,7 @@ import networkx as nx
 
 
 class Preprocessing:
-    def __init__(self, db_name:str, config_file: Path, with_splits=True, data_generation=None, data_generation_args=None):
+    def __init__(self, db_name:str, config_file: Path, with_splits=True, data_generation=None, data_generation_args=None, create_pt_files = True):
         self.db_name = db_name
         # load the config file
         self.configs = yaml.safe_load(open(config_file))
@@ -56,6 +56,8 @@ class Preprocessing:
                 except:
                     print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
 
+        if create_pt_files:
+            pass # TODO: create pt files
 
         if with_splits:
             # create the splits folder if it does not exist

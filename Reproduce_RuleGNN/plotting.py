@@ -1,5 +1,4 @@
 import matplotlib.colors as mcolors
-import matplotlib.pyplot as plt
 
 from scripts.WeightVisualization import WeightVisualization, GraphDrawing
 
