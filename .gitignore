@@ -32,3 +32,5 @@ Results/
 /Competitors/GNN/Datasets/
 /Examples/Pruning/Data/
 /Examples/Transfer/Data/
+/Testing/
+/Reproduce_RuleGNN_Pruning/

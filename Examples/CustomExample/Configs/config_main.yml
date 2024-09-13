@@ -1,2 +1,13 @@
 datasets:
-  - {name: "EXAMPLE_DB", validation_folds: 10, experiment_config_file: "Examples/CustomExample/Configs/config_experiment.yml", type: "generate_from_function", generate_function: ring_diagonals, generate_function_args: {data_size: 1000, ring_size: 50}}
+  - {name: "EXAMPLE_DB", data: "Examples/CustomExample/Data/", validation_folds: 10, experiment_config_file: "Examples/CustomExample/Configs/config_experiment.yml", type: "generate_from_function", generate_function: ring_diagonals, generate_function_args: {data_size: 1000, ring_size: 50}}
+
+
+paths:
+  properties:
+    "Examples/CustomExample/Data/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Examples/CustomExample/Data/Labels/" # Path to the folder containing the labels
+  results:
+    "Examples/CustomExample/Results/" # Results will be saved in this folder
+  splits:
+    "Examples/CustomExample/Data/Splits/" # Path to the folder containing the data splits

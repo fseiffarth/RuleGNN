@@ -1,15 +1,3 @@
-paths:
-  data:
-    "Examples/CustomExample/Data/" # Path to the folder containing the graph data
-  properties:
-    "Examples/CustomExample/Data/Properties/" # Precomputed properties will be loaded from this folder
-  labels:
-    "Examples/CustomExample/Data/Labels/" # Path to the folder containing the labels
-  results:
-    "Examples/CustomExample/Results/" # Results will be saved in this folder
-  splits:
-    "Examples/CustomExample/Data/Splits/" # Path to the folder containing the data splits
-
 device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
   cpu
 mode:

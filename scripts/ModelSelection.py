@@ -131,7 +131,7 @@ def validation_step(run_id, validation_id, graph_data: GraphData.GraphData, para
     Split the data in training validation and test set
     """
     seed = 56874687 + validation_id + para.n_val_runs * run_id
-    data = Load_Splits(para.splits_path, para.db, para.configs['transfer'])
+    data = Load_Splits(para.splits_path, para.db, para.experiment_configuration['transfer'])
     test_data = np.asarray(data[0][validation_id], dtype=int)
     training_data = np.asarray(data[1][validation_id], dtype=int)
     validate_data = np.asarray(data[2][validation_id], dtype=int)

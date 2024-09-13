@@ -4,6 +4,8 @@ from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from src.utils.utils import is_pruning
+
 
 def epoch_accuracy(db_name, y_val, ids):
     if y_val == 'Train':
@@ -273,7 +275,7 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
                 f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
-def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy', print_results=False, evaluate_best_model=False, get_best_model=False) -> int:
+def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy', print_results=False, evaluate_best_model=False, get_best_model=False, experiment_config=None) -> int:
     '''
     Evaluate the model selection results for a specific database
     :param db_name: the name of the database
@@ -350,6 +352,8 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
         indices = []
         # iterate over the groups
         for name, group in groups_db:
+            if is_pruning(experiment_config):
+                group = group[group['Epoch'] >= group['Epoch'].max() - experiment_config['pruning']['pruning_step']]
             if evaluation_type == 'accuracy':
                 # get the maximum validation accuracy
                 max_val_acc = group['ValidationAccuracy'].max()
@@ -583,217 +587,3 @@ def model_selection_evaluation_mae(db_name, path:Path, ids=None):
             f" Epoch Loss: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]} "
             f" Validation Loss: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} "
             f"Test Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]}")
-
-
-def best_model_evaluation(db_name, path:Path, ids=None, evaluation_type = 'accuracy'):
-    evaluation = {}
-
-    if ids is None:
-        # get all ids
-        ids = []
-        search_path = path.joinpath(db_name).joinpath('Results')
-        for file in os.listdir(search_path):
-            if file.endswith(".txt") and "Best" in file:
-                id = int(file.split('_')[-2])
-                ids.append(id)
-        # sort the ids
-        ids.sort()
-
-    for id in ids:
-        id_str = str(id).zfill(6)
-        # load the data from Results/{db_name}/Results/{db_name}_{id_str}_Results_run_id_{run_id}.csv as a pandas dataframe for all run_ids in the directory
-        # ge all those files
-        files = []
-        network_files = []
-        search_path = path.joinpath(db_name).joinpath('Results')
-        for file in os.listdir(search_path):
-            if file.startswith(f"{db_name}_Best_Configuration_{id_str}_Results_run_id_") and file.endswith(".csv"):
-                files.append(file)
-            elif file.startswith(f"{db_name}_Best_Configuration_{id_str}_Network") and file.endswith(".txt"):
-                network_files.append(file)
-
-        df_all = None
-        for i, file in enumerate(files):
-            file_path = path.joinpath(db_name).joinpath('Results').joinpath(file)
-            df = pd.read_csv(file_path, delimiter=";")
-            # concatenate the dataframes
-            if df_all is None:
-                df_all = df
-            else:
-                df_all = pd.concat([df_all, df], ignore_index=True)
-
-        # create a new column RunNumberValidationNumber that is the concatenation of RunNumber and ValidationNumber
-        df_all['RunNumberValidationNumber'] = df_all['RunNumber'].astype(str) + df_all['ValidationNumber'].astype(str)
-
-        # group the data by RunNumberValidationNumber
-        groups = df_all.groupby('RunNumberValidationNumber')
-
-        indices = []
-        # iterate over the groups
-        for name, group in groups:
-            # if db name is zinc, look for the minimum validation loss
-            if db_name == 'ZINC_original':
-                # get row with the minimum validation loss
-                min_val_loss = group['ValidationLoss'].min()
-                max_row = group[group['ValidationLoss'] == min_val_loss]
-                max_row = max_row.iloc[-1]
-                # get the index of the row
-                index = max_row.name
-                indices.append(index)
-            else:
-                if evaluation_type == 'accuracy':
-                    # get the maximum validation accuracy
-                    max_val_acc = group['ValidationAccuracy'].max()
-                    # get the row with the maximum validation accuracy
-                    max_row = group[group['ValidationAccuracy'] == max_val_acc]
-                elif evaluation_type == 'loss':
-                    # get the minimum validation loss if column exists
-                    if 'ValidationLoss' in group.columns:
-                        max_val_acc = group['ValidationLoss'].min()
-                        max_row = group[group['ValidationLoss'] == max_val_acc]
-
-                # get row with the minimum validation loss
-                min_val_loss = max_row['ValidationLoss'].min()
-                max_row = group[group['ValidationLoss'] == min_val_loss]
-                max_row = max_row.iloc[-1]
-                # get the index of the row
-                index = max_row.name
-                indices.append(index)
-
-        # get the rows with the indices
-        df_validation = df_all.loc[indices]
-        df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
-
-        # get the average and deviation over all runs
-
-        df_validation['EpochLoss'] *= df_validation['TrainingSize']
-        df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
-        df_validation['TestAccuracy'] *= df_validation['TestSize']
-        df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
-        df_validation['ValidationLoss'] *= df_validation['ValidationSize']
-        avg = df_validation.mean(numeric_only=True)
-
-        avg['EpochLoss'] /= avg['TrainingSize']
-        avg['EpochAccuracy'] /= avg['TrainingSize']
-        avg['TestAccuracy'] /= avg['TestSize']
-        avg['ValidationAccuracy'] /= avg['ValidationSize']
-        avg['ValidationLoss'] /= avg['ValidationSize']
-
-        std = df_validation.std(numeric_only=True)
-        std['EpochLoss'] /= avg['TrainingSize']
-        std['EpochAccuracy'] /= avg['TrainingSize']
-        std['TestAccuracy'] /= avg['TestSize']
-        std['ValidationAccuracy'] /= avg['ValidationSize']
-        std['ValidationLoss'] /= avg['ValidationSize']
-
-        # print the avg and std achieved by the highest validation accuracy
-        print(f"Id: {id} "
-                f"Average Training Accuracy: {avg['EpochAccuracy']} +/- {std['EpochAccuracy']} "
-              f"Average Validation Accuracy: {avg['ValidationAccuracy']} +/- {std['ValidationAccuracy']}"
-              f"Average Test Accuracy: {avg['TestAccuracy']} +/- {std['TestAccuracy']}")
-
-
-        evaluation[id] = [avg['TestAccuracy'], std['TestAccuracy'], avg['ValidationAccuracy'],
-                              std['ValidationAccuracy'],
-                              avg['ValidationLoss'], std['ValidationLoss']]
-
-
-    # print all evaluation items start with id and network then validation and test accuracy
-    # round all floats to 2 decimal places
-    for key, value in evaluation.items():
-        value[0] = round(value[0], 4)
-        value[1] = round(value[1], 4)
-        value[2] = round(value[2], 4)
-        value[3] = round(value[3], 4)
-        value[4] = round(value[4], 4)
-        value[5] = round(value[5], 4)
-        #print(f"{value[4]} Validation Accuracy: {value[2]} +/- {value[3]} Test Accuracy: {value[0]} +/- {value[1]}")
-
-    # print the evaluation items with the k highest validation accuracies
-    k = 10
-    if evaluation_type == 'accuracy':
-        sorted_key = 2
-        reversed_sort = True
-    elif evaluation_type == 'loss':
-        sorted_key = 4
-        reversed_sort = False
-    print(f"Top {k} Validation Accuracies for {db_name}")
-    sorted_evaluation = sorted(evaluation.items(), key=lambda x: x[1][sorted_key], reverse=reversed_sort)
-
-    # write results to file called summary_best_model.csv
-    summary_path = path.joinpath(db_name).joinpath('summary_best_model.csv')
-    with open(summary_path, 'w') as f:
-        f.write('Id, Test Accuracy, Test Accuracy Std, Validation Accuracy, Validation Accuracy Std, Validation Loss, Validation Loss Std\n')
-        for i in range(min(k, len(sorted_evaluation))):
-            sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sorted_key], reverse=reversed_sort)
-            f.write(f"{sorted_evaluation[i][0]}, {sorted_evaluation[i][1][0]}, {sorted_evaluation[i][1][1]}, {sorted_evaluation[i][1][2]}, {sorted_evaluation[i][1][3]}, {sorted_evaluation[i][1][4]}, {sorted_evaluation[i][1][5]}\n")
-
-    for i in range(min(k, len(sorted_evaluation))):
-        sorted_evaluation = sorted(sorted_evaluation, key=lambda x: x[1][sorted_key], reverse=reversed_sort)
-        print(
-            f"Id: {sorted_evaluation[i][0]} "
-            f'Epoch Accuracy: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} '
-            f"Epoch Loss: Validation Loss: {sorted_evaluation[i][1][4]} +/- {sorted_evaluation[i][1][5]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
-
-
-def main():
-    #model_selection_evaluation_mae(db_name='ZINC', path='TEST')
-    model_selection_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/share/experiments/rulegnn/test/', evaluation_type='loss')
-    best_model_evaluation(db_name='IMDB-BINARY', path='/home/mlai21/share/experiments/rulegnn/test/', evaluation_type='loss')
-    #model_selection_evaluation(db_name='Mutagenicity', path='/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/')
-    #best_model_evaluation(db_name='Mutagenicity', path='/home/mlai21/seiffart/RESULTS/RuleGNN/FINAL/', evaluation_type='loss')
-    #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper_Reproduced')
-    #model_selection_evaluation(db_name='Mutagenicity', path='Results_Paper')
-    #ids = [i for i in range(0, 51)]
-    #final_evaluation(db_name='MUTAG', ids=ids)
-
-    #model_selection_evaluation(db_name='IMDB-BINARY', path='RESULTS')
-    #best_model_evaluation(db_name='IMDB-BINARY', path='RESULTS')
-
-    #model_selection_evaluation(db_name='IMDB-MULTI', path='RESULTS')
-    #best_model_evaluation(db_name='IMDB-MULTI', path='RESULTS')
-
-
-    #model_selection_evaluation(db_name='MUTAG', path='TEMP')
-    #best_model_evaluation(db_name='DHFR', path='Results_Paper')
-
-
-
-    # Testing with MUTAG
-    # ids = [i for i in range(7, 145)]
-    # print_ids = [i for i in range(137, 150)]
-    # evaluateGraphLearningNN(db_name='MUTAG', ids=ids)
-    # evaluateGraphLearningNN(db_name='MUTAG', ids=print_ids)
-    # epoch_accuracy(db_name='MUTAG', y_val='Train', ids=print_ids)
-    # epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=print_ids)
-    # epoch_accuracy(db_name='MUTAG', y_val='Test', ids=print_ids)
-
-    # epoch_accuracy(db_name='MUTAG', y_val='Train', ids=ids)
-    # epoch_accuracy(db_name='MUTAG', y_val='Validation', ids=ids)
-    # epoch_accuracy(db_name='MUTAG', y_val='Test', ids=ids)
-    #
-    # evaluateGraphLearningNN(db_name='DD', ids=[1])
-    # evaluateGraphLearningNN(db_name='SYNTHETICnew', ids=[1,2,3])
-    # evaluateGraphLearningNN(db_name='NCI109', ids=[1,2,3])
-    # evaluateGraphLearningNN(db_name='Mutagenicity', ids=[2,3,4])
-    # evaluateGraphLearningNN(db_name='DHFR', ids=[1,2,3])
-    #
-    # evaluateGraphLearningNN(db_name='DHFR', ids=[1] + [i for i in range(4, 27)])
-    # evaluateGraphLearningNN(db_name='NCI1', ids=[i for i in range(4,23)] + [i for i in range(24, 26)] + [i for i in range(106, 117)])
-    # evaluateGraphLearningNN(db_name='ENZYMES', ids=[1])
-    # evaluateGraphLearningNN(db_name='PROTEINS', ids=[1])
-    # evaluateGraphLearningNN(db_name='IMDB-BINARY', ids=[1])
-    # evaluateGraphLearningNN(db_name='IMDB-MULTI', ids=[1,2,3])
-    # epoch_accuracy(db_name='DHFR', y_val='Train', ids=[12,13,20,1,10,7,24,9,11,25])
-    # epoch_accuracy(db_name='NCI1', y_val='Test', ids=[10,24,116,4,8,9,114,110,107,25])
-    # epoch_accuracy(db_name='ENZYMES', y_val='Train', ids=[1])
-    # epoch_accuracy(db_name='PROTEINS', y_val='Train', ids=[1])
-    # epoch_accuracy(db_name='IMDB-BINARY', y_val='Train', ids=[1])
-    # epoch_accuracy(db_name='ENZYMES', y_val='Test', ids=[1])
-    # epoch_accuracy(db_name='PROTEINS', y_val='Test', ids=[1])
-    # epoch_accuracy(db_name='IMDB-BINARY', y_val='Test', ids=[1])
-    # epoch_accuracy(db_name='IMDB-MULTI', y_val='Test', ids=[1])
-
-
-if __name__ == "__main__":
-    main()

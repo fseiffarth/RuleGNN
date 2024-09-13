@@ -287,6 +287,24 @@ class RuleConvolutionLayer(nn.Module):
         for x in self.Param_b:
             print("\t", x.data)
 
+    def print_all(self):
+        # print the layer name
+        print("Layer: ", self.name)
+        print("\tLearnable Weights:")
+        # print non-zero/total parameters
+        num_params = self.Param_W.numel()
+        num_non_zero_params = torch.nonzero(self.Param_W).size(0)
+        print(f"\t\tNon-zero parameters: {num_non_zero_params}/{num_params}")
+        # print relative number of non-zero parameters
+        print(f"\t\tRelative non-zero parameters: {num_non_zero_params / num_params * 100:.2f}%")
+        # print the bias parameters
+        print("\tLearnable Bias:")
+        num_params = self.Param_b.numel()
+        num_non_zero_params = torch.nonzero(self.Param_b).size(0)
+        print(f"\t\tNon-zero parameters: {num_non_zero_params}/{num_params}")
+        print(f"\t\tRelative non-zero parameters: {num_non_zero_params / num_params * 100:.2f}%")
+
+
     def forward(self, x, pos):
         x = x.view(-1)
         # print(x.size()[0])
@@ -429,6 +447,24 @@ class RuleAggregationLayer(nn.Module):
         print("Bias of the Resize layer")
         for x in self.Param_b:
             print("\t", x.data)
+
+
+    def print_all(self):
+        # print the layer name
+        print("Layer: ", self.name)
+        print("\tLearnable Weights:")
+        # print non-zero/total parameters
+        num_params = self.Param_W.numel()
+        num_non_zero_params = torch.nonzero(self.Param_W).size(0)
+        print(f"\t\tNon-zero parameters: {num_non_zero_params}/{num_params}")
+        # print relative number of non-zero parameters
+        print(f"\t\tRelative non-zero parameters: {num_non_zero_params / num_params * 100:.2f}%")
+        # print the bias parameters
+        print("\tLearnable Bias:")
+        num_params = self.Param_b.numel()
+        num_non_zero_params = torch.nonzero(self.Param_b).size(0)
+        print(f"\t\tNon-zero parameters: {num_non_zero_params}/{num_params}")
+        print(f"\t\tRelative non-zero parameters: {num_non_zero_params / num_params * 100:.2f}%")
 
     def forward(self, x, pos):
         x = x.view(-1)

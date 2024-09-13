@@ -192,11 +192,11 @@ class ModelEvaluation:
                 for j, graph_id in enumerate(batch, 0):
                     net.train(True)
                     timer.measure("forward_step")
-                    if 'random_variation' in self.para.run_config.config and self.para.run_config.config['random_variation']:
+                    if self.para.run_config.config.get('random_variation', False):
                         scale = 1.0
                         # random variation as torch tensor
-                        random_variation = np.random.normal(0, scale, self.graph_data.inputs[graph_id].shape)
-                        if 'precision' in self.para.run_config.config and self.para.run_config.config['precision'] == 'float':
+                        random_variation = np.random.normal(1.0, scale, self.graph_data.inputs[graph_id].shape)
+                        if self.para.run_config.config.get('precision', 'double') == 'float':
                             random_variation = torch.FloatTensor(random_variation)
                         else:
                             random_variation = torch.DoubleTensor(random_variation)
@@ -341,10 +341,10 @@ class ModelEvaluation:
 
                     # print number of non zero entries in layer.Param_W
                     print(f'Number of non zero entries in layer after pruning {layer.name}: {torch.count_nonzero(layer.Param_W)}')
-            if is_pruning(self.para):
+            if is_pruning(self.para.run_config.config):
                 for i, layer in enumerate(net.net_layers):
                     # get tensor from the parameter_list layer.Param_W
-                    layer_tensor = torch.abs(torch.tensor(layer.Param_W) * torch.tensor(layer.mask))
+                    layer_tensor = torch.abs(torch.tensor(layer.Param_W).clone().detach() * torch.tensor(layer.mask))
                     # print number of non zero entries in layer_tensor
                     print(f'Number of non zero entries in layer {layer.name}: {torch.count_nonzero(layer_tensor)}/{torch.numel(layer_tensor)}')
 
@@ -398,6 +398,7 @@ class ModelEvaluation:
 
 
                 else:
+                    # check if pruning is on, then save the best model in the last pruning epoch
                     if (validation_acc > best_epoch["val_acc"] or validation_acc == best_epoch[
                         "val_acc"] and validation_loss < best_epoch["val_loss"]) or valid_pruning_configuration(self.para, epoch):
                         best_epoch["epoch"] = epoch

@@ -213,10 +213,12 @@ def valid_pruning_configuration(para: Parameters.Parameters, epoch: int) -> bool
     return False
 
 
-def is_pruning(para: Parameters.Parameters) -> bool:
-    if 'prune' in para.run_config.config and 'enabled' in para.run_config.config['prune'] and para.run_config.config['prune']['enabled']:
+def is_pruning(config:None) -> bool:
+    if 'prune' in config and 'enabled' in config['prune'] and config['prune']['enabled']:
         return True
     return False
+
+
 
 
 def reshape_indices(a, b):
