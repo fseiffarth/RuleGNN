@@ -1,5 +1,3 @@
-from sympy.physics.control.control_plots import matplotlibfrom numpy.matrixlib.defmatrix import matrixfrom networkx import max_flow_min_costfrom distutils.command.install import main_key
-
 # RuleGNN
 
 This repository contains the code for experiments with RuleGNNs as described in the paper [Rule Based Learning with Dynamic (Graph) Neural Networks](https://arxiv.org/abs/2406.09954).
@@ -23,6 +21,7 @@ Then, we explain how to use RuleGNNs for [custom datasets](#Customize-Experiment
 
 ## Reproduce RuleGNN Experiments
 To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
+The experiments take approximately 2 days on an AMD Ryzen 9 7950X with 16 cores and 32 threads and 128 GB of RAM.
 
 
 1. Run the script [Reproduce_RuleGNN/main.py](Reproduce_RuleGNN/main.py) to reproduce the experiments of the paper. This will:
@@ -90,14 +89,27 @@ The file should look like this:
 ```yaml
 datasets:
   # in case of a given generation function called ring_diagonals in this case
-  - {name: "EXAMPLE_DB", validation_folds: 10, experiment_config_file: "Examples/CustomExample/Configs/config_experiment.yml", type: "generate_from_function", generate_function: ring_diagonals, generate_function_args: {data_size: 1000, ring_size: 50}}
+  - {name: "EXAMPLE_DB", data: "Examples/CustomExample/Data/SyntheticDatasets/", validation_folds: 10, experiment_config_file: "Examples/CustomExample/Configs/config_experiment.yml", type: "generate_from_function", generate_function: ring_diagonals, generate_function_args: {data_size: 1000, ring_size: 50}}
   # in case of a dataset from the TU Dortmund Benchmark
-  - {name: "PTC_FM", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  - {name: "PTC_FM", data: "Reproduce_RuleGNN/Data/TUDatasets/",, validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
   # in case of a dataset in the correct format (the path to the data is given in the experiment config file)
-  - {name: "CSL", validation_folds: 5, experiment_config_file: "Reproduce_RuleGNN/Configs/config_CSL.yml"}
+  - {name: "CSL",data: "Reproduce_RuleGNN/Data/SyntheticDatasets/", validation_folds: 5, experiment_config_file: "Reproduce_RuleGNN/Configs/config_CSL.yml"}
+
+paths:
+  # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
+  properties:
+    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
+  splits:
+    "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
+  results:
+    "Reproduce_RuleGNN/Results/" # Results will be saved in this folder
+
 ```
 The following keys are used:
 - ```name```: the name of the dataset
+- ```data```: the path to the folder containing the graph data or where the data will be saved if generated or downloaded
 - ```validation_folds```: the number of splits used for validation
 - ```experiment_config_file```: the path to the experiment config file
 - ```type``` (optional): the type of the dataset, if not given the dataset is assumed to be in the correct format in the path given in the experiment config file, if given it should be one of the following:
@@ -105,6 +117,10 @@ The following keys are used:
   - ```TUDataset```: the dataset is from the TU Dortmund Benchmark
 - ```generate_function``` (optional): the name of the function used to generate the dataset if the type is ```generate_from_function```
 - ```generate_function_args``` (optional): the arguments of the function used to generate the dataset as a dictionary if the type is ```generate_from_function```
+
+The paths key defines where to save the precomputed properties, labels, splits, and results. 
+If not given, the paths are assumed to be in the path given in the experiment config file.
+
 ### Experiment Config File
 
 The experiment config file defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.).
@@ -201,12 +217,12 @@ save_last:
   False
 ```
 The current available keys are:
-- ```paths```: the paths to the data, properties, labels, results, and splits
- - ```data```: the path to the folder containing the graph data or where the data will be saved if generated or downloaded
- - ```properties```: the path to the folder containing the precomputed properties
- - ```labels```: the path to the folder containing the labels
- - ```results```: the path to the folder where the results will be saved
- - ```splits```: the path to the folder containing the data splits
+- ```paths```: [optional] will overwrite the paths in the main config, the paths to the data, properties, labels, results, and splits
+  - ```data```: the path to the folder containing the graph data or where the data will be saved if generated or downloaded
+  - ```properties```: the path to the folder containing the precomputed properties
+  - ```labels```: the path to the folder containing the labels
+  - ```splits```: the path to the folder containing the data splits  
+  - ```results```: the path to the folder where the results will be saved
 - ```device```: the device used for training, either 'cpu' or 'cuda' (recommended: 'cpu')
 - ```mode```: the mode of the experiment, either 'experiments' or 'debug' (recommended: 'experiments' for experiments and 'debug' for debugging)
 - ```batch_size```: the batch size used for training
@@ -265,6 +281,11 @@ The graph dataset is represented using three files:
 
 ## Layers
 At the moment, the following layers are implemented:
+- Primary-Layer
+  ```yaml
+  - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
+  ```
+  The primary layer uses the initial node labels.
 - WL-Layer
   ```yaml
   - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [1] }}
