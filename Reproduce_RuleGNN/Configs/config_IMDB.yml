@@ -1,15 +1,3 @@
-paths:
-  # all the paths are relative to the PYTHONPATH path
-  data:
-    "Reproduce_RuleGNN/Data/TUDatasets/" # Path to the folder containing the graph data
-  properties:
-    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
-  labels:
-    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
-  results:
-    "Reproduce_RuleGNN/Results/" # Results will be saved in this folder
-  splits:
-    "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
 device:
   cpu
 mode:
