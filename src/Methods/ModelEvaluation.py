@@ -85,7 +85,11 @@ class ModelEvaluation:
                                f"Balanced data: {self.para.balance_data}\n"
                                f"Number of epochs: {self.para.n_epochs}\n")
                 # iterate over the layers of the neural net
+                total_trainable_parameters = 0
                 for layer in net.net_layers:
+                    file_obj.write(f"\n")
+                    file_obj.write(f"Layer: {layer.name}\n")
+                    file_obj.write(f"\n")
                     # get number of trainable parameters
                     layer_params = sum(p.numel() for p in layer.parameters() if p.requires_grad)
                     file_obj.write(f"Trainable Parameters: {layer_params}\n")
@@ -95,12 +99,37 @@ class ModelEvaluation:
                     except:
                         pass
                     try:
+                        layer.n_properties
+                        file_obj.write(f"Number of pairwise properties: {layer.n_properties}\n")
+                    except:
+                        pass
+                    number_of_learnable_parameters = 0
+                    try:
+                        layer.Param_W
+                        if layer.Param_W.requires_grad:
+                            total_trainable_parameters += layer.Param_W.numel()
+                            number_of_learnable_parameters += layer.Param_W.numel()
+                    except:
+                        pass
+                    try:
+                        layer.Param_B
+                        if layer.Param_B.requires_grad:
+                            total_trainable_parameters += layer.Param_B.numel()
+                            number_of_learnable_parameters += layer.Param_B.numel()
+                    except:
+                        pass
+
+                    file_obj.write("Number of learnable parameters: {}\n".format(number_of_learnable_parameters))
+                    try:
                         layer.edge_labels
                         file_obj.write(f"Edge labels: {layer.edge_labels.num_unique_edge_labels}\n")
                     except:
                         pass
                 for name, param in net.named_parameters():
                     file_obj.write(f"Layer: {name} -> {param.requires_grad}\n")
+
+                file_obj.write(f"\n")
+                file_obj.write(f"Total trainable parameters: {total_trainable_parameters}\n")
 
         file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
 

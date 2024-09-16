@@ -175,10 +175,11 @@ class RuleConvolutionLayer(nn.Module):
             self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape(
                 (self.in_features, self.in_features, self.n_kernels, self.n_node_labels, self.n_node_labels, self.n_properties))
 
-        # Determine the number of different learnable parameters in the bias vector
-        self.bias_num = self.in_features * self.n_kernels * self.n_node_labels
-        self.bias_map = np.arange(self.bias_num, dtype=np.int64).reshape(
-            (self.in_features, self.n_kernels, self.n_node_labels))
+        if self.bias:
+            # Determine the number of different learnable parameters in the bias vector
+            self.bias_num = self.in_features * self.n_kernels * self.n_node_labels
+            self.bias_map = np.arange(self.bias_num, dtype=np.int64).reshape(
+                (self.in_features, self.n_kernels, self.n_node_labels))
 
         # calculate the range for the weights using the number of weights
         lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
@@ -188,8 +189,9 @@ class RuleConvolutionLayer(nn.Module):
         # Initialize the weight matrix with random values between lower and upper
         weight_data = lower + torch.randn(self.weight_num, dtype=self.precision) * (upper - lower)
         self.Param_W = nn.Parameter(weight_data, requires_grad=True)
-        bias_data = lower + torch.randn(self.bias_num, dtype=self.precision) * (upper - lower)
-        self.Param_b = nn.Parameter(bias_data, requires_grad=True)
+        if self.bias:
+            bias_data = lower + torch.randn(self.bias_num, dtype=self.precision) * (upper - lower)
+            self.Param_b = nn.Parameter(bias_data, requires_grad=True)
 
         # in case of pruning is turned on, save the original weights
         self.Param_W_original = None
@@ -238,20 +240,21 @@ class RuleConvolutionLayer(nn.Module):
 
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
-            graph_bias_pos_distribution = []
-            out_size = node_number * self.in_features * self.n_kernels
+            if self.bias:
+                graph_bias_pos_distribution = []
+                out_size = node_number * self.in_features * self.n_kernels
 
-            in_high_dim = np.zeros(shape=(self.in_features, self.n_kernels, node_number))
-            out_low_dim = np.zeros(shape=(out_size,))
-            index_map = reshape_indices(in_high_dim, out_low_dim)
-            for i1 in range(0, self.in_features):  # not used at the moment
-                for k in range(0, self.n_kernels):  # not used at the moment
-                    for v in range(0, node_number):
-                        v_label = self.node_labels.node_labels[graph_id][v]
-                        bias_index = index_map[(i1, k, v)][0]
-                        weight_pos = self.bias_map[i1][k][int(v_label)]
-                        graph_bias_pos_distribution.append([bias_index, weight_pos])
-            self.bias_distribution.append(np.array(graph_bias_pos_distribution, dtype=np.int64))
+                in_high_dim = np.zeros(shape=(self.in_features, self.n_kernels, node_number))
+                out_low_dim = np.zeros(shape=(out_size,))
+                index_map = reshape_indices(in_high_dim, out_low_dim)
+                for i1 in range(0, self.in_features):  # not used at the moment
+                    for k in range(0, self.n_kernels):  # not used at the moment
+                        for v in range(0, node_number):
+                            v_label = self.node_labels.node_labels[graph_id][v]
+                            bias_index = index_map[(i1, k, v)][0]
+                            weight_pos = self.bias_map[i1][k][int(v_label)]
+                            graph_bias_pos_distribution.append([bias_index, weight_pos])
+                self.bias_distribution.append(np.array(graph_bias_pos_distribution, dtype=np.int64))
 
         self.forward_step_time = 0
 
@@ -311,12 +314,13 @@ class RuleConvolutionLayer(nn.Module):
         begin = time.time()
         # set the weights
         self.set_weights(x.size()[0], pos)
-        self.set_bias(x.size()[0], pos)
-        self.forward_step_time += time.time() - begin
         if self.bias:
-            return torch.matmul(self.current_W, x) + self.current_B
+            self.set_bias(x.size()[0], pos)
+            self.forward_step_time += time.time() - begin
+            return self.current_W@x + self.current_B
         else:
-            return torch.mv(self.current_W, x)
+            self.forward_step_time += time.time() - begin
+            return self.current_W@x
 
     def get_weights(self):
         return [x.item() for x in self.Param_W]
@@ -474,9 +478,9 @@ class RuleAggregationLayer(nn.Module):
         self.forward_step_time += time.time() - begin
 
         if self.bias:
-            return torch.mv(self.current_W, x) + self.Param_b
+            return self.current_W@x + self.Param_b
         else:
-            return torch.mv(self.current_W, x)
+            return self.current_W@x
 
         # if self.bias:
         #     return torch.mv(self.weight_matrices[pos], x) + self.Param_b.to("cpu")

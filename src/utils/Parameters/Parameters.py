@@ -36,8 +36,6 @@ class Parameters(object):
         self.n_val_runs = 10
         self.validation_id = 0
         self.balance_data = False
-        self.convolution_grad = True
-        self.resize_grad = True
         """
         Evaluation hyper parameters
         """

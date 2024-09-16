@@ -13,3 +13,11 @@ paths:
     "Examples/TUExample/Results/" # Results will be saved in this folder
   splits:
     "Examples/TUExample/Data/Splits/" # Path to the folder containing the data splits
+
+bias:
+    True
+
+convolution_grad:
+    True
+aggregation_grad:
+    True
