@@ -16,8 +16,9 @@ from src.utils.utils import convert_to_list
 
 def write_distance_properties(data_path: Path, db_name: str, cutoff=None, out_path: Path = Path(), data_format=None, save_times=None) -> None:
     out = out_path.joinpath(f"{db_name}_distances.prop")
-    # check if the file already exists and if not create it
-    if not os.path.exists(out):
+    out_yml = out_path.joinpath(f"{db_name}_distances.yml")
+    # check if the files already exists and if not create it
+    if not os.path.exists(out) or not os.path.exists(out_yml):
         start_time = time.time()
         graph_data = get_graph_data(db_name=db_name, data_path=data_path, data_format=data_format)
         distances = []
@@ -53,10 +54,11 @@ def write_distance_properties(data_path: Path, db_name: str, cutoff=None, out_pa
         print(f"File {out} already exists. Skipping.")
 
 
-def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out_path="", data_format=None, save_times=None) -> None:
+def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out_path:Path = Path(), data_format=None, save_times=None) -> None:
     out = out_path.joinpath(f"{db_name}_circle_distances.prop")
+    out_yml = out_path.joinpath(f"{db_name}_circle_distances.yml")
     # check if the file already exists and if not create it
-    if not os.path.exists(out):
+    if not os.path.exists(out) or not os.path.exists(out_yml):
         graph_data = get_graph_data(db_name=db_name, data_path=data_path, data_format=data_format)
         distances = []
         circle_labels = load_labels(f"{label_path}{db_name}_cycles_20_labels.txt")
@@ -126,10 +128,11 @@ def write_distance_circle_properties(data_path, label_path, db_name, cutoff, out
 
 
 
-def write_distance_edge_properties(data_path: Path, db_name: str, out_path="", cutoff=None, data_format=None, save_times=None) -> None:
+def write_distance_edge_properties(data_path: Path, db_name: str, out_path:Path = Path(), cutoff=None, data_format=None, save_times=None) -> None:
     out = out_path.joinpath(f"{db_name}_edge_label_distances.prop")
+    out_yml = out_path.joinpath(f"{db_name}_edge_label_distances.yml")
     # check if the file already exists and if not create it
-    if not os.path.exists(out):
+    if not os.path.exists(out) or not os.path.exists(out_yml):
         graph_data = get_graph_data(db_name=db_name, data_path=data_path, use_features=True, data_format=data_format)
         distances = []
         valid_properties = set()
