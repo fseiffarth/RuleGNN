@@ -54,6 +54,10 @@ class ExperimentMain:
             experiment_configuration['paths'] = paths
             # paths to Path objects
             config_paths_to_absolute(experiment_configuration, Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
+            # update the experiment configuration with the global keys
+            for key in self.main_config:
+                if key not in experiment_configuration and key != 'datasets':
+                    experiment_configuration[key] = self.main_config[key]
 
 
             for run_id in range(num_runs):
@@ -87,6 +91,11 @@ class ExperimentMain:
             # paths to Path objects
             config_paths_to_absolute(experiment_configuration, Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
 
+            # update the experiment configuration with the global keys
+            for key in self.main_config:
+                if key not in experiment_configuration and key != 'datasets':
+                    experiment_configuration[key] = self.main_config[key]
+
             model_selection_evaluation(dataset['name'], Path(experiment_configuration['paths']['results']), evaluation_type=evaluation_type, evaluate_best_model=evaluate_best_model,experiment_config=experiment_configuration)
 
     def RunBestModel(self, dataset_names=None):
@@ -115,6 +124,11 @@ class ExperimentMain:
             experiment_configuration['paths'] = paths
             # paths to Path objects
             config_paths_to_absolute(experiment_configuration, Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
+
+            # update the experiment configuration with the global keys
+            for key in self.main_config:
+                if key not in experiment_configuration and key != 'datasets':
+                    experiment_configuration[key] = self.main_config[key]
 
 
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
