@@ -1,16 +1,8 @@
 Results/
-/Rest/
 *.pkl
 /gnn-comparison/
-/tmp/RESULTS/
-/Data/BenchmarkGraphs/ZINC_original/
 /Results_Paper/
-/tmp/TEMP/
-/tmp/TEST/
-/Data/Properties/Data/
-/Data/Properties/
 /src/Competitors/Results/
-/Data/Featured/
 /src/Competitors/GNN/Results/
 /src/Competitors/GNN/Datasets/
 *.idea
@@ -21,7 +13,6 @@ Results/
 /Reproduce_RuleGNN/Data/TUDatasets/
 /Reproduce_RuleGNN/Data/generation_times_labels.txt
 /Reproduce_RuleGNN/Data/generation_times_properties.txt
-/Data/tmp/
 /Examples/CustomExample/Data/
 /Examples/CustomExample/Results/
 /Examples/TUExample/Data/
@@ -34,3 +25,8 @@ Results/
 /Examples/Transfer/Data/
 /Testing/
 /Reproduce_RuleGNN_Pruning/
+/Reproduce_RuleGNN_Random_Primary/
+/Reproduce_RuleGNN_EdgeLabels/
+# ignore everything in the Data folder except the Splits folder
+/Data/*
+!/Data/Splits/
