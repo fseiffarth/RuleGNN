@@ -1,7 +1,7 @@
-datasets:
+datasets: #TODO: repair broken NCI109
   # real-world datasets
   - {name: "NCI1", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
-  - {name: "NCI109", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+#  - {name: "NCI109", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
   - {name: "IMDB-BINARY", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
   - {name: "IMDB-MULTI", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
 
