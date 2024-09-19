@@ -275,7 +275,7 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
                 f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
-def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy', print_results=False, evaluate_best_model=False, get_best_model=False, experiment_config=None) -> int:
+def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy', print_results=False, evaluate_best_model=False, get_best_model=False, evaluate_validation_only=False, experiment_config=None) -> int:
     '''
     Evaluate the model selection results for a specific database
     :param db_name: the name of the database
@@ -283,6 +283,7 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
     :param evaluation_type: the evaluation type, either 'accuracy' or 'loss'
     :param print_results: print the results to the console
     :param evaluate_best_model: evaluate the best model
+    :param evaluate_validation_only: evaluate only the validation set (get the mean best epoch accuracy and the std)
     :return: the configuration id of the model with the overall best validation accuracy (+ minimum validation loss)
 
     '''
@@ -320,6 +321,10 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
         db = None
         # get all run ids from search path
         search_path = path.joinpath(db_name).joinpath('Results')
+        # check if path exists
+        if not search_path.exists():
+            print(f"Path {search_path} does not exist")
+            return 0
         for file in os.listdir(search_path):
             if file.find('run_id') != -1 and file.find('validation_step') != -1 and file.endswith(".csv"):
                 df_local = pd.read_csv(search_path.joinpath(file), delimiter=";")
@@ -338,106 +343,141 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
                             db = pd.concat([db, df_local], ignore_index=True)
         # group by ConfigurationId and RunNumber
         groups_db = None
-        if db is not None:
-            groups_db = db.groupby(['ConfigurationId', 'RunNumber', 'ValidationNumber'])
+        if evaluate_validation_only:
+            with open(path.joinpath(db_name).joinpath('summary_sota.csv'), 'w') as f:
+                f.write(
+                    'ConfigurationId,RunId,Epoch,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std\n')
+            groups_db = db.groupby(['ConfigurationId', 'RunNumber'])
+            for name, group in groups_db:
+                # merge all rows with the same Epoch and get the mean resp. std (do not remove Epoch column)
+                mean_group = group.groupby('Epoch').mean(numeric_only=True).reset_index()
+                std_group = group.groupby('Epoch').std(numeric_only=True).reset_index()
+                if evaluation_type == 'accuracy':
+                    # get the maximum validation accuracy
+                    max_val_acc = mean_group['ValidationAccuracy'].max()
+                    # get the row with the maximum validation accuracy
+                    max_row = mean_group[mean_group['ValidationAccuracy'] == max_val_acc]
+
+                elif evaluation_type == 'loss':
+                    # get the minimum validation loss if column exists
+                    if 'ValidationLoss' in mean_group.columns:
+                        max_val_acc = mean_group['ValidationLoss'].min()
+                        max_row = mean_group[mean_group['ValidationLoss'] == max_val_acc]
+                else:
+                    raise ValueError(f"evaluation_type {evaluation_type} not supported. Please use 'accuracy' or 'loss'")
+
+                # get row with the minimum validation loss
+                min_val_loss = max_row['ValidationLoss'].min()
+                max_row = max_row[max_row['ValidationLoss'] == min_val_loss]
+                # get the maximum epoch of the series max_row
+                max_epoch = max_row['Epoch'].max()
+                max_mean = mean_group[mean_group['Epoch'] == max_epoch].iloc[-1]
+                max_std = std_group[std_group['Epoch'] == max_epoch].iloc[-1]
+
+                # write the results to summary_sota.csv using the
+                with open(path.joinpath(db_name).joinpath('summary_sota.csv'), 'a') as f:
+                    f.write(f"{int(max_mean['ConfigurationId'])},{int(max_mean['RunNumber'])},{int(max_mean['Epoch'])},{max_mean['EpochAccuracy']},{max_std['EpochAccuracy']},{max_mean['EpochLoss']},{max_std['EpochLoss']},{max_mean['ValidationAccuracy']},{max_std['ValidationAccuracy']},{max_mean['ValidationLoss']},{max_std['ValidationLoss']}\n")
+
         else:
-            if evaluate_best_model:
-                print(f"No files found for {db_name} with Best_Configuration")
+            if db is not None:
+                groups_db = db.groupby(['ConfigurationId', 'RunNumber', 'ValidationNumber'])
             else:
-                print(f"No files found for {db_name}")
-                return
+                if evaluate_best_model:
+                    print(f"No files found for {db_name} with Best_Configuration")
+                else:
+                    print(f"No files found for {db_name}")
+                    return
 
 
 
-        indices = []
-        # iterate over the groups
-        for name, group in groups_db:
-            if is_pruning(experiment_config):
-                group = group[group['Epoch'] >= group['Epoch'].max() - experiment_config['pruning']['pruning_step']]
-            if evaluation_type == 'accuracy':
-                # get the maximum validation accuracy
-                max_val_acc = group['ValidationAccuracy'].max()
-                # get the row with the maximum validation accuracy
-                max_row = group[group['ValidationAccuracy'] == max_val_acc]
-            elif evaluation_type == 'loss':
-                # get the minimum validation loss if column exists
-                if 'ValidationLoss' in group.columns:
-                    max_val_acc = group['ValidationLoss'].min()
-                    max_row = group[group['ValidationLoss'] == max_val_acc]
+            indices = []
+            # iterate over the groups
+            for name, group in groups_db:
+                if is_pruning(experiment_config):
+                    group = group[group['Epoch'] >= group['Epoch'].max() - experiment_config['pruning']['pruning_step']]
+                if evaluation_type == 'accuracy':
+                    # get the maximum validation accuracy
+                    max_val_acc = group['ValidationAccuracy'].max()
+                    # get the row with the maximum validation accuracy
+                    max_row = group[group['ValidationAccuracy'] == max_val_acc]
+                elif evaluation_type == 'loss':
+                    # get the minimum validation loss if column exists
+                    if 'ValidationLoss' in group.columns:
+                        max_val_acc = group['ValidationLoss'].min()
+                        max_row = group[group['ValidationLoss'] == max_val_acc]
 
-            # get row with the minimum validation loss
-            min_val_loss = max_row['ValidationLoss'].min()
-            max_row = group[group['ValidationLoss'] == min_val_loss]
-            max_row = max_row.iloc[-1]
-            # get the index of the row
-            index = max_row.name
-            indices.append(index)
+                # get row with the minimum validation loss
+                min_val_loss = max_row['ValidationLoss'].min()
+                max_row = group[group['ValidationLoss'] == min_val_loss]
+                max_row = max_row.iloc[-1]
+                # get the index of the row
+                index = max_row.name
+                indices.append(index)
 
-        # get the rows with the indices
-        df_validation = db.loc[indices]
-        # split into groups by ConfigurationId and RunNumber
-        validation_groups = df_validation.groupby(['ConfigurationId', 'RunNumber'])
-        # write headers to file
-        if evaluate_best_model:
-            with open(path.joinpath(db_name).joinpath('summary_best.csv'), 'w') as f:
-                f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
-        else:
-            with open(path.joinpath(db_name).joinpath('summary.csv'), 'w') as f:
-                f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
-
-        for name, group in validation_groups:
-            group['EpochLoss'] *= group['TrainingSize']
-            group['Epoch'] *= group['TrainingSize']
-            group['EpochAccuracy'] *= group['TrainingSize']
-            group['TestAccuracy'] *= group['TestSize']
-            group['TestLoss'] *= group['TestSize']
-            group['ValidationAccuracy'] *= group['ValidationSize']
-            group['ValidationLoss'] *= group['ValidationSize']
-            avg = group.mean(numeric_only=True)
-
-            avg['EpochLoss'] /= avg['TrainingSize']
-            avg['Epoch'] /= avg['TrainingSize']
-            avg['EpochAccuracy'] /= avg['TrainingSize']
-            avg['TestAccuracy'] /= avg['TestSize']
-            avg['TestLoss'] /= avg['TestSize']
-            avg['ValidationAccuracy'] /= avg['ValidationSize']
-            avg['ValidationLoss'] /= avg['ValidationSize']
-
-            std = group.std(numeric_only=True)
-            std['EpochLoss'] /= avg['TrainingSize']
-            std['Epoch'] /= avg['TrainingSize']
-            std['EpochAccuracy'] /= avg['TrainingSize']
-            std['TestAccuracy'] /= avg['TestSize']
-            std['TestLoss'] /= avg['TestSize']
-            std['ValidationAccuracy'] /= avg['ValidationSize']
-            std['ValidationLoss'] /= avg['ValidationSize']
-
-            configuration_id = int(avg['ConfigurationId'])
-            run_id = int(avg['RunNumber'])
-            # write to file
+            # get the rows with the indices
+            df_validation = db.loc[indices]
+            # split into groups by ConfigurationId and RunNumber
+            validation_groups = df_validation.groupby(['ConfigurationId', 'RunNumber'])
+            # write headers to file
             if evaluate_best_model:
-                with open(path.joinpath(db_name).joinpath('summary_best.csv'), 'a') as f:
-                    f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
+                with open(path.joinpath(db_name).joinpath('summary_best.csv'), 'w') as f:
+                    f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
             else:
-                with open(path.joinpath(db_name).joinpath('summary.csv'), 'a') as f:
-                    f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
+                with open(path.joinpath(db_name).joinpath('summary.csv'), 'w') as f:
+                    f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
+
+            for name, group in validation_groups:
+                group['EpochLoss'] *= group['TrainingSize']
+                group['Epoch'] *= group['TrainingSize']
+                group['EpochAccuracy'] *= group['TrainingSize']
+                group['TestAccuracy'] *= group['TestSize']
+                group['TestLoss'] *= group['TestSize']
+                group['ValidationAccuracy'] *= group['ValidationSize']
+                group['ValidationLoss'] *= group['ValidationSize']
+                avg = group.mean(numeric_only=True)
+
+                avg['EpochLoss'] /= avg['TrainingSize']
+                avg['Epoch'] /= avg['TrainingSize']
+                avg['EpochAccuracy'] /= avg['TrainingSize']
+                avg['TestAccuracy'] /= avg['TestSize']
+                avg['TestLoss'] /= avg['TestSize']
+                avg['ValidationAccuracy'] /= avg['ValidationSize']
+                avg['ValidationLoss'] /= avg['ValidationSize']
+
+                std = group.std(numeric_only=True)
+                std['EpochLoss'] /= avg['TrainingSize']
+                std['Epoch'] /= avg['TrainingSize']
+                std['EpochAccuracy'] /= avg['TrainingSize']
+                std['TestAccuracy'] /= avg['TestSize']
+                std['TestLoss'] /= avg['TestSize']
+                std['ValidationAccuracy'] /= avg['ValidationSize']
+                std['ValidationLoss'] /= avg['ValidationSize']
+
+                configuration_id = int(avg['ConfigurationId'])
+                run_id = int(avg['RunNumber'])
+                # write to file
+                if evaluate_best_model:
+                    with open(path.joinpath(db_name).joinpath('summary_best.csv'), 'a') as f:
+                        f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
+                else:
+                    with open(path.joinpath(db_name).joinpath('summary.csv'), 'a') as f:
+                        f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
 
 
-        if evaluate_best_model:
-            # write summary_best_mean.csv
-            # load summary best model
-            summary_best_model = pd.read_csv(path.joinpath(db_name).joinpath('summary_best.csv'))
-            # remove
-            # average over all rows
-            summary_best_model_mean = summary_best_model.mean(numeric_only=True)
-            # drop column RunId
-            summary_best_model_mean = summary_best_model_mean.drop('RunId')
-            config_id = int(summary_best_model_mean['ConfigurationId'])
-            # write to file
-            with open(path.joinpath(db_name).joinpath('summary_best_mean.csv'), 'w') as f:
-                f.write('ConfigurationId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
-                f.write(f'{config_id},{summary_best_model_mean["Epoch Mean"]},{summary_best_model_mean["Epoch Std"]},{summary_best_model_mean["Epoch Accuracy Mean"]},{summary_best_model_mean["Epoch Accuracy Std"]},{summary_best_model_mean["Epoch Loss Mean"]},{summary_best_model_mean["Epoch Loss Std"]},{summary_best_model_mean["Validation Accuracy Mean"]},{summary_best_model_mean["Validation Accuracy Std"]},{summary_best_model_mean["Validation Loss Mean"]},{summary_best_model_mean["Validation Loss Std"]},{summary_best_model_mean["Test Accuracy Mean"]},{summary_best_model_mean["Test Accuracy Std"]},{summary_best_model_mean["Test Loss Mean"]},{summary_best_model_mean["Test Loss Std"]}')
-
+            if evaluate_best_model:
+                # write summary_best_mean.csv
+                # load summary best model
+                summary_best_model = pd.read_csv(path.joinpath(db_name).joinpath('summary_best.csv'))
+                # remove
+                # average over all rows
+                summary_best_model_mean = summary_best_model.mean(numeric_only=True)
+                # drop column RunId
+                summary_best_model_mean = summary_best_model_mean.drop('RunId')
+                config_id = int(summary_best_model_mean['ConfigurationId'])
+                # write to file
+                with open(path.joinpath(db_name).joinpath('summary_best_mean.csv'), 'w') as f:
+                    f.write('ConfigurationId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
+                    f.write(f'{config_id},{summary_best_model_mean["Epoch Mean"]},{summary_best_model_mean["Epoch Std"]},{summary_best_model_mean["Epoch Accuracy Mean"]},{summary_best_model_mean["Epoch Accuracy Std"]},{summary_best_model_mean["Epoch Loss Mean"]},{summary_best_model_mean["Epoch Loss Std"]},{summary_best_model_mean["Validation Accuracy Mean"]},{summary_best_model_mean["Validation Accuracy Std"]},{summary_best_model_mean["Validation Loss Mean"]},{summary_best_model_mean["Validation Loss Std"]},{summary_best_model_mean["Test Accuracy Mean"]},{summary_best_model_mean["Test Accuracy Std"]},{summary_best_model_mean["Test Loss Mean"]},{summary_best_model_mean["Test Loss Std"]}')
 
     return best_configuration_id
 

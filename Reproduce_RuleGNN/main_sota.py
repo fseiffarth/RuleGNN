@@ -19,7 +19,7 @@ def main():
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_sota_comparison.yml'))
     experiment.Preprocess()
     experiment.GridSearch()
-    experiment.EvaluateResults()
+    experiment.EvaluateResults(evaluate_validation_only=True)
 
 if __name__ == '__main__':
     main()

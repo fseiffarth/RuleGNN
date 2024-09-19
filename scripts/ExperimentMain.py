@@ -70,7 +70,15 @@ class ExperimentMain:
                                                           validation_id=validation_id, graph_format="NEL",
                                                           experiment_configuration=experiment_configuration, experiment_configuration_path=experiment_configuration_path, run_id=run_id) for validation_id in range(validation_folds))
 
-    def EvaluateResults(self, dataset_names=None, evaluation_type='accuracy', evaluate_best_model=False):
+    def EvaluateResults(self, dataset_names=None, evaluation_type='accuracy', evaluate_best_model=False, evaluate_validation_only=False):
+        '''
+        Evaluate the results of the experiments for all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
+        parameters:
+        - dataset_names: list of strings with the names of the datasets to evaluate
+        - evaluation_type: string with the type of evaluation to perform. Default is 'accuracy'. Other options are 'loss'. For accuracy, take the best model according to the validation accuracy. For loss, take the best model according to the validation loss.
+        - evaluate_best_model: boolean to evaluate the best model of the experiment. Default is False. If False, evaluate the results of the experiment.
+        - evaluate_validation_only: boolean to evaluate only on the validation set. Returns the epoch with the best validation accuracy/loss. Default is False.
+        '''
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
         if dataset_names is not None:
@@ -96,7 +104,7 @@ class ExperimentMain:
                 if key not in experiment_configuration and key != 'datasets':
                     experiment_configuration[key] = self.main_config[key]
 
-            model_selection_evaluation(dataset['name'], Path(experiment_configuration['paths']['results']), evaluation_type=evaluation_type, evaluate_best_model=evaluate_best_model,experiment_config=experiment_configuration)
+            model_selection_evaluation(dataset['name'], Path(experiment_configuration['paths']['results']), evaluation_type=evaluation_type, evaluate_best_model=evaluate_best_model,experiment_config=experiment_configuration, evaluate_validation_only=evaluate_validation_only)
 
     def RunBestModel(self, dataset_names=None):
         '''
