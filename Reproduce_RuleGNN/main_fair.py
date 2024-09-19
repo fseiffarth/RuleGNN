@@ -16,7 +16,7 @@ def get_existing_splits():
 
 def main():
     get_existing_splits()
-    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config.yml'))
+    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_comparison.yml'))
     experiment.Preprocess()
     experiment.GridSearch()
     experiment.EvaluateResults()
