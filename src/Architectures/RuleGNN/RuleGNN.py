@@ -16,10 +16,9 @@ class RuleGNN(nn.Module):
         self.module_precision = 'double'
         n_node_features = self.para.node_features
         dropout = self.para.dropout
-        self.convolution_grad = self.para.convolution_grad
-        self.resize_grad = self.para.run_config.config.get('resize_grad', True)
         self.convolution_grad = self.para.run_config.config.get('convolution_grad', True)
-        self.use_bias = self.para.run_config.config.get('bias', True)
+        self.aggregation_grad = self.para.run_config.config.get('aggregation_grad', True)
+        self.bias = self.para.run_config.config.get('bias', True)
         out_classes = self.graph_data.num_classes
         if 'precision' in para.run_config.config:
             self.module_precision = para.run_config.config['precision']
@@ -36,7 +35,7 @@ class RuleGNN(nn.Module):
                         layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, n_kernels=1,
-                                                    bias=self.use_bias, precision=torch.float,
+                                                    bias=self.bias, precision=torch.float,
                                                     device=device).float().requires_grad_(
                             self.convolution_grad))
                 else:
@@ -44,7 +43,7 @@ class RuleGNN(nn.Module):
                         layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features, n_kernels=1,
-                                                    bias=self.use_bias, precision=torch.double,
+                                                    bias=self.bias, precision=torch.double,
                                                     device=device).double().requires_grad_(
                             self.convolution_grad))
             else:
@@ -54,18 +53,18 @@ class RuleGNN(nn.Module):
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features,
                                                     out_features=self.aggregation_out_classes,
-                                                    bias=self.use_bias,
+                                                    bias=self.bias,
                                                     precision=torch.float, device=device).float().requires_grad_(
-                            self.resize_grad))
+                            self.aggregation_grad))
                 else:
                     self.net_layers.append(
                         layers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
                                                     in_features=n_node_features,
                                                     out_features=self.aggregation_out_classes,
-                                                    bias=self.use_bias,
+                                                    bias=self.bias,
                                                     precision=torch.double, device=device).double().requires_grad_(
-                            self.resize_grad))
+                            self.aggregation_grad))
 
         if 'linear_layers' in para.run_config.config and para.run_config.config['linear_layers'] > 0:
             for i in range(para.run_config.config['linear_layers']):

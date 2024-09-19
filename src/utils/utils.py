@@ -77,7 +77,14 @@ def save_graphs(path: Path, db_name, graphs: List[nx.Graph], labels: List[int] =
                 if 'label' not in edge[2]:
                     data_list = [0]
                 else:
-                    data_list = [int(edge[2]['label'])]
+                    if type(edge[2]['label']) == np.ndarray or type(edge[2]['label']) == list:
+                        if len(edge[2]['label']) == 1:
+                            data_list = [int(edge[2]['label'][0])]
+                        else:
+                            # raise an error as the label must be a single value
+                            raise ValueError("Edge label must be a single value")
+                    else:
+                        data_list = [int(edge[2]['label'])]
                 # append all the other features
                 for key, value in edge[2].items():
                     if key != 'label':

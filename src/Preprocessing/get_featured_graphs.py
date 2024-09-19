@@ -1,23 +1,23 @@
 import os
-
+from pathlib import Path
 from src.utils.GraphData import get_graph_data
 from src.utils.load_labels import load_labels
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
 from src.utils.utils import save_graphs
 
 
-def create_dataset(dataset_name, layers=None, with_degree=False):
+def create_dataset(dataset_name, paths:dict[str, Path], output_path:Path, layers=None, with_degree=False):
     # load the graphs
-    data_path = '../../GraphData/DS_all/'
-    distance_path = '../../Data/Distances/'
-    graph_data = get_graph_data(dataset_name, data_path, distance_path, use_features=True, use_attributes=False)
-    output_path = ""
+    data_path = paths['data']
+    label_path = paths['labels']
+    splits_path = paths['splits']
+    graph_data = get_graph_data(dataset_name, data_path, use_features=True, use_attributes=False, data_format='NEL')
 
 
     for l in layers:
-        label_path = f"../Labels/{dataset_name}_{l.get_layer_string()}_labels.txt"
-        if os.path.exists(label_path):
-            g_labels = load_labels(path=label_path)
+        layer_label_path = label_path.joinpath(f"{dataset_name}_{l.get_layer_string()}_labels.txt")
+        if os.path.exists(layer_label_path):
+            g_labels = load_labels(path=layer_label_path)
             # add g_labels as node attributes to the graph_data
             for i, g in enumerate(graph_data.graphs):
                 node_labels = g_labels.node_labels[i]
@@ -40,25 +40,43 @@ def create_dataset(dataset_name, layers=None, with_degree=False):
             graph_data.graph_labels[i] -= 1
 
 
-    save_graphs(path=output_path, db_name=f'{dataset_name}Features', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree)
+    save_graphs(path=output_path, db_name=f'{dataset_name}Features', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, format='NEL')
     # copy the split data in the processed folder and rename it to dataset_nameFeatures_splits.json
-    os.system(f"cp ../DataSplits/{dataset_name}_splits.json {output_path}{dataset_name}Features/processed/{dataset_name}Features_splits.json")
+    source_path = splits_path.joinpath(f"{dataset_name}_splits.json")
+    target_path = output_path.joinpath(f"{dataset_name}Features/processed/{dataset_name}Features_splits.json")
+    os.system(f"cp {source_path} {target_path}")
 
 
 def main():
-    imdb_multi_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'subgraph', id:1})]
-    create_dataset('IMDB-MULTI', layers=imdb_multi_layers, with_degree=True)
-    imdb_binary_layers  = [Layer({'layer_type': 'subgraph', id:1}), Layer({'layer_type': 'induced_cycles', 'max_cycle_length': 5})]
-    create_dataset('IMDB-BINARY', layers=imdb_binary_layers, with_degree=True)
+    synthetic_paths = {'data': Path(f'Reproduce_RuleGNN/Data/SyntheticDatasets/'),
+                'labels': Path(f'Reproduce_RuleGNN/Data/Labels/'),
+                'splits': Path(f'Reproduce_RuleGNN/Data/Splits/')}
+    tu_paths = {'data': Path(f'Reproduce_RuleGNN/Data/TUDatasets/'),
+                'labels': Path(f'Reproduce_RuleGNN/Data/Labels/'),
+                'splits': Path(f'Reproduce_RuleGNN/Data/Splits/')}
 
-    mutagenicity_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
-    create_dataset('Mutagenicity', layers=mutagenicity_layers)
-    dhfr_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'simple_cycles', 'max_cycle_length': 10})]
-    create_dataset('DHFR', layers=dhfr_layers)
-    nci1_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
-    create_dataset('NCI1', layers=nci1_layers)
-    nci109_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500}), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000})]
-    create_dataset('NCI109', layers=nci109_layers)
+    snowflakes_layers = [Layer({'layer_type': 'subgraph', 'id': 0}, 0), Layer({'layer_type': 'wl', 'wl_iterations': 0}, 1)]
+    create_dataset('Snowflakes', paths=synthetic_paths, output_path=Path(f'Data/Featured/'), layers=snowflakes_layers)
+
+    csl_layers = [Layer({'layer_type': 'simple_cycles', 'max_cycle_length': 10}, 0)]
+    create_dataset('CSL', paths=synthetic_paths, output_path=Path(f'Data/Featured/'), layers=csl_layers)
+
+    imdb_multi_layers  = [Layer({'layer_type': 'subgraph', 'id':1},0)]
+    create_dataset('IMDB-MULTI', paths=tu_paths, output_path=Path(f'Data/Featured/'), layers=imdb_multi_layers)
+    imdb_binary_layers  = [Layer({'layer_type': 'subgraph', 'id':1},0), Layer({'layer_type': 'induced_cycles', 'max_cycle_length': 5},1)]
+    create_dataset('IMDB-BINARY', paths=tu_paths, output_path=Path(f'Data/Featured/'), layers=imdb_binary_layers)
+
+    mutagenicity_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500},0), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000},1)]
+    create_dataset('Mutagenicity', paths=tu_paths, output_path=Path(f'Data/Featured/'), layers=mutagenicity_layers)
+
+    nci1_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500},0), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000},0)]
+    create_dataset('NCI1', layers=nci1_layers, paths=tu_paths, output_path=Path(f'Data/Featured/'))
+
+    nci109_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500},0), Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 50000},0)]
+    create_dataset('NCI109', layers=nci109_layers, paths=tu_paths, output_path=Path(f'Data/Featured/'))
+
+    dhfr_layers  = [Layer({'layer_type': 'wl', 'wl_iterations': 2, 'max_node_labels': 500},0), Layer({'layer_type': 'simple_cycles', 'max_cycle_length': 10},1)]
+    create_dataset('DHFR', layers=dhfr_layers , paths=tu_paths, output_path=Path(f'Data/Featured/'))
 
 
 

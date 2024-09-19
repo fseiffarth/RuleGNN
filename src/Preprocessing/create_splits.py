@@ -188,7 +188,55 @@ def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), 
         print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
 
 
+
+def splits_from_train_test_files(path:Path, db_name:str, output_path:Path = None):
+    '''
+    Convert the train, test files given by https://github.com/weihua916/powerful-gnns into our json split file format
+    :param path: path to the train, test files
+    '''
+    # get all the files in path that are of type train_idx-*.txt or test_idx-*.txt where * is an arbitrary number
+    train_files = list(path.glob("train_idx-*.txt"))
+    test_files = list(path.glob("test_idx-*.txt"))
+    # sort the files
+    train_files.sort()
+    test_files.sort()
+    splits = []
+    for i in range(len(train_files)):
+        training_data = []
+        validate_data = []
+        test_data = []
+        # read the training data (each line is an idx)
+        with open(train_files[i], "r") as f:
+            for line in f:
+                training_data.append(int(line.strip()))
+        # read the test data (each line is an idx)
+        with open(test_files[i], "r") as f:
+            for line in f:
+                validate_data.append(int(line.strip()))
+
+
+        splits.append({"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
+    # save splits to json as one line use json.dumps
+    # check if the output path exists
+    if not output_path.joinpath(f"{db_name}_splits.json").exists():
+        print(f"Creating new split file at {output_path.joinpath(f'{db_name}_splits.json')}")
+        with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
+            f.write(json.dumps(splits))
+    else:
+        print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
+
+
+
+
 if __name__ == "__main__":
+
+    for db in ['NCI1', 'NCI109', 'IMDBBINARY', 'IMDBMULTI']:
+        source_path = Path(f"Data/SOTA_Data/{db}/raw/10fold_idx")
+        if db == 'IMDBBINARY':
+            db = 'IMDB-BINARY'
+        elif db == 'IMDBMULTI':
+            db = 'IMDB-MULTI'
+        splits_from_train_test_files(source_path, db, Path("Data/SplitsSimple/"))
 
     zinc_splits()
     #create_splits("DHFR")

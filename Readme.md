@@ -24,7 +24,7 @@ To reproduce the experiments of the paper, follow the steps below. All necessary
 The experiments take approximately 2 days on an AMD Ryzen 9 7950X with 16 cores and 32 threads and 128 GB of RAM.
 
 
-1. Run the script [Reproduce_RuleGNN/main.py](Reproduce_RuleGNN/main.py) to reproduce the experiments of the paper. This will:
+1. Run the script [Reproduce_RuleGNN/main_fair.py](Reproduce_RuleGNN/main_fair.py) to reproduce the experiments of the paper. This will:
    - download the datasets
    - preprocess the datasets
    - run the grid search to find the best hyperparameters for different models
