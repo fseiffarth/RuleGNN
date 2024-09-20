@@ -15,3 +15,10 @@ paths:
     "Reproduce_RuleGNN/Data/SplitsSimple/" # Path to the folder containing the data splits
   results:
     "Reproduce_RuleGNN/ResultsSOTA/" # Results will be saved in this folder
+
+
+early_stopping:
+  enabled:
+    False
+  patience:
+    25

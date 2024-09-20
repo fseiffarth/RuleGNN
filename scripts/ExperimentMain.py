@@ -56,7 +56,7 @@ class ExperimentMain:
             config_paths_to_absolute(experiment_configuration, Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
             # update the experiment configuration with the global keys
             for key in self.main_config:
-                if key not in experiment_configuration and key != 'datasets':
+                if key != 'datasets' and key != 'paths': # do not overwrite paths
                     experiment_configuration[key] = self.main_config[key]
 
 
