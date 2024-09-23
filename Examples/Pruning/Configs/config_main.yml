@@ -1,0 +1,2 @@
+datasets:
+  - {name: "MUTAG", num_runs: 10,  validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
