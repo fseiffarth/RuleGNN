@@ -1,3 +1,15 @@
+paths:
+  data:
+    "Examples/TUExample/Data/" # Path to the folder containing the graph data
+  properties:
+    "Examples/TUExample/Data/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Examples/TUExample/Data/Labels/" # Path to the folder containing the labels
+  results:
+    "Examples/TUExample/Results/" # Results will be saved in this folder
+  splits:
+    "Examples/TUExample/Data/Splits/" # Path to the folder containing the data splits
+
 device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
   cpu
 mode:
@@ -7,7 +19,7 @@ batch_size:
 learning_rate:
   - 0.05
 epochs:
-  - 100
+  - 1
 scheduler:
   False
 dropout:
@@ -18,30 +30,13 @@ loss:
   - CrossEntropyLoss
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 
 networks:
-  - - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6 ] } }
-    - { layer_type: simple_cycles, max_cycle_length: 50, properties: { name: edge_label_distances, values: [1,2,3,4,5,6] } }
-    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6 ] } }
-    - { layer_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }
-
-#  - - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] } }
-#    - { layer_type: simple_cycles, max_cycle_length: 10, max_node_labels: 500 }
-#
-#  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: {name: edge_label_distances, values: [1,2,3]} }
-#    - { layer_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }
-#
-#  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] } }
-#    - { layer_type: induced_cycles, max_cycle_length: 50, max_node_labels: 500 }
-#
-#  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: edge_label_distances, values: [ 1,2,3 ] } }
-#    - { layer_type: subgraph, id: 0}
-#
-#  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: edge_label_distances, values: [ 1, 2, 3 ] } }
-#    - { layer_type: subgraph, id: 1 }
+  - - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 10, max_node_labels: 500 }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:
 subgraphs:

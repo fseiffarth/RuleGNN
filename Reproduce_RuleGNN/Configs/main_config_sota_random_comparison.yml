@@ -1,0 +1,27 @@
+datasets: #TODO: repair broken NCI109
+  # real-world datasets
+  - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
+  - {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
+
+paths:
+  # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
+  data:
+    "Reproduce_RuleGNN/Data/TUDatasets/" # Path to the folder containing the datasets
+  properties:
+    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
+  splits:
+    "Reproduce_RuleGNN/Data/SplitsSimple/" # Path to the folder containing the data splits
+  results:
+    "Reproduce_RuleGNN/ResultsSOTARandom/" # Results will be saved in this folder
+
+
+early_stopping:
+  enabled:
+    False
+  patience:
+    25
+
+random_variation: # if True adds random variation to the input features
+  True

@@ -31,3 +31,4 @@ Results/
 /Data/*
 !/Data/Splits/
 !/Data/SplitsSimple/
+/Reproduce_RuleGNN/ResultsSOTA/
