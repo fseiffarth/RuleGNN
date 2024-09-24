@@ -29,7 +29,7 @@ def get_k_lowest_nonzero_indices(tensor, k):
     return k_lowest_original_indices
 
 
-def save_graphs(path: Path, db_name, graphs: List[nx.Graph], labels: List[int] = None, with_degree=False, format=None):
+def save_graphs(path: Path, db_name, graphs: List[nx.Graph], labels: List[int] = None, with_degree=False, graph_format=None):
     # save in two files DBName_Nodes.txt and DBName_Edges.txt
     # DBName_Nodes.txt has the following structure GraphId NodeId Feature1 Feature2 ...
     # DBName_Edges.txt has the following structure GraphId Node1 Node2 Feature1 Feature2 ...
@@ -97,7 +97,7 @@ def save_graphs(path: Path, db_name, graphs: List[nx.Graph], labels: List[int] =
         # remove last empty line
         f.seek(f.tell() - 1, 0)
         f.truncate()
-    if format == 'NEL':
+    if graph_format == 'NEL':
         with open(path.joinpath(db_name + "_Labels.txt"), "w") as f:
             if labels is not None:
                 for i, label in enumerate(labels):
@@ -133,7 +133,7 @@ def save_graphs(path: Path, db_name, graphs: List[nx.Graph], labels: List[int] =
                 f.truncate()
 
 
-def load_graphs(path: Path, db_name: str, format=None):
+def load_graphs(path: Path, db_name: str, graph_format=None):
     graphs = []
     labels = []
     with open(path.joinpath(db_name + "_Nodes.txt"), "r") as f:
@@ -155,7 +155,7 @@ def load_graphs(path: Path, db_name: str, format=None):
             node2 = int(data[2])
             feature = list(map(float, data[3:]))
             graphs[graph_id].add_edge(node1, node2, label=feature)
-    if format == 'NEL':
+    if graph_format == 'NEL':
         with open(path.joinpath(db_name + "_Labels.txt"), "r") as f:
             lines = f.readlines()
             for i, line in enumerate(lines):

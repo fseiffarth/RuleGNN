@@ -7,7 +7,7 @@ from src.utils.utils import save_graphs
 def create_dataset(dataset_name, layers=None, with_degree=False):
     # load the graphs
     data_path = '../GraphData/DS_all/'
-    graph_data = get_graph_data(dataset_name, data_path, use_features=True, use_attributes=False, relabel_nodes=False)
+    graph_data = get_graph_data(dataset_name, data_path, use_labels=True, use_attributes=False, relabel_nodes=False)
     output_path = 'Data/NEL_Format/'
 
     # if there exist graph labels -1, 1 shift to 0,1
@@ -21,7 +21,7 @@ def create_dataset(dataset_name, layers=None, with_degree=False):
             graph_data.graph_labels[i] -= 1
 
 
-    save_graphs(path=output_path, db_name=f'{dataset_name}', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, format='NEL')
+    save_graphs(path=output_path, db_name=f'{dataset_name}', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, graph_format='NEL')
 
 
 def combine_nel_graphs(dataset_names):

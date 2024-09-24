@@ -256,7 +256,7 @@ def main(db_name, graph_ids, config, out, draw_type, data_format='NEL'):
         out = Path(out)
     m_path = absolute_path.joinpath(configs['paths']['results']).joinpath(db_name).joinpath('Models')
 
-    graph_data = get_graph_data(db_name=db_name, data_path=configs['paths']['data'], use_features=configs['use_features'], use_attributes=configs['use_attributes'], data_format=data_format)
+    graph_data = get_graph_data(db_name=db_name, data_path=configs['paths']['data'], use_labels=configs['use_features'], use_attributes=configs['use_attributes'], graph_format=data_format)
     # adapt the precision of the input data
     if 'precision' in configs:
         if configs['precision'] == 'double':

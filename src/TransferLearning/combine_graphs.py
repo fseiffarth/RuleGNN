@@ -12,7 +12,7 @@ import networkx as nx
 def create_dataset(dataset_name, layers=None, with_degree=False):
     # load the graphs
     data_path = '../GraphData/DS_all/'
-    graph_data = get_graph_data(dataset_name, data_path, use_features=True, use_attributes=False, relabel_nodes=False)
+    graph_data = get_graph_data(dataset_name, data_path, use_labels=True, use_attributes=False, relabel_nodes=False)
     output_path = 'Data/NEL_Format/'
 
     # if there exist graph labels -1, 1 shift to 0,1
@@ -26,7 +26,7 @@ def create_dataset(dataset_name, layers=None, with_degree=False):
             graph_data.graph_labels[i] -= 1
 
 
-    save_graphs(path=output_path, db_name=f'{dataset_name}', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, format='NEL')
+    save_graphs(path=output_path, db_name=f'{dataset_name}', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, graph_format='NEL')
 
 
 def combine_nel_graphs(dataset_names):
@@ -120,7 +120,7 @@ def transfer_IMDB():
     # create subgraph labels
     save_subgraph_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'],
                          subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], label_path="Data/Labels/", id=1, format='NEL')
-    create_splits(db_name='IMDB-BINARY_IMDB-MULTI', data_path="Data/NEL_Format/", output_path="Data/Splits/", format='NEL')
+    create_splits(db_name='IMDB-BINARY_IMDB-MULTI', data_path="Data/NEL_Format/", output_path="Data/Splits/", graph_format='NEL')
     create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",
                            data_format='NEL', split_type='transfer')
     create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",

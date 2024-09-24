@@ -39,7 +39,10 @@ class RunSavedModel:
         config_paths_to_absolute(self.experiment_config, absolute_path)
         self.results_path = self.experiment_config['paths']['results'].joinpath(db_name).joinpath('Results')
         self.m_path = self.experiment_config['paths']['results'].joinpath(db_name).joinpath('Models')
-        self.graph_data = get_graph_data(db_name=db_name, data_path=self.experiment_config['paths']['data'], use_features=self.experiment_config['use_features'], use_attributes=self.experiment_config['use_attributes'], data_format=data_format)
+        self.graph_data = get_graph_data(db_name=db_name,
+                                         data_path=self.experiment_config['paths']['data'],
+                                         input_features=self.experiment_config.get('input_features', None),
+                                         graph_format=data_format)
 
 
     def run(self, run=0, validation_id=0):

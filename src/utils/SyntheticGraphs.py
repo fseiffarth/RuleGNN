@@ -3,6 +3,7 @@ from typing import List
 import networkx as nx
 import numpy as np
 
+from src.utils.BenchmarkDatasetGeneration.RingTransfer import RingTransfer
 from src.utils.snowflake_generation import Snowflakes
 
 
@@ -217,8 +218,11 @@ def snowflakes(smallest_snowflake=3, largest_snowflake=12, flakes_per_size=100, 
     """
     return Snowflakes(smallest_snowflake=smallest_snowflake, largest_snowflake=largest_snowflake, flakes_per_size=flakes_per_size, plot=False, seed=seed, generation_type=generation_type)
 
-def csl_graphs():
+def csl_graphs() -> (List[nx.Graph], List[int]):
     from src.Preprocessing.csl import CSL
     csl = CSL()
     graph_data = csl.get_graphs(with_distances=False)
     return graph_data.graphs, graph_data.graph_labels
+
+def ring_transfer(data_size=1200, node_dimension=10, ring_size=100, seed=764) -> (List[nx.Graph], List[np.ndarray[float]]):
+    return RingTransfer(data_size=data_size, node_dimension=node_dimension, ring_size=ring_size, seed=seed)

@@ -53,7 +53,7 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
         create_splits(db_name, path, output_path, data_format)
         return
     k = 10
-    graph_data = get_graph_data(db_name, path, data_format=data_format)
+    graph_data = get_graph_data(db_name, path, graph_format=data_format)
     # number of graphs per graph_dataset
     graph_number_map = defaultdict(list)
     graph_datasets = []
@@ -144,9 +144,9 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
             f.write(json.dumps(splits))
 
 
-def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, format=None, seed=2045287):
+def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, graph_format=None, seed=2045287):
     splits = []
-    graph_data = get_graph_data(db_name, data_path, data_format=format)
+    graph_data = get_graph_data(db_name=db_name, data_path=data_path, graph_format=graph_format, only_graphs=True)
     run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=seed, kFold=folds)
     for validation_id in range(0, folds):
         validation_seed = seed + validation_id

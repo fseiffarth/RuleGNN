@@ -16,7 +16,7 @@ def main():
         """
         Create Input data, information and labels from the graphs for training and testing
         """
-        graph_data = get_graph_data(graph_db, data_path, distance_path, use_features=True, use_attributes=False)
+        graph_data = get_graph_data(graph_db, data_path, distance_path, use_labels=True, use_attributes=False)
         # get a list of node numbers sorted by the number of nodes in each graph
         node_numbers = []
         edge_numbers = []

@@ -250,9 +250,9 @@ class ExperimentMain:
             Create Input data, information and labels from the graphs for training and testing
             """
             graph_data = get_graph_data(db_name=graph_db_name, data_path=data_path,
-                                        use_features=experiment_configuration['use_features'],
-                                        use_attributes=experiment_configuration['use_attributes'],
-                                        data_format=experiment_configuration['format'])
+                                        task=experiment_configuration.get('task', 'graph_classification'),
+                                        input_features=experiment_configuration.get('input_features', None),
+                                        graph_format=experiment_configuration.get('format', 'NEL'))
             # adapt the precision of the input data
             if 'precision' in experiment_configuration:
                 if experiment_configuration['precision'] == 'double':
@@ -359,8 +359,9 @@ class ExperimentMain:
             Create Input data, information and labels from the graphs for training and testing
             """
             graph_data = get_graph_data(db_name=graph_db_name, data_path=data_path,
-                                        use_features=experiment_configuration['use_features'],
-                                        use_attributes=experiment_configuration['use_attributes'], data_format=graph_format)
+                                        task=experiment_configuration.get('task', 'graph_classification'),
+                                        input_features=experiment_configuration.get('input_features', None),
+                                        graph_format=graph_format)
             # adapt the precision of the input data
             if 'precision' in experiment_configuration:
                 if experiment_configuration['precision'] == 'double':

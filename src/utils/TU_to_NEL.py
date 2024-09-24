@@ -75,7 +75,7 @@ def tu_to_nel(db_name: str, out_path: Path = Path('Data/TUDatasets')):
         graphs.append(graph)
         labels.append(g["y"].item())
     # save the graphs and labels
-    save_graphs(out_path, db_name, graphs, labels, with_degree=False, format='NEL')
+    save_graphs(out_path, db_name, graphs, labels, with_degree=False, graph_format='NEL')
 
 
 def main():

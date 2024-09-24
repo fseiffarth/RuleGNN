@@ -19,13 +19,13 @@ class RuleGNN(nn.Module):
         self.convolution_grad = self.para.run_config.config.get('convolution_grad', True)
         self.aggregation_grad = self.para.run_config.config.get('aggregation_grad', True)
         self.bias = self.para.run_config.config.get('bias', True)
-        out_classes = self.graph_data.num_classes
+        output_dimension = self.graph_data.num_classes
         if 'precision' in para.run_config.config:
             self.module_precision = para.run_config.config['precision']
         if 'aggregation_out_features' in para.run_config.config:
             self.aggregation_out_classes = para.run_config.config['aggregation_out_features']
         else:
-            self.aggregation_out_classes = out_classes
+            self.aggregation_out_classes = output_dimension
 
         self.net_layers = nn.ModuleList()
         for i, layer in enumerate(para.layers):
@@ -77,9 +77,9 @@ class RuleGNN(nn.Module):
                             nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).double())
                 else:
                     if self.module_precision == 'float':
-                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, out_classes, bias=True).float())
+                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, output_dimension, bias=True).float())
                     else:
-                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, out_classes, bias=True).double())
+                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, output_dimension, bias=True).double())
 
         self.dropout = nn.Dropout(dropout)
         if 'activation' in para.run_config.config and para.run_config.config['activation'] == 'None':

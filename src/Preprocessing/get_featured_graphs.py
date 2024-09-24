@@ -11,7 +11,7 @@ def create_dataset(dataset_name, paths:dict[str, Path], output_path:Path, layers
     data_path = paths['data']
     label_path = paths['labels']
     splits_path = paths['splits']
-    graph_data = get_graph_data(dataset_name, data_path, use_features=True, use_attributes=False, data_format='NEL')
+    graph_data = get_graph_data(dataset_name, data_path, use_labels=True, use_attributes=False, graph_format='NEL')
 
 
     for l in layers:
@@ -40,7 +40,7 @@ def create_dataset(dataset_name, paths:dict[str, Path], output_path:Path, layers
             graph_data.graph_labels[i] -= 1
 
 
-    save_graphs(path=output_path, db_name=f'{dataset_name}Features', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, format='NEL')
+    save_graphs(path=output_path, db_name=f'{dataset_name}Features', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, graph_format='NEL')
     # copy the split data in the processed folder and rename it to dataset_nameFeatures_splits.json
     source_path = splits_path.joinpath(f"{dataset_name}_splits.json")
     target_path = output_path.joinpath(f"{dataset_name}Features/processed/{dataset_name}Features_splits.json")

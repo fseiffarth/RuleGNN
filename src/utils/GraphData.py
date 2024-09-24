@@ -31,6 +31,7 @@ class GraphData:
         self.one_hot_labels = []
         self.num_classes = 0
         self.max_nodes = 0
+        self.num_graphs = 0
 
     def __iadd__(self, other):
         '''
@@ -153,85 +154,88 @@ class GraphData:
         labels.db_unique_node_labels = db_unique
         pass
 
-    def load_from_benchmark(self, db_name: str, path: Path, use_features=True, task=None, format=None):
+    def load_nel_graphs(self, db_name: str, path: Path, input_features=None, task=None, only_graphs=False):
         self.graph_db_name = db_name
-        self.graphs, self.graph_labels = load_graphs(path.joinpath(Path(f'{db_name}/raw/')), db_name, format=format)
+        self.graphs, self.graph_labels = load_graphs(path.joinpath(Path(f'{db_name}/raw/')), db_name, graph_format='NEL')
         self.num_graphs = len(self.graphs)
-        if task == 'regression':
-            self.num_classes = 1
-            if type(self.graph_labels[0]) == list:
-                self.num_classes = len(self.graph_labels[0])
-        else:
-            try:
-                self.num_classes = len(set(self.graph_labels))
-            except:
-                self.num_classes = len(self.graph_labels[0])
-        self.max_nodes = 0
-        for g in self.graphs:
-            self.max_nodes = max(self.max_nodes, g.number_of_nodes())
+        if not only_graphs:
+            if input_features is None:
+                input_features = {'name': 'node_labels', 'transformation': {'name': 'normalize'}}
 
-        self.one_hot_labels = torch.zeros(self.num_graphs, self.num_classes)
-
-        if task == 'regression':
-            min_label = 0
-            max_label = 0
-            for i, label in enumerate(self.graph_labels):
-                self.one_hot_labels[i] = torch.tensor(label)
-                min_label = min(min_label, torch.min(self.one_hot_labels[i]))
-                max_label = max(max_label, torch.max(self.one_hot_labels[i]))
-            # get absolute max value
-            max_label = max(abs(min_label), abs(max_label))
-            print(f'Max label: {max_label}')
-            # normalize the labels
-            for i, label in enumerate(self.one_hot_labels):
-                self.one_hot_labels[i] /= max_label
+            use_labels = input_features.get('name', 'node_labels') == 'node_labels'
+            use_constant = input_features.get('name', 'node_labels') == 'constant'
+            use_features = input_features.get('name', 'node_labels') == 'node_features'
+            transformation = input_features.get('transformation', {'name' : None})
 
 
+            if task == 'regression':
+                self.num_classes = 1
+                if type(self.graph_labels[0]) == list:
+                    self.num_classes = len(self.graph_labels[0])
+            else:
+                try:
+                    self.num_classes = len(set(self.graph_labels))
+                except:
+                    self.num_classes = len(self.graph_labels[0])
+            self.max_nodes = 0
+            for g in self.graphs:
+                self.max_nodes = max(self.max_nodes, g.number_of_nodes())
 
-        else:
-            for i, label in enumerate(self.graph_labels):
-                if type(label) == int:
-                    self.one_hot_labels[i][label] = 1
-                elif type(label) == list:
-                    self.one_hot_labels[i] = torch.tensor(label)
+            self.one_hot_labels = torch.zeros(self.num_graphs, self.num_classes)
 
-        self.inputs = []
-        ## add node labels
-        for graph in self.graphs:
-            self.inputs.append(torch.ones(graph.number_of_nodes()).float())
-            if use_features:
-                for node in graph.nodes(data=True):
-                    self.inputs[-1][node[0]] = node[1]['label'][0]
+            if task == 'regression':
+                self.one_hot_labels = torch.tensor(self.graph_labels)
+            else:
+                for i, label in enumerate(self.graph_labels):
+                    if type(label) == int:
+                        self.one_hot_labels[i][label] = 1
+                    elif type(label) == list:
+                        self.one_hot_labels[i] = torch.tensor(label)
 
-        self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
-        self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
+            self.inputs = []
+            ## add node labels
+            for graph in self.graphs:
+                if use_labels:
+                    self.inputs.append(torch.ones(graph.number_of_nodes()).float())
+                    for node in graph.nodes(data=True):
+                        self.inputs[-1][node[0]] = node[1]['label'][0]
+                elif use_constant:
+                    self.inputs.append(torch.ones(graph.number_of_nodes()).float())
+                elif use_features:
+                    for node in graph.nodes(data=True):
+                        self.inputs.append(torch.zeros(graph.number_of_nodes(), len(node[1]['label']) - 1))
+                        # add all except the first element of the label
+                        self.inputs[-1][node[0]] = torch.tensor(node[1]['label'][1:])
 
-        # normalize the graph inputs, i.e. to have values between -1 and 1, no zero values
-        if use_features:
-            # get the number of different node labels
-            num_node_labels = self.node_labels['primary'].num_unique_node_labels
-            # get the next even number if the number of node labels is odd
-            if num_node_labels % 2 == 1:
-                num_node_labels += 1
-            intervals = num_node_labels + 1
-            interval_length = 1.0 / intervals
-            for i, graph in enumerate(self.inputs):
-                for j in range(len(graph)):
-                    value = self.inputs[i][j]
-                    # get integer value of the node label
-                    value = int(value)
-                    # if value is even, add 1 to make it odd
-                    if value % 2 == 0:
-                        value = ((value + 1) * interval_length)
-                    else:
-                        value = (-1) * (value * interval_length)
-                    self.inputs[i][j] = value
-        # get min and max values of the self.inputs
-        min_value = 0
-        max_value = 0
-        for graph in self.inputs:
-            min_value = min(min_value, torch.min(graph))
-            max_value = max(max_value, torch.max(graph))
+            self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
+            self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
+
+            # normalize the graph inputs, i.e. to have values between -1 and 1, no zero values
+            if transformation['name'] == 'normalize':
+                # get the number of different node labels
+                num_node_labels = self.node_labels['primary'].num_unique_node_labels
+                # get the next even number if the number of node labels is odd
+                if num_node_labels % 2 == 1:
+                    num_node_labels += 1
+                intervals = num_node_labels + 1
+                interval_length = 1.0 / intervals
+                for i, graph in enumerate(self.inputs):
+                    for j in range(len(graph)):
+                        value = self.inputs[i][j]
+                        # get integer value of the node label
+                        value = int(value)
+                        # if value is even, add 1 to make it odd
+                        if value % 2 == 0:
+                            value = ((value + 1) * interval_length)
+                        else:
+                            value = (-1) * (value * interval_length)
+                        self.inputs[i][j] = value
+            # get min and max values of the self.inputs
+            min_value = 0
+            max_value = 0
+            for graph in self.inputs:
+                min_value = min(min_value, torch.min(graph))
+                max_value = max(max_value, torch.max(graph))
         return None
 
 
@@ -260,47 +264,48 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name: str, data_path : Path, use_features=None, use_attributes=None, relabel_nodes=True, data_format=None):
+def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, relabel_nodes=True, graph_format=None, only_graphs=False):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
     :param data_path: Path - path to the data
-    :param use_features: bool - whether to use node features
-    :param use_attributes: bool - whether to use node attributes
+    :param task: str - task to perform on the data
+    :param input_features: dict - input features
     :param relabel_nodes: bool - whether to relabel nodes
-    :param data_format: str - format of the data NEL: node edge label format
+    :param graph_format: str - format of the data NEL: node edge label format
+    :param only_graphs: bool - whether to load only the graphs
 
     """
     # load the graph data
-    if data_format == 'NEL':
-        graph_data = GraphData()
-        graph_data.load_from_benchmark(db_name, data_path, use_features, format='NEL')
-    else:
-        if db_name == 'CSL_original':
-            from src.Preprocessing.csl import CSL
-            csl = CSL()
-            graph_data = csl.get_graphs(with_distances=False)
-        elif db_name == 'CSL':
-            graph_data = GraphData()
-            graph_data.load_from_benchmark(db_name, data_path, use_features)
-        elif db_name == 'ZINC_original':
-            zinc_train = ZINC(root="../../ZINC_original/", subset=True, split='train')
-            zinc_val = ZINC(root="../../ZINC_original/", subset=True, split='val')
-            zinc_test = ZINC(root="../../ZINC_original/", subset=True, split='test')
-            graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
-        elif db_name == 'ZINC':
-            graph_data = GraphData()
-            graph_data.load_from_benchmark(db_name, data_path, use_features, task='regression')
-        elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or (
-                'Snowflakes' in db_name):
-            graph_data = GraphData()
-            # add db_name and raw to the data path
-            data_path = data_path.joinpath(db_name + "/raw/")
-            graph_data.load_from_benchmark(db_name, data_path, use_features)
-        else:
-            graph_data = GraphData()
-            graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=relabel_nodes, use_features=use_features,
-                                          use_attributes=use_attributes)
+    graph_data = GraphData()
+    if graph_format == 'NEL':
+        graph_data.load_nel_graphs(db_name=db_name, path=data_path, input_features=input_features, task=task, only_graphs=only_graphs)
+    # else:
+    #     if db_name == 'CSL_original':
+    #         from src.Preprocessing.csl import CSL
+    #         csl = CSL()
+    #         graph_data = csl.get_graphs(with_distances=False)
+    #     elif db_name == 'CSL':
+    #         graph_data = GraphData()
+    #         graph_data.load_nel_graphs(db_name, data_path, use_labels)
+    #     elif db_name == 'ZINC_original':
+    #         zinc_train = ZINC(root="../../ZINC_original/", subset=True, split='train')
+    #         zinc_val = ZINC(root="../../ZINC_original/", subset=True, split='val')
+    #         zinc_test = ZINC(root="../../ZINC_original/", subset=True, split='test')
+    #         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
+    #     elif db_name == 'ZINC':
+    #         graph_data = GraphData()
+    #         graph_data.load_nel_graphs(db_name, data_path, use_labels, task='regression')
+    #     elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or (
+    #             'Snowflakes' in db_name):
+    #         graph_data = GraphData()
+    #         # add db_name and raw to the data path
+    #         data_path = data_path.joinpath(db_name + "/raw/")
+    #         graph_data.load_nel_graphs(db_name, data_path, use_labels)
+    #     else:
+    #         graph_data = GraphData()
+    #         graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=relabel_nodes, use_features=use_labels,
+    #                                       use_attributes=use_attributes)
     return graph_data
 
 
