@@ -35,10 +35,10 @@ def get_run_configs(experiment_configuration):
         # get all different run configurations
         for i, l in enumerate(network_architecture):
             layers.append(Layer(l, i))
-        for b in experiment_configuration['batch_size']:
-            for lr in experiment_configuration['learning_rate']:
-                for e in experiment_configuration['epochs']:
-                    for d in experiment_configuration['dropout']:
+        for b in experiment_configuration.get('batch_size', [128]):
+            for lr in experiment_configuration.get('learning_rate', [0.001]):
+                for e in experiment_configuration.get('epochs', [100]):
+                    for d in experiment_configuration.get('dropout', [0.0]):
                         for o in experiment_configuration['optimizer']:
                             for loss in experiment_configuration['loss']:
                                 run_configs.append(

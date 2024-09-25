@@ -189,14 +189,13 @@ class GraphData:
                         # add all except the first element of the label
                         self.input_data[-1][node[0]] = torch.tensor(node[1]['label'][1:])
                     # if input data is not 1-dimensional, get the input feature dimension
-                    self.input_feature_dimension = self.input_data[0].shape[1]
                 elif use_labels_and_features:
                     self.input_data.append(torch.zeros(graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'])))
                     for node in graph.nodes(data=True):
                         # add all except the first element of the label
                         self.input_data[-1][node[0]] = torch.tensor([self.node_labels['primary'].node_labels[graph_id][node[0]]] + node[1]['label'][1:])
                     # if input data is not 1-dimensional, get the input feature dimension
-                    self.input_feature_dimension = self.input_data[0].shape[1]
+
 
 
             # normalize the graph input labels, i.e. to have values between -1 and 1, no zero values
@@ -227,19 +226,15 @@ class GraphData:
                 updated_input_data = []
                 # get the number of different node labels
                 num_node_labels = self.node_labels['primary'].num_unique_node_labels
-                # get the next even number if the number of node labels is odd
-                if num_node_labels % 2 == 1:
-                    num_node_labels += 1
-                intervals = num_node_labels + 1
-                interval_length = 1.0 / intervals
                 for i, graph in enumerate(self.graphs):
+                    updated_input_data.append(torch.ones(graph.number_of_nodes(), 2))
                     for j in range(len(graph)):
-                        updated_input_data.append(torch.ones(graph.number_of_nodes(), 2))
-                        value = self.input_data[i][j]
+                        value = int(self.input_data[i][j])
                         # get integer value of the node label
                         value = int(value)
-                        updated_input_data[-1][j][0] = np.cos(value * interval_length)
-                        updated_input_data[-1][j][1] = np.sin(value * interval_length)
+                        updated_input_data[-1][j][0] = np.cos(2*np.pi*value / num_node_labels)
+                        updated_input_data[-1][j][1] = np.sin(2*np.pi*value / num_node_labels)
+                self.input_data = updated_input_data
             elif use_labels_and_features and transformation == 'normalize_labels':
                 # get the number of different node labels
                 num_node_labels = self.node_labels['primary'].num_unique_node_labels
@@ -259,7 +254,7 @@ class GraphData:
                         else:
                             value = (-1) * (value * interval_length)
                         self.input_data[i][j][0] = value
-
+            self.input_feature_dimension = self.input_data[0].shape[1]
             # Determine the output data
             if task == 'regression':
                 self.num_classes = 1
@@ -284,6 +279,8 @@ class GraphData:
                         self.output_data[i][label] = 1
                     elif type(label) == list:
                         self.output_data[i] = torch.tensor(label)
+            # the input feature dimension
+            self.input_feature_dimension = self.input_data[0].shape[1]
             # the output feature dimension
             self.output_feature_dimension = self.output_data.shape[1]
 

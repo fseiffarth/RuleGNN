@@ -59,10 +59,12 @@ class ModelEvaluation:
         """
         if self.para.run_config.loss == 'CrossEntropyLoss':
             criterion = nn.CrossEntropyLoss()
-        if self.para.run_config.loss == 'MeanSquaredError' or self.para.run_config.loss == 'MSELoss':
+        elif self.para.run_config.loss == 'MeanSquaredError' or self.para.run_config.loss == 'MSELoss':
             criterion = nn.MSELoss()
-        if self.para.run_config.loss == 'MeanAbsoluteError' or self.para.run_config.loss == 'L1Loss':
+        elif self.para.run_config.loss == 'MeanAbsoluteError' or self.para.run_config.loss == 'L1Loss':
             criterion = nn.L1Loss()
+        else:
+            criterion = nn.CrossEntropyLoss()
 
         """
         Set up the optimizer

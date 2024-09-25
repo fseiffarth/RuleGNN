@@ -10,8 +10,6 @@ epochs:
   - 50
 scheduler:
   True
-dropout:
-  - 0.1
 optimizer:
   - Adam
 activation:
@@ -30,21 +28,11 @@ networks:
   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500,  properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6  ] } }
     - { layer_type: simple_cycles, max_cycle_length: 10, max_node_labels: 500 }
 
-aggregation_out_features:
-  2
-channels:
-  2
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:
 subgraphs:
   - "[nx.cycle_graph(5), nx.star_graph(1)]"
   - "[nx.cycle_graph(6), nx.star_graph(1)]"
-
-input_features: # choose from node_labels, node_features,
-  #{name: "node_labels"}
-  {name: "node_labels", transformation: "normalize"}
-  #{name: "node_features"}
-  #{name: "all", transformation: "normalize_labels"}
 
 degree_matrix:
   False
@@ -76,8 +64,7 @@ prune:
     - 0.999
     - 0.5
 
-precision:
-  float
+
 
 best_model:
   False

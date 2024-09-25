@@ -1,16 +1,34 @@
 datasets:
-  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Testing/MultiFeatures/Configs/config_experiment.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Examples/MultiFeatures/Configs/config_experiment.yml", type: "TUDataset"}
 paths:
   data:
-    "Testing/MultiFeatures/Data/" # Path to the folder containing the graph data
+    "Examples/MultiFeatures/Data/" # Path to the folder containing the graph data
   properties:
-    "Testing/MultiFeatures/Data/Properties/" # Precomputed properties will be loaded from this folder
+    "Examples/MultiFeatures/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "Testing/MultiFeatures/Data/Labels/" # Path to the folder containing the labels
+    "Examples/MultiFeatures/Data/Labels/" # Path to the folder containing the labels
   results:
-    "Testing/MultiFeatures/Results/" # Results will be saved in this folder
+    "Examples/MultiFeatures/Results/" # Results will be saved in this folder
   splits:
-    "Testing/MultiFeatures/Data/Splits/" # Path to the folder containing the data splits
+    "Examples/MultiFeatures/Data/Splits/" # Path to the folder containing the data splits
+
+input_features: # choose from node_labels, node_features,
+  #{name: "node_labels"}
+  #{name: "node_labels", transformation: "normalize"}
+  {name: "node_labels", transformation: "unit_circle"}
+  #{name: "node_features"}
+  #{name: "all", transformation: "normalize_labels"}
+
+aggregation_out_features:
+  2
+channels:
+  1
+
+precision:
+  double
+
+dropout:
+  - 0.0
 
 bias:
     True

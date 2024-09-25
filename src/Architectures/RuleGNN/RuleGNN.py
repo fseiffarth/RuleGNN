@@ -133,7 +133,7 @@ class RuleGNN(nn.Module):
                 else:
                     x = self.dropout(x)
                     x = self.out_af(layer(x, pos))
-        return x
+        return torch.flatten(x)
 
     def return_info(self):
         return type(self)

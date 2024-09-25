@@ -4,7 +4,7 @@ from scripts.ExperimentMain import ExperimentMain
 
 
 def main():
-    experiment = ExperimentMain(Path('Testing/MultiFeatures/Configs/config_main.yml'))
+    experiment = ExperimentMain(Path('Examples/MultiFeatures/Configs/config_main.yml'))
     experiment.Preprocess()
     experiment.GridSearch()
     experiment.EvaluateResults()
