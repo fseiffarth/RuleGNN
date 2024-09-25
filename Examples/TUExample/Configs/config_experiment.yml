@@ -1,5 +1,5 @@
 device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
-  cpu
+  cuda
 mode:
   experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
@@ -23,10 +23,12 @@ early_stopping:
     25
 
 networks:
-  - - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6 ] } }
-    - { layer_type: simple_cycles, max_cycle_length: 50, properties: { name: edge_label_distances, values: [1,2,3,4,5,6] } }
-    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6 ] } }
-    - { layer_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [ 1,2,3,4,5,6 ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 10 }
+#  - - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6 ] } }
+#    - { layer_type: simple_cycles, max_cycle_length: 50, properties: { name: edge_label_distances, values: [1,2,3,4,5,6] } }
+#    - { layer_type: primary, properties: { name: edge_label_distances, values: [1,2,3,4,5,6 ] } }
+#    - { layer_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }
 
 #  - - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] } }
 #    - { layer_type: simple_cycles, max_cycle_length: 10, max_node_labels: 500 }
@@ -48,16 +50,8 @@ subgraphs:
   - "[nx.cycle_graph(5), nx.star_graph(1)]"
   - "[nx.cycle_graph(6), nx.star_graph(1)]"
 
-
-
-use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
-  True
-use_attributes: # if True uses node attributes instead of node labels
-  False
-random_variation: # if True adds random variation to the input features
-  False
-load_splits: # if True loads precomputed data splits (use False only for new datasets)
-  True
+input_features:
+  {name: "node_labels", transformation: "normalize"}
 
 # data options
 balance_training:
@@ -87,7 +81,7 @@ prune:
     - 0.5
 
 precision:
-  double
+  float
 
 best_model:
   False

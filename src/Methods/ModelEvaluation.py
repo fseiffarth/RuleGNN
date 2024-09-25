@@ -43,7 +43,7 @@ class ModelEvaluation:
             if self.para.run_config.config['precision'] == 'double':
                 dtype = torch.double
                 # set the inputs in graph_data to double precision
-                self.graph_data.inputs = [x.double() for x in self.graph_data.inputs]
+                self.graph_data.input_data = [x.double() for x in self.graph_data.input_data]
         """
         Set up the network
         """
@@ -62,9 +62,9 @@ class ModelEvaluation:
         """
         if self.para.run_config.loss == 'CrossEntropyLoss':
             criterion = nn.CrossEntropyLoss()
-        if self.para.run_config.loss == 'MeanSquaredError':
+        if self.para.run_config.loss == 'MeanSquaredError' or self.para.run_config.loss == 'MSELoss':
             criterion = nn.MSELoss()
-        if self.para.run_config.loss == 'MeanAbsoluteError':
+        if self.para.run_config.loss == 'MeanAbsoluteError' or self.para.run_config.loss == 'L1Loss':
             criterion = nn.L1Loss()
 
         """
@@ -88,7 +88,11 @@ class ModelEvaluation:
                 total_trainable_parameters = 0
                 for layer in net.net_layers:
                     file_obj.write(f"\n")
-                    file_obj.write(f"Layer: {layer.name}\n")
+                    try:
+                        layer.name
+                        file_obj.write(f"Layer: {layer.name}\n")
+                    except:
+                        file_obj.write(f"Linear Layer\n")
                     file_obj.write(f"\n")
                     # get number of trainable parameters
                     layer_params = sum(p.numel() for p in layer.parameters() if p.requires_grad)
@@ -216,25 +220,25 @@ class ModelEvaluation:
                 optimizer.zero_grad()
                 outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=dtype))
                 outputs = outputs.to(device)
+                labels = self.graph_data.output_data[batch].to(device)
 
                 # TODO batch in one matrix ?
+                net.train(True)
                 for j, graph_id in enumerate(batch, 0):
-                    net.train(True)
                     timer.measure("forward_step")
                     if self.para.run_config.config.get('random_variation', False):
                         scale = 1.0
                         # random variation as torch tensor
-                        random_variation = np.random.normal(1.0, scale, self.graph_data.inputs[graph_id].shape)
+                        random_variation = np.random.normal(1.0, scale, self.graph_data.input_data[graph_id].shape)
                         if self.para.run_config.config.get('precision', 'double') == 'float':
                             random_variation = torch.FloatTensor(random_variation)
                         else:
                             random_variation = torch.DoubleTensor(random_variation)
                         outputs[j] = net(random_variation, graph_id)
                     else:
-                        outputs[j] = net(self.graph_data.inputs[graph_id].to(device), graph_id)
+                        outputs[j] = net(self.graph_data.input_data[graph_id].to(device), graph_id)
                     timer.measure("forward_step")
 
-                labels = self.graph_data.one_hot_labels[batch].to(device)
 
                 loss = criterion(outputs, labels)
                 timer.measure("forward")
@@ -389,12 +393,14 @@ class ModelEvaluation:
             validation_mae_std = 0
             if self.validate_data.size != 0:
                 outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=dtype)
+                labels = self.graph_data.output_data[self.validate_data]
+
                 # use torch no grad to save memory
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.validate_data):
                         net.train(False)
-                        outputs[j] = net(self.graph_data.inputs[data_pos].to(device), data_pos)
-                labels = self.graph_data.one_hot_labels[self.validate_data]
+                        outputs[j] = net(self.graph_data.input_data[data_pos].to(device), data_pos)
+
                 # get validation loss
                 validation_loss = criterion(outputs, labels).item()
                 labels_argmax = labels.argmax(axis=1)
@@ -468,11 +474,13 @@ class ModelEvaluation:
             if 'best_model' in self.para.run_config.config and self.para.run_config.config['best_model']:
                 # Test accuracy
                 outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=dtype)
+                labels = self.graph_data.output_data[self.test_data]
+
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.test_data, 0):
                         net.train(False)
-                        outputs[j] = net(self.graph_data.inputs[data_pos].to(device), data_pos)
-                labels = self.graph_data.one_hot_labels[self.test_data]
+                        outputs[j] = net(self.graph_data.input_data[data_pos].to(device), data_pos)
+
                 test_loss = criterion(outputs, labels).item()
                 test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
                 test_mae = 0

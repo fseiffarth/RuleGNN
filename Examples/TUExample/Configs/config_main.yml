@@ -1,7 +1,8 @@
 datasets:
-  - {name: "MUTAG", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
-  - {name: "PTC_FR", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
-  - {name: "PTC_FM", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  #- {name: "MUTAG", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  #- {name: "PTC_FR", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  #- {name: "PTC_FM", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
 paths:
   data:
     "Examples/TUExample/Data/" # Path to the folder containing the graph data

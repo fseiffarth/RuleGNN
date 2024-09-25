@@ -29,14 +29,14 @@ class CSL:
         self.graphs.num_graphs = len(nx_graphs)
         self.graphs.num_classes = len(set(labels))
         self.graphs.graph_db_name = "CSL_original"
-        self.graphs.inputs = [torch.ones(g.number_of_nodes()).double() for g in nx_graphs]
+        self.graphs.input_data = [torch.ones(g.number_of_nodes()).double() for g in nx_graphs]
         if with_distances:
             self.graphs.distance_list = []
             for graph in nx_graphs:
                 self.graphs.distance_list.append(dict(nx.all_pairs_shortest_path_length(graph, cutoff=6)))
 
         # get one hot labels from graph labels
-        self.graphs.one_hot_labels = torch.nn.functional.one_hot(torch.tensor(labels)).double()
+        self.graphs.output_data = torch.nn.functional.one_hot(torch.tensor(labels)).double()
         # set the labels
         self.graphs.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
         self.graphs.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)

@@ -260,8 +260,8 @@ def main(db_name, graph_ids, config, out, draw_type, data_format='NEL'):
     # adapt the precision of the input data
     if 'precision' in configs:
         if configs['precision'] == 'double':
-            for i in range(len(graph_data.inputs)):
-                graph_data.inputs[i] = graph_data.inputs[i].double()
+            for i in range(len(graph_data.input_data)):
+                graph_data.input_data[i] = graph_data.input_data[i].double()
 
     run_configs = get_run_configs(configs)
 
@@ -292,9 +292,9 @@ def main(db_name, graph_ids, config, out, draw_type, data_format='NEL'):
                 outputs = torch.zeros((len(test_data), graph_data.num_classes), dtype=torch.double)
                 with torch.no_grad():
                     for j, data_pos in enumerate(test_data, 0):
-                        inputs = torch.DoubleTensor(graph_data.inputs[data_pos])
+                        inputs = torch.DoubleTensor(graph_data.input_data[data_pos])
                         outputs[j] = net(inputs, data_pos)
-                    labels = graph_data.one_hot_labels[test_data]
+                    labels = graph_data.output_data[test_data]
                     # calculate the errors between the outputs and the labels by getting the argmax of the outputs and the labels
                     counter = 0
                     correct = 0

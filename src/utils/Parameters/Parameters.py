@@ -70,7 +70,7 @@ class Parameters(object):
         self.layers = layers
         self.batch_size = run_config.config['batch_size']
         self.node_features = node_features
-        self.load_splits = run_config.config['load_splits']
+        self.load_splits = run_config.config.get('load_splits', True)
         self.run_config = run_config
 
     def set_evaluation_param(self, run_id, n_val_runs, validation_id, config_id, n_epochs, learning_rate, dropout, balance_data, convolution_grad, resize_graph):

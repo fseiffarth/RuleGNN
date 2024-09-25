@@ -48,8 +48,8 @@ class RunSavedModel:
     def run(self, run=0, validation_id=0):
         # adapt the precision of the input data
         if self.experiment_config.get('precision', 'double') == 'double':
-            for i in range(len(self.graph_data.inputs)):
-                self.graph_data.inputs[i] = self.graph_data.inputs[i].double()
+            for i in range(len(self.graph_data.input_data)):
+                self.graph_data.input_data[i] = self.graph_data.input_data[i].double()
 
 
         run_configs = get_run_configs(self.experiment_config)
@@ -86,9 +86,9 @@ class RunSavedModel:
                     outputs = torch.zeros((len(test_data), self.graph_data.num_classes), dtype=torch.double)
                     with torch.no_grad():
                         for j, data_pos in enumerate(test_data, 0):
-                            inputs = torch.DoubleTensor(self.graph_data.inputs[data_pos])
+                            inputs = torch.DoubleTensor(self.graph_data.input_data[data_pos])
                             outputs[j] = net(inputs, data_pos)
-                        labels = self.graph_data.one_hot_labels[test_data]
+                        labels = self.graph_data.output_data[test_data]
                         # calculate the errors between the outputs and the labels by getting the argmax of the outputs and the labels
                         counter = 0
                         correct = 0

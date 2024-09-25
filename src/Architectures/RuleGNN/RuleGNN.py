@@ -1,4 +1,4 @@
-from src.Architectures.RuleGNN import RuleGNNLayers as layers
+from src.Architectures.RuleGNN import RuleGNNLayers
 import torch
 import torch.nn as nn
 from src.utils import GraphData
@@ -23,45 +23,45 @@ class RuleGNN(nn.Module):
         if 'precision' in para.run_config.config:
             self.module_precision = para.run_config.config['precision']
         if 'aggregation_out_features' in para.run_config.config:
-            self.aggregation_out_classes = para.run_config.config['aggregation_out_features']
+            self.aggregation_output_dimension = para.run_config.config['aggregation_out_features']
         else:
-            self.aggregation_out_classes = output_dimension
+            self.aggregation_output_dimension = output_dimension
 
         self.net_layers = nn.ModuleList()
         for i, layer in enumerate(para.layers):
             if i < len(para.layers) - 1:
                 if self.module_precision == 'float':
                     self.net_layers.append(
-                        layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                        RuleGNNLayers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
-                                                    in_features=n_node_features, n_kernels=1,
+                                                    in_features=n_node_features, channels=1,
                                                     bias=self.bias, precision=torch.float,
                                                     device=device).float().requires_grad_(
                             self.convolution_grad))
                 else:
                     self.net_layers.append(
-                        layers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                        RuleGNNLayers.RuleConvolutionLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
-                                                    in_features=n_node_features, n_kernels=1,
+                                                    in_features=n_node_features, channels=1,
                                                     bias=self.bias, precision=torch.double,
                                                     device=device).double().requires_grad_(
                             self.convolution_grad))
             else:
                 if self.module_precision == 'float':
                     self.net_layers.append(
-                        layers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                        RuleGNNLayers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
-                                                    in_features=n_node_features,
-                                                    out_features=self.aggregation_out_classes,
+                                                    channels=n_node_features,
+                                                    output_dimension=self.aggregation_output_dimension,
                                                     bias=self.bias,
                                                     precision=torch.float, device=device).float().requires_grad_(
                             self.aggregation_grad))
                 else:
                     self.net_layers.append(
-                        layers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
+                        RuleGNNLayers.RuleAggregationLayer(layer_id=i, seed=seed + i, layer_info=layer, parameters=para,
                                                     graph_data=self.graph_data,
-                                                    in_features=n_node_features,
-                                                    out_features=self.aggregation_out_classes,
+                                                    channels=n_node_features,
+                                                    output_dimension=self.aggregation_output_dimension,
                                                     bias=self.bias,
                                                     precision=torch.double, device=device).double().requires_grad_(
                             self.aggregation_grad))
@@ -71,15 +71,15 @@ class RuleGNN(nn.Module):
                 if i < para.run_config.config['linear_layers'] - 1:
                     if self.module_precision == 'float':
                         self.net_layers.append(
-                            nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).float())
+                            nn.Linear(self.aggregation_output_dimension*self.graph_data.input_feature_dimension, self.aggregation_output_dimension*self.graph_data.input_feature_dimension, bias=True).float())
                     else:
                         self.net_layers.append(
-                            nn.Linear(self.aggregation_out_classes, self.aggregation_out_classes, bias=True).double())
+                            nn.Linear(self.aggregation_output_dimension*self.graph_data.input_feature_dimension, self.aggregation_output_dimension*self.graph_data.input_feature_dimension, bias=True).double())
                 else:
                     if self.module_precision == 'float':
-                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, output_dimension, bias=True).float())
+                        self.net_layers.append(nn.Linear(self.aggregation_output_dimension*self.graph_data.input_feature_dimension, output_dimension, bias=True).float())
                     else:
-                        self.net_layers.append(nn.Linear(self.aggregation_out_classes, output_dimension, bias=True).double())
+                        self.net_layers.append(nn.Linear(self.aggregation_output_dimension*self.graph_data.input_feature_dimension, output_dimension, bias=True).double())
 
         self.dropout = nn.Dropout(dropout)
         if 'activation' in para.run_config.config and para.run_config.config['activation'] == 'None':
@@ -110,6 +110,8 @@ class RuleGNN(nn.Module):
                 if i < len(self.net_layers) - num_linear_layers:
                     x = self.af(layer(x, pos))
                 else:
+                    # flatten the input
+                    x = torch.flatten(x)
                     if i < len(self.net_layers) - 1:
                         x = self.af(layer(x))
                         x = self.dropout(x)

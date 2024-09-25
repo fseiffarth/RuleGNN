@@ -60,11 +60,13 @@ class ExperimentMain:
                     experiment_configuration[key] = self.main_config[key]
 
 
+            # determine the number of parallel jobs
+            num_workers = experiment_configuration.get('num_workers', validation_folds)
             for run_id in range(num_runs):
                 print(f"Run {run_id + 1} of {num_runs}")
                 # find the best model hyperparameters using grid search and cross-validation
-                print(f"Find the best hyperparameters for dataset {dataset['name']} using {validation_folds}-fold cross-validation and {validation_folds} number of parallel jobs")
-                joblib.Parallel(n_jobs=validation_folds)(
+                print(f"Find the best hyperparameters for dataset {dataset['name']} using {validation_folds}-fold cross-validation and {num_workers} number of parallel jobs")
+                joblib.Parallel(n_jobs=num_workers)(
                     joblib.delayed(self.find_best_models)(graph_db_name=dataset['name'],
                                                           validation_folds=validation_folds,
                                                           validation_id=validation_id, graph_format="NEL",
@@ -254,10 +256,14 @@ class ExperimentMain:
                                         input_features=experiment_configuration.get('input_features', None),
                                         graph_format=experiment_configuration.get('format', 'NEL'))
             # adapt the precision of the input data
-            if 'precision' in experiment_configuration:
-                if experiment_configuration['precision'] == 'double':
-                    for i in range(len(graph_data.inputs)):
-                        graph_data.inputs[i] = graph_data.inputs[i].double()
+            if experiment_configuration.get('precision', 'double') == 'double':
+                for i in range(len(graph_data.input_data)):
+                    graph_data.input_data[i] = graph_data.input_data[i].double()
+                graph_data.output_data = graph_data.output_data.double()
+            elif experiment_configuration.get('precision', 'double') == 'float':
+                for i in range(len(graph_data.input_data)):
+                    graph_data.input_data[i] = graph_data.input_data[i].float()
+                graph_data.output_data = graph_data.output_data.float()
 
             run_configs = get_run_configs(experiment_configuration)
 
@@ -362,11 +368,16 @@ class ExperimentMain:
                                         task=experiment_configuration.get('task', 'graph_classification'),
                                         input_features=experiment_configuration.get('input_features', None),
                                         graph_format=graph_format)
+
             # adapt the precision of the input data
-            if 'precision' in experiment_configuration:
-                if experiment_configuration['precision'] == 'double':
-                    for i in range(len(graph_data.inputs)):
-                        graph_data.inputs[i] = graph_data.inputs[i].double()
+            if experiment_configuration.get('precision', 'double') == 'double':
+                for i in range(len(graph_data.input_data)):
+                    graph_data.input_data[i] = graph_data.input_data[i].double()
+                graph_data.output_data = graph_data.output_data.double()
+            elif experiment_configuration.get('precision', 'double') == 'float':
+                for i in range(len(graph_data.input_data)):
+                    graph_data.input_data[i] = graph_data.input_data[i].float()
+                graph_data.output_data = graph_data.output_data.float()
 
             run_configs = get_run_configs(experiment_configuration)
             # get the best configuration and run it

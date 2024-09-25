@@ -133,7 +133,7 @@ def write_distance_edge_properties(data_path: Path, db_name: str, out_path:Path 
     out_yml = out_path.joinpath(f"{db_name}_edge_label_distances.yml")
     # check if the file already exists and if not create it
     if not os.path.exists(out) or not os.path.exists(out_yml):
-        graph_data = get_graph_data(db_name=db_name, data_path=data_path, use_labels=True, graph_format=graph_format)
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path, graph_format=graph_format)
         distances = []
         valid_properties = set()
         final_properties = []
