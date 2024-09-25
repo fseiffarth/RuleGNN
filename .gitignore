@@ -24,11 +24,9 @@ Results/
 /Examples/Pruning/Data/
 /Examples/Transfer/Data/
 /Testing/
-/Reproduce_RuleGNN_Pruning/
-/Reproduce_RuleGNN_Random_Primary/
-/Reproduce_RuleGNN_EdgeLabels/
 # ignore everything in the Data folder except the Splits folder
 /Data/*
 !/Data/Splits/
 !/Data/SplitsSimple/
 /Reproduce_RuleGNN/ResultsSOTA/
+/Examples/MultiFeatures/Data/

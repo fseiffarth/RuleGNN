@@ -275,18 +275,19 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
                 f"{sorted_evaluation[i][1][4]} Validation Accuracy: {sorted_evaluation[i][1][2]} +/- {sorted_evaluation[i][1][3]} Test Accuracy: {sorted_evaluation[i][1][0]} +/- {sorted_evaluation[i][1][1]}")
 
 
-def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy', print_results=False, evaluate_best_model=False, get_best_model=False, evaluate_validation_only=False, experiment_config=None) -> int:
+def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_validation_only=False, experiment_config=None, get_best_model=False, print_results=False) -> int:
     '''
     Evaluate the model selection results for a specific database
     :param db_name: the name of the database
-    :param path: the path to the results
-    :param evaluation_type: the evaluation type, either 'accuracy' or 'loss'
     :param print_results: print the results to the console
     :param evaluate_best_model: evaluate the best model
+    :param get_best_model: get the best model
     :param evaluate_validation_only: evaluate only the validation set (get the mean best epoch accuracy and the std)
     :return: the configuration id of the model with the overall best validation accuracy (+ minimum validation loss)
 
     '''
+    result_path = experiment_config['paths']['results']
+    evaluation_type = experiment_config.get('evaluation_type', 'accuracy')
     best_configuration_id = None
     if get_best_model:
         # find the best configuration id
@@ -294,9 +295,9 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
         data = None
         # load the data
         if evaluate_best_model:
-            data = pd.read_csv(path.joinpath(db_name).joinpath('summary_best.csv'))
+            data = pd.read_csv(result_path.joinpath(db_name).joinpath('summary_best.csv'))
         else:
-            data = pd.read_csv(path.joinpath(db_name).joinpath('summary.csv'))
+            data = pd.read_csv(result_path.joinpath(db_name).joinpath('summary.csv'))
         if evaluation_type == 'accuracy':
             # get rows with the maximum validation accuracy
             best_configuration_ids = data[data['Validation Accuracy Mean'] == data['Validation Accuracy Mean'].max()]
@@ -315,12 +316,12 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
                 best_configuration_id = best_configuration_ids['ConfigurationId'].values[0]
     else:
         # add absolute path to path
-        path = Path(os.path.abspath(path))
+        result_path = Path(os.path.abspath(result_path))
         if print_results:
             print(f"Model Selection Evaluation for {db_name}")
         db = None
         # get all run ids from search path
-        search_path = path.joinpath(db_name).joinpath('Results')
+        search_path = result_path.joinpath(db_name).joinpath('Results')
         # check if path exists
         if not search_path.exists():
             print(f"Path {search_path} does not exist")
@@ -344,7 +345,7 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
         # group by ConfigurationId and RunNumber
         groups_db = None
         if evaluate_validation_only:
-            with open(path.joinpath(db_name).joinpath('summary_sota.csv'), 'w') as f:
+            with open(result_path.joinpath(db_name).joinpath('summary_sota.csv'), 'w') as f:
                 f.write(
                     'ConfigurationId,RunId,Epoch,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std\n')
             groups_db = db.groupby(['ConfigurationId', 'RunNumber'])
@@ -375,7 +376,7 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
                 max_std = std_group[std_group['Epoch'] == max_epoch].iloc[-1]
 
                 # write the results to summary_sota.csv using the
-                with open(path.joinpath(db_name).joinpath('summary_sota.csv'), 'a') as f:
+                with open(result_path.joinpath(db_name).joinpath('summary_sota.csv'), 'a') as f:
                     f.write(f"{int(max_mean['ConfigurationId'])},{int(max_mean['RunNumber'])},{int(max_mean['Epoch'])},{max_mean['EpochAccuracy']},{max_std['EpochAccuracy']},{max_mean['EpochLoss']},{max_std['EpochLoss']},{max_mean['ValidationAccuracy']},{max_std['ValidationAccuracy']},{max_mean['ValidationLoss']},{max_std['ValidationLoss']}\n")
 
         else:
@@ -420,10 +421,10 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
             validation_groups = df_validation.groupby(['ConfigurationId', 'RunNumber'])
             # write headers to file
             if evaluate_best_model:
-                with open(path.joinpath(db_name).joinpath('summary_best.csv'), 'w') as f:
+                with open(result_path.joinpath(db_name).joinpath('summary_best.csv'), 'w') as f:
                     f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
             else:
-                with open(path.joinpath(db_name).joinpath('summary.csv'), 'w') as f:
+                with open(result_path.joinpath(db_name).joinpath('summary.csv'), 'w') as f:
                     f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
 
             for name, group in validation_groups:
@@ -457,17 +458,17 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
                 run_id = int(avg['RunNumber'])
                 # write to file
                 if evaluate_best_model:
-                    with open(path.joinpath(db_name).joinpath('summary_best.csv'), 'a') as f:
+                    with open(result_path.joinpath(db_name).joinpath('summary_best.csv'), 'a') as f:
                         f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
                 else:
-                    with open(path.joinpath(db_name).joinpath('summary.csv'), 'a') as f:
+                    with open(result_path.joinpath(db_name).joinpath('summary.csv'), 'a') as f:
                         f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
 
 
             if evaluate_best_model:
                 # write summary_best_mean.csv
                 # load summary best model
-                summary_best_model = pd.read_csv(path.joinpath(db_name).joinpath('summary_best.csv'))
+                summary_best_model = pd.read_csv(result_path.joinpath(db_name).joinpath('summary_best.csv'))
                 # remove
                 # average over all rows
                 summary_best_model_mean = summary_best_model.mean(numeric_only=True)
@@ -475,7 +476,7 @@ def model_selection_evaluation(db_name, path:Path, evaluation_type = 'accuracy',
                 summary_best_model_mean = summary_best_model_mean.drop('RunId')
                 config_id = int(summary_best_model_mean['ConfigurationId'])
                 # write to file
-                with open(path.joinpath(db_name).joinpath('summary_best_mean.csv'), 'w') as f:
+                with open(result_path.joinpath(db_name).joinpath('summary_best_mean.csv'), 'w') as f:
                     f.write('ConfigurationId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
                     f.write(f'{config_id},{summary_best_model_mean["Epoch Mean"]},{summary_best_model_mean["Epoch Std"]},{summary_best_model_mean["Epoch Accuracy Mean"]},{summary_best_model_mean["Epoch Accuracy Std"]},{summary_best_model_mean["Epoch Loss Mean"]},{summary_best_model_mean["Epoch Loss Std"]},{summary_best_model_mean["Validation Accuracy Mean"]},{summary_best_model_mean["Validation Accuracy Std"]},{summary_best_model_mean["Validation Loss Mean"]},{summary_best_model_mean["Validation Loss Std"]},{summary_best_model_mean["Test Accuracy Mean"]},{summary_best_model_mean["Test Accuracy Std"]},{summary_best_model_mean["Test Loss Mean"]},{summary_best_model_mean["Test Loss Std"]}')
 

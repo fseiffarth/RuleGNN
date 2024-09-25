@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -20,14 +20,11 @@ from src.utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configur
 
 
 class ModelEvaluation:
-    def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, training_data: np.ndarray,
-                 validate_data: np.ndarray, test_data: np.ndarray, seed: int, para: Parameters.Parameters):
+    def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, model_data: Tuple[np.ndarray, np.ndarray, np.ndarray], seed: int, para: Parameters.Parameters):
         self.run_id = run_id
         self.k_val = k_val
         self.graph_data = graph_data
-        self.training_data = training_data
-        self.validate_data = validate_data
-        self.test_data = test_data
+        self.training_data, self.validate_data, self.test_data = model_data
         self.seed = seed
         self.para = para
         self.results_path = para.run_config.config['paths']['results']

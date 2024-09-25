@@ -1,5 +1,5 @@
 device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
-  cuda
+  cpu
 mode:
   experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 batch_size:
@@ -7,9 +7,9 @@ batch_size:
 learning_rate:
   - 0.05
 epochs:
-  - 100
+  - 50
 scheduler:
-  False
+  True
 dropout:
   - 0.0
 optimizer:

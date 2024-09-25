@@ -1,0 +1,21 @@
+datasets:
+  # real-world datasets
+  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset"}
+  - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
+  - {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
+
+paths:
+  # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
+  data:
+    "Reproduce_RuleGNN/Data/TUDatasets/"
+  properties:
+    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
+  splits:
+    "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
+  results:
+    "Reproduce_RuleGNN/Results/" # Results will be saved in this folder

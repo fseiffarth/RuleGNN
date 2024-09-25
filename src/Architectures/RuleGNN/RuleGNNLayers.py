@@ -105,25 +105,16 @@ class RuleConvolutionLayer(nn.Module):
     classdocs for the GraphConvLayer: This class represents a convolutional layer for a RuleGNN
     """
 
-    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, channels=1, bias=True,
-                 precision=torch.float, device='cpu', *args,
-                 **kwargs):
+    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, bias=True,
+                 precision=torch.float, device='cpu'):
         """
         Constructor of the GraphConvLayer
         :param layer_id: the id of the layer
         :param seed: the seed for the random number generator
         :param parameters: the parameters of the experiment
         :param graph_data: the data of the graph dataset
-        :param w_distribution_rule: the rule for the weight distribution in the layer
-        :param bias_distribution_rule: the rule for the bias distribution in the layer
-        :param : the number of input features (at the moment only 1 is supported)
-        :param channels: the number of kernels used in the layer (at the moment only 1 is supported)
         :param bias: if bias is used in the layer
-        :param print_layer_init: if the layer initialization should be printed
-        :param save_weights: if the weights should be saved
         :param precision: the precision of the weights, can be torch.float or torch.double
-        :param args: additional arguments
-        :param kwargs: additional keyword arguments
         """
         super(RuleConvolutionLayer, self).__init__()
         # id and name of the layer
@@ -140,7 +131,7 @@ class RuleConvolutionLayer(nn.Module):
         # get the number of considered node labels
         self.n_node_labels = self.node_labels.num_unique_node_labels
         # get the number of considered kernels
-        self.channels = channels
+        self.channels = parameters.run_config.config.get('channels', 1)
 
         self.n_properties = 1
         self.property = None
@@ -156,9 +147,6 @@ class RuleConvolutionLayer(nn.Module):
         # Initialize the current weight matrix and bias vector
         self.current_W = torch.Tensor()
         self.current_B = torch.Tensor()
-
-        self.args = args
-        self.kwargs = kwargs
         self.precision = precision
 
         # Determine the number of weights and biases
@@ -199,6 +187,8 @@ class RuleConvolutionLayer(nn.Module):
         self.weight_distribution = []
         # Set the bias distribution for each graph
         self.bias_distribution = []
+        # list of degree matrices
+        self.D = []
 
         for graph_id, graph in enumerate(self.graph_data.graphs, 0):
             if (self.graph_data.num_graphs < 10 or graph_id % (
@@ -206,11 +196,15 @@ class RuleConvolutionLayer(nn.Module):
                 print("GraphConvLayerInitWeights: ", str(int(graph_id / self.graph_data.num_graphs * 100)), "%")
 
             node_number = graph.number_of_nodes()  # get the number of nodes in the graph
-            graph_weight_pos_distribution = []  # initialize the weight distribution # size of the weight matrix
+            graph_weight_pos_distribution = [] # initialize the weight distribution # size of the weight matrix
 
             #in_high_dim = np.zeros(shape=(self.channels, node_number, node_number))
             #out_low_dim = np.zeros(shape=(node_number, node_number * self.channels))
             #index_map = reshape_indices(in_high_dim, out_low_dim)
+
+            if self.para.run_config.config.get('degree_matrix', False):
+                self.D.append(torch.zeros(node_number, dtype=self.precision).to(self.device))
+
 
             for k in range(0, self.channels):  # iterate over the channels, not used at the moment
                 # iterate over valid properties
@@ -226,50 +220,49 @@ class RuleConvolutionLayer(nn.Module):
                             #row_index = index_map[(k, v, w)][0]
                             #col_index = index_map[(k, v, w)][1]
                             # vstack the new weight position
-                            graph_weight_pos_distribution.append([v, w, weight_pos])
-
+                            graph_weight_pos_distribution.append([k, v, w, weight_pos])
+                            # add entry to the degree matrix
+                            if self.para.run_config.config.get('degree_matrix', False):
+                                self.D[graph_id][v] += 1.0
+                                self.D[graph_id][w] += 1.0
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
+
+            # normalize the degree matrix to inverse square root
+            if self.para.run_config.config.get('degree_matrix', False):
+                self.D[graph_id] = torch.pow(self.D[graph_id], -0.5)
 
             if self.bias:
                 graph_bias_pos_distribution = []
-                in_high_dim = np.zeros(shape=(self.channels, node_number, self.input_feature_dimension))
-                out_low_dim = np.zeros(shape=(node_number, self.input_feature_dimension))
-                index_map = reshape_indices(in_high_dim, out_low_dim)
                 for k in range(0, self.channels):
                     for i in range(0, self.input_feature_dimension):  # not used at the moment # not used at the moment
                         for v in range(0, node_number):
                             v_label = self.node_labels.node_labels[graph_id][v]
-                            bias_index = index_map[(k, v, i)]
                             weight_pos = self.bias_map[k][int(v_label)][i]
-                            graph_bias_pos_distribution.append([bias_index[0], bias_index[1], weight_pos])
+                            graph_bias_pos_distribution.append([k, v, i, weight_pos])
 
                 self.bias_distribution.append(np.array(graph_bias_pos_distribution, dtype=np.int64))
 
         self.forward_step_time = 0
 
-    def set_weights(self, input_size, pos):
+    def set_weights(self, pos):
+        input_size = self.graph_data.graphs[pos].number_of_nodes()
         # reshape self.current_W to the size of the weight matrix and fill it with zeros
-        self.current_W = torch.zeros((input_size, input_size * self.channels), dtype=self.precision).to(self.device)
+        self.current_W = torch.zeros((self.channels, input_size, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[pos]
         if len(weight_distr) != 0:
             # get third column of the weight_distribution: the index of self.Param_W
-            param_indices = torch.tensor(weight_distr[:, 2]).long().to(self.device)
-            matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long().to(self.device)
+            param_indices = torch.tensor(weight_distr[:, 3]).long().to(self.device)
+            matrix_indices = torch.tensor(weight_distr[:, 0:3]).T.long().to(self.device)
             # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
-            self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
+            self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_indices)
 
-    def set_bias(self, input_size, pos):
-        if self.input_feature_dimension > 1:
-            self.current_B = torch.zeros((input_size, self.input_feature_dimension), dtype=self.precision).to(self.device)
-        else:
-            self.current_B = torch.zeros((input_size * self.input_feature_dimension), dtype=self.precision).to(self.device)
+    def set_bias(self, pos):
+        input_size = self.graph_data.graphs[pos].number_of_nodes()
+        self.current_B = torch.zeros((self.channels, input_size, self.input_feature_dimension), dtype=self.precision).to(self.device)
         bias_distr = self.bias_distribution[pos]
-        if self.input_feature_dimension > 1:
-            param_indices = torch.tensor(bias_distr[:, 2]).long().to(self.device)
-            matrix_indices = torch.tensor(bias_distr[:, 0:2]).T.long().to(self.device)
-            self.current_B[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_b, param_indices)
-        else:
-            self.current_B[bias_distr[:, 0]] = torch.take(self.Param_b, torch.tensor(bias_distr[:, 1]).to(self.device))
+        param_indices = torch.tensor(bias_distr[:, 3]).long().to(self.device)
+        matrix_indices = torch.tensor(bias_distr[:, 0:3]).T.long().to(self.device)
+        self.current_B[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_b, param_indices)
 
     def print_layer_info(self):
         print("Layer" + self.__class__.__name__)
@@ -309,14 +302,20 @@ class RuleConvolutionLayer(nn.Module):
         # print(x.size()[0])
         begin = time.time()
         # set the weights
-        self.set_weights(x.size()[0], pos)
+        self.set_weights(pos)
         if self.bias:
-            self.set_bias(x.size()[0], pos)
+            self.set_bias(pos)
             self.forward_step_time += time.time() - begin
-            return self.current_W@x + self.current_B
+            if self.para.run_config.config.get('degree_matrix', False):
+                return torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos])@x + self.current_B
+            else:
+                return self.current_W@x + self.current_B
         else:
             self.forward_step_time += time.time() - begin
-            return self.current_W@x
+            if self.para.run_config.config.get('degree_matrix', False):
+                return torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos])@x
+            else:
+                return self.current_W@x
 
     def get_weights(self):
         return [x.item() for x in self.Param_W]
@@ -330,7 +329,7 @@ class RuleAggregationLayer(nn.Module):
     The RuleAggregationLayer class represents the aggregation layer of the RuleGNN
     It gets as input a matrix of size (nodes x graph_data.input_feature_dimension) and returns a matrix of size (output_dimension x graph_data.input_feature_dimension)
     '''
-    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, channels,
+    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData,
                  output_dimension, bias=True, precision=torch.float, device='cpu'):
 
         super(RuleAggregationLayer, self).__init__()
@@ -342,7 +341,7 @@ class RuleAggregationLayer(nn.Module):
         # get the graph data
         self.graph_data = graph_data
         self.precision = precision
-        self.channels = channels
+        self.channels = parameters.run_config.config.get('channels', 1)
         self.output_dimension = output_dimension
         # device
         self.device = device
@@ -353,7 +352,7 @@ class RuleAggregationLayer(nn.Module):
         self.n_node_labels = n_node_labels
         self.input_feature_dimension = graph_data.input_feature_dimension
 
-        self.weight_num = n_node_labels * output_dimension * channels
+        self.weight_num = n_node_labels * output_dimension * self.channels
         self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, output_dimension, n_node_labels))
 
         # calculate the range for the weights
@@ -365,11 +364,7 @@ class RuleAggregationLayer(nn.Module):
 
         self.bias = bias
         if self.bias:
-            if self.input_feature_dimension > 1:
-                self.Param_b = nn.Parameter(torch.zeros((output_dimension, self.input_feature_dimension), dtype=self.precision))
-            else:
-                self.Param_b = nn.Parameter(torch.zeros(output_dimension, dtype=self.precision))
-
+            self.Param_b = nn.Parameter(torch.zeros((self.channels, output_dimension, self.input_feature_dimension), dtype=self.precision))
         self.forward_step_time = 0
 
         self.name = "Resize_Layer"
@@ -392,10 +387,6 @@ class RuleAggregationLayer(nn.Module):
                 print("ResizeLayerInitWeights: ", str(int(graph_id / self.graph_data.num_graphs * 100)), "%")
 
             graph_weight_pos_distribution = []
-            input_size = self.channels * graph.number_of_nodes()
-            in_high_dim = np.zeros(shape=(self.channels, output_dimension, graph.number_of_nodes()))
-            out_low_dim = np.zeros(shape=(output_dimension, input_size))
-            index_map = reshape_indices(in_high_dim, out_low_dim)
 
             ##########################################
             #weight_count_map = {}
@@ -406,10 +397,8 @@ class RuleAggregationLayer(nn.Module):
                 for o in range(0, output_dimension):
                         for v in range(0, graph.number_of_nodes()):
                             v_label = self.node_labels.node_labels[graph_id][v]
-                            index_x = index_map[(c, o, v)][0]
-                            index_y = index_map[(c, o, v)][1]
                             weight_pos = self.weight_map[c][o][int(v_label)]
-                            graph_weight_pos_distribution.append([index_x, index_y, weight_pos])
+                            graph_weight_pos_distribution.append([c, o, v, weight_pos])
 
                             ##########################################
                             #if weight_pos in weight_count_map:
@@ -428,15 +417,15 @@ class RuleAggregationLayer(nn.Module):
 
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
-    def set_weights(self, input_size, pos):
-        self.current_W = torch.zeros((self.output_dimension, input_size), dtype=self.precision).to(self.device)
-        num_graphs_nodes = self.graph_data.graphs[pos].number_of_nodes()
+    def set_weights(self, pos):
+        input_size = self.graph_data.graphs[pos].number_of_nodes()
+        self.current_W = torch.zeros((self.channels, self.output_dimension, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[pos]
-        param_indices = torch.tensor(weight_distr[:, 2]).long().to(self.device)
-        matrix_indices = torch.tensor(weight_distr[:, 0:2]).T.long().to(self.device)
-        self.current_W[matrix_indices[0], matrix_indices[1]] = torch.take(self.Param_W, param_indices)
+        param_indices = torch.tensor(weight_distr[:, 3]).long().to(self.device)
+        matrix_indices = torch.tensor(weight_distr[:, 0:3]).T.long().to(self.device)
+        self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_indices)
         # divide the weights by the number of nodes in the graph
-        self.current_W = self.current_W / num_graphs_nodes
+        self.current_W = self.current_W / input_size
         # normalize the weights using the weight_normalization
         #self.current_W = self.current_W * self.weight_normalization[pos]
         pass
@@ -472,7 +461,7 @@ class RuleAggregationLayer(nn.Module):
     def forward(self, x, pos):
         #x = x.view(-1)
         begin = time.time()
-        self.set_weights(x.size()[0], pos)
+        self.set_weights(pos)
 
         self.forward_step_time += time.time() - begin
 
