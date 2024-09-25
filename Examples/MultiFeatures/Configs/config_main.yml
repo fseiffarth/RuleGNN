@@ -1,0 +1,21 @@
+datasets:
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Testing/MultiFeatures/Configs/config_experiment.yml", type: "TUDataset"}
+paths:
+  data:
+    "Testing/MultiFeatures/Data/" # Path to the folder containing the graph data
+  properties:
+    "Testing/MultiFeatures/Data/Properties/" # Precomputed properties will be loaded from this folder
+  labels:
+    "Testing/MultiFeatures/Data/Labels/" # Path to the folder containing the labels
+  results:
+    "Testing/MultiFeatures/Results/" # Results will be saved in this folder
+  splits:
+    "Testing/MultiFeatures/Data/Splits/" # Path to the folder containing the data splits
+
+bias:
+    True
+
+convolution_grad:
+    True
+aggregation_grad:
+    True

@@ -1,0 +1,85 @@
+device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
+  cpu
+mode:
+  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+batch_size:
+  - 128
+learning_rate:
+  - 0.05
+epochs:
+  - 50
+scheduler:
+  True
+dropout:
+  - 0.1
+optimizer:
+  - Adam
+activation:
+  tanh
+output_activation:
+  tanh
+loss:
+  - CrossEntropyLoss
+early_stopping:
+  enabled:
+    True
+  patience:
+    25
+
+networks:
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500,  properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6  ] } }
+    - { layer_type: simple_cycles, max_cycle_length: 10, max_node_labels: 500 }
+
+aggregation_out_features:
+  2
+channels:
+  2
+
+# if subgraph labels are used the corresponding list of subgraphs should be provided here:
+subgraphs:
+  - "[nx.cycle_graph(5), nx.star_graph(1)]"
+  - "[nx.cycle_graph(6), nx.star_graph(1)]"
+
+input_features: # choose from node_labels, node_features,
+  #{name: "node_labels"}
+  {name: "node_labels", transformation: "normalize"}
+  #{name: "node_features"}
+  #{name: "all", transformation: "normalize_labels"}
+
+degree_matrix:
+  False
+
+# data options
+balance_training:
+  False
+
+# Additional options for analysis only possible in debug mode
+additional_options:
+  draw: # draw the accuracy and loss during training
+    True
+  save_weights: # save the weights of the model
+    False
+  save_prediction_values:
+    False
+  plot_graphs: # Plot all graphs in the dataset
+    False
+  print_results: # Print accuracy and loss in the console
+    True
+
+
+prune:
+  enabled:
+    False
+  epochs: # prune after this many epochs
+    25
+  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+    - 0.999
+    - 0.5
+
+precision:
+  float
+
+best_model:
+  False
+save_last:
+  False
