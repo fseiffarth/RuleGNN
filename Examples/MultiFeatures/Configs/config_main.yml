@@ -15,10 +15,12 @@ paths:
 input_features: # choose from node_labels, node_features,
   #{name: "node_labels"}
   #{name: "node_labels", transformation: "normalize"}
-  {name: "node_labels", transformation: "unit_circle", features_as_channels: True}
+  #{name: "node_labels", transformation: "unit_circle", features_as_channels: True}
   #{name: "node_labels", transformation: "unit_circle"}
   #{name: "node_features"}
+  #{name: "node_features", features_as_channels: True}
   #{name: "all", transformation: "normalize_labels"}
+  {name: "all", transformation: "normalize_labels", features_as_channels: True}
 
 aggregation_out_features:
   2

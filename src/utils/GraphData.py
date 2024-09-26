@@ -190,13 +190,17 @@ class GraphData:
                     for node in graph.nodes(data=True):
                         # add all except the first element of the label
                         self.input_data[-1][0][node[0]] = torch.tensor(node[1]['label'][1:])
-                    # if input data is not 1-dimensional, get the input feature dimension
+                    if use_features_as_channels:
+                        # swap the dimensions
+                        self.input_data[-1] = self.input_data[-1].permute(2,1,0)
                 elif use_labels_and_features:
                     self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'])))
                     for node in graph.nodes(data=True):
                         # add all except the first element of the label
-                        self.input_data[-1][node[0]] = torch.tensor([self.node_labels['primary'].node_labels[graph_id][node[0]]] + node[1]['label'][1:])
-                    # if input data is not 1-dimensional, get the input feature dimension
+                        self.input_data[-1][0][node[0]] = torch.tensor([self.node_labels['primary'].node_labels[graph_id][node[0]]] + node[1]['label'][1:])
+                    if use_features_as_channels:
+                        # swap the dimensions
+                        self.input_data[-1] = self.input_data[-1].permute(2,1,0)
 
 
 
