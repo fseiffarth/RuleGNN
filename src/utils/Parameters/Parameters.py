@@ -28,6 +28,7 @@ class Parameters(object):
         self.network_type = "wl_1"
         self.node_features = self.max_coding
         self.run_config = None
+        self.use_features_as_channels = False
         """
         Evaluation parameters
         """

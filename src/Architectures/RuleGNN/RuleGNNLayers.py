@@ -8,8 +8,8 @@ import torch.nn as nn
 import torch.nn.init
 import time
 import numpy as np
+
 from src.utils import GraphData
-from src.utils.utils import reshape_indices
 
 
 class Layer:
@@ -105,8 +105,7 @@ class RuleConvolutionLayer(nn.Module):
     classdocs for the GraphConvLayer: This class represents a convolutional layer for a RuleGNN
     """
 
-    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, bias=True,
-                 precision=torch.float, device='cpu'):
+    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, bias=True, out_channels=1, device='cpu'):
         """
         Constructor of the GraphConvLayer
         :param layer_id: the id of the layer
@@ -130,8 +129,9 @@ class RuleConvolutionLayer(nn.Module):
         self.node_labels = graph_data.node_labels[layer_info.get_layer_string()]
         # get the number of considered node labels
         self.n_node_labels = self.node_labels.num_unique_node_labels
-        # get the number of considered kernels
-        self.channels = parameters.run_config.config.get('channels', 1)
+        # get the number of input channels
+        self.out_channels = out_channels
+
 
         self.n_properties = 1
         self.property = None
@@ -143,26 +143,32 @@ class RuleConvolutionLayer(nn.Module):
         self.para = parameters  # get the all the parameters of the experiment
         self.bias = bias  # use bias or not default is True
         self.device = device  # set the device
+        self.precision = torch.float # set the precision of the weights
+        if parameters.run_config.config.get('precision', 'float') == 'double':
+            self.precision = torch.double
 
-        # Initialize the current weight matrix and bias vector
+        # Initialize the current weight matrix, bias vector and feature weight matrix
         self.current_W = torch.Tensor()
         self.current_B = torch.Tensor()
-        self.precision = precision
+        self.feature_W = torch.Tensor()
+        if parameters.run_config.config.get('use_feature_weights', False):
+            self.feature_W = nn.Parameter(torch.randn((self.input_feature_dimension, self.input_feature_dimension), dtype=self.precision))
+
 
         # Determine the number of weights and biases
         # There are two cases assymetric and symmetric, assymetric is the default
         if 'symmetric' in self.para.run_config.config and self.para.run_config.config['symmetric']:  #TODO
-            self.weight_num = self.channels * ((self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_properties
+            self.weight_num = self.out_channels * ((self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_properties
             # np upper triangular matrix
-            self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, self.n_node_labels, self.n_node_labels, self.n_properties))
+            self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.out_channels, self.n_node_labels, self.n_node_labels, self.n_properties))
         else:
-            self.weight_num = self.channels * self.n_node_labels * self.n_node_labels * self.n_properties
-            self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, self.n_node_labels, self.n_node_labels, self.n_properties))
+            self.weight_num = self.out_channels * self.n_node_labels * self.n_node_labels * self.n_properties
+            self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.out_channels, self.n_node_labels, self.n_node_labels, self.n_properties))
 
         if self.bias:
             # Determine the number of different learnable parameters in the bias vector
-            self.bias_num = self.input_feature_dimension * self.channels * self.n_node_labels
-            self.bias_map = np.arange(self.bias_num, dtype=np.int64).reshape((self.channels, self.n_node_labels,self.input_feature_dimension))
+            self.bias_num = self.input_feature_dimension * self.out_channels * self.n_node_labels
+            self.bias_map = np.arange(self.bias_num, dtype=np.int64).reshape((self.out_channels, self.n_node_labels, self.input_feature_dimension))
 
         # calculate the range for the weights using the number of weights
         lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
@@ -171,7 +177,7 @@ class RuleConvolutionLayer(nn.Module):
         torch.manual_seed(seed)
         # Initialize the weight matrix with random values between lower and upper
         weight_data = lower + torch.randn(self.weight_num, dtype=self.precision) * (upper - lower)
-        self.Param_W = nn.Parameter(weight_data, requires_grad=True)
+        self.Param_W = nn.Parameter(weight_data, requires_grad=True).type(self.precision)
         if self.bias:
             bias_data = torch.zeros(self.bias_num, dtype=self.precision)
             self.Param_b = nn.Parameter(bias_data, requires_grad=True)
@@ -206,7 +212,7 @@ class RuleConvolutionLayer(nn.Module):
                 self.D.append(torch.zeros(node_number, dtype=self.precision).to(self.device))
 
 
-            for k in range(0, self.channels):  # iterate over the channels, not used at the moment
+            for k in range(0, self.out_channels):  # iterate over the channels, not used at the moment
                 # iterate over valid properties
                 for p in self.property.valid_property_map[layer_id].keys():
                     if p in self.property.properties[graph_id]:
@@ -233,7 +239,7 @@ class RuleConvolutionLayer(nn.Module):
 
             if self.bias:
                 graph_bias_pos_distribution = []
-                for k in range(0, self.channels):
+                for k in range(0, self.out_channels):
                     for i in range(0, self.input_feature_dimension):  # not used at the moment # not used at the moment
                         for v in range(0, node_number):
                             v_label = self.node_labels.node_labels[graph_id][v]
@@ -247,7 +253,7 @@ class RuleConvolutionLayer(nn.Module):
     def set_weights(self, pos):
         input_size = self.graph_data.graphs[pos].number_of_nodes()
         # reshape self.current_W to the size of the weight matrix and fill it with zeros
-        self.current_W = torch.zeros((self.channels, input_size, input_size), dtype=self.precision).to(self.device)
+        self.current_W = torch.zeros((self.out_channels, input_size, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[pos]
         if len(weight_distr) != 0:
             # get third column of the weight_distribution: the index of self.Param_W
@@ -258,7 +264,7 @@ class RuleConvolutionLayer(nn.Module):
 
     def set_bias(self, pos):
         input_size = self.graph_data.graphs[pos].number_of_nodes()
-        self.current_B = torch.zeros((self.channels, input_size, self.input_feature_dimension), dtype=self.precision).to(self.device)
+        self.current_B = torch.zeros((self.out_channels, input_size, self.input_feature_dimension), dtype=self.precision).to(self.device)
         bias_distr = self.bias_distribution[pos]
         param_indices = torch.tensor(bias_distr[:, 3]).long().to(self.device)
         matrix_indices = torch.tensor(bias_distr[:, 0:3]).T.long().to(self.device)
@@ -307,15 +313,16 @@ class RuleConvolutionLayer(nn.Module):
             self.set_bias(pos)
             self.forward_step_time += time.time() - begin
             if self.para.run_config.config.get('degree_matrix', False):
-                return torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos])@x + self.current_B
+                return torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x) + self.current_B
             else:
-                return self.current_W@x + self.current_B
+                return torch.einsum('cij,cjk->cik', self.current_W, x) + self.current_B
         else:
             self.forward_step_time += time.time() - begin
             if self.para.run_config.config.get('degree_matrix', False):
-                return torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos])@x
+                return torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x)
             else:
-                return self.current_W@x
+                return torch.einsum('cij,cjk->cik', self.current_W, x)
+
 
     def get_weights(self):
         return [x.item() for x in self.Param_W]
@@ -330,7 +337,7 @@ class RuleAggregationLayer(nn.Module):
     It gets as input a matrix of size (nodes x graph_data.input_feature_dimension) and returns a matrix of size (output_dimension x graph_data.input_feature_dimension)
     '''
     def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData,
-                 output_dimension, bias=True, precision=torch.float, device='cpu'):
+                 out_dim, out_channels=1, bias=True, device='cpu'):
 
         super(RuleAggregationLayer, self).__init__()
 
@@ -340,9 +347,11 @@ class RuleAggregationLayer(nn.Module):
         self.layer_info = layer_info
         # get the graph data
         self.graph_data = graph_data
-        self.precision = precision
-        self.channels = parameters.run_config.config.get('channels', 1)
-        self.output_dimension = output_dimension
+        self.precision = torch.float
+        if parameters.run_config.config.get('precision', 'float') == 'double':
+            self.precision = torch.double
+        self.channels = out_channels
+        self.output_dimension = out_dim
         # device
         self.device = device
 
@@ -352,8 +361,8 @@ class RuleAggregationLayer(nn.Module):
         self.n_node_labels = n_node_labels
         self.input_feature_dimension = graph_data.input_feature_dimension
 
-        self.weight_num = n_node_labels * output_dimension * self.channels
-        self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, output_dimension, n_node_labels))
+        self.weight_num = n_node_labels * out_dim * self.channels
+        self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, out_dim, n_node_labels))
 
         # calculate the range for the weights
         lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
@@ -364,7 +373,7 @@ class RuleAggregationLayer(nn.Module):
 
         self.bias = bias
         if self.bias:
-            self.Param_b = nn.Parameter(torch.zeros((self.channels, output_dimension, self.input_feature_dimension), dtype=self.precision))
+            self.Param_b = nn.Parameter(torch.zeros((self.channels, out_dim, self.input_feature_dimension), dtype=self.precision))
         self.forward_step_time = 0
 
         self.name = "Resize_Layer"
@@ -394,7 +403,7 @@ class RuleAggregationLayer(nn.Module):
             ##########################################
 
             for c in range(0, self.channels):
-                for o in range(0, output_dimension):
+                for o in range(0, out_dim):
                         for v in range(0, graph.number_of_nodes()):
                             v_label = self.node_labels.node_labels[graph_id][v]
                             weight_pos = self.weight_map[c][o][int(v_label)]
@@ -466,9 +475,9 @@ class RuleAggregationLayer(nn.Module):
         self.forward_step_time += time.time() - begin
 
         if self.bias:
-            return self.current_W@x + self.Param_b
+            return torch.einsum('cij,cjk->cik', self.current_W, x) + self.Param_b
         else:
-            return self.current_W@x
+            return torch.einsum('cij,cjk->cik', self.current_W, x)
 
         # if self.bias:
         #     return torch.mv(self.weight_matrices[pos], x) + self.Param_b.to("cpu")
