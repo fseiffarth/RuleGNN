@@ -10,7 +10,8 @@ from src.utils.path_conversions import config_paths_to_absolute
 
 
 def main():
-    # example on how to combine multiple datasets: TODO move this to main config file (key: name should be a list)
+    #################### example on how to combine multiple datasets:
+    # TODO move this to main config file (key: name should be a list)
     main_configuration = yaml.safe_load(open('Examples/Transfer/Configs/config_main.yml'))
     experiment_configuration = yaml.safe_load(open('Examples/Transfer/Configs/config_experiment.yml'))
     if 'paths' not in experiment_configuration:
@@ -23,7 +24,7 @@ def main():
     Preprocessing('PTC_MR', experiment_configuration=experiment_configuration, data_generation='TUDataset', with_splits=False, with_labels_and_properties=False)
     Preprocessing('PTC_FM', experiment_configuration=experiment_configuration, data_generation='TUDataset', with_splits=False, with_labels_and_properties=False)
     combine_nel_graphs(dataset_names=['PTC_MR', 'PTC_FM'], input_dir=Path('Examples/Transfer/Data/'), output_dir=Path('Examples/Transfer/Data/'))
-    ###
+    ####################
     experiment = ExperimentMain(Path('Examples/Transfer/Configs/config_main.yml'))
     experiment.Preprocess()
     experiment.GridSearch()
