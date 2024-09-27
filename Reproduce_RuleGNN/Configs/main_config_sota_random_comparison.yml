@@ -25,3 +25,7 @@ early_stopping:
 
 random_variation: # if True adds random variation to the input features
   True
+
+# determine how the input features should be transformed
+input_features: # choose from node_labels, node_features,
+  {name: "node_labels", transformation: "normalize"} # use node labels and normalize them

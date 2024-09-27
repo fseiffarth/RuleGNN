@@ -19,3 +19,4 @@
 /Reproduce_RuleGNN/*
 !/Reproduce_RuleGNN/Configs/
 !Reproduce_RuleGNN/*.py
+/Examples/Transfer/Results/

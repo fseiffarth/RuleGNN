@@ -25,7 +25,7 @@ def validation(db_name, validation_id, graph_data):
 def main(db_name, data_path="../../BenchmarkGraphs/DS_all/"):
     #datapath = "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/DS_all/"
     # load the graph data
-    graph_data = get_graph_data(db_name, data_path=data_path, distance_path="../../Data/Distances/")
+    graph_data = get_graph_data(db_name, data_path=data_path, distance_path="../../Testing/Distances/")
 
     validation_size = 10
     if db_name == "CSL_original":
@@ -43,4 +43,4 @@ if __name__ == "__main__":
     #     joblib.delayed(main)(db_name) for db_name in ['CSL_original', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
     #main("IMDB-MULTI")
     #main("SnowflakesCount", data_path="../GraphBenchmarks/BenchmarkGraphs/")
-    main("Snowflakes", data_path="../../Data/BenchmarkGraphs/")
+    main("Snowflakes", data_path="../../Testing/BenchmarkGraphs/")

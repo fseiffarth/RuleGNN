@@ -11,8 +11,8 @@ def main():
     for graph_db in graph_dbs:
         #graph_db = 'Snowflakes'
         data_path = '../../GraphData/DS_all/'
-        data_path = '../../Data/BenchmarkGraphs/'
-        distance_path = "../../Data/Distances/"
+        data_path = '../../Testing/BenchmarkGraphs/'
+        distance_path = "../../Testing/Distances/"
         """
         Create Input data, information and labels from the graphs for training and testing
         """

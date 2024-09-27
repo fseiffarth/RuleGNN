@@ -22,7 +22,7 @@ def combine_nel_graphs(dataset_names, input_dir:Path, output_dir:Path):
         label_files.append(input_dir.joinpath(dataset, 'raw', f'{dataset}_Labels.txt'))
         node_files.append(input_dir.joinpath(dataset, 'raw', f'{dataset}_Nodes.txt'))
         # get number of graphs in each dataset using the number of lines in the label file
-        with open(f'Data/NEL_Format/{dataset}/raw/{dataset}_Labels.txt', 'r') as f:
+        with open(input_dir.joinpath(dataset, 'raw', f'{dataset}_Labels.txt'), 'r') as f:
             num_graphs_per_dataset.append(len(f.readlines()))
 
     # ceate new folder in output_dir

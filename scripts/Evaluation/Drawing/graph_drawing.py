@@ -65,7 +65,7 @@ def draw_graph(graph_data: GraphData, graph_id, ax, node_size=50, edge_color='bl
 
 def snowflakeplot():
     db_name = 'Snowflakes'
-    path = '../../../Data/BenchmarkGraphs/'
+    path = '../../../Testing/BenchmarkGraphs/'
     graph_data = get_graph_data(db_name=db_name, data_path=path)
     fig, ax = plt.subplots(1, 4, figsize=(20, 5))
     graph_ids = [0, 100, 200, 300]

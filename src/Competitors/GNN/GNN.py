@@ -222,5 +222,5 @@ def main(db_name, data_path=None):
 
 
 if __name__ == "__main__":
-    main("DHFR", data_path="../../../Data/BenchmarkGraphs/")
-    main("EvenOddRingsCount16", data_path="../../../Data/BenchmarkGraphs/")
+    main("DHFR", data_path="../../../Testing/BenchmarkGraphs/")
+    main("EvenOddRingsCount16", data_path="../../../Testing/BenchmarkGraphs/")

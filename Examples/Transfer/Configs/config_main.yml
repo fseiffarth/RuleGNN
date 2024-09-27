@@ -12,3 +12,8 @@ paths:
     "Examples/Transfer/Results/" # Results will be saved in this folder
   splits:
     "Examples/Transfer/Data/Splits/" # Path to the folder containing the data splits
+
+# determine how the input features should be transformed
+input_features: {name: "node_labels", transformation: "normalize"} # use node labels and normalize them
+
+num_workers: 1
