@@ -1,5 +1,6 @@
 datasets:
-  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Examples/MultiFeatures/Configs/config_experiment.yml", type: "TUDataset"}
+  #- {name: "PTC_FM", validation_folds: 10, experiment_config_file: "Examples/MultiFeatures/Configs/config_experiment.yml", type: "TUDataset"}
+  - {name: "FirstA", validation_folds: 10, experiment_config_file: "Examples/MultiFeatures/Configs/config_experiment.yml", type: "generate_from_function", generate_function: first_a, generate_function_args: {}}
 paths:
   data:
     "Examples/MultiFeatures/Data/" # Path to the folder containing the graph data
@@ -14,16 +15,15 @@ paths:
 
 input_features: # choose from node_labels, node_features,
   #{name: "node_labels"}
-  #{name: "node_labels", transformation: "normalize"}
+  {name: "node_labels", transformation: "normalize"}
+  #{name: "node_labels", transformation: "one_hot_encoding", features_as_channels: True}
   #{name: "node_labels", transformation: "unit_circle", features_as_channels: True}
   #{name: "node_labels", transformation: "unit_circle"}
   #{name: "node_features"}
   #{name: "node_features", features_as_channels: True}
   #{name: "all", transformation: "normalize_labels"}
-  {name: "all", transformation: "normalize_labels", features_as_channels: True}
+  #{name: "all", transformation: "normalize_labels", features_as_channels: True}
 
-aggregation_out_features:
-  2
 channels:
   1
 num_workers:

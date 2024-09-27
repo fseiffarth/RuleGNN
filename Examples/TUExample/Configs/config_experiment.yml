@@ -81,7 +81,7 @@ prune:
     - 0.5
 
 precision:
-  float
+  double
 
 best_model:
   False

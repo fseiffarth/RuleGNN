@@ -211,7 +211,6 @@ class ExperimentMain:
                                                       run_id=run_id,
                                                       validation_id=validation_id,
                                                       validation_folds=dataset.get('validation_folds', 10),
-                                                      graph_db_name=dataset['name'],
                                                       graph_data=graph_data, run_config=run_config, para=para)
                 """
                 Split the data in training validation and test set

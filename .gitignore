@@ -1,26 +1,13 @@
-Results/
-*.pkl
-/gnn-comparison/
-/Results_Paper/
 /src/Competitors/Results/
 /src/Competitors/GNN/Results/
 /src/Competitors/GNN/Datasets/
 *.idea
 /.idea/
-/Results_Paper_Reproduced/
-/Reproduce_RuleGNN/Data/Labels/
-/Reproduce_RuleGNN/Data/Properties/
-/Reproduce_RuleGNN/Data/TUDatasets/
-/Reproduce_RuleGNN/Data/generation_times_labels.txt
-/Reproduce_RuleGNN/Data/generation_times_properties.txt
 /Examples/CustomExample/Data/
 /Examples/CustomExample/Results/
 /Examples/TUExample/Data/
 /Examples/TUExample/Results/
-/Reproduce_RuleGNN/Results/
 /tmp/
-/Reproduce_RuleGNN/Data/
-/Competitors/GNN/Datasets/
 /Examples/Pruning/Data/
 /Examples/Transfer/Data/
 /Testing/
@@ -28,5 +15,7 @@ Results/
 /Data/*
 !/Data/Splits/
 !/Data/SplitsSimple/
-/Reproduce_RuleGNN/ResultsSOTA/
-/Examples/MultiFeatures/Data/
+# ignore everything in the Reproduce_RuleGNN folder except for the Configs folder and .py files
+/Reproduce_RuleGNN/*
+!/Reproduce_RuleGNN/Configs/
+!Reproduce_RuleGNN/*.py

@@ -3,9 +3,8 @@ from pathlib import Path
 
 import yaml
 
-from ExperimentMain import collect_paths
-from Preprocessing import Preprocessing
-from scripts.ExperimentMain import ExperimentMain
+from scripts.Preprocessing import Preprocessing
+from scripts.ExperimentMain import collect_paths, ExperimentMain
 from src.utils.combine_nel import combine_nel_graphs
 from src.utils.path_conversions import config_paths_to_absolute
 

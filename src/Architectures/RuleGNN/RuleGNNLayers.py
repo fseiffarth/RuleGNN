@@ -46,14 +46,27 @@ class Layer:
             if 'max_node_labels' in self.layer_dict:
                 max_node_labels = self.layer_dict['max_node_labels']
                 l_string = f"primary_{max_node_labels}"
-        elif self.layer_type == "wl":
-            if 'wl_iterations' in self.layer_dict:
-                iterations = self.layer_dict['wl_iterations']
-                l_string = f"wl_{iterations}"
-            else:
-                l_string = "wl_max"
+        elif self.layer_type == "index":
+            l_string = "index"
             if 'max_node_labels' in self.layer_dict:
                 max_node_labels = self.layer_dict['max_node_labels']
+                l_string = f"index_{max_node_labels}"
+        elif self.layer_type == "wl":
+            iterations = self.layer_dict.get('wl_iterations', 3)
+            l_string = f"wl_{iterations}"
+            max_node_labels = self.layer_dict.get('max_node_labels', None)
+            if max_node_labels is not None:
+                l_string = f"{l_string}_{max_node_labels}"
+        elif self.layer_type == "wl_labeled":
+            iterations = self.layer_dict.get('wl_iterations', 3)
+            l_string = f"wl_labeled_{iterations}"
+            max_node_labels = self.layer_dict.get('max_node_labels', None)
+            if max_node_labels is not None:
+                l_string = f"{l_string}_{max_node_labels}"
+        elif self.layer_type == "degree":
+            l_string = "wl_0"
+            max_node_labels = self.layer_dict.get('max_node_labels', None)
+            if max_node_labels is not None:
                 l_string = f"{l_string}_{max_node_labels}"
         elif self.layer_type == "simple_cycles":
             if 'max_cycle_length' in self.layer_dict:
@@ -96,6 +109,8 @@ class Layer:
             if 'max_node_labels' in self.layer_dict:
                 max_node_labels = self.layer_dict['max_node_labels']
                 l_string  = f"{l_string}_{max_node_labels}"
+        else:
+            raise ValueError(f"Layer type {self.layer_type} is not supported")
 
         return l_string
 
@@ -120,7 +135,7 @@ class RuleConvolutionLayer(nn.Module):
         self.layer_id = layer_id
         # layer information
         self.layer_info = layer_info
-        self.name = "WL_Layer"
+        self.name = f"Rule Convolution Layer: {layer_info.get_layer_string()}"
         # get the graph data
         self.graph_data = graph_data
         # get the input features, i.e. the dimension of the input vector
@@ -376,7 +391,7 @@ class RuleAggregationLayer(nn.Module):
             self.Param_b = nn.Parameter(torch.zeros((self.channels, out_dim, self.input_feature_dimension), dtype=self.precision))
         self.forward_step_time = 0
 
-        self.name = "Resize_Layer"
+        self.name = f"Rule Aggregation Layer: {layer_info.get_layer_string()}"
         self.para = parameters
 
         # in case of pruning is turned on, save the original weights

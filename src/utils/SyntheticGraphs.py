@@ -226,3 +226,69 @@ def csl_graphs() -> (List[nx.Graph], List[int]):
 
 def ring_transfer(data_size=1200, node_dimension=10, ring_size=100, seed=764) -> (List[nx.Graph], List[np.ndarray[float]]):
     return RingTransfer(data_size=data_size, node_dimension=node_dimension, ring_size=ring_size, seed=seed)
+
+def parity_check(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List[int]):
+    graphs = []
+    labels = []
+    np.random.seed(seed)
+    for i in range(data_size):
+        size = np.random.randint(1, max_size + 1)
+        G = nx.Graph()
+        for j in range(size):
+            G.add_node(j, label=0)
+        for j in range(size - 1):
+            G.add_edge(j, j + 1)
+        # create random seqeunce of size size of 0s and 1s
+        rand_sequence = np.random.randint(0, 2, size)
+        # assign the labels to the nodes
+        for j in range(size):
+            G.nodes[j]["label"] = rand_sequence[j]
+        graphs.append(G)
+        # count number of 1s in the sequence
+        even = np.count_nonzero(rand_sequence) % 2
+        labels.append(even)
+    return graphs, labels
+
+def even_pairs(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List[int]):
+    graphs = []
+    labels = []
+    np.random.seed(seed)
+    for i in range(data_size):
+        size = np.random.randint(1, max_size + 1)
+        G = nx.Graph()
+        for j in range(size):
+            G.add_node(j, label=0)
+        for j in range(size - 1):
+            G.add_edge(j, j + 1)
+        # create random seqeunce of size size of 0s and 1s
+        rand_sequence = np.random.randint(0, 2, size)
+        # assign the labels to the nodes
+        for j in range(size):
+            G.nodes[j]["label"] = rand_sequence[j]
+        graphs.append(G)
+        # check wheter first and last node have the same label 0
+        valid = rand_sequence[0] == rand_sequence[-1]
+        labels.append(valid)
+    return graphs, labels
+
+def first_a(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List[int]):
+    graphs = []
+    labels = []
+    np.random.seed(seed)
+    for i in range(data_size):
+        size = np.random.randint(1, max_size + 1)
+        G = nx.Graph()
+        for j in range(size):
+            G.add_node(j, label=0)
+        for j in range(size - 1):
+            G.add_edge(j, j + 1)
+        # create random seqeunce of size size of 0s and 1s
+        rand_sequence = np.random.randint(0, 2, size)
+        # assign the labels to the nodes
+        for j in range(size):
+            G.nodes[j]["label"] = rand_sequence[j]
+        graphs.append(G)
+        # check wheter first and last node have the same label 0
+        valid = rand_sequence[0]
+        labels.append(valid)
+    return graphs, labels

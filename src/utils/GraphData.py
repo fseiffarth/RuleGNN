@@ -6,6 +6,7 @@ import networkx as nx
 import numpy as np
 import torch
 import torch_geometric.data
+from sklearn.utils.multiclass import unique_labels
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.datasets import ZINC
 
@@ -16,7 +17,40 @@ from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
 
 
-
+def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):
+    if num_max_labels is None:
+        num_max_labels = -1
+    # get the k most frequent node labels or relabel all
+    if num_max_labels == -1:
+        bound = len(labels.db_unique_node_labels)
+    else:
+        bound = min(num_max_labels, len(labels.db_unique_node_labels))
+    most_frequent = sorted(labels.db_unique_node_labels, key=labels.db_unique_node_labels.get, reverse=True)[
+                    :bound - 1]
+    # relabel the node labels
+    for i, _lab in enumerate(labels.node_labels):
+        for j, lab in enumerate(_lab):
+            if lab not in most_frequent:
+                labels.node_labels[i][j] = bound - 1
+            else:
+                labels.node_labels[i][j] = most_frequent.index(lab)
+    # set the new unique labels
+    labels.num_unique_node_labels = bound
+    db_unique = {}
+    for i, l in enumerate(labels.node_labels):
+        unique = {}
+        for label in l:
+            if label not in unique:
+                unique[label] = 1
+            else:
+                unique[label] += 1
+            if label not in db_unique:
+                db_unique[label] = 1
+            else:
+                db_unique[label] += 1
+        labels.unique_node_labels[i] = unique
+    labels.db_unique_node_labels = db_unique
+    pass
 
 
 class GraphData:
@@ -72,36 +106,6 @@ class GraphData:
         self.num_classes = max(self.num_classes, other.num_classes)
         self.max_nodes = max(self.max_nodes, other.max_nodes)
 
-
-
-
-    def init_from_graph_db(self, path: Path, graph_db_name: str, relabel_nodes=False, use_features=True, use_attributes=False):
-
-        # Define the graph data
-        graph_data = gdtgl.graph_data_to_graph_list(path, graph_db_name, relabel_nodes=relabel_nodes)
-        self.input_data, self.output_data, graph_data = ttd.data_from_graph_db(graph_data=graph_data,
-                                                                               graph_db_name=graph_db_name,
-                                                                               one_hot_encode_labels=True,
-                                                                               use_features=use_features,
-                                                                               use_attributes=use_attributes, )
-        self.graphs = graph_data[0]
-        self.graph_labels = graph_data[1]
-        # num classes are unique labels
-        self.num_classes = len(set(self.graph_labels))
-        self.num_graphs = len(self.graphs)
-        self.graph_db_name = graph_db_name
-
-        # get graph with max number of nodes
-        self.max_nodes = 0
-        for g in self.graphs:
-            self.max_nodes = max(self.max_nodes, g.number_of_nodes())
-
-        # set primary node and edge labels
-        self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
-        self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
-
-        return None
-
     def add_node_labels(self, node_labeling_name, max_label_num=-1, node_labeling_method=None, **kwargs) -> None:
         if node_labeling_method is not None:
             node_labeling = NodeLabels()
@@ -114,7 +118,7 @@ class GraphData:
                 key = f'{node_labeling_name}_{max_label_num}'
 
             self.node_labels[key] = node_labeling
-            self.relabel_most_frequent(self.node_labels[key], max_label_num)
+            relabel_most_frequent(self.node_labels[key], max_label_num)
 
     def add_edge_labels(self, edge_labeling_name, edge_labeling_method=None, **kwargs) -> None:
         if edge_labeling_method is not None:
@@ -124,43 +128,17 @@ class GraphData:
             edge_labeling.num_unique_edge_labels = max(1, len(edge_labeling.db_unique_edge_labels))
             self.edge_labels[edge_labeling_name] = edge_labeling
 
-    def relabel_most_frequent(self, labels: NodeLabels, num_max_labels: int):
-        # get the k most frequent node labels or relabel all
-        if num_max_labels == -1:
-            bound = len(labels.db_unique_node_labels)
-        else:
-            bound = min(num_max_labels, len(labels.db_unique_node_labels))
-        most_frequent = sorted(labels.db_unique_node_labels, key=labels.db_unique_node_labels.get, reverse=True)[
-                        :bound - 1]
-        # relabel the node labels
-        for i, _lab in enumerate(labels.node_labels):
-            for j, lab in enumerate(_lab):
-                if lab not in most_frequent:
-                    labels.node_labels[i][j] = bound - 1
-                else:
-                    labels.node_labels[i][j] = most_frequent.index(lab)
-        # set the new unique labels
-        labels.num_unique_node_labels = bound
-        db_unique = {}
-        for i, l in enumerate(labels.node_labels):
-            unique = {}
-            for label in l:
-                if label not in unique:
-                    unique[label] = 1
-                else:
-                    unique[label] += 1
-                if label not in db_unique:
-                    db_unique[label] = 1
-                else:
-                    db_unique[label] += 1
-            labels.unique_node_labels[i] = unique
-        labels.db_unique_node_labels = db_unique
-        pass
-
     def load_nel_graphs(self, db_name: str, path: Path, input_features=None, task=None, only_graphs=False):
         self.graph_db_name = db_name
         self.graphs, self.graph_labels = load_graphs(path.joinpath(Path(f'{db_name}/raw/')), db_name, graph_format='NEL')
         self.num_graphs = len(self.graphs)
+        self.max_nodes = 0
+        for g in self.graphs:
+            self.max_nodes = max(self.max_nodes, g.number_of_nodes())
+
+        self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
+        self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
+
         if not only_graphs:
             if input_features is None:
                 input_features = {'name': 'node_labels', 'transformation': {'name': 'normalize'}}
@@ -172,17 +150,19 @@ class GraphData:
             transformation = input_features.get('transformation', None)
             use_features_as_channels = input_features.get('features_as_channels', False)
 
-            self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
-            self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
-
             ### Determine the input data
             self.input_data = []
             ## add node labels
             for graph_id, graph in enumerate(self.graphs):
                 if use_labels:
-                    self.input_data.append(torch.ones(1,graph.number_of_nodes(),1).float())
-                    for node in graph.nodes(data=True):
-                        self.input_data[-1][0][node[0]] = self.node_labels['primary'].node_labels[graph_id][node[0]]
+                    if transformation == 'one_hot_encoding':
+                        self.input_data.append(torch.zeros(1,graph.number_of_nodes(), self.node_labels['primary'].num_unique_node_labels))
+                        for node in graph.nodes(data=True):
+                            self.input_data[-1][0][node[0]][node[1]['label']] = 1
+                    else:
+                        self.input_data.append(torch.ones(1,graph.number_of_nodes(),1).float())
+                        for node in graph.nodes(data=True):
+                            self.input_data[-1][0][node[0]] = self.node_labels['primary'].node_labels[graph_id][node[0]]
                 elif use_constant:
                     self.input_data.append(torch.ones(1,graph.number_of_nodes(),1).float())
                 elif use_features:
@@ -190,17 +170,11 @@ class GraphData:
                     for node in graph.nodes(data=True):
                         # add all except the first element of the label
                         self.input_data[-1][0][node[0]] = torch.tensor(node[1]['label'][1:])
-                    if use_features_as_channels:
-                        # swap the dimensions
-                        self.input_data[-1] = self.input_data[-1].permute(2,1,0)
                 elif use_labels_and_features:
                     self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'])))
                     for node in graph.nodes(data=True):
                         # add all except the first element of the label
                         self.input_data[-1][0][node[0]] = torch.tensor([self.node_labels['primary'].node_labels[graph_id][node[0]]] + node[1]['label'][1:])
-                    if use_features_as_channels:
-                        # swap the dimensions
-                        self.input_data[-1] = self.input_data[-1].permute(2,1,0)
 
 
 
@@ -215,7 +189,7 @@ class GraphData:
                 interval_length = 1.0 / intervals
                 for i, graph in enumerate(self.input_data):
                     for j in range(len(graph)):
-                        value = self.input_data[i][j]
+                        value = self.input_data[i][0][j]
                         # get integer value of the node label
                         value = int(value)
                         # if value is even, add 1 to make it odd
@@ -223,7 +197,8 @@ class GraphData:
                             value = ((value + 1) * interval_length)
                         else:
                             value = (-1) * (value * interval_length)
-                        self.input_data[i][j] = value
+                        self.input_data[i][0][j] = value
+
             if use_labels and transformation == 'unit_circle':
                 '''
                 Arange the labels in an 2D unit circle
@@ -240,9 +215,6 @@ class GraphData:
                         value = int(value)
                         updated_input_data[-1][0][j][0] = np.cos(2*np.pi*value / num_node_labels)
                         updated_input_data[-1][0][j][1] = np.sin(2*np.pi*value / num_node_labels)
-                    if use_features_as_channels:
-                        # swap the dimensions
-                        updated_input_data[-1] = updated_input_data[-1].permute(2,1,0)
                 self.input_data = updated_input_data
             elif use_labels_and_features and transformation == 'normalize_labels':
                 # get the number of different node labels
@@ -263,6 +235,13 @@ class GraphData:
                         else:
                             value = (-1) * (value * interval_length)
                         self.input_data[i][j][0] = value
+
+            if use_features_as_channels:
+                # swap the dimensions
+                for i in range(len(self.input_data)):
+                    self.input_data[i] = self.input_data[i].permute(2,1,0)
+
+
             # Determine the output data
             if task == 'regression':
                 self.num_classes = 1
@@ -273,9 +252,6 @@ class GraphData:
                     self.num_classes = len(set(self.graph_labels))
                 except:
                     self.num_classes = len(self.graph_labels[0])
-            self.max_nodes = 0
-            for g in self.graphs:
-                self.max_nodes = max(self.max_nodes, g.number_of_nodes())
 
             self.output_data = torch.zeros(self.num_graphs, self.num_classes)
 
