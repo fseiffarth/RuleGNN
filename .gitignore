@@ -3,13 +3,7 @@
 /src/Competitors/GNN/Datasets/
 *.idea
 /.idea/
-/Examples/CustomExample/Data/
-/Examples/CustomExample/Results/
-/Examples/TUExample/Data/
-/Examples/TUExample/Results/
 /tmp/
-/Examples/Pruning/Data/
-/Examples/Transfer/Data/
 /Testing/
 # ignore everything in the Data folder except the Splits folder
 /Data/*
@@ -19,4 +13,6 @@
 /Reproduce_RuleGNN/*
 !/Reproduce_RuleGNN/Configs/
 !Reproduce_RuleGNN/*.py
-/Examples/Transfer/Results/
+# ignore all results and data folders after Examples
+/Examples/*/Data/
+/Examples/*/Results/
