@@ -10,14 +10,15 @@ import numpy as np
 import torch
 import yaml
 from matplotlib import pyplot as plt
-from pydot import Graph
 
-from scripts.find_best_models import load_preprocessed_data_and_parameters, config_paths_to_absolute
 from src.Architectures.RuleGNN import RuleGNN
+from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
 from src.utils.GraphData import GraphData, get_graph_data
 from src.utils.Parameters.Parameters import Parameters
 from src.utils.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
+from src.utils.path_conversions import config_paths_to_absolute
+
 
 class GraphDrawing:
     def __init__(self, node_size=10.0, edge_width=1.0, weight_edge_width=1.0, weight_arrow_size=5.0, edge_color='black', edge_alpha=1, node_color='black', draw_type=None, colormap=plt.get_cmap('tab20')):
@@ -32,27 +33,15 @@ class GraphDrawing:
         self.colormap = colormap
 
 class WeightVisualization:
-    def __init__(self, db_name, main_config, experiment_config, out="", data_format='NEL'):
+    def __init__(self, db_name, experiment_config, out="", data_format='NEL'):
         self.db_name = db_name
-        try:
-            main_config_datasets = yaml.load(open(main_config), Loader=yaml.FullLoader)
-            for dataset in main_config_datasets['datasets']:
-                if dataset['name'] == db_name:
-                    self.main_config = dataset
-                    break
-        except FileNotFoundError:
-            print(f"Main config file {main_config} not found")
-            return
-        try:
-            self.experiment_config = yaml.load(open(experiment_config), Loader=yaml.FullLoader)
-        except FileNotFoundError:
-            print(f"Experiment config file {experiment_config} not found")
-            return
+        self.experiment_config = experiment_config
         self.out = out
         self.data_format = data_format
         # get the absolute path
         absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
         absolute_path = Path(absolute_path)
+
         self.validation_folds = self.main_config['validation_folds']
         # get the data path from the config file
         config_paths_to_absolute(self.experiment_config, absolute_path)
@@ -307,9 +296,13 @@ class WeightVisualization:
                     test_data = np.asarray(split_data[0][validation_id], dtype=int)
                     graph_ids = test_data[graph_ids]
                     para = Parameters()
-                    load_preprocessed_data_and_parameters(config_id=config_id, run_id=run, validation_id=validation_id,
-                                                          graph_db_name=self.db_name, graph_data=self.graph_data,
-                                                          run_config=run_config, para=para, validation_folds=self.validation_folds)
+                    load_preprocessed_data_and_parameters(config_id=config_id,
+                                                          run_id=run,
+                                                          validation_id=validation_id,
+                                                          graph_data=self.graph_data,
+                                                          run_config=run_config,
+                                                          para=para,
+                                                          validation_folds=self.validation_folds)
 
                     """
                         Get the first index in the results directory that is not used

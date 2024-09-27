@@ -4,7 +4,6 @@ from pathlib import Path
 import joblib
 import numpy as np
 import yaml
-from matplotlib import pyplot as plt
 
 from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
 from scripts.Preprocessing import Preprocessing

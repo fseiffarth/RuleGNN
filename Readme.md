@@ -14,10 +14,11 @@ Then, we explain how to use RuleGNNs for [custom datasets](#Customize-Experiment
    ```bash
    conda env create -f environment.yml
    ```
-3. To run the scripts with the correct paths please set your PYTHONPATH (working directory) to the root directory of the repository.
+3. **(for command line)** To run the scripts with the correct paths please set your PYTHONPATH (working directory) to the root directory of the repository.
    ```bash
    export PYTHONPATH=/path/to/RuleGNN
    ```
+    **(for IDE)** If you are working in an IDE, you can set the PYTHONPATH in the run configuration. E.g., in PyCharm, you have to change the working directory path to the root directory of the repository.
 
 ## Reproduce RuleGNN Experiments
 To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
@@ -27,10 +28,14 @@ The commands
 ```bash
 python Reproduce_RuleGNN/main_fair.py
 ```
-and
+
 ```bash
 python Reproduce_RuleGNN/main_sota.py
 ```
+```bash
+python Reproduce_RuleGNN/main_sota_random.py
+```
+
 will run the experiments in the fair evaluation and the state-of-the-art evaluation, respectively.
 
 The following steps are executed:
@@ -41,14 +46,13 @@ The following steps are executed:
    - run the best models three times with different seeds
    - evaluate the results
 
-   All results related to the fair evaluation will be saved in the [Reproduce_RuleGNN/Results](Reproduce_RuleGNN/Results) folder.
-   All results related to the state-of-the-art evaluation will be saved in the [Reproduce_RuleGNN/Results_SOTA](Reproduce_RuleGNN/ResultsSOTA) folder.
-    The following evaluation files are produced:
+All results related to the fair evaluation will be saved in the [Reproduce_RuleGNN/Results](Reproduce_RuleGNN/Results) folder.
+All results related to the state-of-the-art evaluation will be saved in the [Reproduce_RuleGNN/Results_SOTA](Reproduce_RuleGNN/ResultsSOTA) folder.
+
+The following evaluation files are produced:
     - ```summary.csv```: contains the results of the grid search (fair evaluation) one row per hyperparameter setting
     - ```summary_best.csv```: contains the results of the best model (hyperparameter setting) one row per seed
     - ```summary_best_mean.csv```: contains the mean and standard deviation of the best model results over all seeds
-
-The details per dataset can be found in the corresponding subfolder saved under ```summary.csv``` for the grid search results and ```summary_best_model.csv``` for the best model results.
 
 To visualize the results run:
 ```bash

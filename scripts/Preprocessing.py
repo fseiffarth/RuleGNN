@@ -12,6 +12,7 @@ from src.utils.GraphData import get_graph_data
 from src.utils.RunConfiguration import get_run_configs
 from src.utils.TU_to_NEL import tu_to_nel
 from src.utils.utils import save_graphs
+import networkx as nx
 
 
 class Preprocessing:
