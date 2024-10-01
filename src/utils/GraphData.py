@@ -51,7 +51,6 @@ def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):
     labels.db_unique_node_labels = db_unique
     pass
 
-
 class GraphData:
     def __init__(self):
         self.graph_db_name = ''

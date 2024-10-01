@@ -130,3 +130,7 @@ class RuleGNN(nn.Module):
 
     def return_info(self):
         return type(self)
+
+
+
+

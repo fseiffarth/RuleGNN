@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Tuple
 
-import click
 import matplotlib
 import networkx as nx
 import numpy as np
@@ -18,7 +17,6 @@ from src.utils.GraphData import GraphData, get_graph_data
 from src.utils.Parameters.Parameters import Parameters
 from src.utils.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
-from src.utils.path_conversions import config_paths_to_absolute
 
 
 class GraphDrawing:
@@ -151,14 +149,13 @@ class WeightVisualization:
             pos = {int(k): v for k, v in pos.items()}
             nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[1].edge_color, width=graph_drawing[1].edge_width, alpha=graph_drawing[1].edge_alpha*0.5)
 
-        all_weights = layer.get_weights()
+        all_weights = np.array(layer.get_weights())
         bias = layer.get_bias()
         graph = self.graph_data.graphs[graph_id]
         weight_distribution = layer.weight_distribution[graph_id]
-        graph_weights = np.zeros_like(all_weights)
-        for entry in weight_distribution:
-            graph_weights[entry[2]] = all_weights[entry[2]]
-        graph_weights = np.asarray(graph_weights)
+        param_indices = np.array(weight_distribution[:, 3])
+        matrix_indices = np.array(weight_distribution[:, 0:3])
+        graph_weights = all_weights[param_indices]
 
         # sort weights
         if filter_weights:
@@ -176,23 +173,20 @@ class WeightVisualization:
             weights = upper_weights + lower_weights
         else:
             weights = np.asarray(graph_weights)
-        bias_vector = np.asarray(bias)
 
         weight_min = np.min(graph_weights)
         weight_max = np.max(graph_weights)
         weight_max_abs = max(abs(weight_min), abs(weight_max))
-        bias_min = np.min(bias_vector)
-        bias_max = np.max(bias_vector)
+        bias_min = np.min(bias)
+        bias_max = np.max(bias)
         bias_max_abs = max(abs(bias_min), abs(bias_max))
 
         # use seismic colormap with maximum and minimum values from the weight matrix
         cmap = graph_drawing[1].colormap
         # normalize item number values to colormap
-        norm_weight = matplotlib.colors.Normalize(vmin=weight_min, vmax=weight_max)
-        norm_bias = matplotlib.colors.Normalize(vmin=bias_min, vmax=bias_max)
         normed_weight = (graph_weights + (-weight_min)) / (weight_max - weight_min)
         weight_colors = cmap(normed_weight)
-        normed_bias = (bias_vector + (-bias_min)) / (bias_max - bias_min)
+        normed_bias = (bias + (-bias_min)) / (bias_max - bias_min)
         bias_colors = cmap(normed_bias)
 
         # draw the graph
@@ -241,17 +235,18 @@ class WeightVisualization:
         for node in digraph.nodes():
             node_label = layer.node_labels.node_labels[graph_id][node]
             node_colors.append(bias_colors[node_label])
-            node_sizes.append(graph_drawing[1].node_size * abs(bias_vector[node_label]) / bias_max_abs)
+            node_sizes.append(graph_drawing[1].node_size * abs(bias[node_label]) / bias_max_abs)
 
         nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
 
         edge_widths = []
-        for entry in weight_distribution:
-            i = entry[0]
-            j = entry[1]
-            if weights[entry[2]] != 0:
+        for weight_id, entry in enumerate(weight_distribution):
+            channel = entry[0]
+            i = entry[1]
+            j = entry[2]
+            if weights[weight_id] != 0:
                 # add edge with weight as data
-                digraph.add_edge(i, j, weight=entry[2])
+                digraph.add_edge(i, j, weight=weight_id)
         curved_edges = [edge for edge in digraph.edges(data=True)]
         curved_edges_colors = []
 

@@ -3,11 +3,13 @@ from pathlib import Path
 
 import joblib
 import numpy as np
+import torch
 import yaml
 
 from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
 from scripts.Preprocessing import Preprocessing
 import src.utils.SyntheticGraphs as synthetic_graphs
+from src.Architectures.RuleGNN import RuleGNN
 from src.Methods.ModelEvaluation import ModelEvaluation
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
 from src.utils.GraphData import get_graph_data, GraphData
@@ -193,7 +195,7 @@ class ExperimentMain:
 
         if experiment_configuration is not None:
             create_folders(experiment_configuration, dataset['name'])
-            graph_data = preprocess_graph_data(dataset, experiment_configuration)
+            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
             run_configs = get_run_configs(experiment_configuration)
             c_ids = []
             for config_id, run_config in enumerate(run_configs):
@@ -232,6 +234,61 @@ class ExperimentMain:
         else:
             # print that config file is not provided
             print("Please provide a configuration file")
+
+    def load_model(self, db_name, config_id=0, run_id=0, validation_id=0):
+        experiment_configuration = self.experiment_configurations[db_name]
+        graph_data = preprocess_graph_data(db_name, experiment_configuration)
+        run_configs = get_run_configs(experiment_configuration)
+        run_config = run_configs[config_id]
+        model_path = experiment_configuration['paths']['results'].joinpath(db_name).joinpath('Models')
+        model_path = model_path.joinpath(f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
+        # check if the model exists
+        if model_path.exists():
+            with open(model_path, 'r'):
+                para = Parameters()
+                load_preprocessed_data_and_parameters(config_id=config_id,
+                                                      run_id=run_id,
+                                                      validation_id=validation_id,
+                                                      graph_data=graph_data,
+                                                      run_config=run_config,
+                                                      para=para,
+                                                      validation_folds=experiment_configuration.get('validation_folds', 10))
+
+                """
+                    Get the first index in the results directory that is not used
+                """
+                para.set_file_index(size=6)
+                net = RuleGNN.RuleGNN(graph_data=graph_data,
+                                      para=para,
+                                      seed=0, device=run_config.config.get('device', 'cpu'))
+
+                net.load_state_dict(torch.load(model_path))
+            return net
+        else:
+            raise FileNotFoundError(f"Model {model_path} not found")
+
+    def evaluate_model(self, db_name, config_id=0, run_id=0, validation_id=0):
+        # evaluate the performance of the model on the test data
+        net = self.load_model(db_name, config_id, run_id, validation_id)
+        experiment_configuration = self.experiment_configurations[db_name]
+        graph_data = preprocess_graph_data(db_name, experiment_configuration)
+        split_data = Load_Splits(experiment_configuration['paths']['splits'], db_name)
+        test_data = np.asarray(split_data[0][validation_id], dtype=int)
+        outputs = torch.zeros((len(test_data), graph_data.num_classes), dtype=torch.double)
+        with torch.no_grad():
+            for j, data_pos in enumerate(test_data, 0):
+                inputs = torch.DoubleTensor(graph_data.input_data[data_pos])
+                outputs[j] = net(inputs, data_pos)
+            labels = graph_data.output_data[test_data]
+            # calculate the errors between the outputs and the labels by getting the argmax of the outputs and the labels
+            counter = 0
+            correct = 0
+            for i, x in enumerate(outputs, 0):
+                if torch.argmax(x) == torch.argmax(labels[i]):
+                    correct += 1
+                counter += 1
+            accuracy = correct / counter
+            print(f"Dataset: {db_name}, Run Id: {run_id}, Validation Split Id: {validation_id}, Accuracy: {accuracy}")
 
 
 def collect_paths(main_configuration, experiment_configuration, dataset_configuration=None):
@@ -319,13 +376,15 @@ def copy_experiment_config(absolute_path, experiment_configuration, experiment_c
             os.system(f"copy {source_path} {destination_path}")
 
 
-def preprocess_graph_data(dataset, experiment_configuration):
+def preprocess_graph_data(db_name, experiment_configuration):
     """
             Create Input data, information and labels from the graphs for training and testing
             """
-    graph_data = get_graph_data(db_name=dataset['name'], data_path=experiment_configuration['paths']['data'],
+    graph_data = get_graph_data(db_name=db_name, data_path=experiment_configuration['paths']['data'],
                                 task=experiment_configuration.get('task', 'graph_classification'),
                                 input_features=experiment_configuration.get('input_features', None),
                                 graph_format=experiment_configuration.get('format', 'NEL'))
     graph_data.set_precision(experiment_configuration.get('precision', 'double'))
     return graph_data
+
+

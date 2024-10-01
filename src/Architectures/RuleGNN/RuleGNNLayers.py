@@ -3,13 +3,17 @@ Created on 15.03.2019
 
 @author:
 '''
+from typing import Tuple
+
+import matplotlib
+import networkx as nx
 import torch
 import torch.nn as nn
 import torch.nn.init
 import time
 import numpy as np
 
-from src.utils import GraphData
+from src.utils import GraphData, GraphDrawing
 
 
 class Layer:
@@ -340,10 +344,184 @@ class RuleConvolutionLayer(nn.Module):
 
 
     def get_weights(self):
-        return [x.item() for x in self.Param_W]
+        # return the weights as a numpy array
+        return np.array(self.Param_W.detach().cpu())
 
     def get_bias(self):
-        return [x.item() for x in self.Param_b]
+        return np.array(self.Param_b.detach().cpu())
+
+    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], channel=0, filter_weights=None, with_graph=True, graph_only=False):
+        if with_graph or graph_only:
+            graph = self.graph_data.graphs[graph_id]
+
+            # draw the graph
+            # root node is the one with label 0
+            root_node = None
+            for node in graph.nodes():
+                if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                    root_node = node
+                    break
+
+            # if graph is circular use the circular layout
+            pos = dict()
+            if graph_drawing[0].draw_type == 'circle':
+                # get circular positions around (0,0) starting with the root node at (-400,0)
+                pos[root_node] = (400, 0)
+                angle = 2 * np.pi / (graph.number_of_nodes())
+                # iterate over the neighbors of the root node
+                cur_node = root_node
+                last_node = None
+                counter = 0
+                while len(pos) < graph.number_of_nodes():
+                    neighbors = list(graph.neighbors(cur_node))
+                    for next_node in neighbors:
+                        if next_node != last_node:
+                            counter += 1
+                            pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                            last_node = cur_node
+                            cur_node = next_node
+                            break
+            elif graph_drawing[0].draw_type == 'kawai':
+                pos = nx.kamada_kawai_layout(graph)
+            else:
+                pos = nx.nx_pydot.graphviz_layout(graph)
+            # keys to ints
+            pos = {int(k): v for k, v in pos.items()}
+            if graph_only:
+                edge_labels = {}
+                for (key1, key2, value) in graph.edges(data=True):
+                    if "label" in value and len(value["label"]) > 1:
+                        edge_labels[(key1, key2)] = int(value["label"][0])
+                    else:
+                        edge_labels[(key1, key2)] = ""
+                nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[0].edge_color,
+                                       width=graph_drawing[0].edge_width)
+                nx.draw_networkx_edge_labels(graph, pos=pos, edge_labels=edge_labels, ax=ax, font_size=8,
+                                             font_color='black')
+                # get node colors from the node labels using the plasma colormap
+                cmap = graph_drawing[0].colormap
+                norm = matplotlib.colors.Normalize(vmin=0,
+                                                   vmax=self.graph_data.node_labels['primary'].num_unique_node_labels)
+                node_colors = [cmap(norm(self.graph_data.node_labels['primary'].node_labels[graph_id][node])) for node
+                               in graph.nodes()]
+                nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors,
+                                       node_size=graph_drawing[0].node_size)
+                return
+            nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[1].edge_color, width=graph_drawing[1].edge_width, alpha=graph_drawing[1].edge_alpha*0.5)
+
+        all_weights = np.array(self.get_weights())
+        bias = self.get_bias()
+        graph = self.graph_data.graphs[graph_id]
+        weight_distribution = self.weight_distribution[graph_id]
+        param_indices = np.array(weight_distribution[:, 3])
+        matrix_indices = np.array(weight_distribution[:, 0:3])
+        graph_weights = all_weights[param_indices]
+
+        # sort weights
+        if filter_weights is not None:
+            sorted_weights = np.sort(graph_weights)
+            if filter_weights.get('percentage', None) is not None:
+                percentage = filter_weights['percentage']
+                lower_bound_weight = sorted_weights[int(len(sorted_weights) * percentage) - 1]
+                upper_bound_weight = sorted_weights[int(len(sorted_weights) * (1 - percentage))]
+            elif filter_weights.get('absolute', None) is not None:
+                absolute = filter_weights['absolute']
+                lower_bound_weight = sorted_weights[absolute - 1]
+                upper_bound_weight = sorted_weights[-absolute]
+            # set all weights smaller than the lower bound and larger than the upper bound to zero
+            upper_weights = np.where(graph_weights >= upper_bound_weight, graph_weights, 0)
+            lower_weights = np.where(graph_weights <= lower_bound_weight, graph_weights, 0)
+
+            weights = upper_weights + lower_weights
+        else:
+            weights = np.asarray(graph_weights)
+
+        weight_min = np.min(graph_weights)
+        weight_max = np.max(graph_weights)
+        weight_max_abs = max(abs(weight_min), abs(weight_max))
+        bias_min = np.min(bias)
+        bias_max = np.max(bias)
+        bias_max_abs = max(abs(bias_min), abs(bias_max))
+
+        # use seismic colormap with maximum and minimum values from the weight matrix
+        cmap = graph_drawing[1].colormap
+        # normalize item number values to colormap
+        normed_weight = (graph_weights + (-weight_min)) / (weight_max - weight_min)
+        weight_colors = cmap(normed_weight)
+        normed_bias = (bias + (-bias_min)) / (bias_max - bias_min)
+        bias_colors = cmap(normed_bias)
+
+        # draw the graph
+        # root node is the one with label 0
+        root_node = None
+        for i, node in enumerate(graph.nodes()):
+            if i == 0:
+                print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
+            if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                root_node = node
+                break
+        # if graph is circular use the circular layout
+        pos = dict()
+        if graph_drawing[0].draw_type == 'circle':
+            # get circular positions around (0,0) starting with the root node at (-400,0)
+            pos[root_node] = (400, 0)
+            angle = 2 * np.pi / (graph.number_of_nodes())
+            # iterate over the neighbors of the root node
+            cur_node = root_node
+            last_node = None
+            counter = 0
+            while len(pos) < graph.number_of_nodes():
+                neighbors = list(graph.neighbors(cur_node))
+                for next_node in neighbors:
+                    if next_node != last_node:
+                        counter += 1
+                        pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                        last_node = cur_node
+                        cur_node = next_node
+                        break
+        elif graph_drawing[0].draw_type == 'kawai':
+            pos = nx.kamada_kawai_layout(graph)
+        else:
+            pos = nx.nx_pydot.graphviz_layout(graph)
+        # keys to ints
+        pos = {int(k): v for k, v in pos.items()}
+        # graph to digraph with
+        digraph = nx.DiGraph()
+        for node in graph.nodes():
+            digraph.add_node(node)
+
+
+
+        node_colors = []
+        node_sizes = []
+        for node in digraph.nodes():
+            node_label = self.node_labels.node_labels[graph_id][node]
+            node_colors.append(bias_colors[node_label])
+            node_sizes.append(graph_drawing[1].node_size * abs(bias[node_label]) / bias_max_abs)
+
+        nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
+
+        edge_widths = []
+        for weight_id, entry in enumerate(weight_distribution):
+            c = entry[0]
+            if c == channel:
+                i = entry[1]
+                j = entry[2]
+                if weights[weight_id] != 0:
+                    # add edge with weight as data
+                    digraph.add_edge(i, j, weight=weight_id)
+        curved_edges = [edge for edge in digraph.edges(data=True)]
+        curved_edges_colors = []
+
+        for edge in curved_edges:
+            curved_edges_colors.append(weight_colors[edge[2]['weight']])
+            edge_widths.append(graph_drawing[1].weight_edge_width * abs(weights[edge[2]['weight']]) / weight_max_abs)
+        arc_rad = 0.25
+        nx.draw_networkx_edges(digraph, pos, ax=ax, edgelist=curved_edges, edge_color=curved_edges_colors,
+                               width=edge_widths,
+                               connectionstyle=f'arc3, rad = {arc_rad}', arrows=True, arrowsize=graph_drawing[1].arrow_size, node_size=graph_drawing[1].node_size)
+
+
 
 
 class RuleAggregationLayer(nn.Module):
@@ -504,3 +682,139 @@ class RuleAggregationLayer(nn.Module):
 
     def get_bias(self):
         return [x.item() for x in self.Param_b[0]]
+
+    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], channel=0, out_dimension=0, with_graph=True, graph_only=False):
+        if with_graph or graph_only:
+            graph = self.graph_data.graphs[graph_id]
+
+            # draw the graph
+            # root node is the one with label 0
+            root_node = None
+            for node in graph.nodes():
+                if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                    root_node = node
+                    break
+
+            # if graph is circular use the circular layout
+            pos = dict()
+            if graph_drawing[0].draw_type == 'circle':
+                # get circular positions around (0,0) starting with the root node at (-400,0)
+                pos[root_node] = (400, 0)
+                angle = 2 * np.pi / (graph.number_of_nodes())
+                # iterate over the neighbors of the root node
+                cur_node = root_node
+                last_node = None
+                counter = 0
+                while len(pos) < graph.number_of_nodes():
+                    neighbors = list(graph.neighbors(cur_node))
+                    for next_node in neighbors:
+                        if next_node != last_node:
+                            counter += 1
+                            pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                            last_node = cur_node
+                            cur_node = next_node
+                            break
+            elif graph_drawing[0].draw_type == 'kawai':
+                pos = nx.kamada_kawai_layout(graph)
+            else:
+                pos = nx.nx_pydot.graphviz_layout(graph)
+            # keys to ints
+            pos = {int(k): v for k, v in pos.items()}
+            if graph_only:
+                edge_labels = {}
+                for (key1, key2, value) in graph.edges(data=True):
+                    if "label" in value and len(value["label"]) > 1:
+                        edge_labels[(key1, key2)] = int(value["label"][0])
+                    else:
+                        edge_labels[(key1, key2)] = ""
+                nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[0].edge_color,
+                                       width=graph_drawing[0].edge_width)
+                nx.draw_networkx_edge_labels(graph, pos=pos, edge_labels=edge_labels, ax=ax, font_size=8,
+                                             font_color='black')
+                # get node colors from the node labels using the plasma colormap
+                cmap = graph_drawing[0].colormap
+                norm = matplotlib.colors.Normalize(vmin=0,
+                                                   vmax=self.graph_data.node_labels['primary'].num_unique_node_labels)
+                node_colors = [cmap(norm(self.graph_data.node_labels['primary'].node_labels[graph_id][node])) for node
+                               in graph.nodes()]
+                nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors,
+                                       node_size=graph_drawing[0].node_size)
+                return
+            nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[1].edge_color, width=graph_drawing[1].edge_width, alpha=graph_drawing[1].edge_alpha*0.5)
+
+        all_weights = np.array(self.get_weights())
+        bias = self.get_bias()
+        graph = self.graph_data.graphs[graph_id]
+        weight_distribution = self.weight_distribution[graph_id]
+        param_indices = np.array(weight_distribution[:, 3])
+        matrix_indices = np.array(weight_distribution[:, 0:3])
+        graph_weights = all_weights[param_indices]
+
+        weight_min = np.min(graph_weights)
+        weight_max = np.max(graph_weights)
+        weight_max_abs = max(abs(weight_min), abs(weight_max))
+        bias_min = np.min(bias)
+        bias_max = np.max(bias)
+        bias_max_abs = max(abs(bias_min), abs(bias_max))
+
+        # use seismic colormap with maximum and minimum values from the weight matrix
+        cmap = graph_drawing[1].colormap
+        # normalize item number values to colormap
+        normed_weight = (graph_weights + (-weight_min)) / (weight_max - weight_min)
+        weight_colors = cmap(normed_weight)
+        normed_bias = (bias + (-bias_min)) / (bias_max - bias_min)
+        bias_colors = cmap(normed_bias)
+
+        # draw the graph
+        # root node is the one with label 0
+        root_node = None
+        for i, node in enumerate(graph.nodes()):
+            if i == 0:
+                print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
+            if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                root_node = node
+                break
+        # if graph is circular use the circular layout
+        pos = dict()
+        if graph_drawing[0].draw_type == 'circle':
+            # get circular positions around (0,0) starting with the root node at (-400,0)
+            pos[root_node] = (400, 0)
+            angle = 2 * np.pi / (graph.number_of_nodes())
+            # iterate over the neighbors of the root node
+            cur_node = root_node
+            last_node = None
+            counter = 0
+            while len(pos) < graph.number_of_nodes():
+                neighbors = list(graph.neighbors(cur_node))
+                for next_node in neighbors:
+                    if next_node != last_node:
+                        counter += 1
+                        pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                        last_node = cur_node
+                        cur_node = next_node
+                        break
+        elif graph_drawing[0].draw_type == 'kawai':
+            pos = nx.kamada_kawai_layout(graph)
+        else:
+            pos = nx.nx_pydot.graphviz_layout(graph)
+        # keys to ints
+        pos = {int(k): v for k, v in pos.items()}
+        # graph to digraph with
+        digraph = nx.DiGraph()
+        for node in graph.nodes():
+            digraph.add_node(node)
+
+
+
+        node_colors = []
+        node_sizes = []
+        for i, index in enumerate(matrix_indices):
+            c = index[0]
+            o_dimension = index[1]
+            if c == channel and o_dimension == out_dimension:
+                node_id = index[2]
+                node_label = self.node_labels.node_labels[graph_id][node_id]
+                node_colors.append(weight_colors[node_label])
+                node_sizes.append(graph_drawing[1].node_size * abs(graph_weights[i]) / weight_max_abs)
+
+        nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
