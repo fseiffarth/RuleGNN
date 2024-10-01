@@ -6,7 +6,6 @@ import networkx as nx
 import numpy as np
 import torch
 import torch_geometric.data
-from sklearn.utils.multiclass import unique_labels
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.datasets import ZINC
 
@@ -309,7 +308,7 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, relabel_nodes=True, graph_format=None, only_graphs=False):
+def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, graph_format='NEL', only_graphs=False):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database

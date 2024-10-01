@@ -11,6 +11,7 @@ import torch
 import yaml
 from matplotlib import pyplot as plt
 
+from scripts.ExperimentMain import ExperimentMain
 from src.Architectures.RuleGNN import RuleGNN
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
 from src.utils.GraphData import GraphData, get_graph_data
@@ -33,29 +34,21 @@ class GraphDrawing:
         self.colormap = colormap
 
 class WeightVisualization:
-    def __init__(self, db_name, experiment_config, out="", data_format='NEL'):
+    def __init__(self, db_name, experiment: ExperimentMain, out=""):
         self.db_name = db_name
-        self.experiment_config = experiment_config
-        self.out = out
-        self.data_format = data_format
-        # get the absolute path
-        absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
-        absolute_path = Path(absolute_path)
+        self.experiment_config = experiment.experiment_configurations[db_name]
+        self.dataset_config = experiment.dataset_configs[db_name]
+        self.out_path = Path(out)
 
-        self.validation_folds = self.main_config['validation_folds']
-        # get the data path from the config file
-        config_paths_to_absolute(self.experiment_config, absolute_path)
+        self.validation_folds = self.dataset_config.get('validation_folds', 10)
         self.results_path = self.experiment_config['paths']['results'].joinpath(db_name).joinpath('Results')
         if out == "":
             self.out_path = self.experiment_config['paths']['results'].joinpath(db_name).joinpath('Plots')
-        else:
-            self.out_path = Path(out)
         self.m_path = self.experiment_config['paths']['results'].joinpath(db_name).joinpath('Models')
 
         self.graph_data = get_graph_data(db_name=db_name,
                                          data_path=self.experiment_config['paths']['data'],
-                                         input_features=self.experiment_config.get('input_features', None),
-                                         graph_format=data_format)
+                                         input_features=self.experiment_config.get('input_features', None))
 
 
 
@@ -291,7 +284,6 @@ class WeightVisualization:
             # check if the model exists
             if model_path.exists():
                 with open(model_path, 'r'):
-                    seed = validation_id + self.validation_folds * run
                     split_data = Load_Splits(self.experiment_config['paths']['splits'], self.db_name)
                     test_data = np.asarray(split_data[0][validation_id], dtype=int)
                     graph_ids = test_data[graph_ids]
@@ -310,7 +302,7 @@ class WeightVisualization:
                     para.set_file_index(size=6)
                     net = RuleGNN.RuleGNN(graph_data=self.graph_data,
                                           para=para,
-                                          seed=seed, device=run_config.config.get('device', 'cpu'))
+                                          seed=0, device=run_config.config.get('device', 'cpu'))
 
                     net.load_state_dict(torch.load(model_path))
                     # evaluate the performance of the model on the test data

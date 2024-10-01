@@ -23,9 +23,9 @@ class CustomColorMap:
 
         # Create a colormap using LinearSegmentedColormap
         self.cmap = mcolors.LinearSegmentedColormap.from_list('custom_colormap', list(zip(positions, lamarr_colors)))
+
 def main():
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
-    experiment.Preprocess()
 
     ### NCI1, NCI109, Mutagenicity
     for db_name in ['NCI1', 'NCI109', 'Mutagenicity']:
@@ -35,7 +35,7 @@ def main():
             GraphDrawing(node_size=40, edge_width=1),
             GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10, colormap=CustomColorMap().cmap)
         )
-        ww = WeightVisualization(db_name=db_name, experiment_config=experiment.experiment_configurations[db_name])
+        ww = WeightVisualization(db_name=db_name, experiment=experiment)
         for validation_id in range(10):
             for run in range(3):
                 ww.visualize(graph_ids, run=run, validation_id=validation_id, graph_drawing=graph_drawing, filter_sizes=filter_sizes)

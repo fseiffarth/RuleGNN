@@ -31,10 +31,13 @@ class ExperimentMain:
         except:
             raise FileNotFoundError(f"Config file {main_config_path} not found")
         self.experiment_configurations = {}
+        self.dataset_configs = {}
         for dataset in self.main_config['datasets']:
             experiment_configuration = self.update_experiment_configuration(dataset)
             experiment_configuration['format'] = 'NEL'
             self.experiment_configurations[dataset['name']] = experiment_configuration
+            self.dataset_configs[dataset['name']] = dataset
+
 
 
         self.check_config_consistency()
