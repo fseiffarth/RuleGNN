@@ -357,7 +357,7 @@ class BenchmarkDatasets(InMemoryDataset):
         self.graph_data = graph_data
         self.name = name
         super().__init__(root)
-        self.data, self.slices = torch.load(self.processed_paths[0])
+        self.data, self.slices = torch.load(self.processed_paths[0], weights_only=True)
 
     @property
     def raw_dir(self) -> str:

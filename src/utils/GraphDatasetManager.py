@@ -125,7 +125,7 @@ class GraphDatasetManager:
             self._process()
 
         self.dataset = GraphDataset(torch.load(
-            self.processed_dir / f"{self.name}.pt"))
+            self.processed_dir / f"{self.name}.pt", weights_only=True))
 
         splits_filename = self.processed_dir / f"{self.name}_splits.json"
         if not splits_filename.exists():

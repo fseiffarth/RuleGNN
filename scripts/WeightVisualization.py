@@ -299,7 +299,7 @@ class WeightVisualization:
                                           para=para,
                                           seed=0, device=run_config.config.get('device', 'cpu'))
 
-                    net.load_state_dict(torch.load(model_path))
+                    net.load_state_dict(torch.load(model_path, weights_only=True))
                     # evaluate the performance of the model on the test data
                     outputs = torch.zeros((len(test_data), self.graph_data.num_classes), dtype=torch.double)
                     with torch.no_grad():

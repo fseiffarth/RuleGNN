@@ -76,7 +76,7 @@ class RunSavedModel:
                                           para=para,
                                           seed=seed, device=run_config.config.get('device', 'cpu'))
 
-                    net.load_state_dict(torch.load(model_path))
+                    net.load_state_dict(torch.load(model_path, weights_only=True))
 
                     # iterate over the layers and print information
                     for i, layer in enumerate(net.net_layers):

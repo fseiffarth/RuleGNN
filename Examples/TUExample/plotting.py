@@ -2,6 +2,8 @@ from pathlib import Path
 
 from scripts.ExperimentMain import ExperimentMain
 from scripts.WeightVisualization import WeightVisualization, GraphDrawing
+from src.utils.GraphDrawing import CustomColorMap
+
 
 def main():
     experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))

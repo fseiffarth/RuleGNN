@@ -9,7 +9,7 @@ from networkx.algorithms.isomorphism import GraphMatcher
 from src.utils import GraphData, NodeLabeling
 from src.utils.GraphData import relabel_most_frequent
 from src.utils.GraphLabels import NodeLabels
-from src.utils.NodeLabeling import  weisfeiler_lehman_node_labeling
+from src.utils.NodeLabeling import weisfeiler_lehman_node_labeling
 
 
 def write_node_labels(file, node_labels):
@@ -26,6 +26,7 @@ def write_node_labels(file, node_labels):
 
 def save_primary_labels(graph_data:GraphData, label_path=None, save_times=None):
     node_labels = graph_data.node_labels['primary'].node_labels
+    node_labels = relabel_node_labels(node_labels)
     # save the node labels to a file
     # save node_labels as numpy array
     if label_path is None:
@@ -54,6 +55,7 @@ def save_degree_labels(graph_data:GraphData, label_path=None, save_times=None):
     node_labels = []
     for graph in graph_data.graphs:
         node_labels.append([graph.degree(node) for node in graph.nodes()])
+    node_labels = relabel_node_labels(node_labels)
     # save the node labels to a file
     # save node_labels as numpy array
     if label_path is None:
@@ -91,6 +93,8 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
 
     for graph in graph_data.graphs:
         node_labels.append([unique_neighbor_label_dict[node_to_hash[node]] for node in graph.nodes()])
+
+    node_labels = relabel_node_labels(node_labels)
     # save the node labels to a file
     # save node_labels as numpy array
     if label_path is None:
@@ -393,7 +397,7 @@ def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='s
                 else:
                     labels[-1].append(len(label_dict))
 
-
+        labels = relabel_node_labels(labels)
         write_node_labels(file, labels)
         if save_times is not None:
             try:
@@ -450,6 +454,7 @@ def save_clique_labels(graph_data:GraphData, max_clique=6, max_node_labels=None,
                 else:
                     labels[-1].append(len(label_dict))
 
+        labels = relabel_node_labels(labels)
         write_node_labels(file, labels)
         if save_times is not None:
             try:
@@ -491,3 +496,26 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
                 else:
                     g_labels[i] = max_node_labels - 1
     return node_labels
+
+def relabel_node_labels(node_labels: List[List[int]]) -> List[List[int]]:
+    '''
+    Relabel the original labels by mapping them to 0, 1, 2, ... where 0 is the most frequent label of the original labels
+    '''
+    new_labels = []
+    # get the unique labels
+    unique_labels: dict[int, int] = {}
+    for node_label in node_labels:
+        for label in node_label:
+            if label not in unique_labels:
+                unique_labels[label] = 1
+            else:
+                unique_labels[label] += 1
+    # sort the unique labels by the value
+    unique_labels = dict(sorted(unique_labels.items(), key=lambda item: item[1], reverse=True))
+    # new label mapping
+    new_label_mapping: dict[int, int] = {}
+    for i, label in enumerate(unique_labels):
+        new_label_mapping[label] = i
+    for graph_labels in node_labels:
+        new_labels.append([new_label_mapping[label] for label in graph_labels])
+    return new_labels

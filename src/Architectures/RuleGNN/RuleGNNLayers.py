@@ -452,17 +452,17 @@ class RuleConvolutionLayer(nn.Module):
         bias_colors = cmap(normed_bias)
 
         # draw the graph
-        # root node is the one with label 0
-        root_node = None
-        for i, node in enumerate(graph.nodes()):
-            if i == 0:
-                print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
-            if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
-                root_node = node
-                break
         # if graph is circular use the circular layout
         pos = dict()
         if graph_drawing[0].draw_type == 'circle':
+            # root node is the one with label 0
+            root_node = None
+            for i, node in enumerate(graph.nodes()):
+                if i == 0:
+                    print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
+                if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                    root_node = node
+                    break
             # get circular positions around (0,0) starting with the root node at (-400,0)
             pos[root_node] = (400, 0)
             angle = 2 * np.pi / (graph.number_of_nodes())
@@ -766,17 +766,17 @@ class RuleAggregationLayer(nn.Module):
         bias_colors = cmap(normed_bias)
 
         # draw the graph
-        # root node is the one with label 0
-        root_node = None
-        for i, node in enumerate(graph.nodes()):
-            if i == 0:
-                print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
-            if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
-                root_node = node
-                break
         # if graph is circular use the circular layout
         pos = dict()
         if graph_drawing[0].draw_type == 'circle':
+            # root node is the one with label 0
+            root_node = None
+            for i, node in enumerate(graph.nodes()):
+                if i == 0:
+                    print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
+                if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                    root_node = node
+                    break
             # get circular positions around (0,0) starting with the root node at (-400,0)
             pos[root_node] = (400, 0)
             angle = 2 * np.pi / (graph.number_of_nodes())
@@ -808,13 +808,13 @@ class RuleAggregationLayer(nn.Module):
 
         node_colors = []
         node_sizes = []
-        for i, index in enumerate(matrix_indices):
+        for i, index in enumerate(weight_distribution):
             c = index[0]
             o_dimension = index[1]
+            node_idx = index[2]
+            weight = index[3]
             if c == channel and o_dimension == out_dimension:
-                node_id = index[2]
-                node_label = self.node_labels.node_labels[graph_id][node_id]
-                node_colors.append(weight_colors[node_label])
+                node_colors.append(weight_colors[i])
                 node_sizes.append(graph_drawing[1].node_size * abs(graph_weights[i]) / weight_max_abs)
 
         nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)

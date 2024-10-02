@@ -12,7 +12,7 @@ import src.utils.SyntheticGraphs as synthetic_graphs
 from src.Architectures.RuleGNN import RuleGNN
 from src.Methods.ModelEvaluation import ModelEvaluation
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
-from src.utils.GraphData import get_graph_data, GraphData
+from src.utils.GraphData import get_graph_data
 from src.utils.Parameters.Parameters import Parameters
 from src.utils.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
@@ -302,7 +302,7 @@ class ExperimentMain:
                                       para=para,
                                       seed=0, device=run_config.config.get('device', 'cpu'))
 
-                net.load_state_dict(torch.load(model_path))
+                net.load_state_dict(torch.load(model_path, weights_only=True))
             return net
         else:
             raise FileNotFoundError(f"Model {model_path} not found")
