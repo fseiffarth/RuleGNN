@@ -8,7 +8,7 @@ from src.utils.GraphData import GraphData
 
 class CSL:
     def __init__(self):
-        self.data = GNNBenchmarkDataset("tmp/", 'CSL').data
+        self.data = GNNBenchmarkDataset("tmp/", 'CSL')._data
 
     def get_graphs(self, with_distances=True):
         nx_graphs = []

@@ -55,18 +55,43 @@ class ExperimentMain:
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
         for dataset in self.main_config['datasets']:
+            self.create_folders(dataset['name'])
             print(f"Running experiment for dataset {dataset['name']}")
             experiment_configuration = self.experiment_configurations[dataset['name']]
             # determine the number of parallel jobs
             num_workers = experiment_configuration.get('num_workers', dataset.get('validation_folds', 10))
-            for run_id in range(dataset.get('num_runs', 1)):
-                print(f"Run {run_id + 1} of {dataset.get('num_runs', 1)}")
-                # find the best model hyperparameters using grid search and cross-validation
-                print(f"Find the best hyperparameters for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_workers} number of parallel jobs")
-                joblib.Parallel(n_jobs=num_workers)(
-                    joblib.delayed(self.run_models)(dataset=dataset,
-                                                    validation_id=validation_id,
-                                                    run_id=run_id) for validation_id in range(dataset.get('validation_folds', 10)))
+            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
+
+            # copy config file to the results directory if it is not already there
+            absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            absolute_path = Path(absolute_path)
+            copy_experiment_config(absolute_path, experiment_configuration,
+                                   dataset.get('experiment_config_file', ''),
+                                   dataset['name'])
+
+            run_configs = get_run_configs(experiment_configuration)
+            c_ids = []
+            for config_id, run_config in enumerate(run_configs):
+                if 'config_id' in experiment_configuration:
+                    # if config_id is provided in the config file, add it to the current config_id
+                    config_id += experiment_configuration['config_id']
+                # config_id to string with leading zeros
+                c_id = f'Configuration_{str(config_id).zfill(6)}'
+                c_ids.append(c_id)
+
+            for i, run_config in enumerate(run_configs):
+                config_id = c_ids[i]
+                for run_id in range(dataset.get('num_runs', 1)):
+                    print(f"Run {run_id + 1} of {dataset.get('num_runs', 1)}")
+                    # find the best model hyperparameters using grid search and cross-validation
+                    print(f"Find the best hyperparameters for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_workers} number of parallel jobs")
+                    joblib.Parallel(n_jobs=num_workers)(
+                        joblib.delayed(self.run_models)(dataset=dataset,
+                                                        graph_data=graph_data,
+                                                        run_config=run_config,
+                                                        validation_id=validation_id,
+                                                        run_id=run_id,
+                                                        config_id=config_id) for validation_id in range(dataset.get('validation_folds', 10)))
 
     def EvaluateResults(self, evaluate_best_model=False, evaluate_validation_only=False):
         '''
@@ -110,12 +135,23 @@ class ExperimentMain:
             evaluation_run_number = self.main_config.get('evaluation_run_number', 3)
             experiment_configuration = self.update_experiment_configuration(dataset)
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
-            num_jobs = min(len(parallelization_pairs), os.cpu_count())
-            print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {num_jobs}")
-            joblib.Parallel(n_jobs=num_jobs)(joblib.delayed(self.run_models)(dataset=dataset,
-                                                                             run_id=run_id,
-                                                                             validation_id=validation_id,
-                                                                             best_mode=True)
+            num_workers = min(len(parallelization_pairs), os.cpu_count())
+            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
+            best_config_id = None
+            experiment_configuration['best_model'] = True
+            # get the best configuration and run it
+            best_config_id = model_selection_evaluation(db_name=dataset['name'],
+                                                        get_best_model=True,
+                                                        experiment_config=experiment_configuration)
+            run_configs = get_run_configs(experiment_configuration)
+            config_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'
+            print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {num_workers}")
+            joblib.Parallel(n_jobs=num_workers)(joblib.delayed(self.run_models)(dataset=dataset,
+                                                        graph_data=graph_data,
+                                                        run_config=run_configs[best_config_id],
+                                                        validation_id=validation_id,
+                                                        run_id=run_id,
+                                                        config_id=config_id)
                                              for run_id, validation_id in parallelization_pairs)
 
     def update_experiment_configuration(self, dataset):
@@ -179,63 +215,65 @@ class ExperimentMain:
     def check_config_consistency(self):
         pass
 
-    def run_models(self, dataset, validation_id=0, run_id=0, best_mode=False):
-        experiment_configuration = self.experiment_configurations[dataset['name']]
-        best_config_id = None
-        if best_mode:
-            experiment_configuration['best_model'] = True
-            # get the best configuration and run it
-            best_config_id = model_selection_evaluation(db_name=dataset['name'],
-                                                        get_best_model=True,
-                                                        experiment_config=experiment_configuration)
-        else:
-            # copy config file to the results directory if it is not already there
-            absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            absolute_path = Path(absolute_path)
-            copy_experiment_config(absolute_path, experiment_configuration, dataset.get('experiment_config_file', ''),
-                                   dataset['name'])
+    def create_folders(self, graph_db_name):
+        experiment_configuration = self.experiment_configurations[graph_db_name]
+        r_path = experiment_configuration['paths']['results']
+        # if not exists create the results directory
+        if not os.path.exists(r_path):
+            try:
+                os.makedirs(r_path)
+            except:
+                raise FileNotFoundError(f"Results directory {r_path} not found")
+        # if not exists create the directory for db under Results
+        if not os.path.exists(r_path.joinpath(graph_db_name)):
+            try:
+                os.makedirs(r_path.joinpath(graph_db_name))
+            except:
+                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name)} not found")
+        # if not exists create the directory Results, Plots, Weights and Models under db
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Results")):
+            try:
+                os.makedirs(r_path.joinpath(graph_db_name + "/Results"))
+            except:
+                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Results')} not found")
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Plots")):
+            try:
+                os.makedirs(r_path.joinpath(graph_db_name + "/Plots"))
+            except:
+                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Plots')} not found")
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Weights")):
+            try:
+                os.makedirs(r_path.joinpath(graph_db_name + "/Weights"))
+            except:
+                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Weights')} not found")
+        if not os.path.exists(r_path.joinpath(graph_db_name + "/Models")):
+            try:
+                os.makedirs(r_path.joinpath(graph_db_name + "/Models"))
+            except:
+                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Models')} not found")
 
-        if experiment_configuration is not None:
-            create_folders(experiment_configuration, dataset['name'])
-            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
-            run_configs = get_run_configs(experiment_configuration)
-            c_ids = []
-            for config_id, run_config in enumerate(run_configs):
-                if 'config_id' in experiment_configuration:
-                    # if config_id is provided in the config file, add it to the current config_id
-                    config_id += experiment_configuration['config_id']
-                # config_id to string with leading zeros
-                c_id = f'Configuration_{str(config_id).zfill(6)}'
-                c_ids.append(c_id)
-            if best_mode:
-                run_configs = [run_configs[best_config_id]]
-                c_ids = [f'Best_Configuration_{str(best_config_id).zfill(6)}']
+    def run_models(self, dataset, graph_data, run_config, validation_id=0, run_id=0, config_id=None):
+        para = Parameters()
+        load_preprocessed_data_and_parameters(config_id=config_id,
+                                              run_id=run_id,
+                                              validation_id=validation_id,
+                                              validation_folds=dataset.get('validation_folds', 10),
+                                              graph_data=graph_data, run_config=run_config, para=para)
+        """
+        Split the data in training validation and test set
+        """
+        seed = 56874687 + validation_id + para.n_val_runs * run_id
+        data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('transfer', False))
+        test_data = data[0][validation_id]
+        train_data = data[1][validation_id]
+        validation_data = data[2][validation_id]
+        model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
+        method = ModelEvaluation(run_id, validation_id, graph_data, model_data, seed, para)
 
-            for idx, run_config in enumerate(run_configs):
-                para = Parameters()
-                load_preprocessed_data_and_parameters(config_id=c_ids[idx],
-                                                      run_id=run_id,
-                                                      validation_id=validation_id,
-                                                      validation_folds=dataset.get('validation_folds', 10),
-                                                      graph_data=graph_data, run_config=run_config, para=para)
-                """
-                Split the data in training validation and test set
-                """
-                seed = 56874687 + validation_id + para.n_val_runs * run_id
-                data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('transfer', False))
-                test_data = data[0][validation_id]
-                train_data = data[1][validation_id]
-                validation_data = data[2][validation_id]
-                model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
-                method = ModelEvaluation(run_id, validation_id, graph_data, model_data, seed, para)
-
-                """
-                Run the method
-                """
-                method.Run()
-        else:
-            # print that config file is not provided
-            print("Please provide a configuration file")
+        """
+        Run the method
+        """
+        method.Run()
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0):
         experiment_configuration = self.experiment_configurations[db_name]
@@ -326,43 +364,6 @@ def collect_paths(main_configuration, experiment_configuration, dataset_configur
         raise FileNotFoundError("Labels path is missing")
 
     return paths
-
-def create_folders(experiment_configuration, graph_db_name):
-    r_path = experiment_configuration['paths']['results']
-    # if not exists create the results directory
-    if not os.path.exists(r_path):
-        try:
-            os.makedirs(r_path)
-        except:
-            raise FileNotFoundError(f"Results directory {r_path} not found")
-    # if not exists create the directory for db under Results
-    if not os.path.exists(r_path.joinpath(graph_db_name)):
-        try:
-            os.makedirs(r_path.joinpath(graph_db_name))
-        except:
-            raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name)} not found")
-    # if not exists create the directory Results, Plots, Weights and Models under db
-    if not os.path.exists(r_path.joinpath(graph_db_name + "/Results")):
-        try:
-            os.makedirs(r_path.joinpath(graph_db_name + "/Results"))
-        except:
-            raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Results')} not found")
-    if not os.path.exists(r_path.joinpath(graph_db_name + "/Plots")):
-        try:
-            os.makedirs(r_path.joinpath(graph_db_name + "/Plots"))
-        except:
-            raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Plots')} not found")
-    if not os.path.exists(r_path.joinpath(graph_db_name + "/Weights")):
-        try:
-            os.makedirs(r_path.joinpath(graph_db_name + "/Weights"))
-        except:
-            raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Weights')} not found")
-    if not os.path.exists(r_path.joinpath(graph_db_name + "/Models")):
-        try:
-            os.makedirs(r_path.joinpath(graph_db_name + "/Models"))
-        except:
-            raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Models')} not found")
-
 
 def copy_experiment_config(absolute_path, experiment_configuration, experiment_configuration_path,
                            graph_db_name):
