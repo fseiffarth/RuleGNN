@@ -185,8 +185,8 @@ class GraphData:
                     num_node_labels += 1
                 intervals = num_node_labels + 1
                 interval_length = 1.0 / intervals
-                for i, graph in enumerate(self.input_data):
-                    for j in range(len(graph)):
+                for i, graph in enumerate(self.graphs):
+                    for j in range(graph.number_of_nodes()):
                         value = self.input_data[i][0][j]
                         # get integer value of the node label
                         value = int(value)
@@ -207,7 +207,7 @@ class GraphData:
                 num_node_labels = self.node_labels['primary'].num_unique_node_labels
                 for i, graph in enumerate(self.graphs):
                     updated_input_data.append(torch.ones(1, graph.number_of_nodes(), 2))
-                    for j in range(len(graph)):
+                    for j in range(graph.number_of_nodes()):
                         value = int(self.input_data[i][0][j])
                         # get integer value of the node label
                         value = int(value)
@@ -222,8 +222,8 @@ class GraphData:
                     num_node_labels += 1
                 intervals = num_node_labels + 1
                 interval_length = 1.0 / intervals
-                for i, graph in enumerate(self.input_data):
-                    for j in range(len(graph)):
+                for i, graph in enumerate(self.graphs):
+                    for j in range(graph.number_of_nodes()):
                         value = self.input_data[i][j][0]
                         # get integer value of the node label
                         value = int(value)

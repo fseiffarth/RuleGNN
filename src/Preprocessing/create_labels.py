@@ -53,8 +53,10 @@ def save_degree_labels(graph_data:GraphData, label_path=None, save_times=None):
     start_time = time.time()
     # iterate over the graphs and get the degree of each node
     node_labels = []
-    for graph in graph_data.graphs:
-        node_labels.append([graph.degree(node) for node in graph.nodes()])
+    for i,graph in enumerate(graph_data.graphs):
+        node_labels.append([0 for _ in range(len(graph.nodes()))])
+        for node in graph.nodes():
+            node_labels[-1][node] = graph.degree(node)
     node_labels = relabel_node_labels(node_labels)
     # save the node labels to a file
     # save node_labels as numpy array
