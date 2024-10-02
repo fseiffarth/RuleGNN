@@ -28,10 +28,12 @@ class ExperimentMain:
     """
     def __init__(self, main_config_path: os.path):
         self.main_config_path = main_config_path
+        if not os.path.exists(main_config_path):
+            raise FileNotFoundError(f"Config file {main_config_path} not found")
         try:
             self.main_config = yaml.safe_load(open(main_config_path))
         except:
-            raise FileNotFoundError(f"Config file {main_config_path} not found")
+            raise ValueError(f"Config file {main_config_path} could not be loaded")
         self.experiment_configurations = {}
         self.dataset_configs = {}
         for dataset in self.main_config['datasets']:
