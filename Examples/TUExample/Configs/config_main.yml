@@ -22,5 +22,3 @@ convolution_grad:
     True
 aggregation_grad:
     True
-num_workers:
-    5
