@@ -212,6 +212,7 @@ class ModelEvaluation:
             """
             np.random.seed(epoch + 687497)
             np.random.shuffle(self.training_data)
+            self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
             train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
 
             for batch_counter, batch in enumerate(train_batches, 0):

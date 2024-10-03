@@ -34,7 +34,7 @@ class RuleGNN(nn.Module):
                 # modify the input channels to match the number of channels
                 for i, input_vector in enumerate(graph_data.input_data):
                     # stack input_vector num_stacks times along the first dimension
-                    graph_data.input_vectors[i] = input_vector.repeat(num_stacks, 1)
+                    graph_data.input_data[i] = input_vector.repeat((num_stacks, 1, 1))
 
         else:
             raise ValueError('If number of channels is larger than input channels, it must be a multiple of input channels')

@@ -23,8 +23,8 @@ early_stopping:
     25
 
 networks:
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [ 1,2,3,4,5,6 ] } }
-    - { layer_type: simple_cycles, max_cycle_length: 10 }
+  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 50000, properties: { name: distances, values: [ 1,2,3,4,5,6 ] } }
+    - { layer_type: primary }
 #   - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [ 0, 2 ] } }
 #     - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [ 0, 3 ] } }
 #     - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [ 0, 5 ] } }

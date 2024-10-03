@@ -60,7 +60,7 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray):
     weights = weights[sort_indices]
     # plot the distribution of the rules
     fig, ax = plt.subplots()
-    ax.scatter(np.arange(len(weights)), weights, s=0.5)
+    ax.scatter(np.arange(len(weights)), weights, s=0.5, alpha=0.5)
     plt.xlabel('Rule index')
     plt.ylabel('Occurences')
     plt.title('Distribution of rules')
