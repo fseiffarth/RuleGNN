@@ -265,7 +265,7 @@ class RuleConvolutionLayer(nn.Module):
         non_zero_weight_map = {weight_idx: pos_idx for pos_idx, weight_idx in enumerate(non_zero_positions[0])}
         self.Param_W = nn.Parameter(torch.zeros(num_non_zero_weights, dtype=self.precision), requires_grad=True)
         # initialize self.Param_W with small non-zero values
-        torch.nn.init.constant_(self.Param_W, 0.001)
+        torch.nn.init.constant_(self.Param_W, 0.01)
         # modify the weight distribution to only contain the non-zero weights
         for i, weights in enumerate(self.weight_distribution):
             weight_pos = weights[:, 3]
@@ -596,7 +596,7 @@ class RuleAggregationLayer(nn.Module):
         torch.manual_seed(seed)
         self.Param_W = nn.Parameter(lower + torch.randn(self.weight_num, dtype=self.precision) * (upper - lower))
         self.current_W = torch.Tensor()
-        torch.nn.init.constant_(self.Param_W, 0.0001)
+        torch.nn.init.constant_(self.Param_W, 0.01)
 
         self.bias = bias
         if self.bias:
