@@ -256,22 +256,30 @@ class RuleConvolutionLayer(nn.Module):
         weight_occurences = np.zeros(self.weight_num)
         for i, weights in enumerate(self.weight_distribution):
             weight_pos = weights[:, 3]
+            # get set of weight pos to determine the occurrence of the rules in different graphs
+            weight_pos = np.array(list(set(weight_pos)))
             # in weight_array add 1 where the index is in weight_pos
             weight_occurences[weight_pos] += 1
-        # get all the non-zero weights
-        non_zero_positions = np.nonzero(weight_occurences)
-        num_non_zero_weights = non_zero_positions[0].shape[0]
+        # get all the weights that occur at least threshold times
+        threshold = self.para.run_config.config.get('rule_occurrence_threshold', 1)
+        threshold_positions = np.where(weight_occurences >= threshold)
+        num_threshold_weights = threshold_positions[0].shape[0]
         # map from non-zero weights to indices
-        non_zero_weight_map = {weight_idx: pos_idx for pos_idx, weight_idx in enumerate(non_zero_positions[0])}
-        self.Param_W = nn.Parameter(torch.zeros(num_non_zero_weights, dtype=self.precision), requires_grad=True)
+        self.non_zero_weight_map = {weight_idx: pos_idx for pos_idx, weight_idx in enumerate(threshold_positions[0])}
+        self.Param_W = nn.Parameter(torch.zeros(num_threshold_weights, dtype=self.precision), requires_grad=True)
         # initialize self.Param_W with small non-zero values
         torch.nn.init.constant_(self.Param_W, 0.01)
         # modify the weight distribution to only contain the non-zero weights
+        new_weight_distribution = []
         for i, weights in enumerate(self.weight_distribution):
             weight_pos = weights[:, 3]
-            new_weight_pos = np.array([non_zero_weight_map[pos] for pos in weight_pos])
+            valid_positions = []
+            for i, pos in enumerate(weight_pos):
+                if pos in self.non_zero_weight_map:
+                    valid_positions.append(np.array(weights[i][:3].tolist() + [self.non_zero_weight_map[pos]]))
+            new_weight_distribution.append(np.array(valid_positions, dtype=np.int64))
             # in weight_array add 1 where the index is in weight_pos
-            self.weight_distribution[i][:, 3] = new_weight_pos
+        self.weight_distribution = new_weight_distribution
 
         # in case of pruning is turned on, save the original weights
         self.Param_W_original = None

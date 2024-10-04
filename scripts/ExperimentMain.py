@@ -59,7 +59,7 @@ class ExperimentMain:
             print(f"Running experiment for dataset {dataset['name']}")
             experiment_configuration = self.experiment_configurations[dataset['name']]
             # determine the number of parallel jobs
-            num_workers = experiment_configuration.get('num_workers', dataset.get('validation_folds', 10))
+            num_workers = experiment_configuration.get('num_workers', min(os.cpu_count(), dataset.get('validation_folds', 10)))
             graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
 
             # copy config file to the results directory if it is not already there
@@ -135,7 +135,7 @@ class ExperimentMain:
             evaluation_run_number = self.main_config.get('evaluation_run_number', 3)
             experiment_configuration = self.update_experiment_configuration(dataset)
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
-            num_workers = min(len(parallelization_pairs), os.cpu_count())
+            num_workers = experiment_configuration.get('num_workers', min(os.cpu_count(), len(parallelization_pairs)))
             graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
             best_config_id = None
             experiment_configuration['best_model'] = True
@@ -275,12 +275,21 @@ class ExperimentMain:
         """
         method.Run()
 
-    def load_model(self, db_name, config_id=0, run_id=0, validation_id=0):
+    def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True):
         experiment_configuration = self.experiment_configurations[db_name]
         graph_data = preprocess_graph_data(db_name, experiment_configuration)
         run_configs = get_run_configs(experiment_configuration)
-        run_config = run_configs[config_id]
         model_path = experiment_configuration['paths']['results'].joinpath(db_name).joinpath('Models')
+        if best:
+            # get config id of the best model
+            if model_path.exists():
+                # get one file from the directory
+                file = next(model_path.iterdir())
+                # get the config id from the file name
+                config_id = int(file.name.split('_')[3])
+            else:
+                raise FileNotFoundError(f"Model directory {model_path} not found")
+        run_config = run_configs[config_id]
         model_path = model_path.joinpath(f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
         # check if the model exists
         if model_path.exists():

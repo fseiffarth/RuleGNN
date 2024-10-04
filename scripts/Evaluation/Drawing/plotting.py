@@ -20,10 +20,23 @@ def rules_vs_occurences(layer:RuleConvolutionLayer) -> np.ndarray:
     # get the number of non-zero elements
     num_non_zero = np.count_nonzero(weight_array)
     print(f'Number of non-zero elements: {num_non_zero}')
-    # plot the distribution of the rules as bar plot
+
+    weights_per_property = int(layer.weight_num/layer.n_properties)
+    # invert layer.non_zero_weight_map
+    non_zero_weight_map = {v: k for k, v in layer.non_zero_weight_map.items()}
+    property_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+    property_legend = ['Distance 1', 'Distance 2', 'Distance 3', 'Distance 4', 'Distance 5', 'Distance 6', 'Distance 7', 'Distance 8', 'Distance 9', 'Distance 10']
+    node_colors = []
+    for i, _ in enumerate(weight_array):
+        idx = sort_indices[i]
+        non_zero_idx = non_zero_weight_map[idx]
+        node_colors.append(property_colors[non_zero_idx//weights_per_property])
+
+    # plot the distribution of the rules with legend
     fig, ax = plt.subplots()
-    # set size of the
-    ax.scatter(np.arange(num_weights), weight_array, s=0.5)
+    for i, p in enumerate(range(layer.n_properties)):
+        ax.scatter([], [], c=property_colors[i], label=property_legend[i])
+    ax.scatter(np.arange(num_weights), weight_array, s=0.5, alpha=1, c=node_colors)
     plt.xlabel('Rule index')
     plt.ylabel('Occurences')
     plt.title('Distribution of rules')
@@ -58,9 +71,23 @@ def rules_vs_occurences_properties(layer:RuleConvolutionLayer):
 def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray):
     weights = layer.Param_W.detach().cpu().numpy()
     weights = weights[sort_indices]
-    # plot the distribution of the rules
+
+    weights_per_property = int(layer.weight_num/layer.n_properties)
+    # invert layer.non_zero_weight_map
+    non_zero_weight_map = {v: k for k, v in layer.non_zero_weight_map.items()}
+    property_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+    property_legend = ['Distance 1', 'Distance 2', 'Distance 3', 'Distance 4', 'Distance 5', 'Distance 6', 'Distance 7', 'Distance 8', 'Distance 9', 'Distance 10']
+    node_colors = []
+    for i, _ in enumerate(weights):
+        node_colors.append(property_colors[non_zero_weight_map[sort_indices[i]]//weights_per_property])
+
+    # plot the distribution of the rules with legend
     fig, ax = plt.subplots()
-    ax.scatter(np.arange(len(weights)), weights, s=0.5, alpha=0.5)
+    for i, p in enumerate(range(layer.n_properties)):
+        ax.scatter([], [], c=property_colors[i], label=property_legend[i])
+
+    ax.scatter(np.arange(len(weights)), weights, s=1, alpha=1, c=node_colors)
+    ax.legend()
     plt.xlabel('Rule index')
     plt.ylabel('Occurences')
     plt.title('Distribution of rules')

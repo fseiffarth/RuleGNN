@@ -18,7 +18,9 @@ Then, we explain how to use RuleGNNs for [custom datasets](#Customize-Experiment
    ```bash
    export PYTHONPATH=/path/to/RuleGNN
    ```
-    **(for IDE)** If you are working in an IDE, you can set the PYTHONPATH in the run configuration. E.g., in PyCharm, you have to change the working directory path to the root directory of the repository.
+    **(for IDE)** If you are working in an IDE, you can set the PYTHONPATH in the run configuration. 
+   E.g., in PyCharm, you have to change the working directory path to the root directory of the repository.
+    Go to ```File -> Settings -> Project Structure``` and mark the the root directory as ```Sources``` (blue folder icon).
 
 ## Reproduce RuleGNN Experiments
 To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
