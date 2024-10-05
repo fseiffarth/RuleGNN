@@ -67,6 +67,8 @@ class GraphData:
         self.input_feature_dimension = 1
         self.input_channels = 1
         self.output_feature_dimension = 1
+        self.avg_nodes = 0
+        self.avg_degree = 0
 
     def __iadd__(self, other):
         '''
@@ -130,6 +132,9 @@ class GraphData:
         self.graph_db_name = db_name
         self.graphs, self.graph_labels = load_graphs(path.joinpath(Path(f'{db_name}/raw/')), db_name, graph_format='NEL')
         self.num_graphs = len(self.graphs)
+        self.avg_nodes = sum([g.number_of_nodes() for g in self.graphs]) / self.num_graphs
+        self.avg_degree = sum([g.number_of_edges() for g in self.graphs]) / self.num_graphs
+
         self.max_nodes = 0
         for g in self.graphs:
             self.max_nodes = max(self.max_nodes, g.number_of_nodes())
@@ -153,10 +158,10 @@ class GraphData:
             ## add node labels
             for graph_id, graph in enumerate(self.graphs):
                 if use_labels:
-                    if transformation == 'one_hot_encoding':
+                    if transformation in ['one_hot', 'one_hot_encoding']:
                         self.input_data.append(torch.zeros(1,graph.number_of_nodes(), self.node_labels['primary'].num_unique_node_labels))
                         for node in graph.nodes(data=True):
-                            self.input_data[-1][0][node[0]][node[1]['label']] = 1
+                            self.input_data[-1][0][node[0]][self.node_labels['primary'].node_labels[graph_id][node[0]]] = 1
                     else:
                         self.input_data.append(torch.ones(1,graph.number_of_nodes(),1).float())
                         for node in graph.nodes(data=True):
@@ -196,8 +201,23 @@ class GraphData:
                         else:
                             value = (-1) * (value * interval_length)
                         self.input_data[i][0][j] = value
+            elif use_labels and transformation == 'normalize_positive':
+                # get the number of different node labels
+                num_node_labels = self.node_labels['primary'].num_unique_node_labels
+                # get the next even number if the number of node labels is odd
+                intervals = num_node_labels + 1
+                interval_length = 1.0 / intervals
+                for i, graph in enumerate(self.graphs):
+                    for j in range(graph.number_of_nodes()):
+                        value = self.input_data[i][0][j]
+                        # get integer value of the node label
+                        value = int(value)
+                        # map the value to the interval [0,1]
+                        value = ((value + 1) * interval_length)
+                        self.input_data[i][0][j] = value
 
-            if use_labels and transformation == 'unit_circle':
+
+            elif use_labels and transformation == 'unit_circle':
                 '''
                 Arange the labels in an 2D unit circle
                 # TODO: implement this

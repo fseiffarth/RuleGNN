@@ -14,7 +14,7 @@ def main():
     experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
     db_name = 'DHFR'
 
-    net = experiment.load_model(db_name=db_name, config_id=0, run_id=2, validation_id=0)
+    net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=0)
     convolution_layer = net.net_layers[-2]
     sort_indices = rules_vs_occurences(convolution_layer)
     #rules_vs_occurences_properties(convolution_layer)

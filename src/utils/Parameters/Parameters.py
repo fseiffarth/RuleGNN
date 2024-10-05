@@ -16,6 +16,7 @@ class Parameters(object):
         Constructor
         '''
 
+        self.dropout = None
         """
         BenchmarkGraphs parameters
         """

@@ -80,18 +80,18 @@ class RuleGNN(nn.Module):
         self.dropout = nn.Dropout(dropout)
         if 'activation' in para.run_config.config and para.run_config.config['activation'] == 'None':
             self.af = nn.Identity()
-        elif 'activation' in para.run_config.config and para.run_config.config['activation'] == 'Relu':
+        elif 'activation' in para.run_config.config and para.run_config.config['activation'] in ['Relu', 'ReLU']:
             self.af = nn.ReLU()
-        elif 'activation' in para.run_config.config and para.run_config.config['activation'] == 'LeakyRelu':
+        elif 'activation' in para.run_config.config and para.run_config.config['activation'] in ['LeakyRelu', 'LeakyReLU']:
             self.af = nn.LeakyReLU()
         else:
             self.af = nn.Tanh()
 
         if 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] == 'None':
             self.out_af = nn.Identity()
-        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] == 'Relu':
+        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] in ['Relu', 'ReLU']:
             self.out_af = nn.ReLU()
-        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] == 'LeakyRelu':
+        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] in ['LeakyRelu', 'LeakyReLU']:
             self.out_af = nn.LeakyReLU()
         else:
             self.out_af = nn.Tanh()

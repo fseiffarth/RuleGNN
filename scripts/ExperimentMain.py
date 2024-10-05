@@ -132,7 +132,7 @@ class ExperimentMain:
             # load the config file
             # run the best models
             # parallelize over (run_id, validation_id) pairs
-            evaluation_run_number = self.main_config.get('evaluation_run_number', 3)
+            evaluation_run_number = self.main_config.get('evaluation_run_number', 1)
             experiment_configuration = self.update_experiment_configuration(dataset)
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
             num_workers = experiment_configuration.get('num_workers', min(os.cpu_count(), len(parallelization_pairs)))

@@ -69,7 +69,7 @@ class ModelEvaluation:
         """
         Set up the optimizer
         """
-        optimizer = optim.Adam(net.parameters(), lr=self.para.learning_rate)
+        optimizer = optim.Adam(net.parameters(), lr=self.para.learning_rate, weight_decay=self.para.run_config.config.get('weight_decay', 0.0))
 
         if self.run_id == 0 and self.k_val == 0:
             # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)

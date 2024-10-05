@@ -197,7 +197,7 @@ class RuleConvolutionLayer(nn.Module):
         # list of degree matrices
         self.D = []
 
-
+        self.in_edges = []
 
         for graph_id, graph in enumerate(self.graph_data.graphs, 0):
             if (self.graph_data.num_graphs < 10 or graph_id % (
@@ -206,7 +206,7 @@ class RuleConvolutionLayer(nn.Module):
 
             node_number = graph.number_of_nodes()  # get the number of nodes in the graph
             graph_weight_pos_distribution = [] # initialize the weight distribution # size of the weight matrix
-
+            self.in_edges.append(torch.zeros((1,node_number,1), dtype=self.precision).to(self.device))
 
             if self.para.run_config.config.get('degree_matrix', False):
                 self.D.append(torch.zeros(node_number, dtype=self.precision).to(self.device))
@@ -235,6 +235,7 @@ class RuleConvolutionLayer(nn.Module):
                             if self.para.run_config.config.get('degree_matrix', False):
                                 self.D[graph_id][v] += 1.0
                                 self.D[graph_id][w] += 1.0
+
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
             # normalize the degree matrix to inverse square root
@@ -252,16 +253,20 @@ class RuleConvolutionLayer(nn.Module):
 
                 self.bias_distribution.append(np.array(graph_bias_pos_distribution, dtype=np.int64))
 
+
+
         # consider only the rules that appear in the dataset
         weight_occurences = np.zeros(self.weight_num)
         for i, weights in enumerate(self.weight_distribution):
             weight_pos = weights[:, 3]
-            # get set of weight pos to determine the occurrence of the rules in different graphs
-            weight_pos = np.array(list(set(weight_pos)))
+            if self.para.run_config.config.get('rule_occurrence_threshold', {'type': 'graph', 'threshold': 1})['type'] == 'graph':
+                # get set of weight pos to determine the occurrence of the rules in different graphs
+                weight_pos = np.array(list(set(weight_pos)))
             # in weight_array add 1 where the index is in weight_pos
-            weight_occurences[weight_pos] += 1
+            for pos in weight_pos:
+                weight_occurences[pos] += 1
         # get all the weights that occur at least threshold times
-        threshold = self.para.run_config.config.get('rule_occurrence_threshold', 1)
+        threshold = self.para.run_config.config.get('rule_occurrence_threshold', {'type': 'graph', 'threshold': 1})['threshold']
         threshold_positions = np.where(weight_occurences >= threshold)
         num_threshold_weights = threshold_positions[0].shape[0]
         # map from non-zero weights to indices
@@ -271,15 +276,22 @@ class RuleConvolutionLayer(nn.Module):
         torch.nn.init.constant_(self.Param_W, 0.01)
         # modify the weight distribution to only contain the non-zero weights
         new_weight_distribution = []
-        for i, weights in enumerate(self.weight_distribution):
+        for graph_id, weights in enumerate(self.weight_distribution):
             weight_pos = weights[:, 3]
             valid_positions = []
             for i, pos in enumerate(weight_pos):
                 if pos in self.non_zero_weight_map:
                     valid_positions.append(np.array(weights[i][:3].tolist() + [self.non_zero_weight_map[pos]]))
+                    self.in_edges[graph_id][0][weights[i][1]] += 1.0
             new_weight_distribution.append(np.array(valid_positions, dtype=np.int64))
             # in weight_array add 1 where the index is in weight_pos
         self.weight_distribution = new_weight_distribution
+
+
+        # set 0 entries in self.in_edges to 1 to avoid division by zero
+        for i in range(len(self.in_edges)):
+            self.in_edges[i][self.in_edges[i] == 0] = 1
+            self.in_edges[i] = 1 / self.in_edges[i]
 
         # in case of pruning is turned on, save the original weights
         self.Param_W_original = None
@@ -373,13 +385,17 @@ class RuleConvolutionLayer(nn.Module):
             self.set_bias(pos)
             self.forward_step_time += time.time() - begin
             if self.para.run_config.config.get('degree_matrix', False):
-                return torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x) + self.current_B
+                torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x) + self.current_B
+            elif self.para.run_config.config.get('use_in_degrees', False):
+                self.in_edges[pos] * torch.einsum('cij,cjk->cik', self.current_W, x) + self.current_B
             else:
                 return torch.einsum('cij,cjk->cik', self.current_W, x) + self.current_B
         else:
             self.forward_step_time += time.time() - begin
             if self.para.run_config.config.get('degree_matrix', False):
-                return torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x)
+                return self.in_edges[pos]*torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x)
+            elif self.para.run_config.config.get('use_in_degrees', False):
+                return self.in_edges[pos]*torch.einsum('cij,cjk->cik', self.current_W, x)
             else:
                 return torch.einsum('cij,cjk->cik', self.current_W, x)
 
@@ -644,21 +660,6 @@ class RuleAggregationLayer(nn.Module):
                             weight_pos = self.weight_map[c][o][int(v_label)]
                             graph_weight_pos_distribution.append([c, o, v, weight_pos])
 
-                            ##########################################
-                            #if weight_pos in weight_count_map:
-                            #    weight_count_map[weight_pos] += 1
-                            #else:
-                            #    weight_count_map[weight_pos] = 1
-                            #weight_normal[index_x, index_y] = weight_pos
-                            ##########################################
-
-            # normalize the weights by their count (this is new compared to the paper)
-            ##########################################
-            #for key in weight_count_map:
-            #    weight_normal[weight_normal == key] = 1 / (weight_count_map[key] * len(weight_count_map))
-            #self.weight_normalization.append(weight_normal)
-            ##########################################
-
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
     def set_weights(self, pos):
@@ -670,8 +671,6 @@ class RuleAggregationLayer(nn.Module):
         self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_indices)
         # divide the weights by the number of nodes in the graph
         self.current_W = self.current_W / input_size
-        # normalize the weights using the weight_normalization
-        #self.current_W = self.current_W * self.weight_normalization[pos]
         pass
 
     def print_weights(self):

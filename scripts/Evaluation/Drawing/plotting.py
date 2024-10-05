@@ -24,8 +24,10 @@ def rules_vs_occurences(layer:RuleConvolutionLayer) -> np.ndarray:
     weights_per_property = int(layer.weight_num/layer.n_properties)
     # invert layer.non_zero_weight_map
     non_zero_weight_map = {v: k for k, v in layer.non_zero_weight_map.items()}
-    property_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
-    property_legend = ['Distance 1', 'Distance 2', 'Distance 3', 'Distance 4', 'Distance 5', 'Distance 6', 'Distance 7', 'Distance 8', 'Distance 9', 'Distance 10']
+    # colors from tab20
+
+    property_colors = plt.get_cmap('tab20').colors
+    property_legend = [f'Distance {i+1}' for i in range(layer.n_properties)]
     node_colors = []
     for i, _ in enumerate(weight_array):
         idx = sort_indices[i]
@@ -52,12 +54,11 @@ def rules_vs_occurences_properties(layer:RuleConvolutionLayer):
         # in weight_array add 1 where the index is in weight_pos
         weight_array[weight_pos] += 1
     # define layer.n_properties colors for the properties from an existing colormap
-    prop_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
-    # convert to hex colors
+    property_colors = plt.get_cmap('tab20').colors
     # color weights based on properties
     weight_colors = []
     for i, p in enumerate(range(layer.n_properties)):
-        weight_colors += [prop_colors[i] for _ in range(num_weights//layer.n_properties)]
+        weight_colors += [property_colors[i] for _ in range(num_weights//layer.n_properties)]
     weight_colors = np.array(weight_colors)
     # plot the distribution of the rules
     fig, ax = plt.subplots()
@@ -75,8 +76,8 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray):
     weights_per_property = int(layer.weight_num/layer.n_properties)
     # invert layer.non_zero_weight_map
     non_zero_weight_map = {v: k for k, v in layer.non_zero_weight_map.items()}
-    property_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
-    property_legend = ['Distance 1', 'Distance 2', 'Distance 3', 'Distance 4', 'Distance 5', 'Distance 6', 'Distance 7', 'Distance 8', 'Distance 9', 'Distance 10']
+    property_colors = plt.get_cmap('tab20').colors
+    property_legend = [f'Distance {i+1}' for i in range(layer.n_properties)]
     node_colors = []
     for i, _ in enumerate(weights):
         node_colors.append(property_colors[non_zero_weight_map[sort_indices[i]]//weights_per_property])

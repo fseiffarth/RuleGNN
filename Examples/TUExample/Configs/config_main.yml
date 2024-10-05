@@ -1,6 +1,10 @@
 datasets:
+  #- {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  #- { name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset" }
   - {name: "DHFR", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
   #- {name: "NCI1", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  #- {name: "NCI109", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  #- {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
   #- {name: "MUTAG", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
   #- {name: "PTC_FR", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
   #- {name: "PTC_FM", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
@@ -19,7 +23,12 @@ paths:
 bias:
     True
 
+#input_features: {name: "node_labels", transformation: "one_hot", features_as_channels: True}
+input_features: {name: "node_labels", transformation: "normalize_positive"}
+#input_features: {name: "constant" }
+
 convolution_grad: True
 aggregation_grad: True
-num_workers: 4
-rule_occurrence_threshold: 10
+rule_occurrence_threshold: { type: 'graph', threshold: 1 } # choose type from 'graph' or 'total'
+activation: 'tanh'
+output_activation: 'tanh'
