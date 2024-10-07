@@ -373,17 +373,6 @@ class RuleConvolutionLayer(nn.Module):
             # in weight_array add 1 where the index is in weight_pos
         self.weight_distribution = new_weight_distribution
 
-        # print weight positions to file
-        with open(f"Testing/Multilabel/weight_positions_new.txt", "w") as f:
-            for i, weights in enumerate(self.weight_distribution):
-                weight_pos = weights[:, 3]
-                for pos in weight_pos:
-                    f.write(f"{pos}\n")
-            for i, weights in enumerate(self.bias_distribution):
-                weight_pos = weights[:, 3]
-                for pos in weight_pos:
-                    f.write(f"{pos}\n")
-
         # set 0 entries in self.in_edges to 1 to avoid division by zero
         for i in range(len(self.in_edges)):
             self.in_edges[i][self.in_edges[i] == 0] = 1
@@ -767,7 +756,7 @@ class RuleAggregationLayer(nn.Module):
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
         # print weight positions to file
-        with open(f"Testing/Multilabel/weight_positions_new.txt", "a") as f:
+        with open(f"Testing/Multilabel/weight_positions_new.txt", "w") as f:
             for i, weights in enumerate(self.weight_distribution):
                 weight_pos = weights[:, 3]
                 for pos in weight_pos:
@@ -779,8 +768,8 @@ class RuleAggregationLayer(nn.Module):
         '''
         weight_pos = 0
         for i in range(channel):
-            weight_pos += self.n_node_labels[i] * out_dim
-        weight_pos += label * out_dim + out_dim
+            weight_pos += self.n_node_labels[i] * self.output_dimension
+        weight_pos += out_dim * self.n_node_labels[channel] + label
         return weight_pos
 
     def set_weights(self, pos):
