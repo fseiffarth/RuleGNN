@@ -24,7 +24,7 @@ bias:
     True
 
 #input_features: {name: "node_labels", transformation: "one_hot", features_as_channels: True}
-input_features: {name: "node_labels", transformation: "normalize_positive"}
+input_features: {name: "node_labels", transformation: "normalize"}
 #input_features: {name: "constant" }
 
 convolution_grad: True
