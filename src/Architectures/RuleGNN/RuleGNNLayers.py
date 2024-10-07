@@ -232,6 +232,7 @@ class RuleConvolutionLayer(nn.Module):
 
         # channelwise weight num
         self.weight_num = []
+        self.bias_num = []
         self.Param_W = []
         self.Param_b = []
 
@@ -267,11 +268,11 @@ class RuleConvolutionLayer(nn.Module):
                 self.weight_num.append(self.n_head_labels[i] * self.n_tail_labels[i] * self.n_properties)
             if self.bias:
                 # Determine the number of different learnable parameters in the bias vector
-                self.n_bias_labels.append(self.input_feature_dimensions * self.n_bias_labels[i])
+                self.bias_num.append(self.input_feature_dimensions * self.n_bias_labels[i])
 
 
         if self.bias:
-            total_bias_num = np.sum(self.n_bias_labels)
+            total_bias_num = np.sum(self.bias_num)
             #self.bias_map = np.arange(total_bias_num, dtype=np.int64).reshape((self.n_bias_labels, self.input_feature_dimension))
             self.Param_b = nn.Parameter(torch.zeros(np.sum(total_bias_num), dtype=self.precision), requires_grad=True)
 
@@ -371,7 +372,6 @@ class RuleConvolutionLayer(nn.Module):
             new_weight_distribution.append(np.array(valid_positions, dtype=np.int64))
             # in weight_array add 1 where the index is in weight_pos
         self.weight_distribution = new_weight_distribution
-
 
         # set 0 entries in self.in_edges to 1 to avoid division by zero
         for i in range(len(self.in_edges)):
