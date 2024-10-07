@@ -64,9 +64,9 @@ class GraphData:
         self.num_classes = 0
         self.max_nodes = 0
         self.num_graphs = 0
-        self.input_feature_dimension = 1
+        self.input_feature_dimensions = 1
         self.input_channels = 1
-        self.output_feature_dimension = 1
+        self.output_feature_dimensions = 1
         self.avg_nodes = 0
         self.avg_degree = 0
 
@@ -284,9 +284,9 @@ class GraphData:
             # the input channel dimension
             self.input_channels = self.input_data[0].shape[0]
             # the input feature dimension
-            self.input_feature_dimension = self.input_data[0].shape[2]
+            self.input_feature_dimensions = self.input_data[0].shape[2]
             # the output feature dimension
-            self.output_feature_dimension = self.output_data.shape[1]
+            self.output_feature_dimensions = self.output_data.shape[1]
 
         return None
 

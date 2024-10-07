@@ -1,6 +1,6 @@
 import os
 
-from src.Architectures.RuleGNN.RuleGNNLayers import Layer
+from src.Architectures.RuleGNN.RuleGNNLayers import Layer, get_label_string
 from src.Preprocessing.create_labels import save_node_labels
 from src.utils.GraphData import GraphData
 from src.utils.GraphLabels import combine_node_labels, Properties
@@ -26,12 +26,25 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
         save_weights = experiment_configuration['additional_options']['save_weights']
         plot_graphs = experiment_configuration['additional_options']['plot_graphs']
 
+    unique_label_dicts = []
+    label_layer_ids = []
+    unique_properties = []
+    properties_layer_ids = []
     for i, l in enumerate(run_config.layers):
         # add the labels to the graph data
-        label_path = experiment_configuration['paths']['labels'].joinpath(f"{graph_data.graph_db_name}_{l.get_layer_string()}_labels.txt")
+        new_unique = l.get_unique_layer_dicts()
+        for x in new_unique:
+            if x not in unique_label_dicts:
+                unique_label_dicts.append(x)
+        property_dict = l.get_property_dict()
+        if property_dict is not None:
+            unique_properties.append(property_dict["name"])
+
+    for label_dict in unique_label_dicts:
+        label_path = experiment_configuration['paths']['labels'].joinpath(f"{graph_data.graph_db_name}_{get_label_string(label_dict)}_labels.txt")
         if os.path.exists(label_path):
             g_labels = load_labels(path=label_path)
-            graph_data.node_labels[l.get_layer_string()] = g_labels
+            graph_data.node_labels[get_label_string(label_dict)] = g_labels
         elif l.layer_type == "combined":  # create combined file if it is a combined layer and the file does not exist
             combined_labels = []
             # get the labels for each layer in the combined layer
@@ -53,17 +66,17 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
         else:
             # raise an error if the file does not exist and add the absolute path to the error message
             raise FileNotFoundError(f"File {label_path} does not exist")
-        # add the properties to the graph data
-        if 'properties' in l.layer_dict:
-            prop_dict = l.layer_dict['properties']
-            prop_name = prop_dict['name']
-            if prop_name not in graph_data.properties:
-                graph_data.properties[prop_name] = Properties(path=experiment_configuration['paths']['properties'], db_name=graph_data.graph_db_name,
-                                                              property_name=prop_dict['name'],
-                                                              valid_values=prop_dict['values'], layer_id=l.layer_id)
-            else:
-                graph_data.properties[prop_name].add_properties(prop_dict['values'], l.layer_id)
-        pass
+
+    for prop_name in unique_properties:
+        valid_values = {}
+        for i, l in enumerate(run_config.layers):
+            if l.get_property_dict() is not None:
+                if l.get_property_dict()["name"] == prop_name:
+                    valid_values[i] = l.get_property_dict()["values"]
+        graph_data.properties[prop_name] = Properties(path=experiment_configuration['paths']['properties'], db_name=graph_data.graph_db_name,
+                                                      property_name=prop_name,
+                                                      valid_values=valid_values)
+    pass
 
     """
         BenchmarkGraphs parameters

@@ -23,7 +23,7 @@ def rules_vs_occurences(layer:RuleConvolutionLayer) -> np.ndarray:
 
     weights_per_property = int(layer.weight_num/layer.n_properties)
     # invert layer.non_zero_weight_map
-    non_zero_weight_map = {v: k for k, v in layer.non_zero_weight_map.items()}
+    non_zero_weight_map = {v: k for k, v in layer.threshold_weight_map.items()}
     # colors from tab20
 
     property_colors = plt.get_cmap('tab20').colors
@@ -75,7 +75,7 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray):
 
     weights_per_property = int(layer.weight_num/layer.n_properties)
     # invert layer.non_zero_weight_map
-    non_zero_weight_map = {v: k for k, v in layer.non_zero_weight_map.items()}
+    non_zero_weight_map = {v: k for k, v in layer.threshold_weight_map.items()}
     property_colors = plt.get_cmap('tab20').colors
     property_legend = [f'Distance {i+1}' for i in range(layer.n_properties)]
     node_colors = []

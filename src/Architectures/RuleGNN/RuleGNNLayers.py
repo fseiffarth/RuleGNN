@@ -16,6 +16,105 @@ from sympy.physics.units import second
 
 from src.utils import GraphData, GraphDrawing
 
+def get_label_string(label_dict: dict):
+    """
+    Method to get the label string. This is used to load the node labels
+    """
+    label_type = label_dict.get('label_type', None)
+    if label_type is None:
+        raise ValueError("Label type is not specified")
+
+    if label_type == "primary":
+        l_string = "primary"
+        if 'max_node_labels' in label_dict:
+            max_node_labels = label_dict['max_node_labels']
+            l_string = f"primary_{max_node_labels}"
+    elif label_type == "index":
+        l_string = "index"
+        if 'max_node_labels' in label_dict:
+            max_node_labels = label_dict['max_node_labels']
+            l_string = f"index_{max_node_labels}"
+    elif label_type == "wl":
+        iterations = label_dict.get('wl_iterations', 3)
+        l_string = f"wl_{iterations}"
+        max_node_labels = label_dict.get('max_node_labels', None)
+        if max_node_labels is not None:
+            l_string = f"{l_string}_{max_node_labels}"
+    elif label_type == "wl_labeled":
+        iterations = label_dict.get('wl_iterations', 3)
+        l_string = f"wl_labeled_{iterations}"
+        max_node_labels = label_dict.get('max_node_labels', None)
+        if max_node_labels is not None:
+            l_string = f"{l_string}_{max_node_labels}"
+    elif label_type == "degree":
+        l_string = "wl_0"
+        max_node_labels = label_dict.get('max_node_labels', None)
+        if max_node_labels is not None:
+            l_string = f"{l_string}_{max_node_labels}"
+    elif label_type == "simple_cycles":
+        if 'max_cycle_length' in label_dict:
+            max_cycle_length = label_dict['max_cycle_length']
+            l_string = f"simple_cycles_{max_cycle_length}"
+        else:
+            l_string = "simple_cycles_max"
+        if 'max_node_labels' in label_dict:
+            max_node_labels = label_dict['max_node_labels']
+            l_string = f"{l_string}_{max_node_labels}"
+    elif label_type == "induced_cycles":
+        if 'max_cycle_length' in label_dict:
+            max_cycle_length = label_dict['max_cycle_length']
+            l_string = f"induced_cycles_{max_cycle_length}"
+        else:
+            l_string = "induced_cycles_max"
+        if 'max_node_labels' in label_dict:
+            max_node_labels = label_dict['max_node_labels']
+            l_string = f"{l_string}_{max_node_labels}"
+    elif label_type == "cliques":
+        l_string = f"cliques"
+        if 'max_clique_size' in label_dict:
+            max_clique_size = label_dict['max_clique_size']
+            l_string = f"cliques_{max_clique_size}"
+    elif label_type == "subgraph":
+        l_string = f"subgraph"
+        if 'id' in label_dict:
+            subgraph_id = label_dict['id']
+            l_string = f"{l_string}_{subgraph_id}"
+        if 'max_node_labels' in label_dict:
+            max_node_labels = label_dict['max_node_labels']
+            l_string = f"{l_string}_{max_node_labels}"
+    elif label_type == "trivial":
+        l_string = "trivial"
+    elif label_type == "combined":
+        l_string = "combined"
+        if 'id' in label_dict:
+            subgraph_id = label_dict['id']
+            l_string = f"{l_string}_{subgraph_id}"
+        if 'max_node_labels' in label_dict:
+            max_node_labels = label_dict['max_node_labels']
+            l_string  = f"{l_string}_{max_node_labels}"
+    else:
+        raise ValueError(f"Layer type {label_type} is not supported")
+
+    return l_string
+
+
+class LayerChannel:
+    def __init__(self, info_dict: dict, channel_id):
+        self.channel_id = channel_id
+        # if head, tail, bias is not specified, set head tail bias to the same value
+        self.head_labels = info_dict.get('head', None)
+        self.head_node_labels = -1
+        self.tail_labels = info_dict.get('tail', None)
+        self.tail_node_labels = -1
+        self.bias_labels = info_dict.get('bias', None)
+        self.bias_node_labels = -1
+        if self.head_labels is None:
+            self.head_labels = info_dict
+        if self.tail_labels is None:
+            self.tail_labels = self.head_labels
+        if self.bias_labels is None:
+            self.bias_labels = self.head_labels
+
 
 class Layer:
     """
@@ -28,103 +127,71 @@ class Layer:
         :param layer_dict: the dictionary that contains the layer information
         """
         self.layer_type = layer_dict["layer_type"]
-        self.sub_labels = None
-        self.node_labels = -1
         self.layer_dict = layer_dict
+        self.layer_channels = []
         self.layer_id = layer_id
 
-        if 'max_node_labels' in layer_dict:
-            self.node_labels = layer_dict["max_node_labels"]
+        self.make_layer_channels(layer_dict.get('labels', None))
 
-        if 'distances' in layer_dict:
-            self.distances = layer_dict["distances"]
+    def get_unique_layer_dicts(self):
+        unique_dicts = []
+        for channel in self.layer_channels:
+            if channel.head_labels not in unique_dicts:
+                unique_dicts.append(channel.head_labels)
+            if channel.tail_labels not in unique_dicts:
+                unique_dicts.append(channel.tail_labels)
+            if channel.bias_labels not in unique_dicts:
+                unique_dicts.append(channel.bias_labels)
+        return unique_dicts
+
+    def get_property_dict(self):
+        return self.layer_dict.get('properties', None)
+
+
+
+    def make_layer_channels(self, label_dict):
+        # check if label dict is a list
+        if isinstance(label_dict, list):
+            channel_counter = 0
+            for entry in label_dict:
+                # either there is a number of channels specified by channels or a list with channel ids specified by channel_ids otherwise channel is 1
+                if 'channels' in entry:
+                    for i in range(entry['channels']):
+                        self.layer_channels.append(LayerChannel(entry, channel_counter))
+                        channel_counter += 1
+                elif 'channel_ids' in entry:
+                    for i in entry['channel_ids']:
+                        if len(self.layer_channels) <= i:
+                            self.layer_channels.append(LayerChannel(entry, i))
+                        else:
+                            while len(self.layer_channels) <= i:
+                                self.layer_channels.append(None)
+                            self.layer_channels[i] = LayerChannel(entry, i)
+                else:
+                    self.layer_channels.append(LayerChannel(entry, channel_counter))
+                    channel_counter += 1
+            # check whether there is a None entry in the layer_channels list
+            if None in self.layer_channels:
+                raise ValueError("Layer channels are not correctly specified")
+
         else:
-            self.distances = None
+            for i in range(label_dict.get('channels', 1)):
+                self.layer_channels.append(LayerChannel(label_dict, i))
 
-    def get_layer_string(self):
-        """
-        Method to get the layer string. This is used to load the node labels
-        """
-        l_string = ""
-        if self.layer_type == "primary":
-            l_string = "primary"
-            if 'max_node_labels' in self.layer_dict:
-                max_node_labels = self.layer_dict['max_node_labels']
-                l_string = f"primary_{max_node_labels}"
-        elif self.layer_type == "index":
-            l_string = "index"
-            if 'max_node_labels' in self.layer_dict:
-                max_node_labels = self.layer_dict['max_node_labels']
-                l_string = f"index_{max_node_labels}"
-        elif self.layer_type == "wl":
-            iterations = self.layer_dict.get('wl_iterations', 3)
-            l_string = f"wl_{iterations}"
-            max_node_labels = self.layer_dict.get('max_node_labels', None)
-            if max_node_labels is not None:
-                l_string = f"{l_string}_{max_node_labels}"
-        elif self.layer_type == "wl_labeled":
-            iterations = self.layer_dict.get('wl_iterations', 3)
-            l_string = f"wl_labeled_{iterations}"
-            max_node_labels = self.layer_dict.get('max_node_labels', None)
-            if max_node_labels is not None:
-                l_string = f"{l_string}_{max_node_labels}"
-        elif self.layer_type == "degree":
-            l_string = "wl_0"
-            max_node_labels = self.layer_dict.get('max_node_labels', None)
-            if max_node_labels is not None:
-                l_string = f"{l_string}_{max_node_labels}"
-        elif self.layer_type == "simple_cycles":
-            if 'max_cycle_length' in self.layer_dict:
-                max_cycle_length = self.layer_dict['max_cycle_length']
-                l_string = f"simple_cycles_{max_cycle_length}"
-            else:
-                l_string = "simple_cycles_max"
-            if 'max_node_labels' in self.layer_dict:
-                max_node_labels = self.layer_dict['max_node_labels']
-                l_string = f"{l_string}_{max_node_labels}"
-        elif self.layer_type == "induced_cycles":
-            if 'max_cycle_length' in self.layer_dict:
-                max_cycle_length = self.layer_dict['max_cycle_length']
-                l_string = f"induced_cycles_{max_cycle_length}"
-            else:
-                l_string = "induced_cycles_max"
-            if 'max_node_labels' in self.layer_dict:
-                max_node_labels = self.layer_dict['max_node_labels']
-                l_string = f"{l_string}_{max_node_labels}"
-        elif self.layer_type == "cliques":
-            l_string = f"cliques"
-            if 'max_clique_size' in self.layer_dict:
-                max_clique_size = self.layer_dict['max_clique_size']
-                l_string = f"cliques_{max_clique_size}"
-        elif self.layer_type == "subgraph":
-            l_string = f"subgraph"
-            if 'id' in self.layer_dict:
-                id = self.layer_dict['id']
-                l_string = f"{l_string}_{id}"
-            if 'max_node_labels' in self.layer_dict:
-                max_node_labels = self.layer_dict['max_node_labels']
-                l_string = f"{l_string}_{max_node_labels}"
-        elif self.layer_type == "trivial":
-            l_string = "trivial"
-        elif self.layer_type == "combined":
-            l_string = "combined"
-            if 'id' in self.layer_dict:
-                id = self.layer_dict['id']
-                l_string = f"{l_string}_{id}"
-            if 'max_node_labels' in self.layer_dict:
-                max_node_labels = self.layer_dict['max_node_labels']
-                l_string  = f"{l_string}_{max_node_labels}"
-        else:
-            raise ValueError(f"Layer type {self.layer_type} is not supported")
+    def get_head_string(self, channel_id=0):
+        return get_label_string(self.layer_channels[channel_id].head_labels)
+    def get_tail_string(self, channel_id=0):
+        return get_label_string(self.layer_channels[channel_id].tail_labels)
+    def get_bias_string(self, channel_id=0):
+        return get_label_string(self.layer_channels[channel_id].bias_labels)
 
-        return l_string
 
 class RuleConvolutionLayer(nn.Module):
     """
     classdocs for the GraphConvLayer: This class represents a convolutional layer for a RuleGNN
     """
 
-    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, bias=True, out_channels=1, device='cpu'):
+    def __init__(self, layer_id, seed, parameters, layer_info: Layer, graph_data: GraphData.GraphData, bias=True, device='cpu'):
         """
         Constructor of the GraphConvLayer
         :param layer_id: the id of the layer
@@ -141,17 +208,32 @@ class RuleConvolutionLayer(nn.Module):
         self.layer_id = layer_id
         # layer information
         self.layer_info = layer_info
-        self.name = f"Rule Convolution Layer: {layer_info.get_layer_string()}"
+        self.name = f"Rule Convolution Layer"
         # get the graph data
         self.graph_data = graph_data
         # get the input features, i.e. the dimension of the input vector
-        self.input_feature_dimension = graph_data.input_feature_dimension
+        self.input_feature_dimensions = graph_data.input_feature_dimensions
         # set the node labels
-        self.node_labels = graph_data.node_labels[layer_info.get_layer_string()]
-        # get the number of considered node labels
-        self.n_node_labels = self.node_labels.num_unique_node_labels
-        # get the number of input channels
-        self.out_channels = out_channels
+        self.head_labels = []
+        self.n_head_labels = []
+        self.tail_labels = []
+        self.n_tail_labels = []
+        self.bias_labels = []
+        self.n_bias_labels = []
+        self.out_channels = 0
+        for i, channel in enumerate(layer_info.layer_channels):
+            self.head_labels.append(graph_data.node_labels[layer_info.get_head_string(i)])
+            self.n_head_labels.append(self.head_labels[i].num_unique_node_labels)
+            self.tail_labels.append(graph_data.node_labels[layer_info.get_tail_string(i)])
+            self.n_tail_labels.append(self.tail_labels[i].num_unique_node_labels)
+            self.bias_labels.append(graph_data.node_labels[layer_info.get_bias_string(i)])
+            self.n_bias_labels.append(self.bias_labels[i].num_unique_node_labels)
+            self.out_channels += 1
+
+        # channelwise weight num
+        self.weight_num = []
+        self.Param_W = []
+        self.Param_b = []
 
 
         self.n_properties = 1
@@ -173,22 +255,25 @@ class RuleConvolutionLayer(nn.Module):
         self.current_B = torch.Tensor()
         self.feature_W = torch.Tensor()
         if parameters.run_config.config.get('use_feature_weights', False):
-            self.feature_W = nn.Parameter(torch.randn((self.input_feature_dimension, self.input_feature_dimension), dtype=self.precision))
+            self.feature_W = nn.Parameter(torch.randn((self.input_feature_dimensions, self.input_feature_dimensions), dtype=self.precision))
 
 
         # Determine the number of weights and biases
         # There are two cases assymetric and symmetric, assymetric is the default
-        if self.para.run_config.config.get('symmetric', False):
-            self.weight_num = self.out_channels * ((self.n_node_labels * (self.n_node_labels + 1)) // 2) * self.n_properties
-        else:
-            self.weight_num = self.out_channels * self.n_node_labels * self.n_node_labels * self.n_properties
-        if self.bias:
-            # Determine the number of different learnable parameters in the bias vector
-            self.bias_num = self.input_feature_dimension * self.out_channels * self.n_node_labels
-            self.bias_map = np.arange(self.bias_num, dtype=np.int64).reshape((self.out_channels, self.n_node_labels, self.input_feature_dimension))
+        for i, channel in enumerate(layer_info.layer_channels):
+            if self.para.run_config.config.get('symmetric', False):
+                    self.weight_num.append((self.n_head_labels[i] * (self.n_head_labels[i] + 1)) // 2 * self.n_properties)
+            else:
+                self.weight_num.append(self.n_head_labels[i] * self.n_tail_labels[i] * self.n_properties)
+            if self.bias:
+                # Determine the number of different learnable parameters in the bias vector
+                self.n_bias_labels.append(self.input_feature_dimensions * self.n_bias_labels[i])
+
 
         if self.bias:
-            self.Param_b = nn.Parameter(torch.zeros(self.bias_num, dtype=self.precision), requires_grad=True)
+            total_bias_num = np.sum(self.n_bias_labels)
+            #self.bias_map = np.arange(total_bias_num, dtype=np.int64).reshape((self.n_bias_labels, self.input_feature_dimension))
+            self.Param_b = nn.Parameter(torch.zeros(np.sum(total_bias_num), dtype=self.precision), requires_grad=True)
 
         # Set the distribution for each graph
         self.weight_distribution = []
@@ -212,25 +297,25 @@ class RuleConvolutionLayer(nn.Module):
                 self.D.append(torch.zeros(node_number, dtype=self.precision).to(self.device))
 
 
-            for k in range(0, self.out_channels):  # iterate over the channels, not used at the moment
+            for c in range(0, self.out_channels):  # iterate over the channels, not used at the moment
                 # iterate over valid properties
                 for p in self.property.valid_property_map[layer_id].keys():
                     if p in self.property.properties[graph_id]:
                         for (v, w) in self.property.properties[graph_id][p]:
-                            v_label = self.node_labels.node_labels[graph_id][v]
-                            w_label = self.node_labels.node_labels[graph_id][w]
+                            v_label = self.tail_labels[c].node_labels[graph_id][v]
+                            w_label = self.head_labels[c].node_labels[graph_id][w]
                             property_id = self.property.valid_property_map[layer_id][p]
                             # position of the weight in the Parameter list
                             #weight_pos = self.weight_map[k][int(v_label)][int(w_label)][property_id]
                             if self.para.run_config.config.get('symmetric', False):
-                                weight_pos = self.symmetric_weight_map(k, int(v_label), int(w_label), property_id)
+                                weight_pos = self.symmetric_weight_map(c, int(v_label), int(w_label), property_id)
                             else:
-                                weight_pos = self.asymmetric_weight_map(k, int(v_label), int(w_label), property_id)
+                                weight_pos = self.asymmetric_weight_map(c, int(v_label), int(w_label), property_id)
                             # position of the weight in the weight matrix
                             #row_index = index_map[(k, v, w)][0]
                             #col_index = index_map[(k, v, w)][1]
                             # vstack the new weight position
-                            graph_weight_pos_distribution.append([k, v, w, weight_pos])
+                            graph_weight_pos_distribution.append([c, v, w, weight_pos])
                             # add entry to the degree matrix
                             if self.para.run_config.config.get('degree_matrix', False):
                                 self.D[graph_id][v] += 1.0
@@ -244,19 +329,19 @@ class RuleConvolutionLayer(nn.Module):
 
             if self.bias:
                 graph_bias_pos_distribution = []
-                for k in range(0, self.out_channels):
-                    for i in range(0, self.input_feature_dimension):  # not used at the moment # not used at the moment
+                for c in range(0, self.out_channels):
+                    for i in range(0, self.input_feature_dimensions):  # not used at the moment # not used at the moment
                         for v in range(0, node_number):
-                            v_label = self.node_labels.node_labels[graph_id][v]
-                            weight_pos = self.bias_map[k][int(v_label)][i]
-                            graph_bias_pos_distribution.append([k, v, i, weight_pos])
+                            v_label = self.bias_labels[c].node_labels[graph_id][v]
+                            weight_pos = self.bias_weight_map(c, int(v_label), i)
+                            graph_bias_pos_distribution.append([c, v, i, weight_pos])
 
                 self.bias_distribution.append(np.array(graph_bias_pos_distribution, dtype=np.int64))
 
 
 
         # consider only the rules that appear in the dataset
-        weight_occurences = np.zeros(self.weight_num)
+        weight_occurences = np.zeros(np.sum(self.weight_num))
         for i, weights in enumerate(self.weight_distribution):
             weight_pos = weights[:, 3]
             if self.para.run_config.config.get('rule_occurrence_threshold', {'type': 'graph', 'threshold': 1})['type'] == 'graph':
@@ -270,7 +355,7 @@ class RuleConvolutionLayer(nn.Module):
         threshold_positions = np.where(weight_occurences >= threshold)
         num_threshold_weights = threshold_positions[0].shape[0]
         # map from non-zero weights to indices
-        self.non_zero_weight_map = {weight_idx: pos_idx for pos_idx, weight_idx in enumerate(threshold_positions[0])}
+        self.threshold_weight_map = {weight_idx: pos_idx for pos_idx, weight_idx in enumerate(threshold_positions[0])}
         self.Param_W = nn.Parameter(torch.zeros(num_threshold_weights, dtype=self.precision), requires_grad=True)
         # initialize self.Param_W with small non-zero values
         torch.nn.init.constant_(self.Param_W, 0.01)
@@ -280,8 +365,8 @@ class RuleConvolutionLayer(nn.Module):
             weight_pos = weights[:, 3]
             valid_positions = []
             for i, pos in enumerate(weight_pos):
-                if pos in self.non_zero_weight_map:
-                    valid_positions.append(np.array(weights[i][:3].tolist() + [self.non_zero_weight_map[pos]]))
+                if pos in self.threshold_weight_map:
+                    valid_positions.append(np.array(weights[i][:3].tolist() + [self.threshold_weight_map[pos]]))
                     self.in_edges[graph_id][0][weights[i][1]] += 1.0
             new_weight_distribution.append(np.array(valid_positions, dtype=np.int64))
             # in weight_array add 1 where the index is in weight_pos
@@ -306,10 +391,11 @@ class RuleConvolutionLayer(nn.Module):
         '''
         Maps the current indices to the index of the list of weights
         '''
-        first_skip_size = self.n_node_labels * self.n_node_labels * self.n_properties
-        second_skip_size = self.n_node_labels * self.n_properties
-        third_skip_size = self.n_properties
-        return channel * first_skip_size + label1 * second_skip_size + label2 * third_skip_size + property_id
+        weight_pos = 0
+        for i in range(channel):
+            weight_pos += self.n_head_labels[i] * self.n_tail_labels[i] * self.n_properties
+        weight_pos += label1 * self.n_head_labels[channel] * self.n_properties + label2 * self.n_properties + property_id
+        return weight_pos
 
     def symmetric_weight_map(self, channel, label1, label2, property_id)-> int:
         '''
@@ -321,6 +407,18 @@ class RuleConvolutionLayer(nn.Module):
         max_label = max(label1, label2)
         pos_from_labels = min_label * (2 * self.n_node_labels - min_label + 1) // 2 + (max_label - min_label)
         return channel * first_skip_size + pos_from_labels * second_step_size + property_id
+
+    def bias_weight_map(self, channel, label, input_dimension)-> int:
+        '''
+        Maps the current indices to the index of the list of bias weights
+        '''
+        weight_pos = 0
+        for i in range(channel):
+            weight_pos += self.n_bias_labels[i]*self.input_feature_dimensions
+        weight_pos += label * self.input_feature_dimensions + input_dimension
+        return weight_pos
+
+
 
     def set_weights(self, pos):
         input_size = self.graph_data.graphs[pos].number_of_nodes()
@@ -336,7 +434,7 @@ class RuleConvolutionLayer(nn.Module):
 
     def set_bias(self, pos):
         input_size = self.graph_data.graphs[pos].number_of_nodes()
-        self.current_B = torch.zeros((self.out_channels, input_size, self.input_feature_dimension), dtype=self.precision).to(self.device)
+        self.current_B = torch.zeros((self.out_channels, input_size, self.input_feature_dimensions), dtype=self.precision).to(self.device)
         bias_distr = self.bias_distribution[pos]
         param_indices = torch.tensor(bias_distr[:, 3]).long().to(self.device)
         matrix_indices = torch.tensor(bias_distr[:, 0:3]).T.long().to(self.device)
@@ -604,15 +702,16 @@ class RuleAggregationLayer(nn.Module):
         self.output_dimension = out_dim
         # device
         self.device = device
+        self.node_labels = []
+        self.n_node_labels = []
+        for i, channel in enumerate(layer_info.layer_channels):
+            self.node_labels.append(graph_data.node_labels[layer_info.get_head_string(i)])
+            self.n_node_labels.append(self.node_labels[i].num_unique_node_labels)
 
-        self.node_labels = graph_data.node_labels[layer_info.get_layer_string()]
-        n_node_labels = self.node_labels.num_unique_node_labels
+        self.input_feature_dimension = graph_data.input_feature_dimensions
 
-        self.n_node_labels = n_node_labels
-        self.input_feature_dimension = graph_data.input_feature_dimension
-
-        self.weight_num = n_node_labels * out_dim * self.channels
-        self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, out_dim, n_node_labels))
+        self.weight_num = np.sum(self.n_node_labels) * out_dim * self.channels
+        #self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, out_dim, n_node_labels))
 
         # calculate the range for the weights
         lower, upper = -(1.0 / np.sqrt(self.weight_num)), (1.0 / np.sqrt(self.weight_num))
@@ -627,7 +726,7 @@ class RuleAggregationLayer(nn.Module):
             self.Param_b = nn.Parameter(torch.zeros((self.channels, out_dim, self.input_feature_dimension), dtype=self.precision))
         self.forward_step_time = 0
 
-        self.name = f"Rule Aggregation Layer: {layer_info.get_layer_string()}"
+        self.name = f"Rule Aggregation Layer"
         self.para = parameters
 
         # in case of pruning is turned on, save the original weights
@@ -647,20 +746,25 @@ class RuleAggregationLayer(nn.Module):
                 print("ResizeLayerInitWeights: ", str(int(graph_id / self.graph_data.num_graphs * 100)), "%")
 
             graph_weight_pos_distribution = []
-
-            ##########################################
-            #weight_count_map = {}
-            #weight_normal = torch.zeros((self.out_features, input_size * self.n_kernels), dtype=self.precision)
-            ##########################################
-
             for c in range(0, self.channels):
                 for o in range(0, out_dim):
                         for v in range(0, graph.number_of_nodes()):
-                            v_label = self.node_labels.node_labels[graph_id][v]
-                            weight_pos = self.weight_map[c][o][int(v_label)]
+                            v_label = self.node_labels[c].node_labels[graph_id][v]
+                            weight_pos = self.weight_map(c, o, v_label)
                             graph_weight_pos_distribution.append([c, o, v, weight_pos])
 
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
+
+
+    def weight_map(self, channel, out_dim, label):
+        '''
+        Maps the current indices to the index of the list of weights
+        '''
+        weight_pos = 0
+        for i in range(channel):
+            weight_pos += self.n_node_labels[i] * out_dim
+        weight_pos += label * out_dim + out_dim
+        return weight_pos
 
     def set_weights(self, pos):
         input_size = self.graph_data.graphs[pos].number_of_nodes()

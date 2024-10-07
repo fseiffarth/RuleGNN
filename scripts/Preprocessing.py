@@ -79,36 +79,36 @@ class Preprocessing:
     def layer_to_labels(self, layer_strings: json):
         layer = json.loads(layer_strings)
         # switch case for the different layers
-        if layer['layer_type'] == 'primary':
+        if layer['label_type'] == 'primary':
             save_primary_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
-        elif layer['layer_type'] == 'trivial':
+        elif layer['label_type'] == 'trivial':
             save_trivial_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), graph_format='NEL', save_times=self.generation_times_labels_path)
-        elif layer['layer_type'] == 'index':
+        elif layer['label_type'] == 'index':
             save_index_labels(graph_data=self.graph_data, max_labels=layer.get('max_labels', None), label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
-        elif layer['layer_type'] == 'degree':
+        elif layer['label_type'] == 'degree':
             save_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
-        elif layer['layer_type'] == 'wl':
+        elif layer['label_type'] == 'wl':
             layer['max_node_labels'] = layer.get('max_node_labels', None)
             layer['wl_iterations'] = layer.get('wl_iterations', 3)
             if layer['wl_iterations'] == 0:
                 save_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
             else:
                 save_wl_labels(graph_data=self.graph_data, max_iterations=layer.get('wl_iterations', 3), max_label_num=layer['max_node_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
-        elif layer['layer_type'] == 'wl_labeled':
+        elif layer['label_type'] == 'wl_labeled':
             layer['max_node_labels'] = layer.get('max_node_labels', None)
             layer['wl_iterations'] = layer.get('wl_iterations', 3)
             if layer['wl_iterations'] == 0:
                 save_labeled_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
             else:
                 save_wl_labeled_labels(graph_data=self.graph_data, max_iterations=layer.get('wl_iterations', 3), max_label_num=layer['max_node_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
-        elif layer['layer_type'] == 'simple_cycles' or layer['layer_type'] == 'induced_cycles':
-            cycle_type = 'simple' if layer['layer_type'] == 'simple_cycles' else 'induced'
+        elif layer['label_type'] == 'simple_cycles' or layer['label_type'] == 'induced_cycles':
+            cycle_type = 'simple' if layer['label_type'] == 'simple_cycles' else 'induced'
             if 'max_node_labels' not in layer:
                 layer['max_node_labels'] = None
             if 'max_cycle_length' not in layer:
                 layer['max_cycle_length'] = None
             save_cycle_labels(graph_data=self.graph_data, length_bound=layer['max_cycle_length'], max_node_labels=layer["max_node_labels"], cycle_type=cycle_type, label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
-        elif layer['layer_type'] == 'subgraph':
+        elif layer['label_type'] == 'subgraph':
             if 'id' in layer:
                 if layer['id'] > len(self.experiment_configuration['subgraphs']):
                     raise ValueError(f'Please specigy the subgraphs in the config files under the key "subgraphs" as folllows: subgraphs: - "[nx.complete_graph(4)]"')
@@ -117,7 +117,7 @@ class Preprocessing:
                     save_subgraph_labels(graph_data=self.graph_data, subgraphs=subgraph_list, id=layer['id'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
             else:
                 raise ValueError(f'Please specify the id of the subgraph in the layer with description {layer_strings}.')
-        elif layer['layer_type'] == 'cliques':
+        elif layer['label_type'] == 'cliques':
             if 'max_node_labels' not in layer:
                 layer['max_node_labels'] = None
             if 'max_clique_size' not in layer:
@@ -125,7 +125,7 @@ class Preprocessing:
             save_clique_labels(graph_data=self.graph_data, max_clique=layer['max_clique_size'], max_node_labels=layer['max_node_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
         else:
             # print in red in the console
-            print(f'The automatic generation of labels for the layer type {layer["layer_type"]} is not supported yet.')
+            print(f'The automatic generation of labels for the layer type {layer["label_type"]} is not supported yet.')
 
 
     def property_to_properties(self, property_strings: json):
@@ -145,7 +145,7 @@ class Preprocessing:
         # get the layers from the config file
         run_configs = get_run_configs(self.experiment_configuration)
         # preprocessed layers
-        preprocessed_layers = set()
+        preprocessed_label_dicts = set()
         preprocessed_properties = set()
         # iterate over the layers
         for run_config in run_configs:
@@ -155,10 +155,12 @@ class Preprocessing:
                     properties.pop('values')
                     json_properties = json.dumps(properties, sort_keys=True)
                     preprocessed_properties.add(json_properties)
-                json_layer = json.dumps(layer.layer_dict, sort_keys=True)
-                preprocessed_layers.add(json_layer)
+                unique_label_dicts = layer.get_unique_layer_dicts()
+                for label_dict in unique_label_dicts:
+                    json_layer = json.dumps(label_dict, sort_keys=True)
+                    preprocessed_label_dicts.add(json_layer)
         # generate all necessary labels and properties
-        for layer in preprocessed_layers:
+        for layer in preprocessed_label_dicts:
             self.layer_to_labels(layer)
         for preprocessed_property in preprocessed_properties:
             self.property_to_properties(preprocessed_property)

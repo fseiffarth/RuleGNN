@@ -19,7 +19,7 @@ class RuleGNN(nn.Module):
         self.convolution_grad = self.para.run_config.config.get('convolution_grad', True)
         self.aggregation_grad = self.para.run_config.config.get('aggregation_grad', True)
         self.bias = self.para.run_config.config.get('bias', True)
-        out_dim = self.graph_data.output_feature_dimension
+        out_dim = self.graph_data.output_feature_dimensions
         precision = para.run_config.config.get('precision', 'float')
         self.module_precision = torch.float
         if precision == 'double':
@@ -48,7 +48,6 @@ class RuleGNN(nn.Module):
                                                        layer_info=layer,
                                                        parameters=para,
                                                        bias=self.bias,
-                                                       out_channels=self.channels,
                                                        graph_data=self.graph_data,
                                                        device=device).type(self.module_precision).requires_grad_(self.convolution_grad))
             else:
@@ -68,13 +67,13 @@ class RuleGNN(nn.Module):
         if 'linear_layers' in para.run_config.config and para.run_config.config['linear_layers'] > 0:
             for i in range(para.run_config.config['linear_layers']):
                 if i < para.run_config.config['linear_layers'] - 1:
-                    self.net_layers.append(nn.Linear(self.aggregation_out_dim * self.graph_data.input_feature_dimension, self.aggregation_out_dim * self.graph_data.input_feature_dimension, bias=True).type(self.module_precision).requires_grad_(True))
+                    self.net_layers.append(nn.Linear(self.aggregation_out_dim * self.graph_data.input_feature_dimensions, self.aggregation_out_dim * self.graph_data.input_feature_dimensions, bias=True).type(self.module_precision).requires_grad_(True))
                 else:
-                    self.net_layers.append(nn.Linear(self.aggregation_out_dim * self.graph_data.input_feature_dimension, out_dim, bias=True).type(self.module_precision).requires_grad_(True))
+                    self.net_layers.append(nn.Linear(self.aggregation_out_dim * self.graph_data.input_feature_dimensions, out_dim, bias=True).type(self.module_precision).requires_grad_(True))
 
-        elif self.channels*self.aggregation_out_dim * self.graph_data.input_feature_dimension != out_dim:
+        elif self.channels*self.aggregation_out_dim * self.graph_data.input_feature_dimensions != out_dim:
                 self.net_layers.append(
-                    nn.Linear(self.channels * self.aggregation_out_dim * self.graph_data.input_feature_dimension,
+                    nn.Linear(self.channels * self.aggregation_out_dim * self.graph_data.input_feature_dimensions,
                               out_dim, bias=True).type(self.module_precision).requires_grad_(True))
 
         self.dropout = nn.Dropout(dropout)
@@ -104,7 +103,7 @@ class RuleGNN(nn.Module):
             num_linear_layers = 0
             if 'linear_layers' in self.para.run_config.config and self.para.run_config.config['linear_layers'] > 0:
                 num_linear_layers = self.para.run_config.config['linear_layers']
-            elif self.channels*self.aggregation_out_dim * self.graph_data.input_feature_dimension != self.graph_data.output_feature_dimension:
+            elif self.channels*self.aggregation_out_dim * self.graph_data.input_feature_dimensions != self.graph_data.output_feature_dimensions:
                 num_linear_layers = 1
             if num_linear_layers > 0:
                 if i < len(self.net_layers) - num_linear_layers:

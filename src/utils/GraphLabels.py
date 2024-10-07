@@ -82,7 +82,7 @@ class EdgeLabels:
 
 
 class Properties:
-    def __init__(self, path: str, db_name: str, property_name: str, valid_values: List[int], layer_id: int):
+    def __init__(self, path: str, db_name: str, property_name: str, valid_values: dict[int, list[int]]):
         self.name = property_name
         self.db = db_name
         self.valid_values = {}
@@ -112,7 +112,8 @@ class Properties:
         else:
             raise FileNotFoundError(f'File {data_path} or {info_path} not found')
 
-        self.add_properties(valid_values, layer_id)
+        for layer_id, values in valid_values.items():
+            self.add_properties(layer_id=layer_id, valid_values=values)
 
     def add_properties(self, valid_values: List[int], layer_id: int):
         self.valid_values[layer_id] = []
