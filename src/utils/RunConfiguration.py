@@ -1,6 +1,6 @@
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
-class RunConfiguration():
-    def __init__(self, config, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, loss, task="classification"):
+class RunConfiguration:
+    def __init__(self, config, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, weight_decay, loss, task="classification"):
         self.config = config
         self.network_architecture = network_architecture
         self.layers = layers
@@ -9,6 +9,7 @@ class RunConfiguration():
         self.epochs = epochs
         self.dropout = dropout
         self.optimizer = optimizer
+        self.weight_decay = weight_decay
         self.loss = loss
         self.task = task
 
@@ -20,6 +21,7 @@ class RunConfiguration():
         print(f"Epochs: {self.epochs}")
         print(f"Dropout: {self.dropout}")
         print(f"Optimizer: {self.optimizer}")
+        print(f"Weight decay: {self.weight_decay}")
         print(f"Loss: {self.loss}")
 
 
@@ -39,8 +41,9 @@ def get_run_configs(experiment_configuration):
             for lr in experiment_configuration.get('learning_rate', [0.001]):
                 for e in experiment_configuration.get('epochs', [100]):
                     for d in experiment_configuration.get('dropout', [0.0]):
-                        for o in experiment_configuration['optimizer']:
-                            for loss in experiment_configuration['loss']:
-                                run_configs.append(
-                                    RunConfiguration(experiment_configuration, network_architecture, layers, b, lr, e, d, o, loss, task))
+                        for o in experiment_configuration.get('optimizer', 'Adam'):
+                            for w in experiment_configuration.get('weight_decay', [0.0]):
+                                for loss in experiment_configuration.get('loss', ['CrossEntropyLoss']):
+                                    run_configs.append(
+                                        RunConfiguration(experiment_configuration, network_architecture, layers, b, lr, e, d, o, w, loss, task))
     return run_configs

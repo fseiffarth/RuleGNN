@@ -58,6 +58,9 @@ weight_initialization: { convolution: { type: 'uniform', minval: -0.1, maxval: 0
 #  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
 input_features: { name: constant, value: 1.0 }
 
+# num_workers: number of workers used
+num_workers: 4
+
 
 
 

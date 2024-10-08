@@ -107,7 +107,7 @@ class GraphData:
         self.num_classes = max(self.num_classes, other.num_classes)
         self.max_nodes = max(self.max_nodes, other.max_nodes)
 
-    def add_node_labels(self, node_labeling_name, max_label_num=-1, node_labeling_method=None, **kwargs) -> None:
+    def add_node_labels(self, node_labeling_name, max_labels=-1, node_labeling_method=None, **kwargs) -> None:
         if node_labeling_method is not None:
             node_labeling = NodeLabels()
             node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = node_labeling_method(
@@ -115,11 +115,11 @@ class GraphData:
             node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
 
             key = node_labeling_name
-            if max_label_num is not None and max_label_num > 0:
-                key = f'{node_labeling_name}_{max_label_num}'
+            if max_labels is not None and max_labels > 0:
+                key = f'{node_labeling_name}_{max_labels}'
 
             self.node_labels[key] = node_labeling
-            relabel_most_frequent(self.node_labels[key], max_label_num)
+            relabel_most_frequent(self.node_labels[key], max_labels)
 
     def add_edge_labels(self, edge_labeling_name, edge_labeling_method=None, **kwargs) -> None:
         if edge_labeling_method is not None:

@@ -3,7 +3,7 @@ import gzip
 import os
 import pickle
 from collections import OrderedDict
-from typing import List
+from typing import List, Tuple
 
 import yaml
 
@@ -82,7 +82,7 @@ class EdgeLabels:
 
 
 class Properties:
-    def __init__(self, path: str, db_name: str, property_name: str, valid_values: dict[int, list[int]]):
+    def __init__(self, path: str, db_name: str, property_name: str, valid_values: dict[tuple[int, int], list[int]]):
         self.name = property_name
         self.db = db_name
         self.valid_values = {}
@@ -112,12 +112,12 @@ class Properties:
         else:
             raise FileNotFoundError(f'File {data_path} or {info_path} not found')
 
-        for layer_id, values in valid_values.items():
-            self.add_properties(layer_id=layer_id, valid_values=values)
+        for (layer_id, channel_id), values in valid_values.items():
+            self.add_properties(layer_id=layer_id, channel_id=channel_id, valid_values=values)
 
-    def add_properties(self, valid_values: List[int], layer_id: int):
-        self.valid_values[layer_id] = []
-        self.valid_property_map[layer_id] = {}
+    def add_properties(self, valid_values: List[int], layer_id: int, channel_id: int):
+        self.valid_values[(layer_id, channel_id)] = []
+        self.valid_property_map[(layer_id, channel_id)] = {}
         # if property name is edge_label_distance, and the valid values is a list of values interpret them as the distances and take all the values from self.all_values with first entry equal to the distance
         if self.name == 'edge_label_distances':
             # check if valid_values is a list of ints
@@ -126,50 +126,50 @@ class Properties:
                 for v in self.all_values:
                     if v[0] in valid_values:
                         tmp_valid_values.append(v)
-                self.valid_values[layer_id] = tmp_valid_values
+                self.valid_values[(layer_id, channel_id)] = tmp_valid_values
             else:
-                self.valid_values[layer_id] = valid_values
+                self.valid_values[(layer_id, channel_id)] = valid_values
         elif self.name == 'circle_distances':
             if type(valid_values[0]) == str:
                 for v in valid_values:
                     if v == 'no_circles':
                         for x in self.all_values:
                             if x[1] == 0 and x[2] == 0:
-                                self.valid_values[layer_id].append(x)
+                                self.valid_values[(layer_id, channel_id)].append(x)
                     if v == 'circles':
                         for x in self.all_values:
                             if x[1] == 1 and x[2] == 1:
-                                self.valid_values[layer_id].append(x)
+                                self.valid_values[(layer_id, channel_id)].append(x)
                     if v == 'in_circles':
                         for x in self.all_values:
                             if x[1] == 0 and x[2] == 1:
-                                self.valid_values[layer_id].append(x)
+                                self.valid_values[(layer_id, channel_id)].append(x)
                     if v == 'out_circles':
                         for x in self.all_values:
                             if x[1] == 1 and x[2] == 0:
-                                self.valid_values[layer_id].append(x)
+                                self.valid_values[(layer_id, channel_id)].append(x)
             else:
-                self.valid_values[layer_id] = valid_values
+                self.valid_values[(layer_id, channel_id)] = valid_values
         else:
-            self.valid_values[layer_id] = valid_values
+            self.valid_values[(layer_id, channel_id)] = valid_values
 
         # check if all the valid values are in the valid properties, if not raise an error
-        for value in self.valid_values[layer_id]:
+        for value in self.valid_values[(layer_id, channel_id)]:
             if value not in self.all_values:
                 raise ValueError(f'Property {value} not in valid properties')
 
         # number of valid properties
-        self.num_properties[layer_id] = len(self.valid_values[layer_id])
-        for i, value in enumerate(self.valid_values[layer_id]):
+        self.num_properties[(layer_id, channel_id)] = len(self.valid_values[(layer_id, channel_id)])
+        for i, value in enumerate(self.valid_values[(layer_id, channel_id)]):
             try:
                 property_value = int(value)
-                self.valid_property_map[layer_id][property_value] = i
+                self.valid_property_map[(layer_id, channel_id)][property_value] = i
             except:
                 # check if the length of the value is 1, if not iterate over the values
                 try:
                     len(value[0])
                     for v in value:
-                        self.valid_property_map[layer_id][convert_to_tuple(v)] = i
+                        self.valid_property_map[(layer_id, channel_id)][convert_to_tuple(v)] = i
                 except:
-                    self.valid_property_map[layer_id][convert_to_tuple(value)] = i
+                    self.valid_property_map[(layer_id, channel_id)][convert_to_tuple(value)] = i
 

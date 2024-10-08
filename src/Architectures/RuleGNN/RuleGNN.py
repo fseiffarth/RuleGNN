@@ -26,11 +26,14 @@ class RuleGNN(nn.Module):
             self.module_precision = torch.double
 
         self.aggregation_out_dim = 0
-        self.channels = para.run_config.config.get('channels', 1)
-        self.channels = max(self.channels, graph_data.input_channels)
-        if self.channels % graph_data.input_channels == 0:
-            if self.channels > graph_data.input_channels:
-                num_stacks = self.channels // graph_data.input_channels
+        self.channels = []
+        for layer in para.layers:
+            self.channels.append(layer.num_channels())
+        #self.channels = para.run_config.config.get('channels', 1)
+        #self.channels = max(self.channels, graph_data.input_channels)
+        if self.channels[0] % graph_data.input_channels == 0:
+            if self.channels[0] > graph_data.input_channels:
+                num_stacks = self.channels[0] // graph_data.input_channels
                 # modify the input channels to match the number of channels
                 for i, input_vector in enumerate(graph_data.input_data):
                     # stack input_vector num_stacks times along the first dimension
@@ -45,7 +48,7 @@ class RuleGNN(nn.Module):
                 self.net_layers.append(
                     RuleGNNLayers.RuleConvolutionLayer(layer_id=i,
                                                        seed=seed + i,
-                                                       layer_info=layer,
+                                                       layer=layer,
                                                        parameters=para,
                                                        bias=self.bias,
                                                        graph_data=self.graph_data,
@@ -55,9 +58,8 @@ class RuleGNN(nn.Module):
                 self.net_layers.append(
                     RuleGNNLayers.RuleAggregationLayer(layer_id=i,
                                                        seed=seed + i,
-                                                       layer_info=layer,
+                                                       layer=layer,
                                                        parameters=para,
-                                                       out_channels=self.channels,
                                                        out_dim=self.aggregation_out_dim,
                                                        graph_data=self.graph_data,
                                                        bias=self.bias,
@@ -71,9 +73,9 @@ class RuleGNN(nn.Module):
                 else:
                     self.net_layers.append(nn.Linear(self.aggregation_out_dim * self.graph_data.input_feature_dimensions, out_dim, bias=True).type(self.module_precision).requires_grad_(True))
 
-        elif self.channels*self.aggregation_out_dim * self.graph_data.input_feature_dimensions != out_dim:
+        elif self.channels[-1]*self.aggregation_out_dim * self.graph_data.input_feature_dimensions != out_dim:
                 self.net_layers.append(
-                    nn.Linear(self.channels * self.aggregation_out_dim * self.graph_data.input_feature_dimensions,
+                    nn.Linear(self.channels[-1] * self.aggregation_out_dim * self.graph_data.input_feature_dimensions,
                               out_dim, bias=True).type(self.module_precision).requires_grad_(True))
 
         self.dropout = nn.Dropout(dropout)
@@ -103,7 +105,7 @@ class RuleGNN(nn.Module):
             num_linear_layers = 0
             if 'linear_layers' in self.para.run_config.config and self.para.run_config.config['linear_layers'] > 0:
                 num_linear_layers = self.para.run_config.config['linear_layers']
-            elif self.channels*self.aggregation_out_dim * self.graph_data.input_feature_dimensions != self.graph_data.output_feature_dimensions:
+            elif self.channels[-1]*self.aggregation_out_dim * self.graph_data.input_feature_dimensions != self.graph_data.output_feature_dimensions:
                 num_linear_layers = 1
             if num_linear_layers > 0:
                 if i < len(self.net_layers) - num_linear_layers:

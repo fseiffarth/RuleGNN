@@ -43,9 +43,19 @@ output_activation: 'tanh'
 rule_occurrence_threshold: { type: 'graph', threshold: 1 }
 
 # weight initialization: weight initialization for the network (TODO)
-weight_initialization: { convolution: { type: 'uniform', minval: -0.1, maxval: 0.1 },
+# - convolution: weight initialization for the convolutional layers
+# - convolution_bias: weight initialization for the convolutional bias
+# - aggregation: weight initialization for the aggregation layer
+# - aggregation_bias: weight initialization for the aggregation bias
+# keys:
+#     - type: [uniform, normal, constant, lower_upper], uniform: uniform distribution, normal: normal distribution, constant: constant value, lower_upper: uniform distribution with lower and upper bound from the number of weights
+#     - minval: minimum value for the uniform distribution
+#     - maxval: maximum value for the uniform distribution
+#     - value: constant value for the constant distribution, or mean for the normal distribution
+#     - variance: variance for the normal distribution
+weight_initialization: { convolution: { type: 'constant', value: 0.01 },
                          convolution_bias: { type: 'constant', value: 0.0 },
-                         aggregation: { type: 'uniform', minval: -0.1, maxval: 0.1 },
+                         aggregation: { type: 'constant', value: 0.01 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 # input_features: determine how the input features should be transformed, the following options show some examples
@@ -57,6 +67,12 @@ weight_initialization: { convolution: { type: 'uniform', minval: -0.1, maxval: 0
 #  - {name: node_features, features_as_channels: True}, use node features as inpu, use features as channels
 #  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
 input_features: { name: constant, value: 1.0 }
+
+# random_variation: add random variation to the input features
+random_variation: True
+
+# num_workers: number of workers used
+num_workers: 4
 
 
 

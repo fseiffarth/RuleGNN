@@ -36,9 +36,11 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
         for x in new_unique:
             if x not in unique_label_dicts:
                 unique_label_dicts.append(x)
-        property_dict = l.get_property_dict()
-        if property_dict is not None:
-            unique_properties.append(property_dict["name"])
+        property_dicts = l.get_unique_property_dicts()
+        if property_dicts:
+            for x in property_dicts:
+                if x["name"] not in unique_properties:
+                    unique_properties.append(x["name"])
 
     for label_dict in unique_label_dicts:
         label_path = experiment_configuration['paths']['labels'].joinpath(f"{graph_data.graph_db_name}_{get_label_string(label_dict)}_labels.txt")
@@ -70,13 +72,13 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
     for prop_name in unique_properties:
         valid_values = {}
         for i, l in enumerate(run_config.layers):
-            if l.get_property_dict() is not None:
-                if l.get_property_dict()["name"] == prop_name:
-                    valid_values[i] = l.get_property_dict()["values"]
+            for j, c in enumerate(l.layer_channels):
+                if c.property_dict is not None:
+                    if c.property_dict.get('name', None) == prop_name:
+                        valid_values[(i,j)] = c.property_dict.get('values', None)
         graph_data.properties[prop_name] = Properties(path=experiment_configuration['paths']['properties'], db_name=graph_data.graph_db_name,
                                                       property_name=prop_name,
                                                       valid_values=valid_values)
-    pass
 
     """
         BenchmarkGraphs parameters

@@ -142,10 +142,10 @@ def save_trivial_labels(graph_data:GraphData, label_path=None,save_times=None):
         print(f"File {file} already exists. Skipping.")
 
 
-def save_node_labels(graph_data: GraphData, labels, label_path:Path, label_string, max_label_num=None, save_times=None):
+def save_node_labels(graph_data: GraphData, labels, label_path:Path, label_string, max_labels=None, save_times=None):
     start_time = time.time()
-    if max_label_num  and max_label_num < len(labels):
-        labels = relabel_most_frequent_node_labels(labels, max_label_num)
+    if max_labels  and max_labels < len(labels):
+        labels = relabel_most_frequent_node_labels(labels, max_labels)
     # save the node labels to a file
     # save node_labels as numpy array
     file = label_path.joinpath(f"{graph_data.graph_db_name}_{label_string}_labels.txt")
@@ -185,11 +185,11 @@ def save_index_labels(graph_data:GraphData, max_labels=None, label_path=None, sa
     else:
         print(f"File {file} already exists. Skipping.")
 
-def save_wl_labeled_labels(graph_data:GraphData, max_iterations = 3, max_label_num=None, label_path=None, save_times=None):
+def save_wl_labeled_labels(graph_data:GraphData, depth = 3, max_labels=None, label_path=None, save_times=None):
     # save the node labels to a file
-    l = f'wl_labeled_{max_iterations}'
-    if max_label_num is not None:
-        l = f'{l}_{max_label_num}'
+    l = f'wl_labeled_{depth}'
+    if max_labels is not None:
+        l = f'{l}_{max_labels}'
     if label_path is None:
         raise ValueError("No label path given")
     else:
@@ -198,12 +198,12 @@ def save_wl_labeled_labels(graph_data:GraphData, max_iterations = 3, max_label_n
         print(f"Saving {l} labels for {graph_data.graph_db_name} to {file}")
         start_time = time.time()
         node_labeling = NodeLabels()
-        node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.graphs, max_iterations, labeled=True)
+        node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.graphs, depth, labeled=True)
         node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
-        if max_label_num is not None and max_label_num > 0:
-            l = f'{l}_{max_label_num}'
+        if max_labels is not None and max_labels > 0:
+            l = f'{l}_{max_labels}'
 
-        relabel_most_frequent(node_labeling, max_label_num)
+        relabel_most_frequent(node_labeling, max_labels)
         write_node_labels(file, node_labeling.node_labels)
         if save_times is not None:
             try:
@@ -215,11 +215,11 @@ def save_wl_labeled_labels(graph_data:GraphData, max_iterations = 3, max_label_n
         print(f"File {file} already exists. Skipping.")
 
 
-def save_wl_labels(graph_data:GraphData, max_iterations, max_label_num=None, label_path=None, save_times=None):
+def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None, save_times=None):
     # save the node labels to a file
-    l = f'wl_{max_iterations}'
-    if max_label_num is not None:
-        l = f'{l}_{max_label_num}'
+    l = f'wl_{depth}'
+    if max_labels is not None:
+        l = f'{l}_{max_labels}'
     if label_path is None:
         raise ValueError("No label path given")
     else:
@@ -227,35 +227,35 @@ def save_wl_labels(graph_data:GraphData, max_iterations, max_label_num=None, lab
     if not file.exists():
         print(f"Saving {l} labels for {graph_data.graph_db_name} to {file}")
         start_time = time.time()
-        graph_data.add_node_labels(node_labeling_name=l, max_label_num=max_label_num,
+        graph_data.add_node_labels(node_labeling_name=l, max_labels=max_labels,
                                    node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
-                                   max_iterations=max_iterations)
-        node_labels = graph_data.node_labels[f'{l}_{max_label_num}'].node_labels
+                                   depth=depth)
+        node_labels = graph_data.node_labels[f'{l}_{max_labels}'].node_labels
 
         write_node_labels(file, node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, {l}_{max_label_num}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.graph_db_name}, {l}_{max_labels}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
 
 
-def save_cycle_labels(graph_data:GraphData, length_bound=6, max_node_labels=None, cycle_type='simple', label_path=None, save_times=None):
+def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None):
     start_time = time.time()
     cycle_dict = []
-    max_node_labels_str = ''
-    if max_node_labels is not None:
-        max_node_labels_str = f"_{max_node_labels}"
+    max_labels_str = ''
+    if max_labels is not None:
+        max_labels_str = f"_{max_labels}"
     if label_path is None:
         raise ValueError("No label path given")
     else:
         if cycle_type == 'simple':
-            file = label_path.joinpath(f'{graph_data.graph_db_name}_simple_cycles_{length_bound}{max_node_labels_str}_labels.txt')
+            file = label_path.joinpath(f'{graph_data.graph_db_name}_simple_cycles_{length_bound}{max_labels_str}_labels.txt')
         elif cycle_type == 'induced':
-            file = label_path.joinpath(f'{graph_data.graph_db_name}_induced_cycles_{length_bound}{max_node_labels_str}_labels.txt')
+            file = label_path.joinpath(f'{graph_data.graph_db_name}_induced_cycles_{length_bound}{max_labels_str}_labels.txt')
     if not file.exists():
         print(f"Saving {cycle_type} cycles for {graph_data.graph_db_name} to {file}")
         for graph in graph_data.graphs:
@@ -297,14 +297,14 @@ def save_cycle_labels(graph_data:GraphData, length_bound=6, max_node_labels=None
                 else:
                     labels[-1].append(len(label_dict))
 
-        if max_node_labels is not None:
-            relabel_most_frequent_node_labels(labels, max_node_labels)
+        if max_labels is not None:
+            relabel_most_frequent_node_labels(labels, max_labels)
 
         write_node_labels(file, labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, {cycle_type}_cycles_{length_bound}{max_node_labels_str}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.graph_db_name}, {cycle_type}_cycles_{length_bound}{max_labels_str}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -411,7 +411,7 @@ def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='s
         print(f"File {file} already exists. Skipping.")
 
 
-def save_clique_labels(graph_data:GraphData, max_clique=6, max_node_labels=None, label_path=None, save_times=None):
+def save_clique_labels(graph_data:GraphData, max_clique=6, max_labels=None, label_path=None, save_times=None):
     if label_path is None:
         raise ValueError("No label path given")
     else:
@@ -468,11 +468,11 @@ def save_clique_labels(graph_data:GraphData, max_clique=6, max_node_labels=None,
         print(f"File {file} already exists. Skipping.")
 
 
-def relabel_most_frequent_node_labels(node_labels, max_node_labels):
+def relabel_most_frequent_node_labels(node_labels, max_labels):
     """
     Relabel the node labels with the most frequent labels.
     :param node_labels: list of lists
-    :param max_node_labels: int
+    :param max_labels: int
     :return: list of lists
     """
     # get the unique node labels toghether with their frequency
@@ -483,20 +483,20 @@ def relabel_most_frequent_node_labels(node_labels, max_node_labels):
                 unique_frequency[l] += 1
             else:
                 unique_frequency[l] = 1
-    if len(unique_frequency) <= max_node_labels:
+    if len(unique_frequency) <= max_labels:
         return
     else:
         # get the k most frequent node labels from the unique_frequency sorted by frequency
-        most_frequent = sorted(unique_frequency, key=unique_frequency.get, reverse=True)[:max_node_labels - 1]
+        most_frequent = sorted(unique_frequency, key=unique_frequency.get, reverse=True)[:max_labels - 1]
         # add mapping most frequent to 0 to k-1
-        mapping = {key: max_node_labels - (value + 2) for key, value in zip(most_frequent, range(max_node_labels))}
+        mapping = {key: max_labels - (value + 2) for key, value in zip(most_frequent, range(max_labels))}
         # relabel the node labels
         for g_labels in node_labels:
             for i, l in enumerate(g_labels):
                 if l in mapping:
                     g_labels[i] = mapping[l]
                 else:
-                    g_labels[i] = max_node_labels - 1
+                    g_labels[i] = max_labels - 1
     return node_labels
 
 def relabel_node_labels(node_labels: List[List[int]]) -> List[List[int]]:

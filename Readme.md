@@ -189,12 +189,12 @@ early_stopping:
     25
 networks:
   #- - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
-  #  - { layer_type: wl, wl_iterations: 0, properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ] } }
-  #  - { layer_type: wl, wl_iterations: 0 }
+  #  - { layer_type: wl, depth: 0, properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ] } }
+  #  - { layer_type: wl, depth: 0 }
 
   # wl model
-  - - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: {name: distances, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]} }
-    - { layer_type: wl, wl_iterations: 2, max_node_labels: 500 }
+  - - { layer_type: wl, depth: 2, max_labels: 500, properties: {name: distances, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]} }
+    - { layer_type: wl, depth: 2, max_labels: 500 }
 
 
 
@@ -314,9 +314,9 @@ At the moment, the following layers are implemented:
   The primary layer uses the initial node labels.
 - WL-Layer
   ```yaml
-  - { layer_type: wl, wl_iterations: 2, max_node_labels: 500, properties: { name: distances, values: [1] }}
+  - { layer_type: wl, depth: 2, max_labels: 500, properties: { name: distances, values: [1] }}
   ```
-    The WL-Layer uses the Weisfeiler-Lehman algorithm to generate node labels. The parameter ```wl_iterations``` specifies the number of iterations of the Weisfeiler-Lehman algorithm. The parameter ```max_node_labels``` specifies the maximum number of node labels used in the layer. The parameter ```properties``` specifies the inter-node properties used, see [Property Functions](#Property-Functions).
+    The WL-Layer uses the Weisfeiler-Lehman algorithm to generate node labels. The parameter ```depth``` specifies the number of iterations of the Weisfeiler-Lehman algorithm. The parameter ```max_labels``` specifies the maximum number of node labels used in the layer. The parameter ```properties``` specifies the inter-node properties used, see [Property Functions](#Property-Functions).
 - Subgraph-Layer
     ```yaml
     - { layer_type: subgraph, id: 0, properties: { name: distances, values: [ 3 ] }}
@@ -335,12 +335,12 @@ At the moment, the following layers are implemented:
     ```
   generates the node labels using the embeddings of simple_cycles of length 1 to 10.
   ```yaml
-   - { layer_type: induced_cycles, max_cycle_length: 10, max_node_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
+   - { layer_type: induced_cycles, max_cycle_length: 10, max_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
   ```
     generates the node labels using the embeddings of induced_cycles of length 1 to 10.
 - Cliques-Layer (special case of Subgraph-Layer)
     ```yaml
-        - { layer_type: cliques, max_clique_size: 10, max_node_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
+        - { layer_type: cliques, max_clique_size: 10, max_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
     ```
     generates the node labels using the embeddings of cliques of size 1 to 10.
 
