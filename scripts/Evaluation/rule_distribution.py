@@ -11,7 +11,8 @@ from src.utils.GraphDrawing import CustomColorMap
 
 def main():
     #experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
-    experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
+    #experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
+    experiment = ExperimentMain(Path('Testing/Multilabel/Configs/config_main.yml'))
     db_name = 'DHFR'
 
     net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=0)

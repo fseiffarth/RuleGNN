@@ -55,19 +55,28 @@ networks:
   - - { layer_type: convolution,
         channels:
           [
-            { channels: 1,
+            { channel_ids: [ 0, 2 ],
               labels: { head: { label_type: wl, depth: 2, max_labels: 500 },
                         tail: { label_type: wl, depth: 2, max_labels: 500 },
                         bias: { label_type: primary } },
               properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6 ] }
+            },
+            { channel_ids: [ 1, 3 ],
+              labels: { head: { label_type: degree },
+                        tail: { label_type: degree },
+                        bias: { label_type: primary } },
+              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ] }
             }
           ]
       }
     - { layer_type: aggregation,
         channels:
           [
-            { channels: 1,
+            { channels: 2,
               labels: { label_type: simple_cycles, max_cycle_length: 10, max_node_labels: 500 }
+            },
+            { channels: 2,
+              labels: { label_type: wl, depth: 3, max_labels: 5000 }
             }
           ]
       }

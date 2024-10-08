@@ -21,7 +21,7 @@ def rules_vs_occurences(layer:RuleConvolutionLayer) -> np.ndarray:
     num_non_zero = np.count_nonzero(weight_array)
     print(f'Number of non-zero elements: {num_non_zero}')
 
-    weights_per_property = int(layer.weight_num/layer.n_properties)
+    weights_per_property = int(np.sum(layer.weight_num)/layer.n_properties)
     # invert layer.non_zero_weight_map
     non_zero_weight_map = {v: k for k, v in layer.threshold_weight_map.items()}
     # colors from tab20
@@ -73,7 +73,7 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray):
     weights = layer.Param_W.detach().cpu().numpy()
     weights = weights[sort_indices]
 
-    weights_per_property = int(layer.weight_num/layer.n_properties)
+    weights_per_property = int(np.sum(layer.weight_num)/layer.n_properties)
     # invert layer.non_zero_weight_map
     non_zero_weight_map = {v: k for k, v in layer.threshold_weight_map.items()}
     property_colors = plt.get_cmap('tab20').colors
