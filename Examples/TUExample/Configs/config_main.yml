@@ -59,6 +59,13 @@ weight_initialization: { convolution: { type: 'constant', value: 0.01 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 # input_features: determine how the input features should be transformed, the following options show some examples
+# keys:
+#  - name: [constant, node_labels, node_features, all], the type of input features
+#  - transformation: [normalize, normalize_positive, unit_circle, one_hot], the transformation of the input features
+#  - features_as_channels: True, use the features as channels
+#  - value: constant value for the constant input features
+#  - random_variation: add random variation to the input features
+# examples:
 #  - {name: constant, value: 1.0}, use a constant value as input feature
 #  - {name: node_labels, transformation: normalize}, use node labels and normalize them between -1 and 1
 #  - {name: node_labels, transformation: normalize_positive}, use node labels and normalize them between 0 and 1
@@ -66,10 +73,7 @@ weight_initialization: { convolution: { type: 'constant', value: 0.01 },
 #  - {name: node_labels, transformation: one_hot, features_as_channels: True}, use node labels and transform them to one-hot encoding
 #  - {name: node_features, features_as_channels: True}, use node features as inpu, use features as channels
 #  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
-input_features: { name: constant, value: 1.0 }
-
-# random_variation: add random variation to the input features
-random_variation: True
+input_features: { name: constant, value: 1.0, random_variation: {mean: 0.0, std: 0.5} }
 
 # num_workers: number of workers used
 num_workers: 4

@@ -226,15 +226,16 @@ class ModelEvaluation:
                 net.train(True)
                 for j, graph_id in enumerate(batch, 0):
                     timer.measure("forward_step")
-                    if self.para.run_config.config.get('random_variation', False):
-                        scale = 1.0
+                    if self.para.run_config.config.get('input_features', None).get('random_variation', None):
+                        mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
+                        std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
                         # random variation as torch tensor
-                        random_variation = np.random.normal(1.0, scale, self.graph_data.input_data[graph_id].shape)
+                        random_variation = np.random.normal(mean, std, self.graph_data.input_data[graph_id].shape)
                         if self.para.run_config.config.get('precision', 'double') == 'float':
                             random_variation = torch.FloatTensor(random_variation)
                         else:
                             random_variation = torch.DoubleTensor(random_variation)
-                        outputs[j] = net(random_variation, graph_id)
+                        outputs[j] = net((self.graph_data.input_data[graph_id] + random_variation).to(device), graph_id)
                     else:
                         outputs[j] = net(self.graph_data.input_data[graph_id].to(device), graph_id)
                     timer.measure("forward_step")
