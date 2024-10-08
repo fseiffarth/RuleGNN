@@ -1,0 +1,105 @@
+# mode: mode of the experiment, there are two modes one for debugging and one for running the experiments
+#   - debug
+#   - experiments
+mode: experiments # options: [debug, experiments] if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+
+# device: the device to use, cpu is recommended as it is faster at the moment
+#   - cpu (recommended)
+#   - cuda
+device: cpu
+
+### Experiment options
+# batch_size: batch size used for training, use several options for hyperparameter search, use None to set the batch size to the size of the dataset
+batch_size:
+  - 128
+
+# learning_rate: learning rate used for training, use several options for hyperparameter search
+learning_rate:
+  - 0.05
+
+# epochs: number of epochs used for training, use several options for hyperparameter search
+epochs:
+  - 50
+
+# dropout: dropout rate used for training, use several options for hyperparameter search
+dropout:
+  - 0.0
+
+# optimizer: optimizer used for training, use several options for hyperparameter search
+optimizer:
+  - Adam
+
+# loss: loss function used for training, use several options for hyperparameter search
+loss:
+  - CrossEntropyLoss
+
+# scheduler: learning rate scheduler used for training, use several options for hyperparameter search
+#  - False
+#  - True
+scheduler: False
+
+# early_stopping: early stopping used for training, enabled can be set to True or False, patience is the number of epochs to wait for improvement of the validation accuracy
+early_stopping:
+  enabled:
+    True
+  patience:
+    25
+
+# networks: list of network configurations, each configuration is a list of layers, each layer is a dictionary with the layer_type and properties
+networks:
+  # first layer is a convolutional layer, second layer is an aggregation layer
+  - - { layer_type: 'convolution',
+                  {labels: {head: {label_type: primary},
+                            tail: {label_type: primary},
+                            bias: {label_type: primary}},
+                   properties: {name: distances, values: [1, 2, 3, 4, 5, 6]}
+                  }
+      }
+    - { layer_type: 'aggregation', labels: {label_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }}
+
+# if subgraph labels are used the corresponding list of subgraphs should be provided here, the subgraph id of the layer corresponds to the index of the subgraph in the list
+subgraphs:
+  - "[nx.cycle_graph(5), nx.star_graph(1)]"
+  - "[nx.cycle_graph(6), nx.star_graph(1)]"
+
+#### data options
+# balance_training: balance the training data, set to True to balance the training data
+#  - True
+#  - False
+balance_training: False
+
+# Additional options for analysis only possible in debug mode (TODO: need to be tested)
+additional_options:
+  # draw the accuracy and loss during training
+  draw: True
+  # save the weights of the model
+  save_weights: False
+  # save the prediction values
+  save_prediction_values: False
+  # Plot all graphs in the dataset
+  plot_graphs: False
+  # Print accuracy and loss in the console
+  print_results: True
+
+# best_model: compute test set accuracy directly
+best_model: False
+# save_last: save the last model
+save_last: False
+
+# Pruning options (TODO: need to be tested)
+prune:
+  # enabled: enable pruning
+  enabled: False
+  # prune after this many epochs
+  epochs: 25
+  # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+  percentage:
+    - 0.999
+    - 0.5
+
+# precision: precision of the model, can be set to float or double
+#  - float
+#  - double
+precision: double
+
+
