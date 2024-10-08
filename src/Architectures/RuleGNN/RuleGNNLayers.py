@@ -755,13 +755,6 @@ class RuleAggregationLayer(nn.Module):
 
             self.weight_distribution.append(np.array(graph_weight_pos_distribution, dtype=np.int64))
 
-        # print weight positions to file
-        with open(f"Testing/Multilabel/weight_positions_new.txt", "w") as f:
-            for i, weights in enumerate(self.weight_distribution):
-                weight_pos = weights[:, 3]
-                for pos in weight_pos:
-                    f.write(f"{pos}\n")
-
     def weight_map(self, channel, out_dim, label):
         '''
         Maps the current indices to the index of the list of weights

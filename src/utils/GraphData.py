@@ -6,6 +6,7 @@ import networkx as nx
 import numpy as np
 import torch
 import torch_geometric.data
+from numpy.ma.core import shape
 from torch_geometric.data import InMemoryDataset
 from torch_geometric.datasets import ZINC
 
@@ -167,7 +168,7 @@ class GraphData:
                         for node in graph.nodes(data=True):
                             self.input_data[-1][0][node[0]] = self.node_labels['primary'].node_labels[graph_id][node[0]]
                 elif use_constant:
-                    self.input_data.append(torch.ones(1,graph.number_of_nodes(),1).float())
+                    self.input_data.append(torch.full(size=(1,graph.number_of_nodes(),1), fill_value=input_features.get('value', 1.0)).float())
                 elif use_features:
                     self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'][1:])))
                     for node in graph.nodes(data=True):

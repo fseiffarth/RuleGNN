@@ -52,14 +52,14 @@ early_stopping:
 # networks: list of network configurations, each configuration is a list of layers, each layer is a dictionary with the layer_type and properties
 networks:
   # first layer is a convolutional layer, second layer is an aggregation layer
-  - - { layer_type: 'convolution',
-                  {labels: {head: {label_type: primary},
+  - - { layer_type: convolution,
+                  labels: {head: {label_type: primary},
                             tail: {label_type: primary},
                             bias: {label_type: primary}},
                    properties: {name: distances, values: [1, 2, 3, 4, 5, 6]}
-                  }
+
       }
-    - { layer_type: 'aggregation', labels: {label_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }}
+    - { layer_type: aggregation, labels: {label_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }}
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here, the subgraph id of the layer corresponds to the index of the subgraph in the list
 subgraphs:
