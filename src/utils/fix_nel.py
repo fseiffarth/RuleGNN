@@ -17,4 +17,5 @@ def fix(path: Path):
         print(f"No files found in {path}")
 
 if __name__ == "__main__":
-    fix(Path("Reproduce_RuleGNN/Data/SyntheticDatasets/"))
+    #fix(Path("Reproduce_RuleGNN/Data/SyntheticDatasets/"))
+    fix(Path("Testing/RealWorldGraphs/ZINC/"))

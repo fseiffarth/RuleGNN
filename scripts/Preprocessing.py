@@ -56,6 +56,7 @@ class Preprocessing:
                     # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
                     save_graphs(Path(self.experiment_configuration['paths']['data']), self.db_name, graphs, labels, with_degree=False, graph_format='NEL')
                 except:
+                    # raise the error that has occurred
                     print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
 
 

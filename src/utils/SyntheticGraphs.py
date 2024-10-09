@@ -5,7 +5,7 @@ import numpy as np
 
 from src.utils.BenchmarkDatasetGeneration.RingTransfer import RingTransfer
 from src.utils.snowflake_generation import Snowflakes
-
+import torch_geometric.datasets as tgd
 
 def long_rings(data_size=1200, ring_size=100, seed=764) -> (List[nx.Graph], List[int]):
     graphs = []
@@ -223,6 +223,25 @@ def csl_graphs() -> (List[nx.Graph], List[int]):
     csl = CSL()
     graph_data = csl.get_graphs(with_distances=False)
     return graph_data.graphs, graph_data.graph_labels
+
+def torch_geometric_dataset(name=None) -> (List[nx.Graph], List[int]):
+    if name == "zinc":
+        zinc_train = tgd.ZINC(root="tmp/", subset=True, split='train')
+        zinc_val = tgd.ZINC(root="tmp/", subset=True, split='val')
+        zinc_test = tgd.ZINC(root="tmp/", subset=True, split='test')
+        # zinc to networkx
+        networkx_graphs = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
+        return networkx_graphs.graphs, networkx_graphs.graph_labels
+    pass
+
+def zinc() -> (List[nx.Graph], List[int]):
+    # create tmp folder if it does not exist
+    zinc_train = torch_geometric.datasets.zinc()
+    zinc_train = ZINC(root="tmp/", subset=True, split='train')
+    zinc_val = ZINC(root="tmp/", subset=True, split='val')
+    zinc_test = ZINC(root="tmp/", subset=True, split='test')
+    # zinc to networkx
+    networkx_graphs = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
 
 def ring_transfer(data_size=1200, node_dimension=10, ring_size=100, seed=764) -> (List[nx.Graph], List[np.ndarray[float]]):
     return RingTransfer(data_size=data_size, node_dimension=node_dimension, ring_size=ring_size, seed=seed)
