@@ -210,7 +210,7 @@ class ExperimentMain:
         # paths to Path objects
         config_paths_to_absolute(experiment_configuration, Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
         # preprocess the data
-        Preprocessing(db_name=db_name, experiment_configuration=experiment_configuration, with_splits=with_splits,data_generation=data_generation, data_generation_args=data_generation_args)
+        Preprocessing(db_name=db_name, dataset_configuration=dataset_configuration, experiment_configuration=experiment_configuration, with_splits=with_splits,data_generation=data_generation, data_generation_args=data_generation_args)
 
     def check_config_consistency(self):
         pass

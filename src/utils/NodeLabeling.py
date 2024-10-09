@@ -66,15 +66,15 @@ def degree_node_labeling(graphs: List[nx.Graph]):
     db_unique_node_labels = dict(sorted(db_unique_node_labels.items()))
     return node_labels, unique_node_labels, db_unique_node_labels
 
-def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], max_iterations: int = 3, labeled: bool = False):
+def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], depth: int = 3, labeled: bool = False):
     unique_node_labels = []
     db_unique_node_labels = {}
     union_graph = nx.disjoint_union_all(graphs)
     hash_dict = []
     if labeled:
-        hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=max_iterations, node_attr='label')
+        hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='label')
     else:
-        hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=max_iterations)
+        hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth)
     largest_int = 0
 
     # iterate over the keys of the hashes dictionary

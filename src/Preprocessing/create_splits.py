@@ -32,7 +32,6 @@ def zinc_splits():
     with open(f"{db_name}_splits.json", "w") as f:
         f.write(json.dumps(splits))
 
-
 def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Data/Splits/", data_format=None, split_type='random'):
     '''
     Create splits for transfer learning
@@ -142,6 +141,22 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
         # save splits to json as one line use json.dumps
         with open(f"{output_path}{db_name}_splits_mixed.json", "w") as f:
             f.write(json.dumps(splits))
+
+def splits_from_index_lists(training_indices, validation_indices, test_indices, db_name, output_path):
+    splits = []
+    folds = len(training_indices)
+    if len(validation_indices) != folds or len(test_indices) != folds:
+        raise ValueError("Length of training, validation and test indices should be the same")
+    for i in range(0, folds):
+        splits.append({"test": test_indices[i], "model_selection": [{"train": training_indices[i], "validation": validation_indices[i]}]})
+    # save splits to json as one line use json.dumps
+    # check if the output path exists
+    if not output_path.joinpath(f"{db_name}_splits.json").exists():
+        print(f"Creating new split file at {output_path.joinpath(f'{db_name}_splits.json')}")
+        with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
+            f.write(json.dumps(splits))
+    else:
+        print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
 
 
 def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, graph_format=None, seed=2045287):

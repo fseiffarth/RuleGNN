@@ -3,11 +3,13 @@ from typing import List
 import networkx as nx
 import numpy as np
 
+from src.Preprocessing.create_splits import splits_from_index_lists
 from src.utils.BenchmarkDatasetGeneration.RingTransfer import RingTransfer
+from src.utils.GraphData import zinc_to_graph_data
 from src.utils.snowflake_generation import Snowflakes
 import torch_geometric.datasets as tgd
 
-def long_rings(data_size=1200, ring_size=100, seed=764) -> (List[nx.Graph], List[int]):
+def long_rings(data_size=1200, ring_size=100, seed=764,*args, **kwargs) -> (List[nx.Graph], List[int]):
     graphs = []
     labels = []
     # seed numpy
@@ -56,7 +58,7 @@ def long_rings(data_size=1200, ring_size=100, seed=764) -> (List[nx.Graph], List
     labels = [labels[i] for i in perm]
     return graphs, labels
 
-def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, seed=764) -> (List[nx.Graph], List[int]):
+def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, seed=764,*args, **kwargs) -> (List[nx.Graph], List[int]):
     """
     Create a benchmark dataset consisting of labeled rings with ring_size nodes and labels.
     The label of the graph is determined by the following:
@@ -159,7 +161,7 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
     labels = [labels[i] for i in perm]
     return graphs, labels
 
-def ring_diagonals( data_size=1200, ring_size=100) -> (List[nx.Graph], List[int]):
+def ring_diagonals( data_size=1200, ring_size=100,*args, **kwargs) -> (List[nx.Graph], List[int]):
     """
     Create a dataset of ring graphs with diagonals.
     :param data_size: number of graphs to create
@@ -212,41 +214,49 @@ def ring_diagonals( data_size=1200, ring_size=100) -> (List[nx.Graph], List[int]
 
     return graphs, labels
 
-def snowflakes(smallest_snowflake=3, largest_snowflake=12, flakes_per_size=100, seed=764, generation_type='binary') -> (List[nx.Graph], List[int]):
+def snowflakes(smallest_snowflake=3, largest_snowflake=12, flakes_per_size=100, seed=764, generation_type='binary',*args, **kwargs) -> (List[nx.Graph], List[int]):
     """
     Create a dataset of snowflake graphs.
     """
     return Snowflakes(smallest_snowflake=smallest_snowflake, largest_snowflake=largest_snowflake, flakes_per_size=flakes_per_size, plot=False, seed=seed, generation_type=generation_type)
 
-def csl_graphs() -> (List[nx.Graph], List[int]):
+def csl_graphs(*args, **kwargs) -> (List[nx.Graph], List[int]):
     from src.Preprocessing.csl import CSL
     csl = CSL()
     graph_data = csl.get_graphs(with_distances=False)
     return graph_data.graphs, graph_data.graph_labels
 
-def torch_geometric_dataset(name=None) -> (List[nx.Graph], List[int]):
+def torch_geometric_dataset(name=None,*args, **kwargs) -> (List[nx.Graph], List[int]):
+    # get label_path from args
+    split_path = kwargs.get("split_path", None)
+    # raise error if output_path is None
+    if split_path is None:
+        raise ValueError("label_path is None")
     if name == "zinc":
-        zinc_train = tgd.ZINC(root="tmp/", subset=True, split='train')
-        zinc_val = tgd.ZINC(root="tmp/", subset=True, split='val')
-        zinc_test = tgd.ZINC(root="tmp/", subset=True, split='test')
+        zinc_train = tgd.ZINC(root="tmp/ZINC/", subset=True, split='train')
+        zinc_val = tgd.ZINC(root="tmp/ZINC/", subset=True, split='val')
+        zinc_test = tgd.ZINC(root="tmp/ZINC/", subset=True, split='test')
         # zinc to networkx
-        networkx_graphs = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
+        networkx_graphs = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
+        # get train, val, test indices from temp path
+        train_indices = [[i for i in range(len(zinc_train))]]
+        val_indices = [[i + len(zinc_train) for i in range(len(zinc_val))]]
+        test_indices = [[i + len(zinc_train) + len(zinc_val) for i in range(len(zinc_test))]]
+        splits_from_index_lists(train_indices, val_indices, test_indices, "ZINC", output_path=split_path)
+        return networkx_graphs.graphs, networkx_graphs.graph_labels
+    elif name == "zinc_full":
+        zinc_train = tgd.ZINC(root="tmp/", split='train')
+        zinc_val = tgd.ZINC(root="tmp/", split='val')
+        zinc_test = tgd.ZINC(root="tmp/", split='test')
+        # zinc to networkx
+        networkx_graphs = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC")
         return networkx_graphs.graphs, networkx_graphs.graph_labels
     pass
 
-def zinc() -> (List[nx.Graph], List[int]):
-    # create tmp folder if it does not exist
-    zinc_train = torch_geometric.datasets.zinc()
-    zinc_train = ZINC(root="tmp/", subset=True, split='train')
-    zinc_val = ZINC(root="tmp/", subset=True, split='val')
-    zinc_test = ZINC(root="tmp/", subset=True, split='test')
-    # zinc to networkx
-    networkx_graphs = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
-
-def ring_transfer(data_size=1200, node_dimension=10, ring_size=100, seed=764) -> (List[nx.Graph], List[np.ndarray[float]]):
+def ring_transfer(data_size=1200, node_dimension=10, ring_size=100, seed=764,*args, **kwargs) -> (List[nx.Graph], List[np.ndarray[float]]):
     return RingTransfer(data_size=data_size, node_dimension=node_dimension, ring_size=ring_size, seed=seed)
 
-def parity_check(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List[int]):
+def parity_check(data_size=1500, max_size=40, seed=764,*args, **kwargs) -> (List[nx.Graph], List[int]):
     graphs = []
     labels = []
     np.random.seed(seed)
@@ -268,7 +278,7 @@ def parity_check(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List
         labels.append(even)
     return graphs, labels
 
-def even_pairs(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List[int]):
+def even_pairs(data_size=1500, max_size=40, seed=764,*args, **kwargs) -> (List[nx.Graph], List[int]):
     graphs = []
     labels = []
     np.random.seed(seed)
@@ -290,7 +300,7 @@ def even_pairs(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List[i
         labels.append(valid)
     return graphs, labels
 
-def first_a(data_size=1500, max_size=40, seed=764) -> (List[nx.Graph], List[int]):
+def first_a(data_size=1500, max_size=40, seed=764,*args, **kwargs) -> (List[nx.Graph], List[int]):
     graphs = []
     labels = []
     np.random.seed(seed)

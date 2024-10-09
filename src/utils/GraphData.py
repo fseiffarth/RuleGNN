@@ -276,19 +276,21 @@ class GraphData:
 
             if task == 'regression':
                 self.output_data = torch.tensor(self.graph_labels)
+                # reformat the output data, add minimum +0.01 to avoid zero values and take the log
+                self.output_data = torch.pow(torch.exp(self.output_data), 1/4)
+                self.output_feature_dimensions = 1
             else:
                 for i, label in enumerate(self.graph_labels):
                     if type(label) == int:
                         self.output_data[i][label] = 1
                     elif type(label) == list:
                         self.output_data[i] = torch.tensor(label)
+                # the output feature dimension
+                self.output_feature_dimensions = self.output_data.shape[1]
             # the input channel dimension
             self.input_channels = self.input_data[0].shape[0]
             # the input feature dimension
             self.input_feature_dimensions = self.input_data[0].shape[2]
-            # the output feature dimension
-            self.output_feature_dimensions = self.output_data.shape[1]
-
         return None
 
     def set_precision(self, precision:str='double'):

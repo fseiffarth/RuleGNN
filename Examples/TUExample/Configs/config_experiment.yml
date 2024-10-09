@@ -15,7 +15,7 @@ batch_size:
 
 # learning_rate: learning rate used for training, use several options for hyperparameter search
 learning_rate:
-  - 0.01
+  - 0.05
 
 # epochs: number of epochs used for training, use several options for hyperparameter search
 epochs:
@@ -40,7 +40,7 @@ loss:
 # scheduler: learning rate scheduler used for training, use several options for hyperparameter search (TODO: different schedulers),
 #  - False
 #  - True (each 5 epochs the learning rate is reduced by a factor of 0.5)
-scheduler: False
+scheduler: True
 
 # early_stopping: early stopping used for training, enabled can be set to True or False, patience is the number of epochs to wait for improvement of the validation accuracy
 early_stopping:
@@ -57,17 +57,39 @@ networks:
           [
             { channels: 1,
               labels: { head: { label_type: wl, depth: 2, max_labels: 500 },
+                        tail: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
+                        bias: { label_type: primary } },
+              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
+            },
+            { channels: 1,
+              labels: { head: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
                         tail: { label_type: wl, depth: 2, max_labels: 500 },
                         bias: { label_type: primary } },
-              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6 ] }
+              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
+            },
+            { channels: 1,
+              labels: { head: { label_type: wl, depth: 2, max_labels: 500 },
+                        tail: { label_type: wl, depth: 2, max_labels: 500 },
+                        bias: { label_type: primary } },
+              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
+            },
+            { channels: 1,
+              labels: { head: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
+                        tail: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
+                        bias: { label_type: primary } },
+              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
             }
-          ]
+          ],
+        channel_aggregation: { type: sum }
       }
     - { layer_type: aggregation,
         channels:
           [
-            { channels: 1,
-              labels: { label_type: simple_cycles, max_cycle_length: 10, max_node_labels: 500 }
+            { channels: 2,
+              labels: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 }
+            },
+            { channels: 2,
+              labels: { label_type: wl, depth: 2, max_labels: 500 }
             }
           ]
       }

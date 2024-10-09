@@ -16,10 +16,11 @@ import networkx as nx
 
 
 class Preprocessing:
-    def __init__(self, db_name:str, experiment_configuration, with_splits=True, with_labels_and_properties=True, data_generation=None, data_generation_args=None, create_pt_files = True):
+    def __init__(self, db_name:str, dataset_configuration, experiment_configuration, with_splits=True, with_labels_and_properties=True, data_generation=None, data_generation_args=None, create_pt_files = True):
         self.db_name = db_name
         # load the config file
         self.experiment_configuration = experiment_configuration
+        self.dataset_configuration = dataset_configuration
         # create config folders if they do not exist
         self.experiment_configuration['paths']['data'].mkdir(exist_ok=True)
         self.experiment_configuration['paths']['labels'].mkdir(exist_ok=True)
@@ -37,27 +38,29 @@ class Preprocessing:
         self.generation_times_labels_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_labels.txt')
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
-        if type(data_generation) == str:
-            if data_generation == 'TUDataset':
-                try:
-                    tu_to_nel(db_name=db_name, out_path=Path(self.experiment_configuration['paths']['data']))
-                except:
-                    print(f'Could not generate {db_name} from TUDataset')
+        # generate the data only if it does not exist
+        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('raw').joinpath(f'{db_name}_Edges.txt').exists():
+            if type(data_generation) == str:
+                if data_generation == 'TUDataset':
+                    try:
+                        tu_to_nel(db_name=db_name, out_path=Path(self.experiment_configuration['paths']['data']))
+                    except:
+                        print(f'Could not generate {db_name} from TUDataset')
+                else:
+                    print(f'Do not know how to handle data from {data_generation}. Do you mean "TUDataset"?')
+                pass
             else:
-                print(f'Do not know how to handle data from {data_generation}. Do you mean "TUDataset"?')
-            pass
-        else:
-            if data_generation is not None:
-                if data_generation_args is None:
-                    data_generation_args = {}
-                try:
-                    # generate data
-                    graphs, labels =  data_generation(**data_generation_args)
-                    # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
-                    save_graphs(Path(self.experiment_configuration['paths']['data']), self.db_name, graphs, labels, with_degree=False, graph_format='NEL')
-                except:
-                    # raise the error that has occurred
-                    print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
+                if data_generation is not None:
+                    if data_generation_args is None:
+                        data_generation_args = {}
+                    try:
+                        # generate data
+                        graphs, labels =  data_generation(**data_generation_args, split_path=Path(self.experiment_configuration['paths']['splits']))
+                        # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
+                        save_graphs(Path(self.experiment_configuration['paths']['data']), self.db_name, graphs, labels, with_degree=False, graph_format='NEL')
+                    except:
+                        # raise the error that has occurred
+                        print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
 
 
         self.graph_data = get_graph_data(db_name=self.db_name, data_path=self.experiment_configuration['paths']['data'], graph_format='NEL')
@@ -69,7 +72,7 @@ class Preprocessing:
             # create the splits folder if it does not exist
             Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
             # generate splits
-            create_splits(db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=10, graph_format='NEL')
+            create_splits(db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.dataset_configuration['validation_folds'], graph_format='NEL')
 
         if with_labels_and_properties:
             # creates the labels and properties automatically
@@ -151,13 +154,11 @@ class Preprocessing:
         # iterate over the layers
         for run_config in run_configs:
             for layer in run_config.layers:
-                if 'properties' in layer.layer_dict:
-                    properties = layer.layer_dict.pop('properties')
-                    properties.pop('values')
-                    json_properties = json.dumps(properties, sort_keys=True)
-                    preprocessed_properties.add(json_properties)
-                unique_label_dicts = layer.get_unique_layer_dicts()
-                for label_dict in unique_label_dicts:
+                for property_dict in layer.get_unique_property_dicts():
+                    property_dict.pop('values')
+                    json_property = json.dumps(property_dict, sort_keys=True)
+                    preprocessed_properties.add(json_property)
+                for label_dict in layer.get_unique_layer_dicts():
                     json_layer = json.dumps(label_dict, sort_keys=True)
                     preprocessed_label_dicts.add(json_layer)
         # generate all necessary labels and properties
