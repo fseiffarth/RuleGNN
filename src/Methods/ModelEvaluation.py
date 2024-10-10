@@ -162,9 +162,9 @@ class ModelEvaluation:
 
 
         # header use semicolon as delimiter
-        if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
-            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
-                     "EpochMAE;EpochMAEStd;EpochTime;ValidationAccuracy;ValidationLoss;ValidationMAE;ValidationMAEStd;TestAccuracy;TestLoss;TestMAE;TestMAEStd\n"
+        if self.para.run_config.task == 'regression':
+            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
+                     "EpochLossStd;EpochTime;ValidationLoss;ValidationLossStd;TestLoss;TestLossStd\n"
         else:
             header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
                      "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
@@ -290,12 +290,13 @@ class ModelEvaluation:
                 '''
                 Evaluate the training accuracy
                 '''
-                batch_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
-                epoch_acc += batch_acc * (len(batch) / len(self.training_data))
-                batch_mae = 0
-                batch_mae_std = 0
+                if self.para.run_config.config == 'classification':
+                    batch_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
+                    epoch_acc += batch_acc * (len(batch) / len(self.training_data))
                 # if num classes is one calculate the mae and mae_std or if the task is regression
-                if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
+                elif self.para.run_config.task == 'regression':
+                    batch_mae = 0
+                    batch_mae_std = 0
                     # flatten the labels and outputs
                     flatten_labels = labels.flatten().detach().cpu().numpy()
                     flatten_outputs = outputs.flatten().detach().cpu().numpy()
