@@ -395,6 +395,7 @@ def preprocess_graph_data(db_name, experiment_configuration):
     graph_data = get_graph_data(db_name=db_name, data_path=experiment_configuration['paths']['data'],
                                 task=experiment_configuration.get('task', 'graph_classification'),
                                 input_features=experiment_configuration.get('input_features', None),
+                                output_features=experiment_configuration.get('output_features', None),
                                 graph_format=experiment_configuration.get('format', 'NEL'))
     graph_data.set_precision(experiment_configuration.get('precision', 'double'))
     return graph_data

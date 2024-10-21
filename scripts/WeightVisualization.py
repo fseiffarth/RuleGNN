@@ -46,7 +46,9 @@ class WeightVisualization:
 
         self.graph_data = get_graph_data(db_name=db_name,
                                          data_path=self.experiment_config['paths']['data'],
-                                         input_features=self.experiment_config.get('input_features', None))
+                                         input_features=self.experiment_config.get('input_features', None),
+                                         output_features=self.experiment_config.get('output_features', None)
+                                            )
 
 
 

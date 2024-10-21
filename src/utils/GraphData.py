@@ -52,6 +52,20 @@ def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):
     labels.db_unique_node_labels = db_unique
     pass
 
+
+def transform_data(data, transformation_dict: Dict[str, Dict[str, str]]):
+    # reformat the output data, shift to positive values and make the values smaller
+    transformation_args = [{}]
+    if transformation_dict.get('transformation_args', None) is not None:
+        transformation_args = transformation_dict['transformation_args']
+    if type(transformation_dict['transformation']) == list:
+        for i, expression in enumerate(transformation_dict['transformation']):
+            data = eval(expression)(input=data, **transformation_args[i])
+    else:
+        data = eval(transformation_dict['transformation'])(input=data, **transformation_args)
+    return data
+
+
 class GraphData:
     def __init__(self):
         self.graph_db_name = ''
@@ -129,7 +143,7 @@ class GraphData:
             edge_labeling.num_unique_edge_labels = max(1, len(edge_labeling.db_unique_edge_labels))
             self.edge_labels[edge_labeling_name] = edge_labeling
 
-    def load_nel_graphs(self, db_name: str, path: Path, input_features=None, task=None, only_graphs=False):
+    def load_nel_graphs(self, db_name: str, path: Path, input_features=None, output_features=None, task=None, only_graphs=False):
         self.graph_db_name = db_name
         self.graphs, self.graph_labels = load_graphs(path.joinpath(Path(f'{db_name}/raw/')), db_name, graph_format='NEL')
         self.num_graphs = len(self.graphs)
@@ -144,6 +158,8 @@ class GraphData:
         if not only_graphs:
             if input_features is None:
                 input_features = {'name': 'node_labels', 'transformation': {'name': 'normalize'}}
+            if output_features is None:
+                output_features = {}
 
             use_labels = input_features.get('name', 'node_labels') == 'node_labels'
             use_constant = input_features.get('name', 'node_labels') == 'constant'
@@ -275,8 +291,9 @@ class GraphData:
             if task == 'regression':
                 self.output_data = torch.tensor(self.graph_labels)
                 self.output_data = self.output_data.unsqueeze(1)
-                # reformat the output data, shift to positive values and make the values smaller
-                #self.output_data = torch.pow(torch.exp(self.output_data), 1/4)
+                if output_features.get('transformation', None) is not None:
+                    self.output_data = transform_data(self.output_data, output_features)
+
                 self.output_feature_dimensions = 1
             else:
                 for i, label in enumerate(self.graph_labels):
@@ -329,14 +346,14 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, graph_format='NEL', only_graphs=False):
+def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, output_features=None, graph_format='NEL', only_graphs=False):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
     :param data_path: Path - path to the data
     :param task: str - task to perform on the data
     :param input_features: dict - input features
-    :param relabel_nodes: bool - whether to relabel nodes
+    :param output_features: dict - output features
     :param graph_format: str - format of the data NEL: node edge label format
     :param only_graphs: bool - whether to load only the graphs
 
@@ -344,7 +361,7 @@ def get_graph_data(db_name: str, data_path : Path, task='graph_classification', 
     # load the graph data
     graph_data = GraphData()
     if graph_format == 'NEL':
-        graph_data.load_nel_graphs(db_name=db_name, path=data_path, input_features=input_features, task=task, only_graphs=only_graphs)
+        graph_data.load_nel_graphs(db_name=db_name, path=data_path, input_features=input_features, output_features=output_features, task=task, only_graphs=only_graphs)
     # else:
     #     if db_name == 'CSL_original':
     #         from src.Preprocessing.csl import CSL
