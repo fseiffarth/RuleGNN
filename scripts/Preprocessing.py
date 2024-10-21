@@ -63,7 +63,7 @@ class Preprocessing:
                         print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
 
 
-        self.graph_data = get_graph_data(db_name=self.db_name, data_path=self.experiment_configuration['paths']['data'], graph_format='NEL')
+        self.graph_data = get_graph_data(db_name=self.db_name, data_path=self.experiment_configuration['paths']['data'], graph_format='NEL', only_graphs=True)
 
         if create_pt_files:
             pass # TODO: create pt files

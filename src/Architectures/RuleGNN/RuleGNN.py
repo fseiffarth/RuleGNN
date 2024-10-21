@@ -88,7 +88,7 @@ class RuleGNN(nn.Module):
         else:
             self.af = nn.Tanh()
 
-        if 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] == 'None':
+        if 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] in ['None', 'Identity', 'identity', 'Id']:
             self.out_af = nn.Identity()
         elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] in ['Relu', 'ReLU']:
             self.out_af = nn.ReLU()
@@ -109,23 +109,21 @@ class RuleGNN(nn.Module):
                 num_linear_layers = 1
             if num_linear_layers > 0:
                 if i < len(self.net_layers) - num_linear_layers:
-                    x = self.dropout(x)
                     x = self.af(layer(x, pos))
-                else:
                     x = self.dropout(x)
+                else:
                     # flatten the input
                     x = torch.flatten(x)
                     if i < len(self.net_layers) - 1:
                         x = self.af(layer(x))
+                        x = self.dropout(x)
                     else:
                         x = self.out_af(layer(x))
             else:
                 if i < len(self.net_layers) - 1:
-                    x = self.dropout(x)
                     x = self.af(layer(x, pos))
                     x = self.dropout(x)
                 else:
-                    x = self.dropout(x)
                     x = self.out_af(layer(x, pos))
         return torch.flatten(x)
 

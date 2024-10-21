@@ -136,9 +136,7 @@ class GraphData:
         self.avg_nodes = sum([g.number_of_nodes() for g in self.graphs]) / self.num_graphs
         self.avg_degree = sum([g.number_of_edges() for g in self.graphs]) / self.num_graphs
 
-        self.max_nodes = 0
-        for g in self.graphs:
-            self.max_nodes = max(self.max_nodes, g.number_of_nodes())
+        self.max_nodes = max([g.number_of_nodes() for g in self.graphs])
 
         self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
         self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
@@ -276,8 +274,9 @@ class GraphData:
 
             if task == 'regression':
                 self.output_data = torch.tensor(self.graph_labels)
-                # reformat the output data, add minimum +0.01 to avoid zero values and take the log
-                self.output_data = torch.pow(torch.exp(self.output_data), 1/4)
+                self.output_data = self.output_data.unsqueeze(1)
+                # reformat the output data, shift to positive values and make the values smaller
+                #self.output_data = torch.pow(torch.exp(self.output_data), 1/4)
                 self.output_feature_dimensions = 1
             else:
                 for i, label in enumerate(self.graph_labels):
