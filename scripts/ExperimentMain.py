@@ -79,19 +79,16 @@ class ExperimentMain:
                 c_id = f'Configuration_{str(config_id).zfill(6)}'
                 c_ids.append(c_id)
 
-            for i, run_config in enumerate(run_configs):
-                config_id = c_ids[i]
-                for run_id in range(dataset.get('num_runs', 1)):
-                    print(f"Run {run_id + 1} of {dataset.get('num_runs', 1)}")
-                    # find the best model hyperparameters using grid search and cross-validation
-                    print(f"Find the best hyperparameters for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_workers} number of parallel jobs")
-                    joblib.Parallel(n_jobs=num_workers)(
-                        joblib.delayed(self.run_models)(dataset=dataset,
-                                                        graph_data=graph_data,
-                                                        run_config=run_config,
-                                                        validation_id=validation_id,
-                                                        run_id=run_id,
-                                                        config_id=config_id) for validation_id in range(dataset.get('validation_folds', 10)))
+            # zip validation_id,  config_id and run_id to parallelize over them
+            run_loops = [(validation_id, run_id, c_id) for validation_id in range(dataset.get('validation_folds', 10)) for run_id in range(dataset.get('num_runs', 1)) for c_id in c_ids]
+            print(f"Run the grid search for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_workers} number of parallel jobs")
+            joblib.Parallel(n_jobs=num_workers)(
+                joblib.delayed(self.run_models)(dataset=dataset,
+                                                graph_data=graph_data,
+                                                run_config=run_loops[i][2],
+                                                validation_id=run_loops[i][0],
+                                                run_id=run_loops[i][1],
+                                                config_id=run_loops[i][2]) for i in range(len(run_loops)))
 
     def EvaluateResults(self, evaluate_best_model=False, evaluate_validation_only=False):
         '''
@@ -132,7 +129,7 @@ class ExperimentMain:
             # load the config file
             # run the best models
             # parallelize over (run_id, validation_id) pairs
-            evaluation_run_number = self.main_config.get('evaluation_run_number', 1)
+            evaluation_run_number = self.main_config.get('evaluation_run_number', 3)
             experiment_configuration = self.update_experiment_configuration(dataset)
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
             num_workers = experiment_configuration.get('num_workers', min(os.cpu_count(), len(parallelization_pairs)))
@@ -253,6 +250,8 @@ class ExperimentMain:
                 raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Models')} not found")
 
     def run_models(self, dataset, graph_data, run_config, validation_id=0, run_id=0, config_id=None):
+        # print the current configuration
+        print(f"Run the model for dataset {dataset['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
         para = Parameters()
         load_preprocessed_data_and_parameters(config_id=config_id,
                                               run_id=run_id,

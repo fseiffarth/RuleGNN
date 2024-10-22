@@ -24,32 +24,11 @@ early_stopping:
 networks:
   # mixed models
   - - { layer_type: subgraph, id: 0, properties: { name: distances, values: [ 3 ] }}
-    - { layer_type: wl, wl_iterations: 0}
+    - { layer_type: wl, wl_iterations: 1}
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:
 subgraphs:
   - "[nx.cycle_graph(4), nx.cycle_graph(5)]"
-
-
-# data options
-balance_training:
-  False
-
-# Additional options for analysis only possible in debug mode
-additional_options:
-  draw: # draw the accuracy and loss during training
-    True
-  save_weights: # save the weights of the model
-    False
-  save_prediction_values:
-    True
-  plot_graphs: # Plot all graphs in the dataset
-    False
-  print_results: # Print accuracy and loss in the console
-    True
-
-best_model:
-  False
 
 precision:
     double

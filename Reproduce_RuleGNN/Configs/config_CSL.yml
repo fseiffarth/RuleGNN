@@ -22,30 +22,9 @@ early_stopping:
   patience:
     25
 networks:
-
   # cycle models
   - - { layer_type: simple_cycles, max_cycle_length: 10, properties: { name: distances, values: [1]} }
     - { layer_type: simple_cycles, max_cycle_length: 10 }
 
-# data options
-balance_training:
-  False
-
-# Additional options for analysis only possible in debug mode
-additional_options:
-  draw: # draw the accuracy and loss during training
-    True
-  save_weights: # save the weights of the model
-    False
-  save_prediction_values:
-    True
-  plot_graphs: # Plot all graphs in the dataset
-    False
-  print_results: # Print accuracy and loss in the console
-    True
-
 precision:
   double
-
-best_model:
-  False
