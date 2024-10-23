@@ -22,9 +22,19 @@ early_stopping:
   patience:
     25
 networks:
-  # mixed models
-  - - { layer_type: subgraph, id: 0, properties: { name: distances, values: [ 3 ] }}
-    - { layer_type: wl, wl_iterations: 1}
+  - - { layer_type: convolution ,
+        labels: [
+          { label_type: subgraph, id: 0 }
+        ],
+        properties: [
+          { name: distances, values: [ 3 ] }
+        ]
+  }
+    - { layer_type: aggregation,
+        labels: [
+          { label_type: wl, depth: [0, 1] }
+        ]
+    }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:
 subgraphs:

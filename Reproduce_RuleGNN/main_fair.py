@@ -18,12 +18,12 @@ def main():
     get_existing_splits()
 
     ### Synthetic Data
-    experiment_synthetic = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml'))
-    experiment_synthetic.Preprocess()
-    experiment_synthetic.GridSearch()
-    experiment_synthetic.EvaluateResults()
-    experiment_synthetic.RunBestModel()
-    experiment_synthetic.EvaluateResults(evaluate_best_model=True)
+    #experiment_synthetic = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml'))
+    #experiment_synthetic.Preprocess()
+    #experiment_synthetic.GridSearch()
+    #experiment_synthetic.EvaluateResults()
+    #experiment_synthetic.RunBestModel()
+    #experiment_synthetic.EvaluateResults(evaluate_best_model=True)
 
     ### Real World Data
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))

@@ -230,7 +230,7 @@ def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None
         graph_data.add_node_labels(node_labeling_name=l, max_labels=max_labels,
                                    node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
                                    depth=depth)
-        node_labels = graph_data.node_labels[f'{l}_{max_labels}'].node_labels
+        node_labels = graph_data.node_labels[l].node_labels
 
         write_node_labels(file, node_labels)
         if save_times is not None:

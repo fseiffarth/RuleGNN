@@ -97,7 +97,7 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
                               n_epochs=run_config.epochs,
                               learning_rate=run_config.lr,
                               dropout=run_config.dropout,
-                              balance_data=run_config.config['balance_training'],
+                              balance_data=run_config.config.get('balance_data', False),
                               convolution_grad=True,
                               resize_graph=True)
 

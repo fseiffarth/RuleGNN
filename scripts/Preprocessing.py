@@ -158,8 +158,9 @@ class Preprocessing:
         for run_config in run_configs:
             for layer in run_config.layers:
                 for property_dict in layer.get_unique_property_dicts():
-                    property_dict.pop('values')
-                    json_property = json.dumps(property_dict, sort_keys=True)
+                    p_dict = property_dict.copy()
+                    p_dict.pop('values')
+                    json_property = json.dumps(p_dict, sort_keys=True)
                     preprocessed_properties.add(json_property)
                 for label_dict in layer.get_unique_layer_dicts():
                     json_layer = json.dumps(label_dict, sort_keys=True)

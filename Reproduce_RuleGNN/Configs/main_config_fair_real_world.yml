@@ -1,9 +1,9 @@
 datasets:
   # real-world datasets
   - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset"}
   - {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
   - {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
-  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset"}
   - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
   - {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
 
@@ -59,4 +59,4 @@ weight_initialization: { convolution: { type: 'uniform', minval: -0.01, maxval: 
 input_features: { name: node_labels, transformation: normalize }
 
 # num_workers: number of workers used
-num_workers: 30
+num_workers: 10

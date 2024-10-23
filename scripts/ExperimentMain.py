@@ -48,9 +48,9 @@ class ExperimentMain:
 
 
     def GridSearch(self):
-        '''
+        """
         Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
-        '''
+        """
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
@@ -70,35 +70,35 @@ class ExperimentMain:
                                    dataset['name'])
 
             run_configs = get_run_configs(experiment_configuration)
-            c_ids = []
-            for config_id, run_config in enumerate(run_configs):
-                if 'config_id' in experiment_configuration:
-                    # if config_id is provided in the config file, add it to the current config_id
-                    config_id += experiment_configuration['config_id']
+            config_id_names = {}
+            for idx, run_config in enumerate(run_configs):
+                config_id = idx + experiment_configuration.get('config_id', 0)
                 # config_id to string with leading zeros
-                c_id = f'Configuration_{str(config_id).zfill(6)}'
-                c_ids.append(c_id)
+                config_id_names[idx] = f'Configuration_{str(config_id).zfill(6)}'
+            # print the number of run configurations to be tested
+            print(f"Number of hyperparameter configurations: {len(run_configs)}")
 
             # zip validation_id,  config_id and run_id to parallelize over them
-            run_loops = [(validation_id, run_id, c_id) for validation_id in range(dataset.get('validation_folds', 10)) for run_id in range(dataset.get('num_runs', 1)) for c_id in c_ids]
+            run_loops = [(validation_id, run_id, c_idx) for validation_id in range(dataset.get('validation_folds', 10)) for run_id in range(dataset.get('num_runs', 1)) for c_idx in range(len(run_configs))]
+            num_workers = min(num_workers, len(run_loops))
             print(f"Run the grid search for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_workers} number of parallel jobs")
             joblib.Parallel(n_jobs=num_workers)(
                 joblib.delayed(self.run_models)(dataset=dataset,
                                                 graph_data=graph_data,
-                                                run_config=run_loops[i][2],
+                                                run_config=run_configs[run_loops[i][2]],
                                                 validation_id=run_loops[i][0],
                                                 run_id=run_loops[i][1],
-                                                config_id=run_loops[i][2]) for i in range(len(run_loops)))
+                                                config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
 
     def EvaluateResults(self, evaluate_best_model=False, evaluate_validation_only=False):
-        '''
+        """
         Evaluate the results of the experiments for all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
         parameters:
         - dataset_names: list of strings with the names of the datasets to evaluate
         - evaluation_type: string with the type of evaluation to perform. Default is 'accuracy'. Other options are 'loss'. For accuracy, take the best model according to the validation accuracy. For loss, take the best model according to the validation loss.
         - evaluate_best_model: boolean to evaluate the best model of the experiment. Default is False. If False, evaluate the results of the experiment.
         - evaluate_validation_only: boolean to evaluate only on the validation set. Returns the epoch with the best validation accuracy/loss. Default is False.
-        '''
+        """
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
@@ -116,9 +116,9 @@ class ExperimentMain:
                                        evaluate_validation_only=evaluate_validation_only)
 
     def RunBestModel(self):
-        '''
+        """
         Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
-        '''
+        """
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
@@ -171,6 +171,7 @@ class ExperimentMain:
         # parallelize over the datasets
         if num_jobs == -1:
             num_jobs = min(len(self.main_config['datasets']), os.cpu_count())
+            num_jobs = self.main_config.get('num_workers', num_jobs)
         joblib.Parallel(n_jobs=num_jobs)(joblib.delayed(self.PreprocessParallel)(dataset_configuration) for dataset_configuration in self.main_config['datasets'])
 
     def PreprocessParallel(self, dataset_configuration):

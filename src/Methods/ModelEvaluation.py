@@ -379,7 +379,7 @@ class ModelEvaluation:
     def evaluate_results(self, epoch: int, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues, evaluation_type, outputs=None, labels=None, batch_idx=0, batch_length=0, num_batches=0):
         if evaluation_type == 'training':
             batch_acc = 0
-            if self.para.run_config.config == 'classification':
+            if self.para.run_config.task == 'classification':
                 batch_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
                 train_values.accuracy += batch_acc * (batch_length / len(self.training_data))
             # if num classes is one calculate the mae and mae_std or if the task is regression
@@ -402,7 +402,7 @@ class ModelEvaluation:
                                                                                                          self.para.n_epochs,
                                                                                                          batch_idx + 1,
                                                                                                          num_batches,
-                                                                                                         train_values.running_loss,
+                                                                                                         train_values.loss,
                                                                                                          batch_acc,
                                                                                                          train_values.mae,
                                                                                                          train_values.mae_std))
@@ -410,7 +410,7 @@ class ModelEvaluation:
                     print("\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} % ".format(epoch + 1, self.para.n_epochs,
                                                                                       batch_idx + 1,
                                                                                       num_batches,
-                                                                                      train_values.running_loss, batch_acc))
+                                                                                      train_values.loss, batch_acc))
             self.para.count += 1
 
             if self.para.save_prediction_values:

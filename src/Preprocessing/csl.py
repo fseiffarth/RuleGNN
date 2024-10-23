@@ -28,7 +28,7 @@ class CSL:
         self.graphs.graphs = nx_graphs
         self.graphs.num_graphs = len(nx_graphs)
         self.graphs.num_classes = len(set(labels))
-        self.graphs.graph_db_name = "CSL_original"
+        self.graphs.graph_db_name = "CSL"
         self.graphs.input_data = [torch.ones(g.number_of_nodes()).double() for g in nx_graphs]
         if with_distances:
             self.graphs.distance_list = []
@@ -41,8 +41,8 @@ class CSL:
         self.graphs.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
         self.graphs.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
         # add wl_0, wl_1 labels
-        self.graphs.add_node_labels(node_labeling_name='wl_0', node_labeling_method=NodeLabeling.degree_node_labeling)
-        self.graphs.add_node_labels(node_labeling_name='wl_1', node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling, max_iterations=1)
+        #self.graphs.add_node_labels(node_labeling_name='wl_0', node_labeling_method=NodeLabeling.degree_node_labeling)
+        #self.graphs.add_node_labels(node_labeling_name='wl_1', node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling, max_iterations=1)
         return self.graphs
 
 

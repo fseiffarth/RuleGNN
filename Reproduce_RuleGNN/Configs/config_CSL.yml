@@ -22,9 +22,19 @@ early_stopping:
   patience:
     25
 networks:
-  # cycle models
-  - - { layer_type: simple_cycles, max_cycle_length: 10, properties: { name: distances, values: [1]} }
-    - { layer_type: simple_cycles, max_cycle_length: 10 }
+  - - { layer_type: convolution ,
+        labels: [
+          { label_type: simple_cycles, max_cycle_length: [ 10 ] }
+        ],
+        properties: [
+          { name: distances, values: [ 1 ] }
+        ]
+  }
+    - { layer_type: aggregation,
+        labels: [
+          { label_type: simple_cycles, max_cycle_length: [ 10 ] }
+        ]
+    }
 
 precision:
   double

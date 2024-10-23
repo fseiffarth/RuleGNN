@@ -21,8 +21,3 @@ def Load_Splits(path, db_name, transfer=None):
     vali_indices = [x['model_selection'][0]['validation'] for x in splits]
 
     return test_indices, train_indices, vali_indices
-
-
-if __name__ == "__main__":
-    splits = Load_Splits("NCI1")
-    print(splits)
