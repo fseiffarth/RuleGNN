@@ -23,6 +23,17 @@ early_stopping:
   patience:
     25
 
-# determine how the input features should be transformed
-input_features: # choose from node_labels, node_features,
-  {name: node_labels, transformation: normalize} # use node labels and normalize them
+weight_initialization: { convolution: { type: 'lower_upper' },
+                         convolution_bias: { type: 'constant', value: 0.0 },
+                         aggregation: { type: 'lower_upper' },
+                         aggregation_bias: { type: 'constant', value: 0.0 }}
+
+# input_features: determine how the input features should be transformed, the following options show some examples
+#  - {name: constant, value: 1.0}, use a constant value as input feature
+#  - {name: node_labels, transformation: normalize}, use node labels and normalize them between -1 and 1
+#  - {name: node_labels, transformation: normalize_positive}, use node labels and normalize them between 0 and 1
+#  - {name: node_labels, transformation: unit_circle, features_as_channels: True}, use node labels mapped to the 2D unit circle, use features as channels
+#  - {name: node_labels, transformation: one_hot, features_as_channels: True}, use node labels and transform them to one-hot encoding
+#  - {name: node_features, features_as_channels: True}, use node features as input, use features as channels
+#  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
+input_features: { name: node_labels, transformation: normalize }

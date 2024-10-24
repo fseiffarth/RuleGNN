@@ -42,10 +42,9 @@ output_activation: 'tanh'
 rule_occurrence_threshold: { type: 'graph', threshold: 1 }
 
 
-# weight initialization: weight initialization for the network
-weight_initialization: { convolution: { type: 'uniform', min: -0.01, max: 0.01 },
+weight_initialization: { convolution: { type: 'lower_upper' },
                          convolution_bias: { type: 'constant', value: 0.0 },
-                         aggregation: { type: 'uniform', min: -0.01, max: 0.01 },
+                         aggregation: { type: 'lower_upper' },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 # input_features: determine how the input features should be transformed, the following options show some examples
