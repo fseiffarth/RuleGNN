@@ -17,8 +17,8 @@ def get_existing_splits():
 def main():
     get_existing_splits()
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_sota_comparison.yml'))
-    experiment.Preprocess()
-    experiment.GridSearch()
+    #experiment.Preprocess()
+    #experiment.GridSearch()
     experiment.EvaluateResults(evaluate_validation_only=True)
 
 if __name__ == '__main__':

@@ -25,4 +25,4 @@ early_stopping:
 
 # determine how the input features should be transformed
 input_features: # choose from node_labels, node_features,
-  {name: "node_labels", transformation: "normalize"} # use node labels and normalize them
+  {name: node_labels, transformation: normalize} # use node labels and normalize them

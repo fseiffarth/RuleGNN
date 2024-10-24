@@ -79,26 +79,25 @@ class RuleGNN(nn.Module):
                               out_dim, bias=True).type(self.module_precision).requires_grad_(True))
 
         self.dropout = nn.Dropout(dropout)
-        if 'activation' in para.run_config.config and para.run_config.config['activation'] == 'None':
-            self.af = nn.Identity()
-        elif 'activation' in para.run_config.config and para.run_config.config['activation'] in ['Relu', 'ReLU']:
-            self.af = nn.ReLU()
-        elif 'activation' in para.run_config.config and para.run_config.config['activation'] in ['LeakyRelu', 'LeakyReLU']:
-            self.af = nn.LeakyReLU()
-        else:
-            self.af = nn.Tanh()
-
-        if 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] in ['None', 'Identity', 'identity', 'Id']:
-            self.out_af = nn.Identity()
-        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] in ['Relu', 'ReLU']:
-            self.out_af = nn.ReLU()
-        elif 'output_activation' in para.run_config.config and para.run_config.config['output_activation'] in ['LeakyRelu', 'LeakyReLU']:
-            self.out_af = nn.LeakyReLU()
-        else:
-            self.out_af = nn.Tanh()
+        self.af = self.get_activation_function('activation')
+        self.out_af = self.get_activation_function('output_activation')
 
         self.epoch = 0
         self.timer = TimeClass()
+
+    def get_activation_function(self, key):
+        if key in self.para.run_config.config and self.para.run_config.config[key] in ['None', 'Identity', 'identity', 'Id']:
+            return nn.Identity()
+        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Relu', 'ReLU']:
+            return nn.ReLU()
+        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['LeakyRelu', 'LeakyReLU']:
+            return nn.LeakyReLU()
+        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Tanh', 'tanh']:
+            return nn.Tanh()
+        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Sigmoid', 'sigmoid']:
+            return nn.Sigmoid()
+        else:
+            return nn.Identity()
 
     def forward(self, x, pos):
         for i, layer in enumerate(self.net_layers):

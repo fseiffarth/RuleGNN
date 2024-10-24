@@ -1,7 +1,3 @@
-from platform import architecture
-
-from click import option
-
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
 class RunConfiguration:
     def __init__(self, config, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, weight_decay, loss, task="classification"):

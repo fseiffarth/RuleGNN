@@ -43,9 +43,9 @@ rule_occurrence_threshold: { type: 'graph', threshold: 1 }
 
 
 # weight initialization: weight initialization for the network
-weight_initialization: { convolution: { type: 'uniform', minval: -0.01, maxval: 0.01 },
+weight_initialization: { convolution: { type: 'uniform', min: -0.01, max: 0.01 },
                          convolution_bias: { type: 'constant', value: 0.0 },
-                         aggregation: { type: 'uniform', minval: -0.01, maxval: 0.01 },
+                         aggregation: { type: 'uniform', min: -0.01, max: 0.01 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 # input_features: determine how the input features should be transformed, the following options show some examples
@@ -54,7 +54,7 @@ weight_initialization: { convolution: { type: 'uniform', minval: -0.01, maxval: 
 #  - {name: node_labels, transformation: normalize_positive}, use node labels and normalize them between 0 and 1
 #  - {name: node_labels, transformation: unit_circle, features_as_channels: True}, use node labels mapped to the 2D unit circle, use features as channels
 #  - {name: node_labels, transformation: one_hot, features_as_channels: True}, use node labels and transform them to one-hot encoding
-#  - {name: node_features, features_as_channels: True}, use node features as inpu, use features as channels
+#  - {name: node_features, features_as_channels: True}, use node features as input, use features as channels
 #  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
 input_features: { name: node_labels, transformation: normalize }
 

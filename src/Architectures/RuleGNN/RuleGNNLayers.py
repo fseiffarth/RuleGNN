@@ -397,14 +397,22 @@ class RuleConvolutionLayer(nn.Module):
         weights = nn.Parameter(torch.zeros(num_weights, dtype=self.precision), requires_grad=True)
         weight_init = self.para.run_config.config.get('weight_initialization', None)
         if weight_init is not None:
-            init_type = weight_init.get(init_type, None)
-            if init_type is not None:
-                if init_type.get('type', None) == 'uniform':
-                    torch.nn.init.uniform_(weights, a=init_type.get('min', 0.0), b=init_type.get('max', 1.0))
-                elif init_type.get('type', None) == 'normal':
-                    torch.nn.init.normal_(weights, mean=init_type.get('mean', 0.0), std=init_type.get('std', 1.0))
-                elif init_type.get('type', None) == 'constant':
-                    torch.nn.init.constant_(weights, init_type.get('value', 0.01))
+            weight_initialization = weight_init.get(init_type, None)
+            if weight_initialization is not None:
+                if weight_initialization.get('type', None) == 'uniform':
+                    torch.nn.init.uniform_(weights, a=weight_initialization.get('min', 0.0), b=weight_initialization.get('max', 1.0))
+                elif weight_initialization.get('type', None) == 'normal':
+                    torch.nn.init.normal_(weights, mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0))
+                elif weight_initialization.get('type', None) == 'constant':
+                    torch.nn.init.constant_(weights, weight_initialization.get('value', 0.01))
+                elif weight_initialization.get('type', None) == 'lower_upper':
+                    # calculate the range for the weights
+                    lower, upper = -(1.0 / np.sqrt(num_weights)), (1.0 / np.sqrt(num_weights))
+                    weights = nn.Parameter(lower + torch.randn(num_weights, dtype=self.precision) * (upper - lower))
+                elif weight_initialization.get('type', None) == 'he':
+                    std = np.sqrt(2.0 / num_weights)
+                    weights = nn.Parameter(torch.randn(num_weights, dtype=self.precision) * std)
+
             else:
                 torch.nn.init.constant_(weights, 0.01)
         else:
@@ -778,15 +786,15 @@ class RuleAggregationLayer(nn.Module):
         weights = nn.Parameter(torch.zeros(shape, dtype=self.precision), requires_grad=True)
         weight_init = self.para.run_config.config.get('weight_initialization', None)
         if weight_init is not None:
-            init_type = weight_init.get(init_type, None)
-            if init_type is not None:
-                if init_type.get('type', None) == 'uniform':
-                    torch.nn.init.uniform_(weights, a=init_type.get('min', 0.0), b=init_type.get('max', 1.0))
-                elif init_type.get('type', None) == 'normal':
-                    torch.nn.init.normal_(weights, mean=init_type.get('mean', 0.0), std=init_type.get('std', 1.0))
-                elif init_type.get('type', None) == 'constant':
-                    torch.nn.init.constant_(weights, init_type.get('value', 0.01))
-                elif init_type.get('type', None) == 'lower_upper':
+            weight_initialization = weight_init.get(init_type, None)
+            if weight_initialization is not None:
+                if weight_initialization.get('type', None) == 'uniform':
+                    torch.nn.init.uniform_(weights, a=weight_initialization.get('min', 0.0), b=weight_initialization.get('max', 1.0))
+                elif weight_initialization.get('type', None) == 'normal':
+                    torch.nn.init.normal_(weights, mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0))
+                elif weight_initialization.get('type', None) == 'constant':
+                    torch.nn.init.constant_(weights, weight_initialization.get('value', 0.01))
+                elif weight_initialization.get('type', None) == 'lower_upper':
                     # calculate the range for the weights
                     lower, upper = -(1.0 / np.sqrt(num_weights)), (1.0 / np.sqrt(num_weights))
                     weights = nn.Parameter(lower + torch.randn(self.weight_num, dtype=self.precision) * (upper - lower))
