@@ -56,4 +56,4 @@ weight_initialization: { convolution: { type: 'lower_upper' },
 input_features: { name: node_labels, transformation: normalize }
 
 # num_workers: number of workers used
-num_workers: 30
+num_workers: 10
