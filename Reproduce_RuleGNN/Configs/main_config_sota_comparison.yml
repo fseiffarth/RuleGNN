@@ -37,3 +37,6 @@ weight_initialization: { convolution: { type: 'lower_upper' },
 #  - {name: node_features, features_as_channels: True}, use node features as input, use features as channels
 #  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
 input_features: { name: node_labels, transformation: normalize }
+
+# num_workers: number of workers used
+num_workers: 10

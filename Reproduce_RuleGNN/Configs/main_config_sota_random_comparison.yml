@@ -31,3 +31,6 @@ weight_initialization: { convolution: { type: 'lower_upper' },
 # determine how the input features should be transformed
 input_features: # choose from node_labels, node_features,
   { name: constant, value: 0.0, random_variation: { mean: 0.0, variance: 0.5 } }
+
+# num_workers: number of workers used
+num_workers: 10
