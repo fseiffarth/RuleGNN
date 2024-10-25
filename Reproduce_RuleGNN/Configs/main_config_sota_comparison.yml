@@ -23,6 +23,28 @@ early_stopping:
   patience:
     25
 
+# network options
+# bias: Turn on or off the bias in all layers
+bias: True
+
+# convolution_grad: Turn on or off learning for the convolutional layers
+convolution_grad: True
+
+# aggregation_grad: Turn on or off learning for the aggregation layer
+aggregation_grad: True
+
+# activation: activation function for the convolutional layers
+activation: 'tanh'
+
+# output_activation: activation function for the output layer
+output_activation: 'LeakyReLU'
+
+# rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
+# -type: [graph, total], graph: the rule has to be present in a graph, total: the rule has to be present in the whole dataset
+# -threshold: the threshold for the rule occurrence at least this many times
+rule_occurrence_threshold: { type: 'graph', threshold: 1 }
+
+
 weight_initialization: { convolution: { type: 'lower_upper' },
                          convolution_bias: { type: 'constant', value: 0.0 },
                          aggregation: { type: 'lower_upper' },

@@ -163,8 +163,7 @@ class ExperimentMain:
                                  Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
         # update the experiment configuration with the global keys
         for key in self.main_config:
-            if key not in experiment_configuration and key != 'datasets':
-                experiment_configuration[key] = self.main_config[key]
+            experiment_configuration[key] = self.main_config[key]
         return experiment_configuration
 
     def Preprocess(self, num_jobs=-1):
