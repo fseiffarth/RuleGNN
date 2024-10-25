@@ -55,14 +55,19 @@ class ModelEvaluation:
             # set the inputs in graph_data to double precision
             self.graph_data.input_data = [x.double() for x in self.graph_data.input_data]
 
-    def Run(self, run_seed: int = 687497):
+    def Run(self, run_seed: int = 687497, net=None):
         """
         Set up the network
+        parameters:
+        run_seed: int -> seed for the run
+        net: RuleGNN -> if not None use a pretrained network
         """
-
-        self.net = RuleGNN.RuleGNN(graph_data=self.graph_data,
-                              para=self.para,
-                              seed=self.seed, device=self.device)
+        if net is not None:
+            self.net = net
+        else:
+            self.net = RuleGNN.RuleGNN(graph_data=self.graph_data,
+                                  para=self.para,
+                                  seed=self.seed, device=self.device)
         # set the network to device
         self.net.to(self.device)
 

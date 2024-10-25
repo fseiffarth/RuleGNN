@@ -32,5 +32,14 @@ def main():
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
+    net = experiment.load_model('PTC_MR_PTC_FM', 0, 0, 0)
+
+    experiment_finetune = ExperimentMain(Path('Examples/Transfer/Configs/config_finetune.yml'))
+    experiment_finetune.Preprocess()
+    experiment_finetune.GridSearch()
+    experiment_finetune.EvaluateResults()
+    experiment_finetune.RunBestModel()
+    experiment_finetune.EvaluateResults(evaluate_best_model=True)
+
 if __name__ == '__main__':
     main()

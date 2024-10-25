@@ -47,7 +47,7 @@ class ExperimentMain:
         self.check_config_consistency()
 
 
-    def GridSearch(self):
+    def GridSearch(self, net=None):
         """
         Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
         """
@@ -88,7 +88,8 @@ class ExperimentMain:
                                                 run_config=run_configs[run_loops[i][2]],
                                                 validation_id=run_loops[i][0],
                                                 run_id=run_loops[i][1],
-                                                config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
+                                                config_id=config_id_names[run_loops[i][2]],
+                                                net=net) for i in range(len(run_loops)))
 
     def EvaluateResults(self, evaluate_best_model=False, evaluate_validation_only=False):
         """
@@ -249,7 +250,7 @@ class ExperimentMain:
             except:
                 raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Models')} not found")
 
-    def run_models(self, dataset, graph_data, run_config, validation_id=0, run_id=0, config_id=None):
+    def run_models(self, dataset, graph_data, run_config, validation_id=0, run_id=0, config_id=None, net=None):
         # print the current configuration
         print(f"Run the model for dataset {dataset['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
         para = Parameters()
@@ -272,7 +273,7 @@ class ExperimentMain:
         """
         Run the method
         """
-        method.Run()
+        method.Run(net)
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True):
         experiment_configuration = self.experiment_configurations[db_name]
