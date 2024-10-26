@@ -17,7 +17,7 @@ paths:
   splits:
     "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "Reproduce_RuleGNN/Results/" # Results will be saved in this folder
+    "Reproduce_RuleGNN/Results/Synthetic/" # Results will be saved in this folder
 
 # network options
 # bias: Turn on or off the bias in all layers
