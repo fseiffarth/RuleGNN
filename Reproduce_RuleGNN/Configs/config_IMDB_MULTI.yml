@@ -1,5 +1,5 @@
 loss:
-  - BCE
+  - CrossEntropyLoss
 networks:
   - - { layer_type: convolution ,
         labels: [

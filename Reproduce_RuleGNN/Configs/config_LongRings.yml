@@ -1,26 +1,5 @@
-device:
-  cpu
-mode:
-  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
-batch_size:
-  - 128
-learning_rate:
-  - 0.1
-epochs:
-  - 200
-scheduler:
-  False
-dropout:
-  - 0.0
-optimizer:
-  - Adam
 loss:
   - CrossEntropyLoss
-early_stopping:
-  enabled:
-    False
-  patience:
-    25
 networks:
   # mixed models
   - - { layer_type: convolution ,
@@ -37,5 +16,4 @@ networks:
         ]
     }
 
-precision:
-  double
+input_features: {name: node_labels, transformation: normalize_positive}

@@ -82,13 +82,32 @@ class ModelEvaluation:
             self.criterion = nn.MSELoss()
         elif self.para.run_config.loss in ['L1Loss', 'l1', 'L1', 'mean_absolute_error', 'mae', 'MAE', 'MeanAbsoluteError']:
             self.criterion = nn.L1Loss()
+        elif self.para.run_config.loss in ['BCELoss', 'bce', 'BCE']:
+            self.criterion = nn.BCELoss()
+        elif self.para.run_config.loss in ['BCEWithLogitsLoss', 'bce_with_logits', 'BCEWithLogits']:
+            self.criterion = nn.BCEWithLogitsLoss()
         else:
             self.criterion = nn.CrossEntropyLoss()
 
         """
         Set up the optimizer
         """
-        self.optimizer = optim.Adam(self.net.parameters(), lr=self.para.learning_rate, weight_decay=self.para.run_config.weight_decay)
+        if self.para.run_config.optimizer == 'Adam':
+            opt = optim.Adam
+        elif self.para.run_config.optimizer == 'AdamW':
+            opt = optim.AdamW
+        elif self.para.run_config.optimizer == 'SGD':
+            opt = optim.SGD
+        elif self.para.run_config.optimizer == 'RMSprop':
+            opt = optim.RMSprop
+        elif self.para.run_config.optimizer == 'Adadelta':
+            opt = optim.Adadelta
+        elif self.para.run_config.optimizer == 'Adagrad':
+            opt = optim.Adagrad
+        else:
+            opt = optim.Adam
+
+        self.optimizer = opt(self.net.parameters(), lr=self.para.learning_rate, weight_decay=self.para.run_config.weight_decay)
 
         self.preprocess_writer()
 

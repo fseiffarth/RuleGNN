@@ -96,6 +96,8 @@ class RuleGNN(nn.Module):
             return nn.Tanh()
         elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Sigmoid', 'sigmoid']:
             return nn.Sigmoid()
+        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Softmax', 'softmax']:
+            return nn.Softmax()
         else:
             return nn.Identity()
 
