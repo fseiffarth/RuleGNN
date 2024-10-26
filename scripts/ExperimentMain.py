@@ -29,9 +29,9 @@ class ExperimentMain:
     - main_config_path: path to the main config file
     - net: neural network model to run the experiments. Default is None. Otherwise use the given model as starting point.
     """
-    def __init__(self, main_config_path: os.path, net=None):
+    def __init__(self, main_config_path: os.path, pretrained_network=None):
         self.main_config_path = main_config_path
-        self.net = net
+        self.pretrained_network = pretrained_network
         if not os.path.exists(main_config_path):
             raise FileNotFoundError(f"Config file {main_config_path} not found")
         try:
@@ -276,7 +276,7 @@ class ExperimentMain:
         """
         Run the method
         """
-        method.Run(self.net)
+        method.Run(pretrained_network=self.pretrained_network)
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True):
         experiment_configuration = self.experiment_configurations[db_name]

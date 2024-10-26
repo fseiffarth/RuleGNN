@@ -353,13 +353,18 @@ class RuleConvolutionLayer(nn.Module):
         # consider only the rules that appear in the dataset
         weight_occurences = np.zeros(np.sum(self.weight_num))
         for graph_id, graph_weight_pos in enumerate(self.weight_distribution):
-            weight_pos = graph_weight_pos[:, 3]
-            if self.para.run_config.config.get('rule_occurrence_threshold', {'type': 'graph', 'threshold': 1})['type'] == 'graph':
-                # get set of weight pos to determine the occurrence of the rules in different graphs
-                weight_pos = np.array(list(set(weight_pos)))
-            # in weight_array add 1 where the index is in weight_pos
-            for pos in weight_pos:
-                weight_occurences[pos] += 1
+            if graph_weight_pos.size != 0:
+                weight_pos = graph_weight_pos[:, 3]
+                if self.para.run_config.config.get('rule_occurrence_threshold', {'type': 'graph', 'threshold': 1})[
+                    'type'] == 'graph':
+                    # get set of weight pos to determine the occurrence of the rules in different graphs
+                    weight_pos = np.array(list(set(weight_pos)))
+                # in weight_array add 1 where the index is in weight_pos
+                for pos in weight_pos:
+                    weight_occurences[pos] += 1
+            else:
+                pass
+
         # get all the weights that occur at least threshold times
         threshold = self.para.run_config.config.get('rule_occurrence_threshold', {'type': 'graph', 'threshold': 1})['threshold']
         threshold_positions = np.where(weight_occurences >= threshold)
@@ -373,10 +378,13 @@ class RuleConvolutionLayer(nn.Module):
         # modify the weight distribution to only contain the non-zero weights
         new_weight_distribution = []
         for graph_id, graph_weight_pos in enumerate(self.weight_distribution):
-            new_weight_pos = self.threshold_weight_map[graph_weight_pos[:, 3]]
-            valid_indices = np.where(new_weight_pos != -1)
-            valid_positions = graph_weight_pos[valid_indices][:, 0:3]
-            new_weight_distribution.append(np.concatenate((valid_positions, new_weight_pos[valid_indices].reshape(-1, 1)), axis=1))
+            if graph_weight_pos.size != 0:
+                new_weight_pos = self.threshold_weight_map[graph_weight_pos[:, 3]]
+                valid_indices = np.where(new_weight_pos != -1)
+                valid_positions = graph_weight_pos[valid_indices][:, 0:3]
+                new_weight_distribution.append(np.concatenate((valid_positions, new_weight_pos[valid_indices].reshape(-1, 1)), axis=1))
+            else:
+                new_weight_distribution.append(np.array([]))
         self.weight_distribution = new_weight_distribution
 
         # set 0 entries in self.in_edges to 1 to avoid division by zero
