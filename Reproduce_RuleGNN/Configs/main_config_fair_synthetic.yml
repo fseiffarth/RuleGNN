@@ -24,6 +24,11 @@ mode: experiments # if debug printing and plotting options are enabled, for the 
 precision: double
 
 # network options
+
+# optimizer: optimizer for the network
+optimizer:
+  - Adam
+
 # bias: Turn on or off the bias in all layers
 bias: True
 
@@ -66,7 +71,7 @@ weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
 batch_size:
   - 32
 learning_rate:
-  - 0.1
+  - 0.01
 epochs:
   - 200
 

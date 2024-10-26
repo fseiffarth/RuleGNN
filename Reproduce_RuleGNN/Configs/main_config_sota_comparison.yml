@@ -22,6 +22,11 @@ mode: experiments # if debug printing and plotting options are enabled, for the 
 precision: double
 
 # network options
+
+# optimizer: optimizer for the network
+optimizer:
+  - Adam
+
 # bias: Turn on or off the bias in all layers
 bias: True
 

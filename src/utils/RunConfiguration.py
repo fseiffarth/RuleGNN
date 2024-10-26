@@ -136,7 +136,7 @@ def get_run_configs(experiment_configuration):
             for lr in experiment_configuration.get('learning_rate', [0.001]):
                 for e in experiment_configuration.get('epochs', [100]):
                     for d in experiment_configuration.get('dropout', [0.0]):
-                        for o in experiment_configuration.get('optimizer', 'Adam'):
+                        for o in experiment_configuration.get('optimizer', ['Adam']):
                             for w in experiment_configuration.get('weight_decay', [0.0]):
                                 for loss in experiment_configuration.get('loss', ['CrossEntropyLoss']):
                                     run_configs.append(

@@ -19,4 +19,4 @@ networks:
 subgraphs:
   - "[nx.cycle_graph(4), nx.cycle_graph(5)]"
 
-input_features: {name: node_labels, transformation: normalize_positive}
+input_features: {name: node_labels, transformation: normalize}

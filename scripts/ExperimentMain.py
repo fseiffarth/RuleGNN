@@ -43,8 +43,8 @@ class ExperimentMain:
         for dataset in self.main_config['datasets']:
             experiment_configuration = self.update_experiment_configuration(dataset)
             experiment_configuration['format'] = 'NEL'
-            self.experiment_configurations[dataset['name']] = experiment_configuration
-            self.dataset_configs[dataset['name']] = dataset
+            self.experiment_configurations[dataset['name']] = experiment_configuration.copy()
+            self.dataset_configs[dataset['name']] = dataset.copy()
 
 
 
@@ -179,8 +179,7 @@ class ExperimentMain:
 
     def PreprocessParallel(self, dataset_configuration):
         db_name = dataset_configuration['name']
-        experiment_config_file = dataset_configuration['experiment_config_file']
-        experiment_configuration = yaml.load(open(experiment_config_file), Loader=yaml.FullLoader)
+        experiment_configuration = self.experiment_configurations[db_name]
         data_generation = None
         data_generation_args = None
         if 'type' in dataset_configuration:
