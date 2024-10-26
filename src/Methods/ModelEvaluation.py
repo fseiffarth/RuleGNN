@@ -129,7 +129,7 @@ class ModelEvaluation:
         seeds = np.reshape(seeds, (self.para.n_epochs, self.para.n_val_runs))
         for epoch in range(self.para.n_epochs):
             # Test stopping criterion
-            if self.para.run_config.config['early_stopping']['enabled']:
+            if self.para.run_config.config.get('early_stopping', {'enabled' : False})['enabled']:
                 if epoch - self.best_epoch["epoch"] > self.para.run_config.config['early_stopping']['patience']:
                     if self.para.print_results:
                         print(f"Early stopping at epoch {epoch}")

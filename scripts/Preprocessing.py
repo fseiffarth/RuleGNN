@@ -25,8 +25,8 @@ class Preprocessing:
         self.experiment_configuration['paths']['data'].mkdir(exist_ok=True)
         self.experiment_configuration['paths']['labels'].mkdir(exist_ok=True)
         self.experiment_configuration['paths']['properties'].mkdir(exist_ok=True)
-        self.experiment_configuration['paths']['splits'].mkdir(exist_ok=True)
-        self.experiment_configuration['paths']['results'].mkdir(exist_ok=True)
+        self.experiment_configuration['paths']['splits'].mkdir(exist_ok=True, parents=True)
+        self.experiment_configuration['paths']['results'].mkdir(exist_ok=True, parents=True)
 
         # if not exists create the generation_times_labels.txt and generation_times_properties.txt in the Results folder
         if not Path(self.experiment_configuration['paths']['results']).joinpath('generation_times_labels.txt').exists():
