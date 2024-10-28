@@ -17,13 +17,23 @@ from torch import unique
 
 from src.utils import GraphData, GraphDrawing
 
-def get_label_string(label_dict: dict):
+def get_label_string(label_dict: dict)->str:
     """
     Method to get the label string. This is used to load the node labels
     """
     label_type = label_dict.get('label_type', None)
     if label_type is None:
         raise ValueError("Label type is not specified")
+
+    if type(label_type) == list:
+        l_string = ""
+        for i, l in enumerate(label_type):
+            new_label_dict = label_dict.copy()
+            new_label_dict['label_type'] = l
+            if i > 0:
+                l_string += "_"
+            l_string += get_label_string(new_label_dict)
+        return l_string
 
     if label_type == "primary":
         l_string = "primary"
@@ -541,7 +551,10 @@ class RuleConvolutionLayer(nn.Module):
         return np.array(self.Param_W.detach().cpu())
 
     def get_bias(self):
-        return np.array(self.Param_b.detach().cpu())
+        if self.bias:
+            return np.array(self.Param_b.detach().cpu())
+        else:
+            return None
 
     def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], channel=0, filter_weights=None, with_graph=True, graph_only=False):
         if with_graph or graph_only:
@@ -632,17 +645,21 @@ class RuleConvolutionLayer(nn.Module):
         weight_min = np.min(graph_weights)
         weight_max = np.max(graph_weights)
         weight_max_abs = max(abs(weight_min), abs(weight_max))
-        bias_min = np.min(bias)
-        bias_max = np.max(bias)
-        bias_max_abs = max(abs(bias_min), abs(bias_max))
-
         # use seismic colormap with maximum and minimum values from the weight matrix
         cmap = graph_drawing[1].colormap
         # normalize item number values to colormap
         normed_weight = (graph_weights + (-weight_min)) / (weight_max - weight_min)
         weight_colors = cmap(normed_weight)
-        normed_bias = (bias + (-bias_min)) / (bias_max - bias_min)
-        bias_colors = cmap(normed_bias)
+
+        if self.bias:
+            bias_min = np.min(bias)
+            bias_max = np.max(bias)
+            bias_max_abs = max(abs(bias_min), abs(bias_max))
+            normed_bias = (bias + (-bias_min)) / (bias_max - bias_min)
+            bias_colors = cmap(normed_bias)
+
+
+
 
         # draw the graph
         # if graph is circular use the circular layout
@@ -684,15 +701,15 @@ class RuleConvolutionLayer(nn.Module):
             digraph.add_node(node)
 
 
+        if self.bias:
+            node_colors = []
+            node_sizes = []
+            for node in digraph.nodes():
+                node_label = self.graph_data.node_labels[self.bias_strings[channel]].node_labels[graph_id][node]
+                node_colors.append(bias_colors[node_label])
+                node_sizes.append(graph_drawing[1].node_size * abs(bias[node_label]) / bias_max_abs)
 
-        node_colors = []
-        node_sizes = []
-        for node in digraph.nodes():
-            node_label = self.node_labels.node_labels[graph_id][node]
-            node_colors.append(bias_colors[node_label])
-            node_sizes.append(graph_drawing[1].node_size * abs(bias[node_label]) / bias_max_abs)
-
-        nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
+            nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
 
         edge_widths = []
         for weight_id, entry in enumerate(weight_distribution):

@@ -24,7 +24,7 @@ def write_node_labels(file, node_labels):
                     else:
                         f.write(f"{l}")
 
-def save_primary_labels(graph_data:GraphData, label_path=None, save_times=None):
+def save_primary_labels(graph_data:GraphData, label_path=None, save_times=None) -> str:
     node_labels = graph_data.node_labels['primary'].node_labels
     node_labels = relabel_node_labels(node_labels)
     # save the node labels to a file
@@ -46,10 +46,11 @@ def save_primary_labels(graph_data:GraphData, label_path=None, save_times=None):
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
 
-def save_degree_labels(graph_data:GraphData, label_path=None, save_times=None):
+def save_degree_labels(graph_data:GraphData, label_path=None, save_times=None)->str:
     start_time = time.time()
     # iterate over the graphs and get the degree of each node
     node_labels = []
@@ -76,8 +77,9 @@ def save_degree_labels(graph_data:GraphData, label_path=None, save_times=None):
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
-def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times=None):
+def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times=None)->str:
     start_time = time.time()
     # iterate over the graphs and get the degree of each node
     node_labels = []
@@ -115,9 +117,10 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
-def save_trivial_labels(graph_data:GraphData, label_path=None,save_times=None):
+def save_trivial_labels(graph_data:GraphData, label_path=None,save_times=None)->str:
     # save the node labels to a file
     # save node_labels as numpy array
     if label_path is None:
@@ -140,6 +143,7 @@ def save_trivial_labels(graph_data:GraphData, label_path=None,save_times=None):
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
 def save_node_labels(graph_data: GraphData, labels, label_path:Path, label_string, max_labels=None, save_times=None):
@@ -157,7 +161,7 @@ def save_node_labels(graph_data: GraphData, labels, label_path:Path, label_strin
         except:
             raise ValueError("No save time path given")
 
-def save_index_labels(graph_data:GraphData, max_labels=None, label_path=None, save_times=None):
+def save_index_labels(graph_data:GraphData, max_labels=None, label_path=None, save_times=None)->str:
     node_labels = []
     start_time = time.time()
     for graph in graph_data.graphs:
@@ -184,38 +188,10 @@ def save_index_labels(graph_data:GraphData, max_labels=None, label_path=None, sa
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
-
-def save_wl_labeled_labels(graph_data:GraphData, depth = 3, max_labels=None, label_path=None, save_times=None):
-    # save the node labels to a file
-    l = f'wl_labeled_{depth}'
-    if max_labels is not None:
-        l = f'{l}_{max_labels}'
-    if label_path is None:
-        raise ValueError("No label path given")
-    else:
-        file = label_path.joinpath(f'{graph_data.graph_db_name}_{l}_labels.txt')
-    if not file.exists():
-        print(f"Saving {l} labels for {graph_data.graph_db_name} to {file}")
-        start_time = time.time()
-        node_labeling = NodeLabels()
-        node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.graphs, depth, labeled=True)
-        node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
-        if max_labels is not None and max_labels > 0:
-            l = f'{l}_{max_labels}'
-
-        relabel_most_frequent(node_labeling, max_labels)
-        write_node_labels(file, node_labeling.node_labels)
-        if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, {l}, {time.time() - start_time}\n")
-            except:
-                raise ValueError("No save time path given")
-    else:
-        print(f"File {file} already exists. Skipping.")
+    return file
 
 
-def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None, save_times=None):
+def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None, save_times=None)->str:
     # save the node labels to a file
     l = f'wl_{depth}'
     if max_labels is not None:
@@ -241,9 +217,10 @@ def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
-def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None):
+def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
     start_time = time.time()
     cycle_dict = []
     max_labels_str = ''
@@ -309,9 +286,10 @@ def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cyc
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
-def save_in_circle_labels(graph_data:GraphData, length_bound=6, label_path=None, save_times=None):
+def save_in_circle_labels(graph_data:GraphData, length_bound=6, label_path=None, save_times=None)->str:
 
     if label_path is None:
         raise ValueError("No label path given")
@@ -349,10 +327,11 @@ def save_in_circle_labels(graph_data:GraphData, length_bound=6, label_path=None,
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
 
-def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, save_times=None):
+def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, save_times=None)->str:
     if label_path is None:
         raise ValueError("No label path given")
     else:
@@ -409,9 +388,10 @@ def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='s
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
-def save_clique_labels(graph_data:GraphData, max_clique=6, max_labels=None, label_path=None, save_times=None):
+def save_clique_labels(graph_data:GraphData, max_clique=6, max_labels=None, label_path=None, save_times=None)->str:
     if label_path is None:
         raise ValueError("No label path given")
     else:
@@ -466,6 +446,7 @@ def save_clique_labels(graph_data:GraphData, max_clique=6, max_labels=None, labe
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
+    return file
 
 
 def relabel_most_frequent_node_labels(node_labels, max_labels):

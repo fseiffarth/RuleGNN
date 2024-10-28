@@ -6,7 +6,7 @@ from networkx.algorithms.bipartite.basic import color
 from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer
 
 
-def rules_vs_occurences(layer:RuleConvolutionLayer) -> np.ndarray:
+def rules_vs_occurences(layer: RuleConvolutionLayer, channel) -> np.ndarray:
     weight_distribution = layer.weight_distribution
     num_weights = layer.Param_W.shape[0]
     weight_array = np.zeros(num_weights)
@@ -21,22 +21,22 @@ def rules_vs_occurences(layer:RuleConvolutionLayer) -> np.ndarray:
     num_non_zero = np.count_nonzero(weight_array)
     print(f'Number of non-zero elements: {num_non_zero}')
 
-    weights_per_property = int(np.sum(layer.weight_num)/layer.n_properties)
+    weights_per_property = int(np.sum(layer.weight_num)/layer.n_properties[channel])
     # invert layer.non_zero_weight_map
-    non_zero_weight_map = {v: k for k, v in layer.threshold_weight_map.items()}
+    threshold_idx_map = {new_idx: old_idx for old_idx, new_idx in enumerate(layer.threshold_weight_map) if new_idx != -1}
     # colors from tab20
 
     property_colors = plt.get_cmap('tab20').colors
-    property_legend = [f'Distance {i+1}' for i in range(layer.n_properties)]
+    property_legend = [f'Distance {i+1}' for i in range(layer.n_properties[channel])]
     node_colors = []
     for i, _ in enumerate(weight_array):
-        idx = sort_indices[i]
-        non_zero_idx = non_zero_weight_map[idx]
-        node_colors.append(property_colors[non_zero_idx//weights_per_property])
+        new_idx = sort_indices[i]
+        old_idx = threshold_idx_map[new_idx]
+        node_colors.append(property_colors[old_idx//weights_per_property])
 
     # plot the distribution of the rules with legend
     fig, ax = plt.subplots()
-    for i, p in enumerate(range(layer.n_properties)):
+    for i, p in enumerate(range(layer.n_properties[channel])):
         ax.scatter([], [], c=property_colors[i], label=property_legend[i])
     ax.scatter(np.arange(num_weights), weight_array, s=0.5, alpha=1, c=node_colors)
     plt.xlabel('Rule index')
@@ -64,32 +64,33 @@ def rules_vs_occurences_properties(layer:RuleConvolutionLayer):
     fig, ax = plt.subplots()
     plt.figure()
     ax.bar(np.arange(num_weights), weight_array, color=weight_colors)
-    plt.xlabel('Rule index')
-    plt.ylabel('Occurences')
+    plt.xlabel('Rule')
+    plt.ylabel('# Occurences')
     plt.title('Distribution of rules')
     plt.show()
 
-def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray):
+def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray, channel=0):
     weights = layer.Param_W.detach().cpu().numpy()
     weights = weights[sort_indices]
 
-    weights_per_property = int(np.sum(layer.weight_num)/layer.n_properties)
+    weights_per_property = int(np.sum(layer.weight_num)/layer.n_properties[channel])
     # invert layer.non_zero_weight_map
-    non_zero_weight_map = {v: k for k, v in layer.threshold_weight_map.items()}
+    threshold_idx_map = {new_idx: old_idx for old_idx, new_idx in enumerate(layer.threshold_weight_map) if new_idx != -1}
+    # colors from tab20
     property_colors = plt.get_cmap('tab20').colors
-    property_legend = [f'Distance {i+1}' for i in range(layer.n_properties)]
+    property_legend = [f'Distance {i+1}' for i in range(layer.n_properties[channel])]
     node_colors = []
     for i, _ in enumerate(weights):
-        node_colors.append(property_colors[non_zero_weight_map[sort_indices[i]]//weights_per_property])
+        node_colors.append(property_colors[threshold_idx_map[sort_indices[i]]//weights_per_property])
 
     # plot the distribution of the rules with legend
     fig, ax = plt.subplots()
-    for i, p in enumerate(range(layer.n_properties)):
+    for i, p in enumerate(range(layer.n_properties[channel])):
         ax.scatter([], [], c=property_colors[i], label=property_legend[i])
 
     ax.scatter(np.arange(len(weights)), weights, s=1, alpha=1, c=node_colors)
     ax.legend()
-    plt.xlabel('Rule index')
-    plt.ylabel('Occurences')
+    plt.xlabel('Rule')
+    plt.ylabel('Attention weight')
     plt.title('Distribution of rules')
     plt.show()

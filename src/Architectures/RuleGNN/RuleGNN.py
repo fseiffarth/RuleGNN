@@ -18,7 +18,7 @@ class RuleGNN(nn.Module):
         dropout = self.para.dropout
         self.convolution_grad = self.para.run_config.config.get('convolution_grad', True)
         self.aggregation_grad = self.para.run_config.config.get('aggregation_grad', True)
-        self.bias = self.para.run_config.config.get('bias', True)
+        self.bias = []
         out_dim = self.graph_data.output_feature_dimensions
         precision = para.run_config.config.get('precision', 'float')
         self.module_precision = torch.float
@@ -29,6 +29,7 @@ class RuleGNN(nn.Module):
         self.channels = []
         for layer in para.layers:
             self.channels.append(layer.num_channels())
+            self.bias.append(layer.layer_dict.get('bias', False))
         #self.channels = para.run_config.config.get('channels', 1)
         #self.channels = max(self.channels, graph_data.input_channels)
         if self.channels[0] % graph_data.input_channels == 0:
@@ -50,7 +51,7 @@ class RuleGNN(nn.Module):
                                                        seed=seed + i,
                                                        layer=layer,
                                                        parameters=para,
-                                                       bias=self.bias,
+                                                       bias=self.bias[i],
                                                        graph_data=self.graph_data,
                                                        device=device).type(self.module_precision).requires_grad_(self.convolution_grad))
             else:
@@ -62,7 +63,7 @@ class RuleGNN(nn.Module):
                                                        parameters=para,
                                                        out_dim=self.aggregation_out_dim,
                                                        graph_data=self.graph_data,
-                                                       bias=self.bias,
+                                                       bias=self.bias[i],
                                                        device=device).type(self.module_precision).requires_grad_(self.aggregation_grad))
 
 

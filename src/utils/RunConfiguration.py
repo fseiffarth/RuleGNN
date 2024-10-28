@@ -65,7 +65,10 @@ def generate_layer_options(layer_dict):
                     value_combinations = new_combinations
             for i, values in enumerate(value_combinations):
                 if properties_dict is None or len(properties_dict) == 0:
-                    curr_layer_dict = {'layer_type': layer_dict['layer_type']}
+                    curr_layer_dict = {}
+                    for key, value in layer_dict.items():
+                        if key != 'labels' and key != 'properties':
+                            curr_layer_dict[key] = value
                     channels_list = []
                     label_dict = {'label_type': label_type['label_type']}
                     for j, value in enumerate(values):
@@ -75,7 +78,10 @@ def generate_layer_options(layer_dict):
                     options.append(curr_layer_dict)
                 else:
                     for prop_val in properties_dict:
-                        curr_layer_dict = {'layer_type': layer_dict['layer_type']}
+                        curr_layer_dict = {}
+                        for key, value in layer_dict.items():
+                            if key != 'labels' and key != 'properties':
+                                curr_layer_dict[key] = value
                         channels_list = []
                         label_dict = {'label_type': label_type['label_type']}
                         for j, value in enumerate(values):
