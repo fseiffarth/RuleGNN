@@ -4,7 +4,7 @@ networks:
   - - { layer_type: convolution ,
         labels: [
           {label_type: primary},
-          { label_type: wl, depth: [4,3,4,1,0] },
+          { label_type: wl, depth: [4,3,2,1,0] },
           { label_type: simple_cycles, max_cycle_length: [10, 20] },
         ],
         properties: [
