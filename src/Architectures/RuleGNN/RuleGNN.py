@@ -120,14 +120,24 @@ class RuleGNN(nn.Module):
                         x = self.af(layer(x))
                         x = self.dropout(x)
                     else:
-                        x = self.out_af(layer(x))
+                        x = layer(x)
+                        x = torch.flatten(x)
+                        if self.out_af == nn.Softmax():
+                            x = self.out_af(x, dim=0)
+                        else:
+                            x = self.out_af(x)
             else:
                 if i < len(self.net_layers) - 1:
                     x = self.af(layer(x, pos))
                     x = self.dropout(x)
                 else:
-                    x = self.out_af(layer(x, pos))
-        return torch.flatten(x)
+                    x = layer(x, pos)
+                    x = torch.flatten(x)
+                    if self.out_af == nn.Softmax():
+                        x = self.out_af(x, dim=0)
+                    else:
+                        x = self.out_af(x)
+        return x
 
     def return_info(self):
         return type(self)

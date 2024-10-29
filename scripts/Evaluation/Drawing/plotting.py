@@ -37,7 +37,7 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, channel) -> np.ndarray:
     # plot the distribution of the rules with legend
     fig, ax = plt.subplots()
     for i, p in enumerate(range(layer.n_properties[channel])):
-        ax.scatter([], [], c=property_colors[i], label=property_legend[i])
+        ax.scatter([], [], color=property_colors[i], label=property_legend[i])
     ax.scatter(np.arange(num_weights), weight_array, s=0.5, alpha=1, c=node_colors)
     plt.xlabel('Rule index')
     plt.ylabel('Occurences')
@@ -86,7 +86,7 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray, channe
     # plot the distribution of the rules with legend
     fig, ax = plt.subplots()
     for i, p in enumerate(range(layer.n_properties[channel])):
-        ax.scatter([], [], c=property_colors[i], label=property_legend[i])
+        ax.scatter([], [], color=property_colors[i], label=property_legend[i])
 
     ax.scatter(np.arange(len(weights)), weights, s=1, alpha=1, c=node_colors)
     ax.legend()

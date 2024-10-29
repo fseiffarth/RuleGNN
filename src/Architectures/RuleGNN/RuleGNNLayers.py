@@ -318,19 +318,23 @@ class RuleConvolutionLayer(nn.Module):
 
 
             for c, channel in enumerate(layer.layer_channels):  # iterate over the channels
+                properties = self.graph_data.properties[self.property_names[c]]
+                graph_properties = properties.properties[graph_id]
+                tail_labels = self.graph_data.node_labels[self.tail_strings[c]].node_labels[graph_id]
+                head_labels = self.graph_data.node_labels[self.head_strings[c]].node_labels[graph_id]
+                property_map = properties.valid_property_map[(layer_id, c)]
                 # iterate over valid properties
-                for p in self.graph_data.properties[self.property_names[c]].valid_property_map[(layer_id, c)].keys():
-                    if p in self.graph_data.properties[self.property_names[c]].properties[graph_id]:
-                        for (v, w) in self.graph_data.properties[self.property_names[c]].properties[graph_id][p]:
-                            v_label = self.graph_data.node_labels[self.tail_strings[c]].node_labels[graph_id][v]
-                            w_label = self.graph_data.node_labels[self.head_strings[c]].node_labels[graph_id][w]
-                            property_id = self.graph_data.properties[self.property_names[c]].valid_property_map[(layer_id, c)][p]
+                for prop, prop_id in property_map.items():
+                    if prop in graph_properties:
+                        for (v, w) in graph_properties[prop]:
+                            v_label = tail_labels[v]
+                            w_label = head_labels[w]
                             # position of the weight in the Parameter list
                             #weight_pos = self.weight_map[k][int(v_label)][int(w_label)][property_id]
                             if self.para.run_config.config.get('symmetric', False):
-                                weight_pos = self.symmetric_weight_map(c, int(v_label), int(w_label), property_id)
+                                weight_pos = self.symmetric_weight_map(c, int(v_label), int(w_label), prop_id)
                             else:
-                                weight_pos = self.asymmetric_weight_map(c, int(v_label), int(w_label), property_id)
+                                weight_pos = self.asymmetric_weight_map(c, int(v_label), int(w_label), prop_id)
                             # position of the weight in the weight matrix
                             #row_index = index_map[(k, v, w)][0]
                             #col_index = index_map[(k, v, w)][1]
@@ -441,8 +445,10 @@ class RuleConvolutionLayer(nn.Module):
         '''
         Maps the current indices to the index of the list of weights
         '''
+        # compute weight_pos by first iterating over the channels (precomputed channel_skip_positions)
         weight_pos = self.channel_skip_positions[channel]
-        weight_pos += label1 * self.n_head_labels[channel] * self.n_properties[channel] + label2 * self.n_properties[channel] + property_id
+        # then iterate over the label combinations for each possible property
+        weight_pos += property_id*self.n_head_labels[channel]*self.n_tail_labels[channel] + label2*self.n_tail_labels[channel] + label1
         return weight_pos
 
     def symmetric_weight_map(self, channel, label1, label2, property_id)-> int:

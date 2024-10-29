@@ -4,11 +4,13 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
+import scipy.stats
 import sklearn
 from sklearn.metrics import accuracy_score
 import torch
 from torch import optim, nn
 from torch.autograd import Variable
+from torch.distributed.checkpoint import load_state_dict
 from torch.optim.lr_scheduler import StepLR
 
 from src.utils import GraphData
@@ -62,12 +64,13 @@ class ModelEvaluation:
         run_seed: int -> seed for the run
         net: RuleGNN -> if not None use a pretrained network
         """
+
         if pretrained_network is not None:
-            self.net = pretrained_network
+            self.net = torch.load(pretrained_network)
         else:
             self.net = RuleGNN.RuleGNN(graph_data=self.graph_data,
-                                  para=self.para,
-                                  seed=self.seed, device=self.device)
+                                       para=self.para,
+                                       seed=self.seed, device=self.device)
         # set the network to device
         self.net.to(self.device)
 
@@ -162,15 +165,22 @@ class ModelEvaluation:
                 for j, graph_id in enumerate(batch, 0):
                     timer.measure("forward_step")
                     if self.para.run_config.config.get('input_features', None).get('random_variation', None):
-                        mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
-                        std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
-                        # random variation as torch tensor
-                        random_variation = np.random.normal(mean, std, self.graph_data.input_data[graph_id].shape)
-                        if self.para.run_config.config.get('precision', 'double') == 'float':
-                            random_variation = torch.FloatTensor(random_variation)
+                        if self.para.run_config.config['input_features']['random_variation'] == 'unit_vector':
+                            random_unit_vector = scipy.stats.uniform_direction.rvs(dim=np.prod(self.graph_data.input_data[graph_id].shape)).reshape(self.graph_data.input_data[graph_id].shape)
+                            if self.para.run_config.config.get('precision', 'double') == 'float':
+                                network_input = torch.FloatTensor(random_unit_vector)
+                            else:
+                                network_input = torch.DoubleTensor(random_unit_vector)
                         else:
-                            random_variation = torch.DoubleTensor(random_variation)
-                        network_input = self.graph_data.input_data[graph_id] + random_variation
+                            mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
+                            std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
+                            # random variation as torch tensor
+                            random_variation = np.random.normal(mean, std, self.graph_data.input_data[graph_id].shape)
+                            if self.para.run_config.config.get('precision', 'double') == 'float':
+                                random_variation = torch.FloatTensor(random_variation)
+                            else:
+                                random_variation = torch.DoubleTensor(random_variation)
+                            network_input = self.graph_data.input_data[graph_id] + random_variation
                     else:
                         network_input = self.graph_data.input_data[graph_id]
                     outputs[j] = self.net(network_input.to(self.device), graph_id)
