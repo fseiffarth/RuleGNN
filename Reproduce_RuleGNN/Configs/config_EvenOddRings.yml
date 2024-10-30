@@ -7,7 +7,7 @@ networks:
           { label_type: primary}
         ],
         properties: [
-          { name: distances, values: [ 8 ] }
+          { name: distances, values: [ 0, 8 ] }
         ]
       }
     - { layer_type: convolution ,
@@ -16,7 +16,7 @@ networks:
           { label_type: primary}
         ],
         properties: [
-          { name: distances, values: [ 4 ] }
+          { name: distances, values: [ 0, 4 ] }
         ]
     }
     - { layer_type: aggregation,

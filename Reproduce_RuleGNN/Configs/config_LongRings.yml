@@ -8,7 +8,7 @@ networks:
           { label_type: primary}
         ],
         properties: [
-          { name: distances, values: [ 50 ] }
+          { name: distances, values: [ 0, 50 ] }
         ]
       }
     - { layer_type: aggregation,
