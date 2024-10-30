@@ -71,7 +71,7 @@ weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
 batch_size:
   - 64
 learning_rate:
-  - 0.01
+  - 0.1
 epochs:
   - 200
 
