@@ -1,5 +1,3 @@
-loss:
-  - BCE
 networks:
   # mixed models
   - - { layer_type: convolution ,

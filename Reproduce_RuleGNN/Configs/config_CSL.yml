@@ -1,5 +1,3 @@
-loss:
-  - CrossEntropyLoss
 networks:
   - - { layer_type: convolution ,
         bias: False,

@@ -40,7 +40,10 @@ aggregation_grad: True
 activation: 'tanh'
 
 # output_activation: activation function for the output layer
-output_activation: 'softmax'
+output_activation: 'tanh'
+
+# loss: loss function for the network
+loss: CrossEntropyLoss
 
 
 

@@ -89,6 +89,8 @@ class ModelEvaluation:
             self.criterion = nn.BCELoss()
         elif self.para.run_config.loss in ['BCEWithLogitsLoss', 'bce_with_logits', 'BCEWithLogits']:
             self.criterion = nn.BCEWithLogitsLoss()
+        elif self.para.run_config.loss in ['NLLLoss', 'nll', 'NLL']:
+            self.criterion = nn.NLLLoss()
         else:
             self.criterion = nn.CrossEntropyLoss()
 

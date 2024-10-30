@@ -446,7 +446,7 @@ class RuleConvolutionLayer(nn.Module):
                     weights = nn.Parameter(torch.randn(num_weights, dtype=self.precision) * std)
 
             else:
-                torch.nn.init.constant_(weights, 0.01)
+                raise ValueError(f"Weight initialization type {init_type} is not supported")
         else:
             torch.nn.init.constant_(weights, 0.01)
         return weights

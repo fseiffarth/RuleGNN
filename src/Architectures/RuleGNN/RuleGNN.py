@@ -99,8 +99,10 @@ class RuleGNN(nn.Module):
             return nn.Sigmoid()
         elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Softmax', 'softmax']:
             return nn.Softmax(dim=0)
+        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['LogSoftmax', 'logsoftmax', 'log_softmax']:
+            return nn.LogSoftmax(dim=0)
         else:
-            return nn.Identity()
+            raise ValueError(f'Activation function {key} not recognized')
 
     def forward(self, x, pos):
         for i, layer in enumerate(self.net_layers):
