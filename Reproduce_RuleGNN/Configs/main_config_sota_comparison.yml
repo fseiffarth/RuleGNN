@@ -43,7 +43,8 @@ activation: 'tanh'
 output_activation: 'tanh'
 
 # loss: loss function for the network
-loss: CrossEntropyLoss
+loss:
+  - CrossEntropyLoss
 
 
 

@@ -92,7 +92,7 @@ class ModelEvaluation:
         elif self.para.run_config.loss in ['NLLLoss', 'nll', 'NLL']:
             self.criterion = nn.NLLLoss()
         else:
-            self.criterion = nn.CrossEntropyLoss()
+            raise ValueError(f"Loss function {self.para.run_config.loss} not implemented")
 
         """
         Set up the optimizer
