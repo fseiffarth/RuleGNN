@@ -2,6 +2,11 @@ datasets:
   # real-world datasets
   - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
   - {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB_MULTI.yml", type: "TUDataset"}
+  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset"}
+  - {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
   data:
@@ -13,7 +18,7 @@ paths:
   splits:
     "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "Reproduce_RuleGNN/Results/RealWorldRandom/" # Results will be saved in this folder
+    "Reproduce_RuleGNN/Results/RealWorld/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
@@ -38,7 +43,7 @@ aggregation_grad: True
 activation: 'tanh'
 
 # output_activation: activation function for the output layer
-output_activation: 'sigmoid'
+output_activation: 'softmax'
 
 
 
@@ -65,11 +70,11 @@ weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.001 }}
 
 batch_size:
-  - 32
+  - 64
 learning_rate:
   - 0.01
 epochs:
-  - 50
+  - 200
 
 early_stopping:
   enabled:
@@ -89,4 +94,4 @@ num_workers: 10
 #  - {name: node_labels, transformation: one_hot, features_as_channels: True}, use node labels and transform them to one-hot encoding
 #  - {name: node_features, features_as_channels: True}, use node features as input, use features as channels
 #  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
-input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.1 }}
+input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}

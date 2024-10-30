@@ -42,10 +42,16 @@ output_activation: 'tanh'
 # -threshold: the threshold for the rule occurrence at least this many times
 rule_occurrence_threshold: { type: 'graph', threshold: 1 }
 
-# weight initialization: weight initialization for the network (TODO)
-weight_initialization: { convolution: { type: 'uniform', minval: -0.1, maxval: 0.1 },
+# weight initialization: weight initialization for the network
+# - type: [constant, uniform, normal]
+# - value: value for the initialization for constant,
+# - min: minimum value for the initialization for uniform,
+# - max: maximum value for the initialization for uniform,
+# - mean: mean value for the initialization for normal,
+# - std: standard deviation for the initialization for normal
+weight_initialization: { convolution: { type: 'uniform', min: -0.1, max: 0.1 },
                          convolution_bias: { type: 'constant', value: 0.0 },
-                         aggregation: { type: 'uniform', minval: -0.1, maxval: 0.1 },
+                         aggregation: { type: 'uniform', min: -0.1, max: 0.1 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 # input_features: determine how the input features should be transformed, the following options show some examples

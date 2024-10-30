@@ -2,17 +2,17 @@ loss:
   - CrossEntropyLoss
 networks:
   - - { layer_type: convolution ,
+        bias: False,
         labels: [
           { label_type: simple_cycles, max_cycle_length: [ 10 ] }
         ],
         properties: [
-          { name: distances, values: [ 1 ] }
+          { name: distances, values: [ 0, 1 ] }
         ]
   }
     - { layer_type: aggregation,
+        bias: True,
         labels: [
           { label_type: simple_cycles, max_cycle_length: [ 10 ] }
         ]
     }
-
-input_features: {name: constant, value: 1.0}

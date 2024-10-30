@@ -425,6 +425,16 @@ class RuleConvolutionLayer(nn.Module):
                     torch.nn.init.uniform_(weights, a=weight_initialization.get('min', 0.0), b=weight_initialization.get('max', 1.0))
                 elif weight_initialization.get('type', None) == 'normal':
                     torch.nn.init.normal_(weights, mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0))
+                elif weight_initialization.get('type', None) == 'symmetric_normal':
+                    # choose from two normal distributions one with positive and one with negative mean
+                    # shuffle the indices
+                    weight_arrange = torch.randperm(torch.arange(0, num_weights).size(0))
+                    # initialize the weights with indeces in weight_arrange[0:num_weights//2] with positive mean and the rest with negative mean
+                    new_weights = torch.zeros(num_weights, dtype=self.precision)
+                    new_weights[weight_arrange[0:num_weights//2]] = torch.normal(mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0), size=(weight_arrange[0:num_weights//2].size(0),), dtype=self.precision)
+                    new_weights[weight_arrange[num_weights//2:]] = -torch.normal(mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0), size=(weight_arrange[num_weights//2:].size(0),), dtype=self.precision)
+                    weights = nn.Parameter(new_weights, requires_grad=True)
+
                 elif weight_initialization.get('type', None) == 'constant':
                     torch.nn.init.constant_(weights, weight_initialization.get('value', 0.01))
                 elif weight_initialization.get('type', None) == 'lower_upper':
@@ -631,7 +641,7 @@ class RuleConvolutionLayer(nn.Module):
 
         # sort weights
         if filter_weights is not None:
-            sorted_weights = np.sort(graph_weights)
+            sorted_weights = np.sort(np.array(list(set(graph_weights))))
             if filter_weights.get('percentage', None) is not None:
                 percentage = filter_weights['percentage']
                 lower_bound_weight = sorted_weights[int(len(sorted_weights) * percentage) - 1]
@@ -823,6 +833,17 @@ class RuleAggregationLayer(nn.Module):
                     torch.nn.init.uniform_(weights, a=weight_initialization.get('min', 0.0), b=weight_initialization.get('max', 1.0))
                 elif weight_initialization.get('type', None) == 'normal':
                     torch.nn.init.normal_(weights, mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0))
+                elif weight_initialization.get('type', None) == 'symmetric_normal':
+                    # choose from two normal distributions one with positive and one with negative mean
+                    # shuffle the indices
+                    weight_arrange = torch.randperm(torch.arange(0, num_weights).size(0))
+                    # initialize the weights with indeces in weight_arrange[0:num_weights//2] with positive mean and the rest with negative mean
+                    new_weights = torch.zeros(num_weights, dtype=self.precision)
+                    new_weights[weight_arrange[0:num_weights//2]] = torch.normal(mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0), size=(weight_arrange[0:num_weights//2].size(0),), dtype=self.precision)
+                    new_weights[weight_arrange[num_weights//2:]] = -torch.normal(mean=weight_initialization.get('mean', 0.0), std=weight_initialization.get('std', 1.0), size=(weight_arrange[num_weights//2:].size(0),), dtype=self.precision)
+                    # reshape new_weights to the shape of the weights
+                    new_weights = new_weights.reshape(shape)
+                    weights = nn.Parameter(new_weights, requires_grad=True)
                 elif weight_initialization.get('type', None) == 'constant':
                     torch.nn.init.constant_(weights, weight_initialization.get('value', 0.01))
                 elif weight_initialization.get('type', None) == 'lower_upper':

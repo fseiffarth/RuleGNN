@@ -1,12 +1,12 @@
 datasets: #TODO: repair broken NCI109
   # real-world datasets
-  - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
-  - {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB_MULTI.yml", type: "TUDataset"}
+  - {name: "NCI1", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+#  - {name: "NCI109", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
+  - {name: "IMDB-BINARY", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset"}
+  - {name: "IMDB-MULTI", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB_MULTI.yml", type: "TUDataset"}
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
-  data:
-    "Reproduce_RuleGNN/Data/TUDatasets/" # Path to the folder containing the datasets
   properties:
     "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
@@ -14,7 +14,8 @@ paths:
   splits:
     "Reproduce_RuleGNN/Data/SplitsSimple/" # Path to the folder containing the data splits
   results:
-    "Reproduce_RuleGNN/Results/SotaRandom/" # Results will be saved in this folder
+    "Reproduce_RuleGNN/Results/Sota/" # Results will be saved in this folder
+
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
@@ -39,7 +40,7 @@ aggregation_grad: True
 activation: 'tanh'
 
 # output_activation: activation function for the output layer
-output_activation: 'sigmoid'
+output_activation: 'softmax'
 
 
 
@@ -65,13 +66,17 @@ weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
                          aggregation: { type: 'constant', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.001 }}
 
+
+
 batch_size:
-  - 32
+  - 64
 learning_rate:
   - 0.01
 epochs:
   - 50
 
+# num_workers: number of workers used
+num_workers: 10
 
 # input_features: determine how the input features should be transformed, the following options show some examples
 #  - {name: constant, value: 1.0}, use a constant value as input feature
@@ -81,9 +86,4 @@ epochs:
 #  - {name: node_labels, transformation: one_hot, features_as_channels: True}, use node labels and transform them to one-hot encoding
 #  - {name: node_features, features_as_channels: True}, use node features as input, use features as channels
 #  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
-input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.1 }}
-
-
-
-# num_workers: number of workers used
-num_workers: 10
+input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}

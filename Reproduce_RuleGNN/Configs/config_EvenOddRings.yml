@@ -2,6 +2,7 @@ loss:
   - CrossEntropyLoss
 networks:
   - - { layer_type: convolution ,
+        bias: False,
         labels: [
           { label_type: primary}
         ],
@@ -10,6 +11,7 @@ networks:
         ]
       }
     - { layer_type: convolution ,
+        bias: False,
         labels: [
           { label_type: primary}
         ],
@@ -18,9 +20,8 @@ networks:
         ]
     }
     - { layer_type: aggregation,
+        bias: True,
         labels: [
           { label_type: primary }
         ]
     }
-
-input_features: {name: node_labels, transformation: normalize}

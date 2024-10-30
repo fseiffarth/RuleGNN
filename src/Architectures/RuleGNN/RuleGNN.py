@@ -98,7 +98,7 @@ class RuleGNN(nn.Module):
         elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Sigmoid', 'sigmoid']:
             return nn.Sigmoid()
         elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Softmax', 'softmax']:
-            return nn.Softmax()
+            return nn.Softmax(dim=0)
         else:
             return nn.Identity()
 
@@ -122,10 +122,7 @@ class RuleGNN(nn.Module):
                     else:
                         x = layer(x)
                         x = torch.flatten(x)
-                        if self.out_af == nn.Softmax():
-                            x = self.out_af(x, dim=0)
-                        else:
-                            x = self.out_af(x)
+                        x = self.out_af(x)
             else:
                 if i < len(self.net_layers) - 1:
                     x = self.af(layer(x, pos))
@@ -133,10 +130,7 @@ class RuleGNN(nn.Module):
                 else:
                     x = layer(x, pos)
                     x = torch.flatten(x)
-                    if self.out_af == nn.Softmax():
-                        x = self.out_af(x, dim=0)
-                    else:
-                        x = self.out_af(x)
+                    x = self.out_af(x)
         return x
 
     def return_info(self):
