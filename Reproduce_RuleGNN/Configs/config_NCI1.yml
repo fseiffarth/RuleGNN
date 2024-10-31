@@ -2,7 +2,7 @@ networks:
   - - { layer_type: convolution ,
         bias: False,
         labels: [
-          { label_type: [wl, primary], depth: [ 3,2,1,0 ] },
+          { label_type: [wl, primary], depth: [ 2,1,0 ] },
           { label_type: [simple_cycles, primary], max_cycle_length: [ 6, 10, 20 ] },
           {label_type: primary},
         ],
