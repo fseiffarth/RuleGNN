@@ -31,6 +31,8 @@ def main():
     experiment_synthetic.EvaluateResults()
     experiment_synthetic.RunBestModel()
     experiment_synthetic.EvaluateResults(evaluate_best_model=True)
+    return
+
 
     ### Real World Data
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
@@ -39,6 +41,8 @@ def main():
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
+
+    return
 
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world_random_variation.yml'))
     experiment.Preprocess()

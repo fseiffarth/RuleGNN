@@ -33,6 +33,8 @@ def main():
 
     experiment = ExperimentMain(Path('Testing/TUExample/Configs/config_main.yml'))
     db_name = 'DHFR'
+    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml'))
+    db_name = 'LongRings100'
 
     net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=0)
     convolution_layer = net.net_layers[-2]
