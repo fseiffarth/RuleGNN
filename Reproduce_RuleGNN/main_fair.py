@@ -10,7 +10,7 @@ def get_existing_splits():
     Path("Reproduce_RuleGNN/Data/Splits").mkdir(exist_ok=True)
     # copy the splits for NCI1, IMDB-BINARY, IMDB-MULTI and CSL
     for split in ["NCI1", "IMDB-BINARY", "IMDB-MULTI", "CSL"]:
-        Path.write_text(Path("Reproduce_RuleGNN/Data/Splits").joinpath(f"{split}_splits.json"), Path("Data/Splits").joinpath(f"{split}_splits.json").read_text())
+        Path.write_text(Path("Reproduce_RuleGNN/Data/Splits").joinpath(f"{split}_splits.json"), Path("../../gnn-comparison-forked/Splits").joinpath(f"{split}_splits.json").read_text())
 
 
 

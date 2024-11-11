@@ -77,6 +77,14 @@ class Preprocessing:
             Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
             # generate splits
             create_splits(db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.dataset_configuration['validation_folds'], graph_format='NEL')
+        if self.experiment_configuration['paths']['splits'].joinpath(f'{db_name}_splits.json').exists():
+            # copy the split data to the processed folder
+            split_file_path = self.experiment_configuration['paths']['splits'].joinpath(f'{db_name}_splits.json')
+            if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').exists():
+                Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').mkdir()
+            split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}_splits.json')
+            # copy the content of the split file to the target path
+            split_target_path.write_text(split_file_path.read_text())
 
         if with_labels_and_properties:
             # creates the labels and properties automatically

@@ -204,6 +204,14 @@ class Layer:
     def get_bias_string(self, channel_id=0):
         return get_label_string(self.layer_channels[channel_id].bias_labels)
 
+    def get_layer_label_strings(self)->list[str]:
+        label_string_list = set()
+        for channel in range(len(self.layer_channels)):
+            label_string_list.add(get_label_string(self.layer_channels[channel].head_labels))
+            label_string_list.add(get_label_string(self.layer_channels[channel].tail_labels))
+            label_string_list.add(get_label_string(self.layer_channels[channel].bias_labels))
+        return list(label_string_list)
+
     def num_channels(self):
         return len(self.layer_channels)
 

@@ -10,14 +10,18 @@ def get_existing_splits():
     Path("Reproduce_RuleGNN/Data/Splits").mkdir(exist_ok=True)
     # copy the splits for NCI1, IMDB-BINARY, IMDB-MULTI and CSL
     for split in ["NCI1", "IMDB-BINARY", "IMDB-MULTI", "CSL"]:
-        Path.write_text(Path("Reproduce_RuleGNN/Data/Splits").joinpath(f"{split}_splits.json"), Path("Data/Splits").joinpath(f"{split}_splits.json").read_text())
+        source_path = Path("Data/Splits").joinpath(f"{split}_splits.json")
+        target_path = Path("Reproduce_RuleGNN/Data/Splits").joinpath(f"{split}_splits.json")
+        target_path.write_text(source_path.read_text())
 
     # copy the splits from the Data folder to the Splits folder
     # create the Splits folder if it does not exist
     Path("Reproduce_RuleGNN/Data/SplitsSimple").mkdir(exist_ok=True)
     # copy the splits for NCI1, IMDB-BINARY, IMDB-MULTI and CSL
     for split in ["NCI1", "NCI109", "IMDB-BINARY", "IMDB-MULTI"]:
-        Path.write_text(Path("Reproduce_RuleGNN/Data/SplitsSimple").joinpath(f"{split}_splits.json"), Path("Data/SplitsSimple").joinpath(f"{split}_splits.json").read_text())
+        source_path = Path("Data/SplitsSimple").joinpath(f"{split}_splits.json")
+        target_path = Path("Reproduce_RuleGNN/Data/SplitsSimple").joinpath(f"{split}_splits.json")
+        target_path.write_text(source_path.read_text())
 
 
 
@@ -27,22 +31,25 @@ def main():
     ### Synthetic Data
     experiment_synthetic = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml'))
     experiment_synthetic.Preprocess()
-    experiment_synthetic.GridSearch()
-    experiment_synthetic.EvaluateResults()
-    experiment_synthetic.RunBestModel()
-    experiment_synthetic.EvaluateResults(evaluate_best_model=True)
-    return
-
 
     ### Real World Data
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
     experiment.Preprocess()
+    return
+
+    ### run synthetic experiment
+    experiment_synthetic.GridSearch()
+    experiment_synthetic.EvaluateResults()
+    experiment_synthetic.RunBestModel()
+    experiment_synthetic.EvaluateResults(evaluate_best_model=True)
+
+    ### run real world experiment
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
-    return
+
 
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world_random_variation.yml'))
     experiment.Preprocess()

@@ -159,7 +159,7 @@ def splits_from_index_lists(training_indices, validation_indices, test_indices, 
         print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
 
 
-def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, graph_format=None, seed=2045287):
+def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, graph_format=None, seed=2045287)->Path:
     splits = []
     graph_data = get_graph_data(db_name=db_name, data_path=data_path, graph_format=graph_format, only_graphs=True)
     run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=seed, kFold=folds)
@@ -199,9 +199,10 @@ def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), 
         print(f"Creating new split file at {output_path.joinpath(f'{db_name}_splits.json')}")
         with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
             f.write(json.dumps(splits))
+        return output_path.joinpath(f"{db_name}_splits.json")
     else:
         print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
-
+    return None
 
 
 def splits_from_train_test_files(path:Path, db_name:str, output_path:Path = None):

@@ -11,7 +11,7 @@ device: cpu
 ### Experiment options
 # batch_size: batch size used for training, use several options for hyperparameter search, use None to set the batch size to the size of the dataset
 batch_size:
-  - 128
+  - 32
 
 # learning_rate: learning rate used for training, use several options for hyperparameter search
 learning_rate:
@@ -19,7 +19,7 @@ learning_rate:
 
 # epochs: number of epochs used for training, use several options for hyperparameter search
 epochs:
-  - 50
+  - 200
 
 # dropout: dropout rate used for training, use several options for hyperparameter search
 dropout:
