@@ -4,7 +4,8 @@ from pathlib import Path
 from torch.cuda import graph
 
 from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels, save_primary_labels, \
-    save_degree_labels, save_cycle_labels, save_subgraph_labels, save_clique_labels, save_index_labels, save_labeled_degree_labels, save_node_labels
+    save_degree_labels, save_cycle_labels, save_subgraph_labels, save_clique_labels, save_index_labels, \
+    save_labeled_degree_labels, save_node_labels, save_wl_labeled_labels
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
 from src.utils.GraphData import get_graph_data
@@ -136,6 +137,13 @@ class Preprocessing:
                     file_path = save_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
                 else:
                     file_path = save_wl_labels(graph_data=self.graph_data, depth=layer.get('depth', 3), max_labels=layer['max_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
+            elif layer['label_type'] == 'wl_labeled':
+                layer['max_labels'] = layer.get('max_labels', None)
+                layer['depth'] = layer.get('depth', 3)
+                if layer['depth'] == 0:
+                    file_path = save_labeled_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
+                else:
+                    file_path = save_wl_labeled_labels(graph_data=self.graph_data, depth=layer.get('depth', 3), max_labels=layer['max_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'simple_cycles' or layer['label_type'] == 'induced_cycles':
                 cycle_type = 'simple' if layer['label_type'] == 'simple_cycles' else 'induced'
                 if 'max_labels' not in layer:

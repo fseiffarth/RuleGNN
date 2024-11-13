@@ -11,11 +11,11 @@ device: cpu
 ### Experiment options
 # batch_size: batch size used for training, use several options for hyperparameter search, use None to set the batch size to the size of the dataset
 batch_size:
-  - 32
+  - 64
 
 # learning_rate: learning rate used for training, use several options for hyperparameter search
 learning_rate:
-  - 0.005
+  - 0.01
 
 # epochs: number of epochs used for training, use several options for hyperparameter search
 epochs:
@@ -96,19 +96,16 @@ networks:
   - - { layer_type: convolution ,
         bias: False,
         labels: [
-          { label_type: [wl, primary], depth: [4,3,2] },
-          { label_type: [simple_cycles, primary], max_cycle_length: [10, 20] },
+          { label_type: [wl_labeled], depth: [0] },
         ],
         properties: [
           { name: distances, values: [ 0,1,2,3,4,5,6 ] },
-          { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10 ] },
         ]
   }
     - { layer_type: aggregation,
         bias: True,
         labels: [
-          { label_type: [wl, primary], depth: [4,3,2,1,0] },
-          { label_type: [simple_cycles, primary], max_cycle_length: [6, 10, 20] },
+          { label_type: [simple_cycles, primary], max_cycle_length: [20] },
         ]
     }
 

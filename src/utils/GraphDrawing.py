@@ -20,6 +20,30 @@ class CustomColorMap:
         # Create a colormap using LinearSegmentedColormap
         self.cmap = mcolors.LinearSegmentedColormap.from_list('custom_colormap', list(zip(positions, lamarr_colors)))
 
+class TabColorMap:
+    def __init__(self):
+        cmap1 = plt.get_cmap('tab20')
+        cmap2 = plt.get_cmap('tab20b')
+        cmap3 = plt.get_cmap('tab20c')
+        cmap4 = plt.get_cmap('Dark2')
+        cmap5 = plt.get_cmap('Set2')
+        # merge cmap1, cmap2, cmap3
+        colors = []
+        for i in range(20):
+            colors.append(cmap1(i))
+            colors.append(cmap2(i))
+            colors.append(cmap3(i))
+        for i in range(8):
+            colors.append(cmap4(i))
+        for i in range(12):
+            colors.append(cmap5(i))
+        # randomly shuffle the colors
+        import random
+        # set seed
+        random.seed(42)
+        random.shuffle(colors)
+        self.cmap = mcolors.ListedColormap(colors)
+
 class GraphDrawing:
     def __init__(self, node_size=10.0, edge_width=1.0, weight_edge_width=1.0, weight_arrow_size=5.0, edge_color='black', edge_alpha=1, node_color='black', draw_type=None, colormap=plt.get_cmap('tab20')):
         self.node_size = node_size

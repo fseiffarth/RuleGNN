@@ -85,13 +85,16 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
     node_labels = []
     unique_neighbor_labels = set()
     node_to_hash = dict[int, tuple]
-    for graph in graph_data.graphs:
+    for graph_id, graph in enumerate(graph_data.graphs):
         for i, node in enumerate(graph.nodes()):
+            neighbors = list(graph.neighbors(node))
+            node_identifier = [graph_data.node_labels['primary'].node_labels[graph_id][i]]
+            node_identifier += [graph_data.node_labels['primary'].node_labels[graph_id][neighbor] for neighbor in neighbors]
             node_neighbor_labels = [graph_data.node_labels['primary'].node_labels[i]] + [graph_data.node_labels['primary'].node_labels[neighbor] for neighbor in graph.neighbors(node)]
             # convert to tuple and add to set
-            node_neighbor_labels = tuple(node_neighbor_labels)
-            unique_neighbor_labels.add(node_neighbor_labels)
-            node_to_hash[node] = node_neighbor_labels
+            node_identifier = tuple(node_identifier)
+            unique_neighbor_labels.add(node_identifier)
+            node_to_hash[node] = node_identifier
     # convert the unique neighbor labels to a dict
     unique_neighbor_label_dict = {label: i for i, label in enumerate(unique_neighbor_labels)}
 
@@ -209,6 +212,33 @@ def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None
         node_labels = graph_data.node_labels[l].node_labels
 
         write_node_labels(file, node_labels)
+        if save_times is not None:
+            try:
+                with open(save_times, 'a') as f:
+                    f.write(f"{graph_data.graph_db_name}, {l}_{max_labels}, {time.time() - start_time}\n")
+            except:
+                raise ValueError("No save time path given")
+    else:
+        print(f"File {file} already exists. Skipping.")
+    return file
+
+def save_wl_labeled_labels(graph_data:GraphData, depth, max_labels=None, label_path=None, save_times=None)->str:
+    # save the node labels to a file
+    l = f'wl_labeled_{depth}'
+    if max_labels is not None:
+        l = f'{l}_{max_labels}'
+    if label_path is None:
+        raise ValueError("No label path given")
+    else:
+        file = label_path.joinpath(f'{graph_data.graph_db_name}_{l}_labels.txt')
+    if not file.exists():
+        print(f"Saving {l} labels for {graph_data.graph_db_name} to {file}")
+        start_time = time.time()
+        node_labeling = NodeLabels()
+        node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = NodeLabeling.weisfeiler_lehman_node_labeling(graph_data.graphs, depth=depth, labeled=True)
+        node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
+
+        write_node_labels(file, node_labeling.node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:

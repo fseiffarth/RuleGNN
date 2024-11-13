@@ -580,21 +580,22 @@ class RuleConvolutionLayer(nn.Module):
         else:
             return None
 
-    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], channel=0, filter_weights=None, with_graph=True, graph_only=False):
+    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], channel=0, filter_weights=None, with_graph=True, graph_only=False, draw_bias_labels=False):
         if with_graph or graph_only:
             graph = self.graph_data.graphs[graph_id]
 
             # draw the graph
-            # root node is the one with label 0
-            root_node = None
-            for node in graph.nodes():
-                if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
-                    root_node = node
-                    break
+
 
             # if graph is circular use the circular layout
             pos = dict()
             if graph_drawing[0].draw_type == 'circle':
+                # root node is the one with label 0
+                root_node = None
+                for node in graph.nodes():
+                    if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                        root_node = node
+                        break
                 # get circular positions around (0,0) starting with the root node at (-400,0)
                 pos[root_node] = (400, 0)
                 angle = 2 * np.pi / (graph.number_of_nodes())
@@ -629,10 +630,14 @@ class RuleConvolutionLayer(nn.Module):
                 nx.draw_networkx_edge_labels(graph, pos=pos, edge_labels=edge_labels, ax=ax, font_size=8,
                                              font_color='black')
                 # get node colors from the node labels using the plasma colormap
+
+                draw_node_labels = self.graph_data.node_labels['primary']
+                if draw_bias_labels:
+                    draw_node_labels = self.graph_data.node_labels[self.bias_strings[channel]]
+
                 cmap = graph_drawing[0].colormap
-                norm = matplotlib.colors.Normalize(vmin=0,
-                                                   vmax=self.graph_data.node_labels['primary'].num_unique_node_labels)
-                node_colors = [cmap(norm(self.graph_data.node_labels['primary'].node_labels[graph_id][node])) for node
+                norm = matplotlib.colors.Normalize(vmin=0, vmax=draw_node_labels.num_unique_node_labels)
+                node_colors = [cmap(norm(draw_node_labels.node_labels[graph_id][node])) for node
                                in graph.nodes()]
                 nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors,
                                        node_size=graph_drawing[0].node_size)
