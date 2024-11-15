@@ -615,7 +615,7 @@ class RuleConvolutionLayer(nn.Module):
             elif graph_drawing[0].draw_type == 'kawai':
                 pos = nx.kamada_kawai_layout(graph)
             else:
-                pos = nx.nx_pydot.graphviz_layout(graph)
+                pos = nx.nx_pydot.graphviz_layout(graph, root=0)
             # keys to ints
             pos = {int(k): v for k, v in pos.items()}
             if graph_only:

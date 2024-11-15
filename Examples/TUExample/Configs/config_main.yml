@@ -78,7 +78,7 @@ weight_initialization: { convolution: { type: 'constant', value: 0.001 },
 input_features: { name: constant, value: 1.0 }
 
 # num_workers: number of workers used
-num_workers: 10
+num_workers: 5
 
 
 

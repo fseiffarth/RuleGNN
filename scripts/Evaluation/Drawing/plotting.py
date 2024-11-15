@@ -65,7 +65,7 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0) -> np.n
     plt.ylabel('\# Occurrences')
     #plt.title('Number of occurrences per rule')
     # use pgf backend for latex
-    plt.savefig(f'scripts/Evaluation/Drawing/Figures/occurrences_per_rule_{db_name}.png')
+    plt.savefig(f'scripts/Evaluation/Drawing/Figures/occurrences_per_rule_{db_name}.png', dpi=300, bbox_inches='tight')
     plt.show()
     return sort_indices, steps
 
@@ -97,5 +97,5 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray, steps,
     plt.xlabel('Rule')
     plt.ylabel('Attention weight')
     plt.title('Distribution of rules')
-    plt.savefig(f'scripts/Evaluation/Drawing/Figures/weights_per_rule_{db_name}.png')
+    plt.savefig(f'scripts/Evaluation/Drawing/Figures/weights_per_rule_{db_name}.png', dpi=300, bbox_inches='tight')
     plt.show()

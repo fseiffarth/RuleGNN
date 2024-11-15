@@ -2,8 +2,7 @@ networks:
   - - { layer_type: convolution ,
         bias: False,
         labels: [
-          {label_type: primary},
-          { label_type: [wl, primary], depth: [4,3,2,1,0] },
+          { label_type: [wl_labeled], depth: [4,3,2,1,0] },
           { label_type: [simple_cycles, primary], max_cycle_length: [10, 20] },
         ],
         properties: [
@@ -13,8 +12,7 @@ networks:
     - { layer_type: aggregation,
         bias: True,
         labels: [
-          { label_type: [wl, primary], depth: [4,3,2,1,0] },
+          { label_type: [wl_labeled], depth: [4,3,2,1,0] },
           { label_type: [simple_cycles, primary], max_cycle_length: [6, 10, 20] },
-          { label_type: primary }
         ]
     }

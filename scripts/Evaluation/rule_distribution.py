@@ -37,24 +37,24 @@ def main():
     net = experiment.load_model(db_name=db_name, config_id=41, run_id=0, validation_id=0)
     convolution_layer = net.net_layers[-2]
     channel = 0
-    #sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
+    sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
     #rules_vs_occurences_properties(convolution_layer)
-    #rules_vs_weights(convolution_layer, sort_indices, steps, db_name, channel)
+    rules_vs_weights(convolution_layer, sort_indices, steps, db_name, channel)
     # define nxm grid for the plots
     n = 3
     m = 4
 
-    fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(5*m, 5*n))
+    fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(3*m, 3*n))
     plt.subplots_adjust(wspace=0, hspace=0)
     graph_drawing = (
-        GraphDrawing(node_size=40, edge_width=1),
-        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
+        GraphDrawing(node_size=80, edge_width=1),
+        GraphDrawing(node_size=80, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
                      colormap=CustomColorMap().cmap)
     )
     # use plasma colormap for the bias
     graph_bias_drawing = (
-        GraphDrawing(node_size=40, edge_width=1, colormap=TabColorMap().cmap),
-        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10)
+        GraphDrawing(node_size=80, edge_width=1, colormap=TabColorMap().cmap),
+        GraphDrawing(node_size=80, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10)
     )
     # for idx, graph_id in enumerate([0,5,4]):
     #     net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=0)
@@ -76,8 +76,8 @@ def main():
     # axs[0][4].set_title(f'Output Neuron $1$ Activations')
     # axs[0][5].set_title(f'Output Neuron $2$ Activations')
 
-    #for idx, graph_id in enumerate([272,273,274]):
-    for idx, graph_id in enumerate([746, 747, 748]):
+    for idx, graph_id in enumerate([272,273,274]):
+    #for idx, graph_id in enumerate([746, 747, 748]):
         # get convolution layer
         convolution_layer = net.net_layers[0]
         aggregation_layer = net.net_layers[-1]
@@ -95,7 +95,7 @@ def main():
     for idx, graph_id in enumerate([0,5,4]):
         axs[idx][0].set_ylabel(f'Graph Label {net.graph_data.graph_labels[graph_id]}')
 
-    plt.savefig(f'scripts/Evaluation/Drawing/Figures/visualization_{db_name}.png')
+    plt.savefig(f'scripts/Evaluation/Drawing/Figures/visualization_{db_name}.png', dpi=300, bbox_inches='tight')
     plt.show()
     return
 
