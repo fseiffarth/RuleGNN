@@ -130,7 +130,7 @@ class Preprocessing:
         file_path = None
         layer = json.loads(layer_strings)
         # if label_type is a list, then the layer is a combination of different label types
-        if type(layer['label_type']) == list:
+        if type(layer['label_type']) == list and len(layer['label_type']) > 1:
             # recursively call the function for each label type
             labels = []
             label_names = []
@@ -147,7 +147,7 @@ class Preprocessing:
             combined_labels = combine_node_labels(labels)
             # save the combined labels
             combined_name = '_'.join(label_names)
-            file_path = save_node_labels(graph_data=self.graph_data, labels=combined_labels.node_labels, label_path=Path(self.experiment_configuration['paths']['labels']), label_string=combined_name, save_times=self.generation_times_labels_path)
+            file_path = save_node_labels(graph_data=self.graph_data, labels=combined_labels.node_labels, label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'), label_string=combined_name, save_times=self.generation_times_labels_path)
 
 
 
@@ -156,41 +156,41 @@ class Preprocessing:
         else:
             # switch case for the different layers
             if layer['label_type'] == 'primary':
-                file_path = save_primary_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
+                file_path = save_primary_labels(graph_data=self.graph_data, label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'), save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'trivial':
-                file_path = save_trivial_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
+                file_path = save_trivial_labels(graph_data=self.graph_data, label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'), save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'index':
-                file_path = save_index_labels(graph_data=self.graph_data, max_labels=layer.get('max_labels', None), label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
+                file_path = save_index_labels(graph_data=self.graph_data, max_labels=layer.get('max_labels', None), label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'), save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'degree':
-                file_path = save_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
+                file_path = save_degree_labels(graph_data=self.graph_data, label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'), save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'wl':
                 layer['max_labels'] = layer.get('max_labels', None)
                 layer['depth'] = layer.get('depth', 3)
                 if layer['depth'] == 0:
-                    file_path = save_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
+                    file_path = save_degree_labels(graph_data=self.graph_data, label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'), save_times=self.generation_times_labels_path)
                 else:
-                    file_path = save_wl_labels(graph_data=self.graph_data, depth=layer.get('depth', 3), max_labels=layer['max_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
+                    file_path = save_wl_labels(graph_data=self.graph_data, depth=layer.get('depth', 3), max_labels=layer['max_labels'], label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'),  save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'wl_labeled':
                 layer['max_labels'] = layer.get('max_labels', None)
                 layer['depth'] = layer.get('depth', 3)
                 if layer['depth'] == 0:
-                    file_path = save_labeled_degree_labels(graph_data=self.graph_data, label_path=Path(self.experiment_configuration['paths']['labels']), save_times=self.generation_times_labels_path)
+                    file_path = save_labeled_degree_labels(graph_data=self.graph_data, label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'), save_times=self.generation_times_labels_path)
                 else:
-                    file_path = save_wl_labeled_labels(graph_data=self.graph_data, depth=layer.get('depth', 3), max_labels=layer['max_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
+                    file_path = save_wl_labeled_labels(graph_data=self.graph_data, depth=layer.get('depth', 3), max_labels=layer['max_labels'], label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'),  save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'simple_cycles' or layer['label_type'] == 'induced_cycles':
                 cycle_type = 'simple' if layer['label_type'] == 'simple_cycles' else 'induced'
                 if 'max_labels' not in layer:
                     layer['max_labels'] = None
                 if 'max_cycle_length' not in layer:
                     layer['max_cycle_length'] = None
-                file_path = save_cycle_labels(graph_data=self.graph_data, length_bound=layer['max_cycle_length'], max_labels=layer["max_labels"], cycle_type=cycle_type, label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
+                file_path = save_cycle_labels(graph_data=self.graph_data, length_bound=layer['max_cycle_length'], max_labels=layer["max_labels"], cycle_type=cycle_type, label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'),  save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'subgraph':
                 if 'id' in layer:
                     if layer['id'] > len(self.experiment_configuration['subgraphs']):
                         raise ValueError(f'Please specify the subgraphs in the config files under the key "subgraphs" as folllows: subgraphs: - "[nx.complete_graph(4)]"')
                     else:
                         subgraph_list = eval(self.experiment_configuration['subgraphs'][layer['id']])
-                        file_path = save_subgraph_labels(graph_data=self.graph_data, subgraphs=subgraph_list, id=layer['id'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
+                        file_path = save_subgraph_labels(graph_data=self.graph_data, subgraphs=subgraph_list, id=layer['id'], label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'),  save_times=self.generation_times_labels_path)
                 else:
                     raise ValueError(f'Please specify the id of the subgraph in the layer with description {layer_strings}.')
             elif layer['label_type'] == 'cliques':
@@ -198,7 +198,7 @@ class Preprocessing:
                     layer['max_labels'] = None
                 if 'max_clique_size' not in layer:
                     layer['max_clique_size'] = None
-                file_path = save_clique_labels(graph_data=self.graph_data, max_clique=layer['max_clique_size'], max_labels=layer['max_labels'], label_path=Path(self.experiment_configuration['paths']['labels']),  save_times=self.generation_times_labels_path)
+                file_path = save_clique_labels(graph_data=self.graph_data, max_clique=layer['max_clique_size'], max_labels=layer['max_labels'], label_path=self.experiment_configuration['paths']['data'].joinpath(f'{self.graph_data.name}/processed'),  save_times=self.generation_times_labels_path)
             else:
                 # print in red in the console
                 print(f'The automatic generation of labels for the layer type {layer["label_type"]} is not supported yet.')

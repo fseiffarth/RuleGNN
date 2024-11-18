@@ -5,34 +5,19 @@ import pickle
 from collections import OrderedDict
 from typing import List, Tuple
 
+import torch
 import yaml
 
 from src.utils.utils import convert_to_tuple
 
 
 class NodeLabels:
-    def __init__(self, node_labels=None):
-        self.node_labels = None
-        self.unique_node_labels = None
-        self.db_unique_node_labels = None
-        self.num_unique_node_labels = 0
-
-        if node_labels is not None:
-            self.node_labels = node_labels
-            self.db_unique_node_labels = {}
-            self.unique_node_labels = []
-            for g_labels in node_labels:
-                self.unique_node_labels.append({})
-                for l in g_labels:
-                    if l not in self.db_unique_node_labels:
-                        self.db_unique_node_labels[l] = 1
-                    else:
-                        self.db_unique_node_labels[l] += 1
-                    if l not in self.unique_node_labels[-1]:
-                        self.unique_node_labels[-1][l] = 1
-                    else:
-                        self.unique_node_labels[-1][l] += 1
-            self.num_unique_node_labels = len(self.db_unique_node_labels)
+    def __init__(self, node_labels:torch.Tensor):
+        # first column are the original node labels, the second column are the relabeled node labels
+        self.original_node_labels = node_labels[:, 0]
+        self.node_labels = node_labels[:, 1]
+        self.unique_node_labels, self.unique_node_labels_count = torch.unique(self.node_labels, return_counts=True)
+        self.num_unique_node_labels = len(self.unique_node_labels)
 
     def __iadd__(self, other):
         pass
@@ -40,6 +25,8 @@ class NodeLabels:
 
 
 def combine_node_labels(labels: List[NodeLabels]):
+    # stack all the node labels
+    labels = torch.stack([l.node_labels for l in labels], dim=1)
     # create tuples for each node
     node_labels = []
     label_map = {}
