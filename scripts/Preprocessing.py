@@ -1,7 +1,10 @@
 import json
+import os
 from pathlib import Path
 
+import torch
 from torch.cuda import graph
+from torch_geometric.datasets import TUDataset
 
 from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels, save_primary_labels, \
     save_degree_labels, save_cycle_labels, save_subgraph_labels, save_clique_labels, save_index_labels, \
@@ -20,6 +23,7 @@ import networkx as nx
 class Preprocessing:
     def __init__(self, db_name:str, dataset_configuration, experiment_configuration, with_splits=True, with_labels_and_properties=True, data_generation=None, data_generation_args=None, create_pt_files = True):
         self.db_name = db_name
+        self.graph_data = None
         # load the config file
         self.experiment_configuration = experiment_configuration
         self.dataset_configuration = dataset_configuration
@@ -40,18 +44,37 @@ class Preprocessing:
         self.generation_times_labels_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_labels.txt')
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
-        # generate the data only if it does not exist
-        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('raw').joinpath(f'{db_name}_Edges.txt').exists():
+        # generate the data only if it does not exist (i.e. the processed folder is empty)
+        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}.pt').exists():
             if type(data_generation) == str:
                 if data_generation == 'TUDataset':
                     try:
-                        tu_to_nel(db_name=db_name, out_path=Path(self.experiment_configuration['paths']['data']))
+                        path = Path(self.experiment_configuration['paths']['data'])
+                        if Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'raw').exists() and len(
+                                list(Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'raw').iterdir())) > 0:
+                            print(f"Dataset {db_name} already exists in {Path(self.experiment_configuration['paths']['data'])} . Skip the data generation.")
+                            return
+                        # download the dataset
+                        # create a tmp folder to store the dataset
+                        if not Path('tmp').exists():
+                            Path('tmp').mkdir()
+                        self.graph_data = TUDataset(root='tmp/', name=db_name, use_node_attr=True, use_edge_attr=True)
+                        if not os.path.exists(path.joinpath(Path(db_name))):
+                            os.makedirs(path.joinpath(Path(db_name)))
+                        # create processed and raw folders in path+db_name
+                        if not os.path.exists(path.joinpath(Path(db_name + "/processed"))):
+                            os.makedirs(path.joinpath(Path(db_name + "/processed")))
+                        if not os.path.exists(path.joinpath(Path(db_name + "/raw"))):
+                            os.makedirs(path.joinpath(Path(db_name + "/raw")))
+                        torch.save(self.graph_data, Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}.pt'))
+                        #tu_to_nel(db_name=db_name, out_path=Path(self.experiment_configuration['paths']['data']))
                     except:
                         print(f'Could not generate {db_name} from TUDataset')
                 else:
                     print(f'Do not know how to handle data from {data_generation}. Do you mean "TUDataset"?')
                 pass
             else:
+                # TODO generate the pt data
                 if data_generation is not None:
                     if data_generation_args is None:
                         data_generation_args = {}
@@ -65,21 +88,25 @@ class Preprocessing:
                         print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
 
 
-        self.graph_data = get_graph_data(db_name=self.db_name,
-                                         data_path=self.experiment_configuration['paths']['data'],
-                                         graph_format='NEL',
-                                         only_graphs=True)
+        # load the graph data TODO: introduce new pyg format and load from the pt files
+        #self.graph_data = get_graph_data(db_name=self.db_name,
+        #                                 data_path=self.experiment_configuration['paths']['data'],
+        #                                 graph_format='NEL',
+        #                                 only_graphs=True)
 
-        if create_pt_files:
-            pass # TODO: create pt files
+        # load graph data from pt files if it exists in the processed folder
+        if self.graph_data is None and self.experiment_configuration['paths']['data'].joinpath(f'{db_name}').joinpath('processed').exists():
+            self.graph_data = torch.load(self.experiment_configuration['paths']['data'].joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}.pt'))
 
+        # generate the splits
         if with_splits:
             # create the splits folder if it does not exist
             Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
             # generate splits
-            create_splits(db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.dataset_configuration['validation_folds'], graph_format='NEL')
+            create_splits(db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.dataset_configuration['validation_folds'], graph_data=self.graph_data)
+
+        # copy the splits to the processed folder
         if self.experiment_configuration['paths']['splits'].joinpath(f'{db_name}_splits.json').exists():
-            # copy the split data to the processed folder
             split_file_path = self.experiment_configuration['paths']['splits'].joinpath(f'{db_name}_splits.json')
             if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').exists():
                 Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').mkdir()
@@ -87,8 +114,8 @@ class Preprocessing:
             # copy the content of the split file to the target path
             split_target_path.write_text(split_file_path.read_text())
 
+        # generate the labels and properties automatically from the config file
         if with_labels_and_properties:
-            # creates the labels and properties automatically
             self.preprocessing_from_config()
 
 

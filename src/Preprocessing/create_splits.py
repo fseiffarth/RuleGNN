@@ -159,9 +159,10 @@ def splits_from_index_lists(training_indices, validation_indices, test_indices, 
         print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
 
 
-def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, graph_format=None, seed=2045287)->Path:
+def create_splits(db_name: str, data_path: Path = Path("../GraphData/DS_all/"), output_path: Path=Path("Data/Splits/"), folds=10, graph_data=None, graph_format=None, seed=2045287)->Path:
     splits = []
-    graph_data = get_graph_data(db_name=db_name, data_path=data_path, graph_format=graph_format, only_graphs=True)
+    if graph_data is None:
+        graph_data = get_graph_data(db_name=db_name, data_path=data_path, graph_format=graph_format, only_graphs=True)
     run_test_indices = ttd.get_data_indices(graph_data.num_graphs, seed=seed, kFold=folds)
     for validation_id in range(0, folds):
         validation_seed = seed + validation_id
