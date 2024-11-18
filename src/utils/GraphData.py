@@ -1,20 +1,207 @@
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional, Callable, List
 
 import networkx as nx
 import numpy as np
 import torch
 import torch_geometric.data
 from numpy.ma.core import shape
-from torch_geometric.data import InMemoryDataset
-from torch_geometric.datasets import ZINC
+from torch_geometric.data import InMemoryDataset, Data, TensorAttr
+from torch_geometric.datasets import ZINC, TUDataset
 
-from src.TrainTestData import TrainTestData as ttd
-import src.utils.ReadWriteGraphs.GraphDataToGraphList as gdtgl
 from src.utils import NodeLabeling, EdgeLabeling
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
+from torch_geometric.io import fs, read_tu_data
+from torch_geometric.utils.convert import to_networkx
+
+class RuleGNNData(torch_geometric.data.data.Data):
+    def __init__(self,
+                 data: torch_geometric.data.data.Data,
+                 num_node_attributes: int = 0,
+                 num_edge_attributes: int = 0,
+                 use_one_hot_node_labels: bool = False,
+                 use_one_hot_edge_labels: bool = False,
+                 clear_empty_labels: bool = True):
+        # split node labels and attributes as well as edge labels and attributes
+        node_labels = data.x[:, num_node_attributes:] if data.x is not None else None
+        self.node_attributes = data.x[:, :num_node_attributes] if data.x is not None else None
+        edge_labels = data.edge_attr[:, num_edge_attributes:] if data.edge_attr is not None else None
+        self.edge_attributes = data.edge_attr[:, :num_edge_attributes] if data.edge_attr is not None else None
+
+        if clear_empty_labels:
+            # remove columns with only zeros
+            if node_labels is not None:
+                node_labels = node_labels[:, node_labels.sum(dim=0) != 0]
+            if edge_labels is not None:
+                edge_labels = edge_labels[:, edge_labels.sum(dim=0) != 0]
+
+        if not use_one_hot_node_labels:
+            node_labels = torch.argmax(node_labels, dim=1)
+        if not use_one_hot_edge_labels:
+            edge_labels = torch.argmax(edge_labels, dim=1)
+
+        super(RuleGNNData, self).__init__(x=node_labels, edge_index=data.edge_index, edge_attr=edge_labels, y=data.y, pos=data.pos, time=data.time)
+
+
+
+
+class RuleGNNDataset(InMemoryDataset):
+    def __init__(
+            self,
+            root: str,
+            name: str,
+            transform: Optional[Callable] = None,
+            pre_transform: Optional[Callable] = None,
+            pre_filter: Optional[Callable] = None,
+            from_tu_dataset: Optional[bool] = None,
+            force_reload: bool = False,
+            use_node_attr: bool = True,
+            use_edge_attr: bool = True,
+            delete_zero_columns: bool = True,
+            one_hot_node_labels: bool = False,
+    ) -> None:
+        self.name = name
+        self.from_tu_dataset = from_tu_dataset
+        self.nx_graphs = []
+        super(RuleGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
+        out = fs.torch_load(self.processed_paths[0])
+        if not isinstance(out, tuple) or len(out) < 3:
+            raise RuntimeError(
+                "The 'data' object was created by an older version of PyG. "
+                "If this error occurred while loading an already existing "
+                "dataset, remove the 'processed/' directory in the dataset's "
+                "root folder and try again.")
+        assert len(out) == 3 or len(out) == 4
+
+        if len(out) == 3:  # Backward compatibility.
+            data, self.slices, self.sizes = out
+            data_cls = Data
+        else:
+            data, self.slices, self.sizes, data_cls = out
+
+        if not isinstance(data, dict):  # Backward compatibility.
+            self.data = data
+        else:
+            # split node labels and attributes as well as edge labels and attributes
+            self.data = data_cls.from_dict(data)
+
+        assert isinstance(self._data, Data)
+        num_node_attributes = self.num_node_attributes
+        num_edge_attributes = self.num_edge_attributes
+        # split node labels and attributes as well as edge labels and attributes
+        if self._data.x is not None and delete_zero_columns:
+            # remove columns with only zeros
+            self._data.x = self._data.x[:, self._data.x.sum(dim=0) != 0]
+            self.sizes['num_node_labels'] = self._data.x.shape[1]
+        if self._data.x is not None and not use_node_attr:
+            num_node_attributes = self.num_node_attributes
+            self._data.x = self._data.x[:, num_node_attributes:]
+            self.primary_node_labels = torch.argmax(self._data.x, dim=1)
+            if not one_hot_node_labels:
+                self._data.x = torch.argmax(self._data.x, dim=1)
+        else:
+            self.primary_node_labels = torch.argmax(self._data.x[:, :num_node_attributes], dim=1)
+            if not one_hot_node_labels:
+                self._data.x[:, :num_node_attributes] = torch.argmax(self._data.x[:, :num_node_attributes], dim=1)
+
+        if self._data.edge_attr is not None and not use_edge_attr:
+            num_edge_attrs = self.num_edge_attributes
+            self._data.edge_attr = self._data.edge_attr[:, num_edge_attrs:]
+
+
+    @property
+    def raw_dir(self) -> str:
+        name = f'raw'
+        return os.path.join(self.root, self.name, name)
+
+    @property
+    def processed_dir(self) -> str:
+        name = f'processed'
+        return os.path.join(self.root, self.name, name)
+
+    @property
+    def num_node_labels(self) -> int:
+        return self.sizes['num_node_labels']
+
+    @property
+    def num_node_attributes(self) -> int:
+        return self.sizes['num_node_attributes']
+
+    @property
+    def num_edge_labels(self) -> int:
+        return self.sizes['num_edge_labels']
+
+    @property
+    def num_edge_attributes(self) -> int:
+        return self.sizes['num_edge_attributes']
+
+    @property
+    def raw_file_names(self) -> List[str]:
+        names = ['A', 'graph_indicator']
+        return [f'{self.name}_{name}.txt' for name in names]
+
+    @property
+    def processed_file_names(self) -> str:
+        return 'data.pt'
+
+    def process(self):
+        sizes = None
+        if self.from_tu_dataset is not None and self.from_tu_dataset:
+            tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
+            self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
+        else:
+            print('Cannot process the data')
+
+        if self.pre_filter is not None or self.pre_transform is not None:
+            data_list = [self.get(idx) for idx in range(len(self))]
+
+            if self.pre_filter is not None:
+                data_list = [d for d in data_list if self.pre_filter(d)]
+
+            if self.pre_transform is not None:
+                data_list = [self.pre_transform(d) for d in data_list]
+
+            self.data, self.slices = self.collate(data_list)
+            self._data_list = None  # Reset cache.
+
+        assert isinstance(self._data, Data)
+        fs.torch_save(
+            (self._data.to_dict(), self.slices, sizes, self._data.__class__),
+            self.processed_paths[0],
+        )
+
+    def create_nx_graphs(self, directed: bool = False):
+        self.nx_graphs = []
+        for graph in self:
+            self.nx_graphs.append(to_networkx(
+                data=graph,
+                node_attrs=['x'],
+                edge_attrs=['edge_attr'] if graph.edge_attr is not None else None,
+                to_undirected=not directed))
+            # change node label 'x' to 'primary_label'
+            for node in self.nx_graphs[-1].nodes(data=True):
+                node[1]['primary_label'] = node[1]['x']
+                del node[1]['x']
+
+    def add_node_labels(self, node_labeling_name, max_labels=-1, node_labeling_method=None, **kwargs) -> None:
+        if node_labeling_method is not None:
+            node_labeling = NodeLabels()
+            node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = node_labeling_method(
+                self.graphs, **kwargs)
+            node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
+
+            key = node_labeling_name
+            if max_labels is not None and max_labels > 0:
+                key = f'{node_labeling_name}_{max_labels}'
+
+            self.node_labels[key] = node_labeling
+            if max_labels:
+                relabel_most_frequent(self.node_labels[key], max_labels)
+
+    def __repr__(self) -> str:
+        return f'{self.name}({len(self)})'
 
 
 def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):
@@ -68,7 +255,7 @@ def transform_data(data, transformation_dict: Dict[str, Dict[str, str]]):
 
 class GraphData:
     def __init__(self):
-        self.graph_db_name = ''
+        self.name = ''
         self.graphs = []
         self.input_data = []
         self.node_labels: Dict[str, NodeLabels] = {}
@@ -85,15 +272,18 @@ class GraphData:
         self.avg_nodes = 0
         self.avg_degree = 0
 
+    def __len__(self):
+        return len(self.graphs)
+
     def __iadd__(self, other):
         '''
         Add another GraphData object to this one.
         '''
-        if 'Union' in self.graph_db_name:
+        if 'Union' in self.name:
             pass
         else:
-            self.graph_db_name = f'Union_{self.graph_db_name}'
-        self.graph_db_name += f'_{other.graph_db_name}'
+            self.name = f'Union_{self.name}'
+        self.name += f'_{other.name}'
         self.graphs += other.graphs
         self.input_data += other.input_data
 
@@ -144,7 +334,7 @@ class GraphData:
             self.edge_labels[edge_labeling_name] = edge_labeling
 
     def load_nel_graphs(self, db_name: str, path: Path, input_features=None, output_features=None, task=None, only_graphs=False):
-        self.graph_db_name = db_name
+        self.name = db_name
         self.graphs, self.graph_labels = load_graphs(path.joinpath(Path(f'{db_name}/raw/')), db_name, graph_format='NEL')
         self.num_graphs = len(self.graphs)
         self.avg_nodes = sum([g.number_of_nodes() for g in self.graphs]) / self.num_graphs
@@ -336,7 +526,7 @@ class GraphDataUnion:
                 self.graph_data += graph
             indices = np.arange(start_index, start_index + len(graph))
             start_index += len(graph)
-            self.graph_name_to_index[graph.graph_db_name] = indices
+            self.graph_name_to_index[graph.name] = indices
 
 
 
@@ -444,7 +634,7 @@ class BenchmarkDatasets(InMemoryDataset):
 
 def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True):
     graphs = GraphData()
-    graphs.graph_db_name = graph_db_name
+    graphs.name = graph_db_name
     graphs.edge_labels['primary'] = EdgeLabels()
     graphs.node_labels['primary'] = NodeLabels()
     graphs.node_labels['primary'].node_labels = []

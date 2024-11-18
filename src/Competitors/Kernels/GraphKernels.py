@@ -109,7 +109,7 @@ class WLKernel:
 
 
 
-                file_name = f'{self.graph_data.graph_db_name}_Results_run_id_{self.run_num}_validation_step_{self.validation_num}.csv'
+                file_name = f'{self.graph_data.name}_Results_run_id_{self.run_num}_validation_step_{self.validation_num}.csv'
 
                 # header use semicolon as delimiter
                 header = ("Dataset;RunNumber;ValidationNumber;Algorithm;TrainingSize;ValidationSize;TestSize"
@@ -123,4 +123,4 @@ class WLKernel:
                 # Save results to file
                 with open(f'Results/{file_name}', "a") as file_obj:
                     file_obj.write(
-                        f"{self.graph_data.graph_db_name};{self.run_num};{self.validation_num};WLKernel;{len(self.training_data)};{len(self.validate_data)};{len(self.test_data)};{c_param};{n_iter};{val_acc};{test_acc}\n")
+                        f"{self.graph_data.name};{self.run_num};{self.validation_num};WLKernel;{len(self.training_data)};{len(self.validate_data)};{len(self.test_data)};{c_param};{n_iter};{val_acc};{test_acc}\n")

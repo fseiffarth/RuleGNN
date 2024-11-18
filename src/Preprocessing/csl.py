@@ -28,7 +28,7 @@ class CSL:
         self.graphs.graphs = nx_graphs
         self.graphs.num_graphs = len(nx_graphs)
         self.graphs.num_classes = len(set(labels))
-        self.graphs.graph_db_name = "CSL"
+        self.graphs.name = "CSL"
         self.graphs.input_data = [torch.ones(g.number_of_nodes()).double() for g in nx_graphs]
         if with_distances:
             self.graphs.distance_list = []

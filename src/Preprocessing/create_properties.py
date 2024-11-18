@@ -15,8 +15,8 @@ from src.utils.utils import convert_to_list
 
 
 def write_distance_properties(graph_data:GraphData, cutoff=None, out_path: Path = Path(), save_times=None) -> None:
-    out = out_path.joinpath(f"{graph_data.graph_db_name}_distances.prop")
-    out_yml = out_path.joinpath(f"{graph_data.graph_db_name}_distances.yml")
+    out = out_path.joinpath(f"{graph_data.name}_distances.prop")
+    out_yml = out_path.joinpath(f"{graph_data.name}_distances.yml")
     # check if the files already exists and if not create it
     if not os.path.exists(out) or not os.path.exists(out_yml):
         start_time = time.time()
@@ -44,11 +44,11 @@ def write_distance_properties(graph_data:GraphData, cutoff=None, out_path: Path 
         # save an additional .info file that stores the set of valid_properties as a yml file
         valid_properties_dict = {"valid_values": list(valid_properties), 'description': 'Distance',
                                  'list_of_values': f'{list(valid_properties)}'}
-        with open(out_path.joinpath(f"{graph_data.graph_db_name}_distances.yml"), 'w') as f:
+        with open(out_path.joinpath(f"{graph_data.name}_distances.yml"), 'w') as f:
             yaml.dump(valid_properties_dict, f)
         if save_times is not None:
             with open(save_times, 'a') as f:
-                f.write(f"{graph_data.graph_db_name}, distance, {time.time() - start_time}\n")
+                f.write(f"{graph_data.name}, distance, {time.time() - start_time}\n")
     else:
         print(f"File {out} already exists. Skipping.")
 
@@ -127,8 +127,8 @@ def write_distance_circle_properties(graph_data:GraphData, label_path, db_name, 
 
 
 def write_distance_edge_properties(graph_data:GraphData, out_path:Path = Path(), cutoff=None,save_times=None) -> None:
-    out = out_path.joinpath(f"{graph_data.graph_db_name}_edge_label_distances.prop")
-    out_yml = out_path.joinpath(f"{graph_data.graph_db_name}_edge_label_distances.yml")
+    out = out_path.joinpath(f"{graph_data.name}_edge_label_distances.prop")
+    out_yml = out_path.joinpath(f"{graph_data.name}_edge_label_distances.yml")
     # check if the file already exists and if not create it
     if not os.path.exists(out) or not os.path.exists(out_yml):
         distances = []
@@ -209,12 +209,12 @@ def write_distance_edge_properties(graph_data:GraphData, out_path:Path = Path(),
                                  "description": "Distance, Path number, Edge label occurrences",
                                  "list_of_values": list_of_values}
         # save an additional .info file that stores the set of valid_properties as a yml file
-        with open(out_path.joinpath(f"{graph_data.graph_db_name}_edge_label_distances.yml"), 'w') as f:
+        with open(out_path.joinpath(f"{graph_data.name}_edge_label_distances.yml"), 'w') as f:
             yaml.dump(valid_properties_dict, f)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, edge_label_distance, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, edge_label_distance, {time.time() - start_time}\n")
             except:
                 print("Could not write to file")
                 pass

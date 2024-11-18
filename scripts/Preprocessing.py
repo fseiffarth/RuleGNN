@@ -5,13 +5,12 @@ from pathlib import Path
 import torch
 from torch.cuda import graph
 from torch_geometric.datasets import TUDataset
-
 from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels, save_primary_labels, \
     save_degree_labels, save_cycle_labels, save_subgraph_labels, save_clique_labels, save_index_labels, \
     save_labeled_degree_labels, save_node_labels, save_wl_labeled_labels
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
-from src.utils.GraphData import get_graph_data
+from src.utils.GraphData import get_graph_data, RuleGNNDataset
 from src.utils.GraphLabels import combine_node_labels
 from src.utils.RunConfiguration import get_run_configs
 from src.utils.TU_to_NEL import tu_to_nel
@@ -45,7 +44,7 @@ class Preprocessing:
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
         # generate the data only if it does not exist (i.e. the processed folder is empty)
-        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}.pt').exists():
+        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'data.pt').is_file():
             if type(data_generation) == str:
                 if data_generation == 'TUDataset':
                     try:
@@ -58,7 +57,9 @@ class Preprocessing:
                         # create a tmp folder to store the dataset
                         if not Path('tmp').exists():
                             Path('tmp').mkdir()
-                        self.graph_data = TUDataset(root='tmp/', name=db_name, use_node_attr=True, use_edge_attr=True)
+                        self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                         name=db_name,
+                                                         from_tu_dataset=True)
                         if not os.path.exists(path.joinpath(Path(db_name))):
                             os.makedirs(path.joinpath(Path(db_name)))
                         # create processed and raw folders in path+db_name
@@ -66,7 +67,6 @@ class Preprocessing:
                             os.makedirs(path.joinpath(Path(db_name + "/processed")))
                         if not os.path.exists(path.joinpath(Path(db_name + "/raw"))):
                             os.makedirs(path.joinpath(Path(db_name + "/raw")))
-                        torch.save(self.graph_data, Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}.pt'))
                         #tu_to_nel(db_name=db_name, out_path=Path(self.experiment_configuration['paths']['data']))
                     except:
                         print(f'Could not generate {db_name} from TUDataset')
@@ -96,7 +96,13 @@ class Preprocessing:
 
         # load graph data from pt files if it exists in the processed folder
         if self.graph_data is None and self.experiment_configuration['paths']['data'].joinpath(f'{db_name}').joinpath('processed').exists():
-            self.graph_data = torch.load(self.experiment_configuration['paths']['data'].joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}.pt'))
+            self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                             name=db_name,
+                                             use_node_attr=self.experiment_configuration.get('use_node_attr', False),
+                                                use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
+                                             delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
+                                             one_hot_node_labels=self.experiment_configuration.get('one_hot_labels', False),
+                                             )
 
         # generate the splits
         if with_splits:
@@ -228,7 +234,8 @@ class Preprocessing:
                 for label_dict in layer.get_unique_layer_dicts():
                     json_layer = json.dumps(label_dict, sort_keys=True)
                     preprocessed_label_dicts.add(json_layer)
-        # generate all necessary labels and properties
+        # generate all necessary labels and properties, first need to create the nx graphs to run the algorithms on
+        self.graph_data.create_nx_graphs(directed=False)
         for layer in preprocessed_label_dicts:
             self.layer_to_labels(layer)
         for preprocessed_property in preprocessed_properties:

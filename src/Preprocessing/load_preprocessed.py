@@ -43,7 +43,7 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
                     unique_properties.append(x["name"])
 
     for label_dict in unique_label_dicts:
-        label_path = experiment_configuration['paths']['labels'].joinpath(f"{graph_data.graph_db_name}_{get_label_string(label_dict)}_labels.txt")
+        label_path = experiment_configuration['paths']['labels'].joinpath(f"{graph_data.name}_{get_label_string(label_dict)}_labels.txt")
         if os.path.exists(label_path):
             g_labels = load_labels(path=label_path)
             graph_data.node_labels[get_label_string(label_dict)] = g_labels
@@ -52,7 +52,7 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
             # get the labels for each layer in the combined layer
             for x in l.layer_dict['sub_labels']:
                 sub_layer = Layer(x, i)
-                sub_label_path = experiment_configuration['paths']['labels'].joinpath(f"/{graph_data.graph_db_name}_{sub_layer.get_layer_string()}_labels.txt")
+                sub_label_path = experiment_configuration['paths']['labels'].joinpath(f"/{graph_data.name}_{sub_layer.get_layer_string()}_labels.txt")
                 if os.path.exists(sub_label_path):
                     g_labels = load_labels(path=sub_label_path)
                     combined_labels.append(g_labels)
@@ -76,14 +76,14 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
                 if c.property_dict is not None:
                     if c.property_dict.get('name', None) == prop_name:
                         valid_values[(i,j)] = c.property_dict.get('values', None)
-        graph_data.properties[prop_name] = Properties(path=experiment_configuration['paths']['properties'], db_name=graph_data.graph_db_name,
+        graph_data.properties[prop_name] = Properties(path=experiment_configuration['paths']['properties'], db_name=graph_data.name,
                                                       property_name=prop_name,
                                                       valid_values=valid_values)
 
     """
         BenchmarkGraphs parameters
     """
-    para.set_data_param(db=graph_data.graph_db_name,
+    para.set_data_param(db=graph_data.name,
                         max_coding=1,
                         layers=run_config.layers, node_features=1,
                         run_config=run_config)

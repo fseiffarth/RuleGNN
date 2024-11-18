@@ -4,10 +4,11 @@ from pathlib import Path
 from typing import List
 
 import networkx as nx
+import torch
 from networkx.algorithms.isomorphism import GraphMatcher
 
-from src.utils import GraphData, NodeLabeling
-from src.utils.GraphData import relabel_most_frequent
+from src.utils import NodeLabeling
+from src.utils.GraphData import RuleGNNDataset
 from src.utils.GraphLabels import NodeLabels
 from src.utils.NodeLabeling import weisfeiler_lehman_node_labeling
 
@@ -24,7 +25,27 @@ def write_node_labels(file, node_labels):
                     else:
                         f.write(f"{l}")
 
-def save_primary_labels(graph_data:GraphData, label_path=None, save_times=None) -> str:
+def save_primary_labels(graph_data:RuleGNNDataset, label_path=None, save_times=None) -> str:
+    node_labels = graph_data.primary_node_labels
+    # save the node labels to a file
+    if label_path is None:
+        raise ValueError("No label path given")
+    else:
+        file = label_path.joinpath(f"{graph_data.name}_primary_labels.pt")
+    if not file.exists():
+        start_time = time.time()
+        print(f"Saving primary labels for {graph_data.name} to {file}")
+        torch.save(node_labels, file)
+        if save_times is not None:
+            try:
+                with open(save_times, 'a') as f:
+                    f.write(f"{graph_data.name}, primary, {time.time() - start_time}\n")
+            except:
+                raise ValueError("No save time path given")
+    else:
+        print(f"File {file} already exists. Skipping.")
+    return file
+
     node_labels = graph_data.node_labels['primary'].node_labels
     node_labels = relabel_node_labels(node_labels)
     # save the node labels to a file
@@ -32,16 +53,16 @@ def save_primary_labels(graph_data:GraphData, label_path=None, save_times=None) 
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f"{graph_data.graph_db_name}_primary_labels.txt")
+        file = label_path.joinpath(f"{graph_data.name}_primary_labels.txt")
     # check whether the file already exists
     if not file.exists():
-        print(f"Saving primary labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving primary labels for {graph_data.name} to {file}")
         start_time = time.time()
         write_node_labels(file, node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, primary, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, primary, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -50,11 +71,11 @@ def save_primary_labels(graph_data:GraphData, label_path=None, save_times=None) 
 
 
 
-def save_degree_labels(graph_data:GraphData, label_path=None, save_times=None)->str:
+def save_degree_labels(graph_data:RuleGNNDataset, label_path=None, save_times=None)->str:
     start_time = time.time()
     # iterate over the graphs and get the degree of each node
     node_labels = []
-    for i,graph in enumerate(graph_data.graphs):
+    for i,graph in enumerate(graph_data.nx_graphs):
         node_labels.append([0 for _ in range(len(graph.nodes()))])
         for node in graph.nodes():
             node_labels[-1][node] = graph.degree(node)
@@ -64,28 +85,28 @@ def save_degree_labels(graph_data:GraphData, label_path=None, save_times=None)->
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f"{graph_data.graph_db_name}_wl_0_labels.txt")
+        file = label_path.joinpath(f"{graph_data.name}_wl_0_labels.txt")
     # check whether the file already exists
     if not file.exists():
-        print(f"Saving wl_0 labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving wl_0 labels for {graph_data.name} to {file}")
         write_node_labels(file, node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, wl_0, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, wl_0, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
     return file
 
-def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times=None)->str:
+def save_labeled_degree_labels(graph_data:RuleGNNDataset, label_path=None, save_times=None)->str:
     start_time = time.time()
     # iterate over the graphs and get the degree of each node
     node_labels = []
     unique_neighbor_labels = set()
     node_to_hash = dict()
-    for graph_id, graph in enumerate(graph_data.graphs):
+    for graph_id, graph in enumerate(graph_data.nx_graphs):
         for i, node in enumerate(graph.nodes()):
             neighbors = list(graph.neighbors(node))
             node_identifier = [graph_data.node_labels['primary'].node_labels[graph_id][i]]
@@ -98,7 +119,7 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
     # convert the unique neighbor labels to a dict
     unique_neighbor_label_dict = {label: i for i, label in enumerate(unique_neighbor_labels)}
 
-    for graph in graph_data.graphs:
+    for graph in graph_data.nx_graphs:
         node_labels.append([unique_neighbor_label_dict[node_to_hash[node]] for node in graph.nodes()])
 
     node_labels = relabel_node_labels(node_labels)
@@ -107,15 +128,15 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f"{graph_data.graph_db_name}_wl_labeled_0_labels.txt")
+        file = label_path.joinpath(f"{graph_data.name}_wl_labeled_0_labels.txt")
     # check whether the file already exists
     if not file.exists():
-        print(f"Saving wl_labeled_0 labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving wl_labeled_0 labels for {graph_data.name} to {file}")
         write_node_labels(file, node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, wl_labeled_0, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, wl_labeled_0, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -123,15 +144,15 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
     return file
 
 
-def save_trivial_labels(graph_data:GraphData, label_path=None,save_times=None)->str:
+def save_trivial_labels(graph_data:RuleGNNDataset, label_path=None,save_times=None)->str:
     # save the node labels to a file
     # save node_labels as numpy array
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f'{graph_data.graph_db_name}_trivial_labels.txt')
+        file = label_path.joinpath(f'{graph_data.name}_trivial_labels.txt')
     if not file.exists():
-        print(f"Saving trivial labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving trivial labels for {graph_data.name} to {file}")
         start_time = time.time()
         node_labels = graph_data.node_labels['primary'].node_labels
         # label 0 for all nodes
@@ -141,7 +162,7 @@ def save_trivial_labels(graph_data:GraphData, label_path=None,save_times=None)->
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, trivial, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, trivial, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -149,25 +170,25 @@ def save_trivial_labels(graph_data:GraphData, label_path=None,save_times=None)->
     return file
 
 
-def save_node_labels(graph_data: GraphData, labels, label_path:Path, label_string, max_labels=None, save_times=None):
+def save_node_labels(graph_data: RuleGNNDataset, labels, label_path:Path, label_string, max_labels=None, save_times=None):
     start_time = time.time()
     if max_labels  and max_labels < len(labels):
         labels = relabel_most_frequent_node_labels(labels, max_labels)
     # save the node labels to a file
     # save node_labels as numpy array
-    file = label_path.joinpath(f"{graph_data.graph_db_name}_{label_string}_labels.txt")
+    file = label_path.joinpath(f"{graph_data.name}_{label_string}_labels.txt")
     write_node_labels(file, labels)
     if save_times is not None:
         try:
             with open(save_times, 'a') as f:
-                f.write(f"{graph_data.graph_db_name}, primary, {time.time() - start_time}\n")
+                f.write(f"{graph_data.name}, primary, {time.time() - start_time}\n")
         except:
             raise ValueError("No save time path given")
 
-def save_index_labels(graph_data:GraphData, max_labels=None, label_path=None, save_times=None)->str:
+def save_index_labels(graph_data:RuleGNNDataset, max_labels=None, label_path=None, save_times=None)->str:
     node_labels = []
     start_time = time.time()
-    for graph in graph_data.graphs:
+    for graph in graph_data.nx_graphs:
         node_labels.append([index for index, node in enumerate(graph.nodes())])
     if max_labels is not None:
         node_labels = relabel_most_frequent_node_labels(node_labels, max_labels)
@@ -176,17 +197,17 @@ def save_index_labels(graph_data:GraphData, max_labels=None, label_path=None, sa
         raise ValueError("No label path given")
     else:
         if max_labels is not None:
-            file = label_path.joinpath(f"{graph_data.graph_db_name}_index_{max_labels}_labels.txt")
+            file = label_path.joinpath(f"{graph_data.name}_index_{max_labels}_labels.txt")
         else:
-            file = label_path.joinpath(f"{graph_data.graph_db_name}_index_labels.txt")
+            file = label_path.joinpath(f"{graph_data.name}_index_labels.txt")
     # check whether the file already exists
     if not file.exists():
-        print(f"Saving primary labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving primary labels for {graph_data.name} to {file}")
         write_node_labels(file, node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, index, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, index, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -194,7 +215,7 @@ def save_index_labels(graph_data:GraphData, max_labels=None, label_path=None, sa
     return file
 
 
-def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None, save_times=None)->str:
+def save_wl_labels(graph_data:RuleGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:
     # save the node labels to a file
     l = f'wl_{depth}'
     if max_labels is not None:
@@ -202,9 +223,9 @@ def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f'{graph_data.graph_db_name}_{l}_labels.txt')
+        file = label_path.joinpath(f'{graph_data.name}_{l}_labels.txt')
     if not file.exists():
-        print(f"Saving {l} labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving {l} labels for {graph_data.name} to {file}")
         start_time = time.time()
         graph_data.add_node_labels(node_labeling_name=l, max_labels=max_labels,
                                    node_labeling_method=NodeLabeling.weisfeiler_lehman_node_labeling,
@@ -215,14 +236,14 @@ def save_wl_labels(graph_data:GraphData, depth, max_labels=None, label_path=None
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, {l}_{max_labels}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, {l}_{max_labels}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
         print(f"File {file} already exists. Skipping.")
     return file
 
-def save_wl_labeled_labels(graph_data:GraphData, depth, max_labels=None, label_path=None, save_times=None)->str:
+def save_wl_labeled_labels(graph_data:RuleGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:
     # save the node labels to a file
     l = f'wl_labeled_{depth}'
     if max_labels is not None:
@@ -230,19 +251,19 @@ def save_wl_labeled_labels(graph_data:GraphData, depth, max_labels=None, label_p
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f'{graph_data.graph_db_name}_{l}_labels.txt')
+        file = label_path.joinpath(f'{graph_data.name}_{l}_labels.txt')
     if not file.exists():
-        print(f"Saving {l} labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving {l} labels for {graph_data.name} to {file}")
         start_time = time.time()
         node_labeling = NodeLabels()
-        node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = NodeLabeling.weisfeiler_lehman_node_labeling(graph_data.graphs, depth=depth, labeled=True)
+        node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = NodeLabeling.weisfeiler_lehman_node_labeling(graph_data.nx_graphs, depth=depth, labeled=True)
         node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
 
         write_node_labels(file, node_labeling.node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, {l}_{max_labels}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, {l}_{max_labels}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -250,7 +271,7 @@ def save_wl_labeled_labels(graph_data:GraphData, depth, max_labels=None, label_p
     return file
 
 
-def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
+def save_cycle_labels(graph_data:RuleGNNDataset, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
     start_time = time.time()
     cycle_dict = []
     max_labels_str = ''
@@ -260,12 +281,12 @@ def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cyc
         raise ValueError("No label path given")
     else:
         if cycle_type == 'simple':
-            file = label_path.joinpath(f'{graph_data.graph_db_name}_simple_cycles_{length_bound}{max_labels_str}_labels.txt')
+            file = label_path.joinpath(f'{graph_data.name}_simple_cycles_{length_bound}{max_labels_str}_labels.txt')
         elif cycle_type == 'induced':
-            file = label_path.joinpath(f'{graph_data.graph_db_name}_induced_cycles_{length_bound}{max_labels_str}_labels.txt')
+            file = label_path.joinpath(f'{graph_data.name}_induced_cycles_{length_bound}{max_labels_str}_labels.txt')
     if not file.exists():
-        print(f"Saving {cycle_type} cycles for {graph_data.graph_db_name} to {file}")
-        for graph in graph_data.graphs:
+        print(f"Saving {cycle_type} cycles for {graph_data.name} to {file}")
+        for graph in graph_data.nx_graphs:
             cycle_dict.append({})
             if cycle_type == 'simple':
                 cycles = nx.simple_cycles(graph, length_bound)
@@ -295,7 +316,7 @@ def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cyc
 
         # set the node labels
         labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
+        for graph_id, graph in enumerate(graph_data.nx_graphs):
             labels.append([])
             for node in graph.nodes():
                 if node in cycle_dict[graph_id]:
@@ -311,7 +332,7 @@ def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cyc
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, {cycle_type}_cycles_{length_bound}{max_labels_str}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, {cycle_type}_cycles_{length_bound}{max_labels_str}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -319,17 +340,17 @@ def save_cycle_labels(graph_data:GraphData, length_bound=6, max_labels=None, cyc
     return file
 
 
-def save_in_circle_labels(graph_data:GraphData, length_bound=6, label_path=None, save_times=None)->str:
+def save_in_circle_labels(graph_data:RuleGNNDataset, length_bound=6, label_path=None, save_times=None)->str:
 
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f'{graph_data.graph_db_name}_cycles_{length_bound}_labels.txt')
+        file = label_path.joinpath(f'{graph_data.name}_cycles_{length_bound}_labels.txt')
     if not file.exists():
-        print(f"Saving in circle labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving in circle labels for {graph_data.name} to {file}")
         start_time = time.time()
         node_in_cycle = []
-        for graph in graph_data.graphs:
+        for graph in graph_data.nx_graphs:
             node_in_cycle.append({})
             cycles = nx.chordless_cycles(graph, length_bound)
             for cycle in cycles:
@@ -339,7 +360,7 @@ def save_in_circle_labels(graph_data:GraphData, length_bound=6, label_path=None,
 
         # set the node labels, if node is in a cycle label 1, else 0
         labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
+        for graph_id, graph in enumerate(graph_data.nx_graphs):
             labels.append([])
             for node in graph.nodes():
                 if node in node_in_cycle[graph_id]:
@@ -352,7 +373,7 @@ def save_in_circle_labels(graph_data:GraphData, length_bound=6, label_path=None,
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, cycles_{length_bound}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, cycles_{length_bound}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -361,17 +382,17 @@ def save_in_circle_labels(graph_data:GraphData, length_bound=6, label_path=None,
 
 
 
-def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, save_times=None)->str:
+def save_subgraph_labels(graph_data:RuleGNNDataset, subgraphs=List[nx.Graph], name='subgraph', id=0, label_path=None, save_times=None)->str:
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f'{graph_data.graph_db_name}_{name}_{id}_labels.txt')
+        file = label_path.joinpath(f'{graph_data.name}_{name}_{id}_labels.txt')
     if not file.exists():
         start_time = time.time()
         subgraph_dict = []
-        for i, graph in enumerate(graph_data.graphs):
+        for i, graph in enumerate(graph_data.nx_graphs):
             # print the progress
-            print(f"Graph {i + 1}/{len(graph_data.graphs)}")
+            print(f"Graph {i + 1}/{len(graph_data.nx_graphs)}")
             subgraph_dict.append({})
             for i, subgraph in enumerate(subgraphs):
                 GM = GraphMatcher(graph, subgraph)
@@ -399,7 +420,7 @@ def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='s
 
         # set the node labels
         labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
+        for graph_id, graph in enumerate(graph_data.nx_graphs):
             labels.append([])
             for node in graph.nodes():
                 if node in subgraph_dict[graph_id]:
@@ -413,7 +434,7 @@ def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='s
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, {name}_{id}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, {name}_{id}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
@@ -421,15 +442,15 @@ def save_subgraph_labels(graph_data:GraphData, subgraphs=List[nx.Graph], name='s
     return file
 
 
-def save_clique_labels(graph_data:GraphData, max_clique=6, max_labels=None, label_path=None, save_times=None)->str:
+def save_clique_labels(graph_data:RuleGNNDataset, max_clique=6, max_labels=None, label_path=None, save_times=None)->str:
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f'{graph_data.graph_db_name}_cliques_{max_clique}_labels.txt')
+        file = label_path.joinpath(f'{graph_data.name}_cliques_{max_clique}_labels.txt')
     if not file.exists():
         start_time = time.time()
         clique_dict = []
-        for graph in graph_data.graphs:
+        for graph in graph_data.nx_graphs:
             clique_dict.append({})
             cliques = list(nx.find_cliques(graph))
             for clique in cliques:
@@ -457,7 +478,7 @@ def save_clique_labels(graph_data:GraphData, max_clique=6, max_labels=None, labe
 
         # set the node labels
         labels = []
-        for graph_id, graph in enumerate(graph_data.graphs):
+        for graph_id, graph in enumerate(graph_data.nx_graphs):
             labels.append([])
             for node in graph.nodes():
                 if node in clique_dict[graph_id]:
@@ -471,7 +492,7 @@ def save_clique_labels(graph_data:GraphData, max_clique=6, max_labels=None, labe
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, cliques_{max_clique}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, cliques_{max_clique}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:
