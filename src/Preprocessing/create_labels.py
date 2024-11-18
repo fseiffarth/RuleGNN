@@ -84,7 +84,7 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
     # iterate over the graphs and get the degree of each node
     node_labels = []
     unique_neighbor_labels = set()
-    node_to_hash = dict[int, tuple]
+    node_to_hash = dict()
     for graph_id, graph in enumerate(graph_data.graphs):
         for i, node in enumerate(graph.nodes()):
             neighbors = list(graph.neighbors(node))
@@ -107,15 +107,15 @@ def save_labeled_degree_labels(graph_data:GraphData, label_path=None, save_times
     if label_path is None:
         raise ValueError("No label path given")
     else:
-        file = label_path.joinpath(f"{graph_data.graph_db_name}_wl_0_labels.txt")
+        file = label_path.joinpath(f"{graph_data.graph_db_name}_wl_labeled_0_labels.txt")
     # check whether the file already exists
     if not file.exists():
-        print(f"Saving wl_0 labels for {graph_data.graph_db_name} to {file}")
+        print(f"Saving wl_labeled_0 labels for {graph_data.graph_db_name} to {file}")
         write_node_labels(file, node_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.graph_db_name}, wl_0, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.graph_db_name}, wl_labeled_0, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:

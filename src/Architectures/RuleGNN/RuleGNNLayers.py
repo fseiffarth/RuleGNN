@@ -494,7 +494,8 @@ class RuleConvolutionLayer(nn.Module):
 
     def set_weights(self, pos):
         input_size = self.graph_data.graphs[pos].number_of_nodes()
-        # reshape self.current_W to the size of the weight matrix and fill it with zeros
+        # reshape self.current_W to the size of the weight matrix and fill it with minus infinity
+        #self.current_W = torch.fill(torch.zeros((self.out_channels, input_size, input_size), dtype=self.precision).to(self.device), float('-inf'))
         self.current_W = torch.zeros((self.out_channels, input_size, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[pos]
         if len(weight_distr) != 0:
