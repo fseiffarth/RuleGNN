@@ -3,6 +3,7 @@ import gzip
 import os
 import pickle
 from collections import OrderedDict
+from pathlib import Path
 from typing import List, Tuple
 
 import torch
@@ -12,8 +13,10 @@ from src.utils.utils import convert_to_tuple
 
 
 class NodeLabels:
-    def __init__(self, node_labels:torch.Tensor):
+    def __init__(self, dataset_name:str, label_name:str, node_labels:torch.Tensor):
         # first column are the original node labels, the second column are the relabeled node labels
+        self.dataset_name = dataset_name
+        self.label_name = label_name
         self.original_node_labels = node_labels[:, 0]
         self.node_labels = node_labels[:, 1]
         self.unique_node_labels, self.unique_node_labels_count = torch.unique(self.node_labels, return_counts=True)
@@ -25,40 +28,19 @@ class NodeLabels:
 
 
 def combine_node_labels(labels: List[NodeLabels]):
+    graph_name = labels[0].dataset_name
+    combined_label_name = '_'.join([l.label_name for l in labels])
     # stack all the node labels
-    labels = torch.stack([l.node_labels for l in labels], dim=1)
-    # create tuples for each node
-    node_labels = []
-    label_map = {}
-    for i, g_labels in enumerate(labels[0].node_labels):
-        node_labels.append([])
-        for j, l in enumerate(g_labels):
-            label_tuple = []
-            for k in range(len(labels)):
-                label_tuple.append(labels[k].node_labels[i][j])
-            if tuple(label_tuple) not in label_map:
-                label_map[tuple(label_tuple)] = 1
-            else:
-                label_map[tuple(label_tuple)] += 1
-            node_labels[-1].append(tuple(label_tuple))
-
-    # sort dict by values
-    label_map = OrderedDict(sorted(label_map.items(), key=lambda item: item[1], reverse=True))
-
-    index_map = {}
-    # iterate over ordered dict and create map
-    for i, key in enumerate(label_map):
-        index_map[key] = i
-
-    # create new labels from node labels using the map
-    new_labels = []
-    for g_labels in node_labels:
-        new_labels.append([])
-        for l in g_labels:
-            new_labels[-1].append(index_map[l])
-
-    return NodeLabels(new_labels)
-
+    stacked_labels = torch.stack([l.node_labels for l in labels], dim=1)
+    # get all unique rows
+    unique_labels, new_labels = torch.unique(stacked_labels, return_inverse=True, dim=0)
+    # get frequency of each value in the new labels
+    unique_labels_count = torch.bincount(new_labels)
+    # sort the unique labels by the frequency and keep the indices
+    sorted_indices = torch.argsort(unique_labels_count, descending=True)
+    # reindex the unique labels: most frequent label is 0, second most frequent is 1, ...
+    frequency_sorted_labels = new_labels.new(sorted_indices).argsort()[new_labels]
+    return NodeLabels(graph_name, combined_label_name, torch.stack([new_labels, frequency_sorted_labels], dim=1))
 
 class EdgeLabels:
     def __init__(self):
@@ -69,7 +51,7 @@ class EdgeLabels:
 
 
 class Properties:
-    def __init__(self, path: str, db_name: str, property_name: str, valid_values: dict[tuple[int, int], list[int]]):
+    def __init__(self, path: Path, db_name: str, property_name: str, valid_values: dict[tuple[int, int], list[int]]):
         self.name = property_name
         self.db = db_name
         self.valid_values = {}
@@ -80,22 +62,14 @@ class Properties:
         self.valid_property_map = {}
 
         # path to the data
-        data_path = f'{path}/{db_name}_{property_name}.prop'
+        data_path = path.joinpath(db_name).joinpath(f'{db_name}_properties_{property_name}.pt')
         # path to the info file
-        info_path = f'{path}/{db_name}_{property_name}.yml'
+        info_path = path.joinpath(db_name).joinpath(f'{db_name}_properties_{property_name}.yml')
 
         # check if the file exists, otherwise raise an error
         if os.path.isfile(data_path) and os.path.isfile(info_path):
             with gzip.open(data_path, 'rb') as f:
-                self.properties = pickle.load(f)
-
-            with open(info_path, 'r') as f:
-                loaded = yaml.load(f, Loader=yaml.FullLoader)
-                self.all_values = loaded['valid_values']
-                # convert to list of tuples or single values
-                for i, value in enumerate(self.all_values):
-                    if type(value) == str:
-                        self.all_values[i] = ast.literal_eval(value)
+                self.all_values, self.properties = pickle.load(f)
         else:
             raise FileNotFoundError(f'File {data_path} or {info_path} not found')
 

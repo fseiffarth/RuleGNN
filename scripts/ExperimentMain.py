@@ -42,7 +42,7 @@ class ExperimentMain:
         self.dataset_configs = {}
         for dataset in self.main_config['datasets']:
             experiment_configuration = self.update_experiment_configuration(dataset)
-            experiment_configuration['format'] = 'NEL'
+            experiment_configuration['format'] = 'RuleGNNDataset'
             self.experiment_configurations[dataset['name']] = experiment_configuration.copy()
             self.dataset_configs[dataset['name']] = dataset.copy()
 
@@ -398,7 +398,7 @@ def preprocess_graph_data(db_name, experiment_configuration):
                                 task=experiment_configuration.get('task', 'graph_classification'),
                                 input_features=experiment_configuration.get('input_features', None),
                                 output_features=experiment_configuration.get('output_features', None),
-                                graph_format=experiment_configuration.get('format', 'NEL'))
+                                graph_format=experiment_configuration.get('format', 'RuleGNNDataset'))
     graph_data.set_precision(experiment_configuration.get('precision', 'double'))
     return graph_data
 

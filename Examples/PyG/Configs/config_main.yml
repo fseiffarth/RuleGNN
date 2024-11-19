@@ -11,15 +11,15 @@ datasets:
 # paths: paths to the data, properties, labels, results and splits
 paths:
   # Path to the folder containing the graph data
-  data: "Examples/PyG/Data/"
+  data: "Examples/Data/Graphs/"
   # Precomputed properties will be saved and loaded from this folder
-  properties: "Examples/PyG/Data/Properties/"
+  properties: "Examples/Data/Properties/"
   # Path to the folder containing the labels
-  labels: "Examples/PyG/Data/Labels/"
+  labels: "Examples/Data/Labels/"
   # Results will be saved in this folder
   results: "Examples/PyG/Results/"
   # Path to the folder containing the data splits
-  splits: "Examples/PyG/Data/Splits/"
+  splits: "Examples/Data/Splits/"
 
 # network options
 # bias: Turn on or off the bias in all layers

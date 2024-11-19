@@ -10,11 +10,9 @@ from sklearn.metrics import accuracy_score
 import torch
 from torch import optim, nn
 from torch.autograd import Variable
-from torch.distributed.checkpoint import load_state_dict
 from torch.optim.lr_scheduler import StepLR
-
-from src.utils import GraphData
 from src.Architectures.RuleGNN import RuleGNN
+from src.utils.GraphData import RuleGNNDataset
 from src.utils.Parameters import Parameters
 from src.Time.TimeClass import TimeClass
 from src.TrainTestData import TrainTestData as ttd
@@ -31,7 +29,7 @@ class EvaluationValues:
 
 
 class ModelEvaluation:
-    def __init__(self, run_id: int, k_val: int, graph_data: GraphData.GraphData, model_data: Tuple[np.ndarray, np.ndarray, np.ndarray], seed: int, para: Parameters.Parameters):
+    def __init__(self, run_id: int, k_val: int, graph_data: RuleGNNDataset, model_data: Tuple[np.ndarray, np.ndarray, np.ndarray], seed: int, para: Parameters.Parameters):
         self.best_epoch = None
         self.device = None
         self.dtype = None
@@ -54,8 +52,6 @@ class ModelEvaluation:
         self.dtype = torch.float
         if self.para.run_config.config.get('precision', 'float') == 'double':
             self.dtype = torch.double
-            # set the inputs in graph_data to double precision
-            self.graph_data.input_data = [x.double() for x in self.graph_data.input_data]
 
     def Run(self, run_seed: int = 687497, pretrained_network=None):
         """

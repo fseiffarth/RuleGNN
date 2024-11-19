@@ -16,3 +16,4 @@
 # ignore all results and data folders after Examples
 /Examples/*/Data/
 /Examples/*/Results/
+/Examples/Data/

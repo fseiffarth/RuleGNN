@@ -25,7 +25,7 @@ def get_label_string(label_dict: dict)->str:
     if label_type is None:
         raise ValueError("Label type is not specified")
 
-    if type(label_type) == list:
+    if isinstance(label_type, list):
         l_string = ""
         for i, l in enumerate(label_type):
             new_label_dict = label_dict.copy()
@@ -33,6 +33,9 @@ def get_label_string(label_dict: dict)->str:
             if i > 0:
                 l_string += "_"
             l_string += get_label_string(new_label_dict)
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
+            l_string = f"{l_string}_{max_labels}"
         return l_string
 
     if label_type == "primary":
@@ -42,8 +45,8 @@ def get_label_string(label_dict: dict)->str:
             l_string = f"primary_{max_labels}"
     elif label_type == "index":
         l_string = "index"
-        if 'max_labels' in label_dict:
-            max_labels = label_dict['max_labels']
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
             l_string = f"index_{max_labels}"
     elif label_type == "wl":
         iterations = label_dict.get('depth', 3)
@@ -68,8 +71,8 @@ def get_label_string(label_dict: dict)->str:
             l_string = f"simple_cycles_{max_cycle_length}"
         else:
             l_string = "simple_cycles_max"
-        if 'max_labels' in label_dict:
-            max_labels = label_dict['max_labels']
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
     elif label_type == "induced_cycles":
         if 'max_cycle_length' in label_dict:
@@ -77,32 +80,27 @@ def get_label_string(label_dict: dict)->str:
             l_string = f"induced_cycles_{max_cycle_length}"
         else:
             l_string = "induced_cycles_max"
-        if 'max_labels' in label_dict:
-            max_labels = label_dict['max_labels']
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
     elif label_type == "cliques":
         l_string = f"cliques"
         if 'max_clique_size' in label_dict:
             max_clique_size = label_dict['max_clique_size']
             l_string = f"cliques_{max_clique_size}"
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
+            l_string = f"{l_string}_{max_labels}"
     elif label_type == "subgraph":
         l_string = f"subgraph"
         if 'id' in label_dict:
             subgraph_id = label_dict['id']
             l_string = f"{l_string}_{subgraph_id}"
-        if 'max_labels' in label_dict:
-            max_labels = label_dict['max_labels']
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
     elif label_type == "trivial":
         l_string = "trivial"
-    elif label_type == "combined":
-        l_string = "combined"
-        if 'id' in label_dict:
-            subgraph_id = label_dict['id']
-            l_string = f"{l_string}_{subgraph_id}"
-        if 'max_labels' in label_dict:
-            max_labels = label_dict['max_labels']
-            l_string  = f"{l_string}_{max_labels}"
     else:
         raise ValueError(f"Layer type {label_type} is not supported")
 

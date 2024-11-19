@@ -16,34 +16,6 @@ from src.utils.utils import load_graphs
 from torch_geometric.io import fs, read_tu_data
 from torch_geometric.utils.convert import to_networkx
 
-class RuleGNNData(torch_geometric.data.data.Data):
-    def __init__(self,
-                 data: torch_geometric.data.data.Data,
-                 num_node_attributes: int = 0,
-                 num_edge_attributes: int = 0,
-                 use_one_hot_node_labels: bool = False,
-                 use_one_hot_edge_labels: bool = False,
-                 clear_empty_labels: bool = True):
-        # split node labels and attributes as well as edge labels and attributes
-        node_labels = data.x[:, num_node_attributes:] if data.x is not None else None
-        self.node_attributes = data.x[:, :num_node_attributes] if data.x is not None else None
-        edge_labels = data.edge_attr[:, num_edge_attributes:] if data.edge_attr is not None else None
-        self.edge_attributes = data.edge_attr[:, :num_edge_attributes] if data.edge_attr is not None else None
-
-        if clear_empty_labels:
-            # remove columns with only zeros
-            if node_labels is not None:
-                node_labels = node_labels[:, node_labels.sum(dim=0) != 0]
-            if edge_labels is not None:
-                edge_labels = edge_labels[:, edge_labels.sum(dim=0) != 0]
-
-        if not use_one_hot_node_labels:
-            node_labels = torch.argmax(node_labels, dim=1)
-        if not use_one_hot_edge_labels:
-            edge_labels = torch.argmax(edge_labels, dim=1)
-
-        super(RuleGNNData, self).__init__(x=node_labels, edge_index=data.edge_index, edge_attr=edge_labels, y=data.y, pos=data.pos, time=data.time)
-
 
 
 
@@ -60,11 +32,13 @@ class RuleGNNDataset(InMemoryDataset):
             use_node_attr: bool = True,
             use_edge_attr: bool = True,
             delete_zero_columns: bool = True,
-            one_hot_node_labels: bool = False,
     ) -> None:
         self.name = name
         self.from_tu_dataset = from_tu_dataset
         self.nx_graphs = []
+        self.node_labels = {}
+        self.edge_labels = {}
+        self.properties = {}
         super(RuleGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
         out = fs.torch_load(self.processed_paths[0])
         if not isinstance(out, tuple) or len(out) < 3:
@@ -95,20 +69,20 @@ class RuleGNNDataset(InMemoryDataset):
             # remove columns with only zeros
             self._data.x = self._data.x[:, self._data.x.sum(dim=0) != 0]
             self.sizes['num_node_labels'] = self._data.x.shape[1]
-        if self._data.x is not None and not use_node_attr:
-            num_node_attributes = self.num_node_attributes
-            self._data.x = self._data.x[:, num_node_attributes:]
-            self.primary_node_labels = torch.argmax(self._data.x, dim=1)
-            if not one_hot_node_labels:
-                self._data.x = torch.argmax(self._data.x, dim=1)
-        else:
-            self.primary_node_labels = torch.argmax(self._data.x[:, :num_node_attributes], dim=1)
-            if not one_hot_node_labels:
-                self._data.x[:, :num_node_attributes] = torch.argmax(self._data.x[:, :num_node_attributes], dim=1)
 
-        if self._data.edge_attr is not None and not use_edge_attr:
-            num_edge_attrs = self.num_edge_attributes
-            self._data.edge_attr = self._data.edge_attr[:, num_edge_attrs:]
+        if self._data.x is not None:
+            self.node_labels['primary'] = torch.argmax(self._data.x[:, num_node_attributes:], dim=1)
+            if not use_node_attr:
+                num_node_attributes = self.num_node_attributes
+                self._data.x = self._data.x[:, num_node_attributes:]
+
+
+
+        if self._data.edge_attr is not None:
+            self.edge_labels['primary'] = torch.argmax(self._data.edge_attr[:, num_edge_attributes:], dim=1)
+            if not use_edge_attr:
+                num_edge_attrs = self.num_edge_attributes
+                self._data.edge_attr = self._data.edge_attr[:, num_edge_attrs:]
 
 
     @property
@@ -185,23 +159,170 @@ class RuleGNNDataset(InMemoryDataset):
                 node[1]['primary_label'] = node[1]['x']
                 del node[1]['x']
 
-    def add_node_labels(self, node_labeling_name, max_labels=-1, node_labeling_method=None, **kwargs) -> None:
-        if node_labeling_method is not None:
-            node_labeling = NodeLabels()
-            node_labeling.node_labels, node_labeling.unique_node_labels, node_labeling.db_unique_node_labels = node_labeling_method(
-                self.graphs, **kwargs)
-            node_labeling.num_unique_node_labels = max(1, len(node_labeling.db_unique_node_labels))
+    def set_precision(self, precision: str = 'double'):
+        # adapt the precision of the input data
+        if precision == 'double':
+            self._data.x = self._data.x.double()
 
-            key = node_labeling_name
-            if max_labels is not None and max_labels > 0:
-                key = f'{node_labeling_name}_{max_labels}'
+    def preprocess_rule_gnn_data(self, input_features=None, output_features=None, task=None) -> None:
+        if input_features is None:
+            input_features = {'name': 'node_labels', 'transformation': {'name': 'normalize'}}
+        if output_features is None:
+            output_features = {}
 
-            self.node_labels[key] = node_labeling
-            if max_labels:
-                relabel_most_frequent(self.node_labels[key], max_labels)
+        use_labels = input_features.get('name', 'node_labels') == 'node_labels'
+        use_constant = input_features.get('name', 'node_labels') == 'constant'
+        use_features = input_features.get('name', 'node_labels') == 'node_features'
+        use_labels_and_features = input_features.get('name', 'node_labels') == 'all'
+        transformation = input_features.get('transformation', None)
+        use_features_as_channels = input_features.get('features_as_channels', False)
+
+        ### Determine the input data
+        self.input_data = []
+        ## add node labels
+        for graph_id, graph in enumerate(self.graphs):
+            if use_labels:
+                if transformation in ['one_hot', 'one_hot_encoding']:
+                    self.input_data.append(torch.zeros(1,graph.number_of_nodes(), self.node_labels['primary'].num_unique_node_labels))
+                    for node in graph.nodes(data=True):
+                        self.input_data[-1][0][node[0]][self.node_labels['primary'].node_labels[graph_id][node[0]]] = 1
+                else:
+                    self.input_data.append(torch.ones(1,graph.number_of_nodes(),1).float())
+                    for node in graph.nodes(data=True):
+                        self.input_data[-1][0][node[0]] = self.node_labels['primary'].node_labels[graph_id][node[0]]
+            elif use_constant:
+                self.input_data.append(torch.full(size=(1,graph.number_of_nodes(),1), fill_value=input_features.get('value', 1.0)).float())
+            elif use_features:
+                self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'][1:])))
+                for node in graph.nodes(data=True):
+                    # add all except the first element of the label
+                    self.input_data[-1][0][node[0]] = torch.tensor(node[1]['label'][1:])
+            elif use_labels_and_features:
+                self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'])))
+                for node in graph.nodes(data=True):
+                    # add all except the first element of the label
+                    self.input_data[-1][0][node[0]] = torch.tensor([self.node_labels['primary'].node_labels[graph_id][node[0]]] + node[1]['label'][1:])
+
+
+
+        # normalize the graph input labels, i.e. to have values between -1 and 1, no zero values
+        if use_labels and transformation == 'normalize':
+            # get the number of different node labels
+            num_node_labels = self.node_labels['primary'].num_unique_node_labels
+            # get the next even number if the number of node labels is odd
+            if num_node_labels % 2 == 1:
+                num_node_labels += 1
+            intervals = num_node_labels + 1
+            interval_length = 1.0 / intervals
+            for i, graph in enumerate(self.graphs):
+                for j in range(graph.number_of_nodes()):
+                    value = self.input_data[i][0][j]
+                    # get integer value of the node label
+                    value = int(value)
+                    # if value is even, add 1 to make it odd
+                    if value % 2 == 0:
+                        value = ((value + 1) * interval_length)
+                    else:
+                        value = (-1) * (value * interval_length)
+                    self.input_data[i][0][j] = value
+        elif use_labels and transformation == 'normalize_positive':
+            # get the number of different node labels
+            num_node_labels = self.node_labels['primary'].num_unique_node_labels
+            # get the next even number if the number of node labels is odd
+            intervals = num_node_labels + 1
+            interval_length = 1.0 / intervals
+            for i, graph in enumerate(self.graphs):
+                for j in range(graph.number_of_nodes()):
+                    value = self.input_data[i][0][j]
+                    # get integer value of the node label
+                    value = int(value)
+                    # map the value to the interval [0,1]
+                    value = ((value + 1) * interval_length)
+                    self.input_data[i][0][j] = value
+
+
+        elif use_labels and transformation == 'unit_circle':
+            '''
+            Arange the labels in an 2D unit circle
+            # TODO: implement this
+            '''
+            updated_input_data = []
+            # get the number of different node labels
+            num_node_labels = self.node_labels['primary'].num_unique_node_labels
+            for i, graph in enumerate(self.graphs):
+                updated_input_data.append(torch.ones(1, graph.number_of_nodes(), 2))
+                for j in range(graph.number_of_nodes()):
+                    value = int(self.input_data[i][0][j])
+                    # get integer value of the node label
+                    value = int(value)
+                    updated_input_data[-1][0][j][0] = np.cos(2*np.pi*value / num_node_labels)
+                    updated_input_data[-1][0][j][1] = np.sin(2*np.pi*value / num_node_labels)
+            self.input_data = updated_input_data
+        elif use_labels_and_features and transformation == 'normalize_labels':
+            # get the number of different node labels
+            num_node_labels = self.node_labels['primary'].num_unique_node_labels
+            # get the next even number if the number of node labels is odd
+            if num_node_labels % 2 == 1:
+                num_node_labels += 1
+            intervals = num_node_labels + 1
+            interval_length = 1.0 / intervals
+            for i, graph in enumerate(self.graphs):
+                for j in range(graph.number_of_nodes()):
+                    value = self.input_data[i][j][0]
+                    # get integer value of the node label
+                    value = int(value)
+                    # if value is even, add 1 to make it odd
+                    if value % 2 == 0:
+                        value = ((value + 1) * interval_length)
+                    else:
+                        value = (-1) * (value * interval_length)
+                    self.input_data[i][j][0] = value
+
+        if use_features_as_channels:
+            # swap the dimensions
+            for i in range(len(self.input_data)):
+                self.input_data[i] = self.input_data[i].permute(2,1,0)
+
+
+        # Determine the output data
+        if task == 'regression':
+            self.num_classes = 1
+            if type(self.graph_labels[0]) == list:
+                self.num_classes = len(self.graph_labels[0])
+        else:
+            try:
+                self.num_classes = len(set(self.graph_labels))
+            except:
+                self.num_classes = len(self.graph_labels[0])
+
+        self.output_data = torch.zeros(self.num_graphs, self.num_classes)
+
+        if task == 'regression':
+            self.output_data = torch.tensor(self.graph_labels)
+            self.output_data = self.output_data.unsqueeze(1)
+            if output_features.get('transformation', None) is not None:
+                self.output_data = transform_data(self.output_data, output_features)
+
+            self.output_feature_dimensions = 1
+        else:
+            for i, label in enumerate(self.graph_labels):
+                if type(label) == int:
+                    self.output_data[i][label] = 1
+                elif type(label) == list:
+                    self.output_data[i] = torch.tensor(label)
+            # the output feature dimension
+            self.output_feature_dimensions = self.output_data.shape[1]
+        # the input channel dimension
+        self.input_channels = self.input_data[0].shape[0]
+        # the input feature dimension
+        self.input_feature_dimensions = self.input_data[0].shape[2]
+        return None
 
     def __repr__(self) -> str:
         return f'{self.name}({len(self)})'
+
+
+
 
 
 def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):
@@ -549,35 +670,15 @@ def get_graph_data(db_name: str, data_path : Path, task='graph_classification', 
 
     """
     # load the graph data
-    graph_data = GraphData()
     if graph_format == 'NEL':
+        graph_data = GraphData()
         graph_data.load_nel_graphs(db_name=db_name, path=data_path, input_features=input_features, output_features=output_features, task=task, only_graphs=only_graphs)
-    # else:
-    #     if db_name == 'CSL_original':
-    #         from src.Preprocessing.csl import CSL
-    #         csl = CSL()
-    #         graph_data = csl.get_graphs(with_distances=False)
-    #     elif db_name == 'CSL':
-    #         graph_data = GraphData()
-    #         graph_data.load_nel_graphs(db_name, data_path, use_labels)
-    #     elif db_name == 'ZINC_original':
-    #         zinc_train = ZINC(root="../../ZINC_original/", subset=True, split='train')
-    #         zinc_val = ZINC(root="../../ZINC_original/", subset=True, split='val')
-    #         zinc_test = ZINC(root="../../ZINC_original/", subset=True, split='test')
-    #         graph_data = zinc_to_graph_data(zinc_train, zinc_val, zinc_test, "ZINC_original")
-    #     elif db_name == 'ZINC':
-    #         graph_data = GraphData()
-    #         graph_data.load_nel_graphs(db_name, data_path, use_labels, task='regression')
-    #     elif ('LongRings' in db_name) or ('EvenOddRings' in db_name) or ('SnowflakesCount' in db_name) or (
-    #             'Snowflakes' in db_name):
-    #         graph_data = GraphData()
-    #         # add db_name and raw to the data path
-    #         data_path = data_path.joinpath(db_name + "/raw/")
-    #         graph_data.load_nel_graphs(db_name, data_path, use_labels)
-    #     else:
-    #         graph_data = GraphData()
-    #         graph_data.init_from_graph_db(data_path, db_name, relabel_nodes=relabel_nodes, use_features=use_labels,
-    #                                       use_attributes=use_attributes)
+    elif graph_format == 'RuleGNNDataset':
+        graph_data = RuleGNNDataset(root=str(data_path), name=db_name)
+        graph_data.preprocess_rule_gnn_data(input_features=input_features, output_features=output_features, task=task)
+        pass
+    else:
+        raise ValueError(f'Graph format {graph_format} not supported')
     return graph_data
 
 

@@ -5,46 +5,55 @@ import time
 from pathlib import Path
 
 import networkx as nx
+import torch
 import yaml
+from torch_geometric.io import fs
 
-from src.utils.GraphData import get_graph_data, GraphData
+from src.utils.GraphData import get_graph_data, GraphData, RuleGNNDataset
 from src.utils.load_labels import load_labels
 import copy
 
 from src.utils.utils import convert_to_list
 
 
-def write_distance_properties(graph_data:GraphData, cutoff=None, out_path: Path = Path(), save_times=None) -> None:
-    out = out_path.joinpath(f"{graph_data.name}_distances.prop")
-    out_yml = out_path.joinpath(f"{graph_data.name}_distances.yml")
+def write_distance_properties(graph_data:RuleGNNDataset, cutoff=None, out_path: Path = Path(), save_times=None) -> None:
+    l = 'distances'
+    if cutoff is not None:
+        l += f"_cutoff_{cutoff}"
+    out = out_path.joinpath(f"{graph_data.name}_properties_{l}.pt")
+    out_yml = out_path.joinpath(f"{graph_data.name}_properties_{l}.yml")
     # check if the files already exists and if not create it
     if not os.path.exists(out) or not os.path.exists(out_yml):
         start_time = time.time()
-        distances = []
+        distances = {}
         valid_properties = set()
-        for graph in graph_data.graphs:
+        for graph_id, graph in enumerate(graph_data.nx_graphs):
             d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=cutoff))
             # use d to make a dictionary of pairs for each distance
-            new_d = {}
-            for key, value in d.items():
-                for key2, value2 in value.items():
-                    if value2 in new_d:
-                        new_d[value2].append((key, key2))
+            for node_1, other_nodes in d.items():
+                for node_2, distance in other_nodes.items():
+                    if distance in distances:
+                        distances[distance].append([node_1+graph_data.slices['x'][graph_id].item(), node_2+graph_data.slices['x'][graph_id].item()])
                     else:
-                        new_d[value2] = [(key, key2)]
-                pass
-            distances.append(new_d)
-            for key in new_d.keys():
-                valid_properties.add(key)
+                        distances[distance] = [[node_1+graph_data.slices['x'][graph_id].item(), node_2+graph_data.slices['x'][graph_id].item()]]
+        valid_properties = set(distances.keys())
+        properties_dict = {}
+        for key in valid_properties:
+            properties_dict[key] = torch.tensor(distances[key], dtype=torch.long)
+
         # save list of dictionaries to a pickle file
-        pickle_data = pickle.dumps(distances)
+        pickle_data = pickle.dumps((valid_properties, properties_dict))
         # compress with gzip
         with open(out, 'wb') as f:
             f.write(gzip.compress(pickle_data))
+
+        #fs.torch_save(
+        #    (valid_properties, properties_dict), str(out)
+        #)
         # save an additional .info file that stores the set of valid_properties as a yml file
         valid_properties_dict = {"valid_values": list(valid_properties), 'description': 'Distance',
                                  'list_of_values': f'{list(valid_properties)}'}
-        with open(out_path.joinpath(f"{graph_data.name}_distances.yml"), 'w') as f:
+        with open(out_yml, 'w') as f:
             yaml.dump(valid_properties_dict, f)
         if save_times is not None:
             with open(save_times, 'a') as f:

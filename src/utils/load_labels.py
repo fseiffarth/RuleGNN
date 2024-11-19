@@ -9,4 +9,5 @@ def load_labels(path='') -> NodeLabels:
     :param path: Path to the file
     :return: NodeLabels object
     """
-    return NodeLabels(torch.load(path))
+    dataset_name, label_name, node_labels = torch.load(path, weights_only=True)
+    return NodeLabels(dataset_name, label_name, node_labels)
