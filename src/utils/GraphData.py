@@ -148,6 +148,7 @@ class RuleGNNDataset(InMemoryDataset):
 
     def create_nx_graphs(self, directed: bool = False):
         self.nx_graphs = []
+        counter = 0
         for graph in self:
             self.nx_graphs.append(to_networkx(
                 data=graph,
@@ -156,8 +157,9 @@ class RuleGNNDataset(InMemoryDataset):
                 to_undirected=not directed))
             # change node label 'x' to 'primary_label'
             for node in self.nx_graphs[-1].nodes(data=True):
-                node[1]['primary_label'] = node[1]['x']
+                node[1]['primary_label'] = self.node_labels['primary'][counter].item()
                 del node[1]['x']
+                counter += 1
 
     def set_precision(self, precision: str = 'double'):
         # adapt the precision of the input data
