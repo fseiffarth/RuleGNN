@@ -6,11 +6,12 @@ import torch.nn as nn
 from src.utils import GraphData
 
 from src.Time.TimeClass import TimeClass
+from src.utils.GraphData import RuleGNNDataset
 from src.utils.Parameters.Parameters import Parameters
 
 
 class RuleGNN(nn.Module):
-    def __init__(self, graph_data: GraphData, para: Parameters, seed, device):
+    def __init__(self, graph_data: RuleGNNDataset, para: Parameters, seed, device):
         super(RuleGNN, self).__init__()
         self.graph_data = graph_data
         self.para = para
@@ -36,9 +37,7 @@ class RuleGNN(nn.Module):
             if self.channels[0] > graph_data.input_channels:
                 num_stacks = self.channels[0] // graph_data.input_channels
                 # modify the input channels to match the number of channels
-                for i, input_vector in enumerate(graph_data.input_data):
-                    # stack input_vector num_stacks times along the first dimension
-                    graph_data.input_data[i] = input_vector.repeat((num_stacks, 1, 1))
+                graph_data._x = graph_data._x.repeat((num_stacks, 1, 1))
 
         else:
             raise ValueError('If number of channels is larger than input channels, it must be a multiple of input channels')

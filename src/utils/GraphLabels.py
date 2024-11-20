@@ -58,6 +58,7 @@ class Properties:
         self.all_values = None
         # load the properties from a file, first decompress the file with gzip and then load the pickle file
         self.properties = None
+        self.properties_slices = None
         self.num_properties = {}
         self.valid_property_map = {}
 
@@ -69,12 +70,13 @@ class Properties:
         # check if the file exists, otherwise raise an error
         if os.path.isfile(data_path) and os.path.isfile(info_path):
             with gzip.open(data_path, 'rb') as f:
-                self.all_values, self.properties = pickle.load(f)
+                self.all_values, self.properties, self.properties_slices = pickle.load(f)
         else:
             raise FileNotFoundError(f'File {data_path} or {info_path} not found')
 
         for (layer_id, channel_id), values in valid_values.items():
             self.add_properties(layer_id=layer_id, channel_id=channel_id, valid_values=values)
+
 
     def add_properties(self, valid_values: List[int], layer_id: int, channel_id: int):
         self.valid_values[(layer_id, channel_id)] = []

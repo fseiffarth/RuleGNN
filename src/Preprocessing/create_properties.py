@@ -26,23 +26,33 @@ def write_distance_properties(graph_data:RuleGNNDataset, cutoff=None, out_path: 
     if not os.path.exists(out) or not os.path.exists(out_yml):
         start_time = time.time()
         distances = {}
-        valid_properties = set()
+        slices_dict = {}
         for graph_id, graph in enumerate(graph_data.nx_graphs):
+            for key in slices_dict:
+                slices_dict[key].append(slices_dict[key][-1])
             d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=cutoff))
             # use d to make a dictionary of pairs for each distance
             for node_1, other_nodes in d.items():
                 for node_2, distance in other_nodes.items():
                     if distance in distances:
                         distances[distance].append([node_1+graph_data.slices['x'][graph_id].item(), node_2+graph_data.slices['x'][graph_id].item()])
+                        if distance in slices_dict:
+                            slices_dict[distance][-1] += 1
                     else:
                         distances[distance] = [[node_1+graph_data.slices['x'][graph_id].item(), node_2+graph_data.slices['x'][graph_id].item()]]
+                        slices_dict[distance] = [0] * (graph_id + 2)
+                        slices_dict[distance][-1] = 1
+
+
         valid_properties = set(distances.keys())
         properties_dict = {}
         for key in valid_properties:
             properties_dict[key] = torch.tensor(distances[key], dtype=torch.long)
+        for key in slices_dict:
+            slices_dict[key] = torch.tensor(slices_dict[key], dtype=torch.long)
 
         # save list of dictionaries to a pickle file
-        pickle_data = pickle.dumps((valid_properties, properties_dict))
+        pickle_data = pickle.dumps((valid_properties, properties_dict, slices_dict))
         # compress with gzip
         with open(out, 'wb') as f:
             f.write(gzip.compress(pickle_data))

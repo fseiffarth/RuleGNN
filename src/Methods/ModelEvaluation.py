@@ -12,6 +12,7 @@ from torch import optim, nn
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 from src.Architectures.RuleGNN import RuleGNN
+from src.utils import GraphData
 from src.utils.GraphData import RuleGNNDataset
 from src.utils.Parameters import Parameters
 from src.Time.TimeClass import TimeClass
@@ -154,8 +155,7 @@ class ModelEvaluation:
             for batch_counter, batch in enumerate(train_batches, 0):
                 timer.measure("forward")
                 self.optimizer.zero_grad()
-                outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype))
-                outputs = outputs.to(self.device)
+                outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype)).to(self.device)
                 labels = self.graph_data.output_data[batch].to(self.device)
 
                 # TODO batch in one matrix ?
@@ -180,8 +180,8 @@ class ModelEvaluation:
                                 random_variation = torch.DoubleTensor(random_variation)
                             network_input = self.graph_data.input_data[graph_id] + random_variation
                     else:
-                        network_input = self.graph_data.input_data[graph_id]
-                    outputs[j] = self.net(network_input.to(self.device), graph_id)
+                        network_input = self.graph_data.get_x(graph_id)
+                    outputs[j] = self.net(network_input, graph_id)
                     timer.measure("forward_step")
 
 
@@ -471,7 +471,7 @@ class ModelEvaluation:
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.validate_data):
                         self.net.train(False)
-                        outputs[j] = self.net(self.graph_data.input_data[data_pos].to(self.device), data_pos)
+                        outputs[j] = self.net(self.graph_data.get_x(data_pos), data_pos)
 
                 # get validation loss
                 validation_loss = self.criterion(outputs, labels).item()
@@ -557,7 +557,7 @@ class ModelEvaluation:
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.test_data, 0):
                         self.net.train(False)
-                        outputs[j] = self.net(self.graph_data.input_data[data_pos].to(self.device), data_pos)
+                        outputs[j] = self.net(self.graph_data.get_x(data_pos), data_pos)
 
 
                 test_loss = self.criterion(outputs, labels).item()
