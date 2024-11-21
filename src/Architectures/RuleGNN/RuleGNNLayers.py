@@ -347,9 +347,9 @@ class RuleConvolutionLayer(nn.Module):
                 _, indices, counts = torch.unique(bias_labels, dim=0, return_inverse=True, return_counts=True)
                 for idx in range(len(graph_data)):
                     for feature_id in range(self.input_feature_dimensions):
-                        new_bias_distribution = torch.zeros((graph_data.num_nodes(idx), 4), dtype=torch.int64)
+                        new_bias_distribution = torch.zeros((graph_data.num_graph_nodes(idx), 4), dtype=torch.int64)
                         new_bias_distribution[:, 0] = i
-                        new_bias_distribution[:, 1] = torch.arange(graph_data.num_nodes(idx), dtype=torch.int64) # alternative torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
+                        new_bias_distribution[:, 1] = torch.arange(graph_data.num_graph_nodes(idx), dtype=torch.int64) # alternative torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
                         new_bias_distribution[:, 2] = feature_id
                         new_bias_distribution[:, 3] = indices[graph_data.slices['x'][idx]:graph_data.slices['x'][idx+1]] + feature_id * self.n_bias_labels[i]
                         if self.bias_distribution[idx] is None:
@@ -450,7 +450,7 @@ class RuleConvolutionLayer(nn.Module):
 
 
     def set_weights(self, pos):
-        input_size = self.graph_data.num_nodes(pos)
+        input_size = self.graph_data.num_graph_nodes(pos)
         # reshape self.current_W to the size of the weight matrix and fill it with minus infinity
         #self.current_W = torch.fill(torch.zeros((self.out_channels, input_size, input_size), dtype=self.precision).to(self.device), float('-inf'))
         self.current_W = torch.zeros((self.out_channels, input_size, input_size), dtype=self.precision).to(self.device)
@@ -463,7 +463,7 @@ class RuleConvolutionLayer(nn.Module):
             self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_indices)
 
     def set_bias(self, pos):
-        input_size = self.graph_data.num_nodes(pos)
+        input_size = self.graph_data.num_graph_nodes(pos)
         self.current_B = torch.zeros((self.out_channels, input_size, self.input_feature_dimensions), dtype=self.precision).to(self.device)
         bias_distr = self.bias_distribution[self.bias_distribution_slices[pos]:self.bias_distribution_slices[pos+1]]
         param_indices = bias_distr[:, 3]
@@ -767,10 +767,10 @@ class RuleAggregationLayer(nn.Module):
             _, indices, counts = torch.unique(node_labels, dim=0, return_inverse=True, return_counts=True)
             for idx in range(len(graph_data)):
                 for out_dim_id in range(out_dim):
-                    new_weight_distribution = torch.zeros((graph_data.num_nodes(idx), 4), dtype=torch.int64)
+                    new_weight_distribution = torch.zeros((graph_data.num_graph_nodes(idx), 4), dtype=torch.int64)
                     new_weight_distribution[:, 0] = i
                     new_weight_distribution[:, 1] = out_dim_id
-                    new_weight_distribution[:, 2] = torch.arange(graph_data.num_nodes(idx)) # torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
+                    new_weight_distribution[:, 2] = torch.arange(graph_data.num_graph_nodes(idx)) # torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
                     new_weight_distribution[:, 3] = indices[graph_data.slices['x'][idx]:graph_data.slices['x'][idx+1]] + out_dim_id * self.n_node_labels[i]
                     if self.weight_distribution[idx] is None:
                         self.weight_distribution[idx] = new_weight_distribution.detach().clone()
@@ -843,7 +843,7 @@ class RuleAggregationLayer(nn.Module):
         return weight_pos
 
     def set_weights(self, pos):
-        input_size = self.graph_data.num_nodes(pos)
+        input_size = self.graph_data.num_graph_nodes(pos)
         self.current_W = torch.zeros((self.out_channels, self.output_dimension, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
         param_indices = weight_distr[:, 3]

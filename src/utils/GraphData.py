@@ -89,8 +89,8 @@ class RuleGNNDataset(InMemoryDataset):
                 self._data.edge_attr = self._data.edge_attr[:, num_edge_attrs:]
 
 
-        for i, slice_val in enumerate(self.slices['x']):
-            self.node_numbers.append(slice_val + self.slices['x'][i + 1])
+        for i in range(len(self.slices['x']) - 1):
+            self.node_numbers.append(self.slices['x'][i + 1] - self.slices['x'][i])
 
     @property
     def raw_dir(self) -> str:
@@ -128,8 +128,8 @@ class RuleGNNDataset(InMemoryDataset):
         return 'data.pt'
 
 
-    def num_nodes(self, graph_id) -> int:
-        return self.slices['x'][graph_id + 1] - self.slices['x'][graph_id]
+    def num_graph_nodes(self, graph_id) -> int:
+        return self.node_numbers[graph_id]
 
 
     def get_x(self, graph_id) -> TensorAttr:
