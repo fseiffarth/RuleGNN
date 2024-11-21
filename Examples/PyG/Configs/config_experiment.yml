@@ -19,7 +19,7 @@ learning_rate:
 
 # epochs: number of epochs used for training, use several options for hyperparameter search
 epochs:
-  - 50
+  - 200
 
 # dropout: dropout rate used for training, use several options for hyperparameter search
 dropout:
@@ -45,7 +45,7 @@ scheduler: False
 # early_stopping: early stopping used for training, enabled can be set to True or False, patience is the number of epochs to wait for improvement of the validation accuracy
 early_stopping:
   enabled:
-    False
+    True
   patience:
     25
 

@@ -175,6 +175,7 @@ class ExperimentMain:
         if num_jobs == -1:
             num_jobs = min(len(self.main_config['datasets']), os.cpu_count())
             num_jobs = self.main_config.get('num_workers', num_jobs)
+            num_jobs = min(num_jobs, len(self.main_config['datasets']))
         joblib.Parallel(n_jobs=num_jobs)(joblib.delayed(self.PreprocessParallel)(dataset_configuration) for dataset_configuration in self.main_config['datasets'])
 
     def PreprocessParallel(self, dataset_configuration):

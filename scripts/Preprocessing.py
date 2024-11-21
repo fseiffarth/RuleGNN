@@ -44,8 +44,10 @@ class Preprocessing:
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
         # generate the data only if it does not exist (i.e. the processed folder is empty)
+        tu_dataset = False
+        nel_dataset = False
         if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'data.pt').is_file():
-            if type(data_generation) == str:
+            if isinstance(data_generation, str):
                 if data_generation == 'TUDataset':
                     try:
                         path = Path(self.experiment_configuration['paths']['data'])
@@ -68,6 +70,8 @@ class Preprocessing:
                         if not os.path.exists(path.joinpath(Path(db_name + "/raw"))):
                             os.makedirs(path.joinpath(Path(db_name + "/raw")))
                         #tu_to_nel(db_name=db_name, out_path=Path(self.experiment_configuration['paths']['data']))
+                        tu_dataset = True
+                        nel_dataset = False
                     except:
                         print(f'Could not generate {db_name} from TUDataset')
                 else:
@@ -83,6 +87,8 @@ class Preprocessing:
                         graphs, labels =  data_generation(**data_generation_args, split_path=Path(self.experiment_configuration['paths']['splits']))
                         # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
                         save_graphs(Path(self.experiment_configuration['paths']['data']), self.db_name, graphs, labels, with_degree=False, graph_format='NEL')
+                        tu_dataset = False
+                        nel_dataset = True
                     except:
                         # raise the error that has occurred
                         print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
@@ -101,6 +107,8 @@ class Preprocessing:
                                              use_node_attr=self.experiment_configuration.get('use_node_attr', False),
                                                 use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
                                              delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
+                                             from_tu_dataset=tu_dataset,
+                                                from_nel_dataset=nel_dataset
                                              )
 
         # generate the splits

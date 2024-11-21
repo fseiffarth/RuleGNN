@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Optional, Callable, List
 
@@ -37,6 +38,7 @@ class RuleGNNDataset(InMemoryDataset):
     ) -> None:
         self.name = name
         self.from_tu_dataset = from_tu_dataset
+        self.from_nel_dataset = from_nel_dataset
         self.nx_graphs = []
         self.unique_node_labels = 0
         self.node_labels = {}
@@ -143,7 +145,7 @@ class RuleGNNDataset(InMemoryDataset):
             tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
             self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
         elif self.from_nel_dataset is not None and self.from_nel_dataset:
-            self.data, self.slices, sizes = read_nel_data(self.name)
+            self.data, self.slices, sizes = self.read_nel_data()
         else:
             print('Cannot process the data')
 
@@ -165,10 +167,78 @@ class RuleGNNDataset(InMemoryDataset):
             self.processed_paths[0],
         )
 
+    def read_nel_data(self):
+        graphs, labels = load_graphs(Path(self.raw_dir), self.name, graph_format='NEL')
+        node_labels = []
+        node_attributes = []
+        node_slices = [0]
+        for graph in graphs:
+            for node in graph.nodes(data=True):
+                if 'label' in node[1]:
+                    node_labels.append(int(node[1]['label'][0]))
+                    if len(node[1]['label']) > 1:
+                        node_attributes.append(node[1]['label'][1:])
+            node_slices.append(graph.number_of_nodes())
+        # convert the node labels to a tensor
+        node_labels = torch.tensor(node_labels, dtype=torch.long)
+        # apply row-wise one-hot encoding
+        node_labels = torch.nn.functional.one_hot(node_labels).float()
+        # convert the node attributes to a tensor
+        node_attributes = torch.tensor(node_attributes, dtype=torch.float)
+        if len(node_attributes) == 0:
+            node_attributes = None
+        if node_attributes is not None:
+            # stack node attributes and node labels together to form the node feature matrix
+            x = torch.cat((node_attributes, node_labels), dim=1)
+        else:
+            x = node_labels
+        node_slices = torch.tensor(node_slices, dtype=torch.long).cumsum(dim=0)
+        # create edge_index tensor
+        edge_indices = []
+        edge_slices = [0]
+        edge_labels = []
+        edge_attributes = []
+        for i, graph in enumerate(graphs):
+            for edge in graph.edges(data=True):
+                edge_indices.append([edge[0], edge[1]])
+                if 'label' in edge[2]:
+                    edge_labels.append(int(edge[2]['label'][0]))
+                    if len(edge[2]['label']) > 1:
+                        edge_attributes.append(edge[2]['label'][1:])
+            edge_slices.append(len(graph.edges()))
+        # convert the edge indices to a tensor
+        edge_indices = torch.tensor(edge_indices, dtype=torch.long).T
+        edge_slices = torch.tensor(edge_slices, dtype=torch.long).cumsum(dim=0)
+        # convert the edge labels to a tensor
+        edge_labels = torch.tensor(edge_labels, dtype=torch.long)
+        # apply row-wise one-hot encoding
+        edge_labels = torch.nn.functional.one_hot(edge_labels).float()
+        # convert the edge attributes to a tensor
+        edge_attributes = torch.tensor(edge_attributes, dtype=torch.float)
+        if len(edge_attributes) == 0:
+            edge_attributes = None
+        if edge_attributes is not None:
+            # stack edge attributes and edge labels together to form the edge feature matrix
+            edge_attr = torch.cat((edge_attributes, edge_labels), dim=1)
+        else:
+            edge_attr = edge_labels
+        y = torch.tensor(labels, dtype=torch.long)
+        y_slices = torch.arange(0, len(labels)+1, dtype=torch.long)
+        data = Data(x=x, edge_index=edge_indices, edge_attr=edge_attr, y=y)
+        slices = {'edge_index': edge_slices,
+                    'x': node_slices,
+                  'edge_attr': edge_slices.detach().clone(),
+                  'y': y_slices}
+        sizes = {'num_node_labels': node_labels.shape[1],
+                 'num_node_attributes': node_attributes.shape[1] if node_attributes is not None else 0,
+                 'num_edge_labels': edge_labels.shape[1],
+                 'num_edge_attributes': edge_attributes.shape[1] if edge_attributes is not None else 0}
+        return data, slices, sizes
+
     def create_nx_graphs(self, directed: bool = False):
         self.nx_graphs = []
         counter = 0
-        for graph in self:
+        for g_id, graph in enumerate(self):
             self.nx_graphs.append(to_networkx(
                 data=graph,
                 node_attrs=['x'],
@@ -176,9 +246,10 @@ class RuleGNNDataset(InMemoryDataset):
                 to_undirected=not directed))
             # change node label 'x' to 'primary_label'
             for node in self.nx_graphs[-1].nodes(data=True):
-                node[1]['primary_label'] = self.node_labels['primary'][counter].item()
-                del node[1]['x']
+                self.nx_graphs[-1].nodes[node[0]]['primary_label'] = self.node_labels['primary'][counter].item()
+                del self.nx_graphs[-1].nodes[node[0]]['x']
                 counter += 1
+        pass
 
     def set_precision(self, precision: str = 'double'):
         # adapt the precision of the input data
@@ -335,10 +406,6 @@ class RuleGNNDataset(InMemoryDataset):
 
     def __repr__(self) -> str:
         return f'{self.name}({len(self)})'
-
-
-
-
 
 def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):
     if num_max_labels is None:
