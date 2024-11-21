@@ -45,7 +45,7 @@ scheduler: False
 # early_stopping: early stopping used for training, enabled can be set to True or False, patience is the number of epochs to wait for improvement of the validation accuracy
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 

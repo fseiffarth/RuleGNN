@@ -29,6 +29,7 @@ class RuleGNNDataset(InMemoryDataset):
             pre_transform: Optional[Callable] = None,
             pre_filter: Optional[Callable] = None,
             from_tu_dataset: Optional[bool] = None,
+            from_nel_dataset: Optional[bool] = None,
             force_reload: bool = False,
             use_node_attr: bool = True,
             use_edge_attr: bool = True,
@@ -141,6 +142,8 @@ class RuleGNNDataset(InMemoryDataset):
         if self.from_tu_dataset is not None and self.from_tu_dataset:
             tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
             self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
+        elif self.from_nel_dataset is not None and self.from_nel_dataset:
+            self.data, self.slices, sizes = read_nel_data(self.name)
         else:
             print('Cannot process the data')
 

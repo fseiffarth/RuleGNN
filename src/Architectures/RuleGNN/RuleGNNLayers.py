@@ -302,8 +302,7 @@ class RuleConvolutionLayer(nn.Module):
                 labeled_subdict[:, 0] = head_labels[property_subdict[:, 0]]
                 labeled_subdict[:, 1] = tail_labels[property_subdict[:, 1]]
                 # get unique rows of the property subdict together with counts and indices
-
-                unique_rows, indices, counts = torch.unique(labeled_subdict, dim=0, return_inverse=True, return_counts=True)
+                _, indices, counts = torch.unique(labeled_subdict, dim=0, return_inverse=True, return_counts=True, sorted=False)
                 # set all indices to -1 where the count is smaller than the threshold TODO
                 threshold = self.para.run_config.config.get('rule_occurrence_threshold', 1)
                 num_weights = len(counts)
@@ -344,7 +343,7 @@ class RuleConvolutionLayer(nn.Module):
                 # Determine the number of different learnable parameters in the bias vector
                 self.bias_num.append(self.input_feature_dimensions * self.n_bias_labels[i])
                 # Set the bias weights
-                _, indices, counts = torch.unique(bias_labels, dim=0, return_inverse=True, return_counts=True)
+                _, indices, counts = torch.unique(bias_labels, dim=0, return_inverse=True, return_counts=True, sorted=False)
                 for idx in range(len(graph_data)):
                     for feature_id in range(self.input_feature_dimensions):
                         new_bias_distribution = torch.zeros((graph_data.num_graph_nodes(idx), 4), dtype=torch.int64)
@@ -457,10 +456,10 @@ class RuleConvolutionLayer(nn.Module):
         weight_distr = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
         if len(weight_distr) != 0:
             # get third column of the weight_distribution: the index of self.Param_W
-            param_indices = weight_distr[:, 3]
+            param_weights = weight_distr[:, 3]
             matrix_indices = weight_distr[:, 0:3].T
             # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
-            self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_indices)
+            self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_weights)
 
     def set_bias(self, pos):
         input_size = self.graph_data.num_graph_nodes(pos)
@@ -764,7 +763,7 @@ class RuleAggregationLayer(nn.Module):
         for i, channel in enumerate(layer.layer_channels):
             node_labels = self.graph_data.node_labels[self.head_strings[i]].node_labels
             # Set the bias weights
-            _, indices, counts = torch.unique(node_labels, dim=0, return_inverse=True, return_counts=True)
+            _, indices, counts = torch.unique(node_labels, dim=0, return_inverse=True, return_counts=True, sorted=False)
             for idx in range(len(graph_data)):
                 for out_dim_id in range(out_dim):
                     new_weight_distribution = torch.zeros((graph_data.num_graph_nodes(idx), 4), dtype=torch.int64)
