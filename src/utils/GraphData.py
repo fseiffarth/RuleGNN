@@ -134,11 +134,6 @@ class RuleGNNDataset(InMemoryDataset):
     def num_graph_nodes(self, graph_id) -> int:
         return self.node_numbers[graph_id]
 
-
-    def get_x(self, graph_id) -> TensorAttr:
-        return self._data.x[:, self.slices['x'][graph_id]:self.slices['x'][graph_id + 1]]
-
-
     def process(self):
         sizes = None
         if self.from_tu_dataset is not None and self.from_tu_dataset:
@@ -269,23 +264,21 @@ class RuleGNNDataset(InMemoryDataset):
         use_labels_and_features = input_features.get('name', 'node_labels') == 'all'
         transformation = input_features.get('transformation', None)
         use_features_as_channels = input_features.get('features_as_channels', False)
-        ### add channel dimension to the input data such that we have a 3D tensor (channel_dim, num_nodes, feature_dim)
-        self._data.x = self._data.x.unsqueeze(0)
 
         ### Determine the input data
         if use_labels:
-            self._data.x = self._data.x[:, :, self.num_node_attributes:]
+            self._data.x = self._data.x[:, self.num_node_attributes:]
             if transformation in ['one_hot', 'one_hot_encoding']:
                 pass
             else:
-                self._data.x = torch.argmax(self._data.x, dim=2).unsqueeze(1)
+                self._data.x = torch.argmax(self._data.x, dim=1).unsqueeze(1)
         elif use_constant:
-            self._data.x = torch.full(size=(self._data.x.shape[0], self._data.x.shape[1], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0)).float()
+            self._data.x = torch.full(size=(self._data.x.shape[0], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0)).float()
         elif use_features:
-            self._data.x = self._data.x[:, :, :self.num_node_attributes]
+            self._data.x = self._data.x[:, :self.num_node_attributes]
         elif use_labels_and_features:
             # get first self.num_node_attributes columns and on the rest apply argmax
-            self._data.x = torch.cat((self._data.x[:, :, :self.num_node_attributes], torch.argmax(self._data.x[:, :,self.num_node_attributes:], dim=2).unsqueeze(1)), dim=2)
+            self._data.x = torch.cat((self._data.x[:, :self.num_node_attributes], torch.argmax(self._data.x[:,self.num_node_attributes:], dim=1).unsqueeze(0)), dim=1)
         else:
             pass
 
@@ -332,8 +325,8 @@ class RuleGNNDataset(InMemoryDataset):
             num_node_labels = self.unique_node_labels
             # duplicate data column
             self._data.x = self._data.x.repeat(1, 2)
-            self._data.x = self._data.x[:, :, 0:1].apply_(lambda x: torch.cos(2 * np.pi * x / num_node_labels))
-            self._data.x = self._data.x[:, :, 1:2].apply_(lambda x: torch.sin(2 * np.pi * x / num_node_labels))
+            self._data.x = self._data.x[:, 0:1].apply_(lambda x: torch.cos(2 * np.pi * x / num_node_labels))
+            self._data.x = self._data.x[:, 1:2].apply_(lambda x: torch.sin(2 * np.pi * x / num_node_labels))
         elif use_labels_and_features and transformation == 'normalize_labels':
             # get the number of unique node labels
             num_node_labels = self.unique_node_labels
@@ -353,7 +346,7 @@ class RuleGNNDataset(InMemoryDataset):
                     value = (-1) * (value * interval_length)
                 normalized_node_labels[idx] = value
             # replace values in self._data.x by the normalized values only for the last column
-            self._data.x = self._data.x[:, :, -1].apply_(lambda x: normalized_node_labels[x])
+            self._data.x = self._data.x[:, -1].apply_(lambda x: normalized_node_labels[x])
         elif use_labels_and_features and transformation == 'normalize_positive':
             # get the number of different node labels
             num_node_labels = self.unique_node_labels
@@ -368,10 +361,7 @@ class RuleGNNDataset(InMemoryDataset):
                 value = ((value + 1) * interval_length)
                 normalized_node_labels[idx] = value
             # replace values in self._data.x by the normalized values only for the last column
-            self._data.x = self._data.x[:, :, -1].apply_(lambda x: normalized_node_labels[x])
-        if use_features_as_channels:
-            # swap the dimensions
-            self._data.x = self._data.x.permute(2, 1, 0)
+            self._data.x = self._data.x[:, -1].apply_(lambda x: normalized_node_labels[x])
 
 
         # Determine the output data
@@ -398,10 +388,8 @@ class RuleGNNDataset(InMemoryDataset):
             self.output_data = torch.nn.functional.one_hot(self._data.y, self.num_classes).float()
             # the output feature dimension
             self.output_feature_dimensions = self.output_data.shape[1]
-        # the input channel dimension
-        self.input_channels = self._data.x.shape[0]
         # the input feature dimension
-        self.input_feature_dimensions = self._data.x.shape[2]
+        self.input_feature_dimensions = self._data.x.shape[1]
         return None
 
     def __repr__(self) -> str:
@@ -559,7 +547,6 @@ class GraphData:
             use_features = input_features.get('name', 'node_labels') == 'node_features'
             use_labels_and_features = input_features.get('name', 'node_labels') == 'all'
             transformation = input_features.get('transformation', None)
-            use_features_as_channels = input_features.get('features_as_channels', False)
 
             ### Determine the input data
             self.input_data = []

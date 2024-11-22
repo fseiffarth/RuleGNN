@@ -117,6 +117,7 @@ class LayerChannel:
         self.tail_node_labels = -1
         self.bias_labels = self.label_dict.get('bias', None)
         self.bias_node_labels = -1
+        self.bias = info_dict.get('bias', False)
         if self.head_labels is None:
             self.head_labels = self.label_dict
         if self.tail_labels is None:
@@ -139,8 +140,8 @@ class Layer:
         self.layer_dict = layer_dict
         self.layer_channels = []
         self.layer_id = layer_id
-
-        self.make_layer_channels(layer_dict.get('channels', None))
+        for c_id, channel_entry in enumerate(layer_dict.get('channels', [])):
+            self.layer_channels.append(LayerChannel(channel_entry, c_id))
 
     def get_unique_layer_dicts(self):
         unique_dicts = []
@@ -159,39 +160,6 @@ class Layer:
             if channel.property_dict not in unique_dicts and channel.property_dict is not None:
                 unique_dicts.append(channel.property_dict)
         return unique_dicts
-
-
-
-    def make_layer_channels(self, channel_dict):
-        if channel_dict is None:
-            raise ValueError(f"No channel information specified for layer {self.layer_id}, please use the 'channels' key")
-        # check if label dict is a list
-        if isinstance(channel_dict, list):
-            channel_counter = 0
-            for entry in channel_dict:
-                # either there is a number of channels specified by channels or a list with channel ids specified by channel_ids otherwise channel is 1
-                if 'channels' in entry:
-                    for i in range(entry['channels']):
-                        self.layer_channels.append(LayerChannel(entry, channel_counter))
-                        channel_counter += 1
-                elif 'channel_ids' in entry:
-                    for i in entry['channel_ids']:
-                        if i < len(self.layer_channels):
-                            self.layer_channels[i] = LayerChannel(entry, i)
-                        else:
-                            while i >= len(self.layer_channels):
-                                self.layer_channels.append(None)
-                            self.layer_channels[i] = LayerChannel(entry, i)
-                else:
-                    self.layer_channels.append(LayerChannel(entry, channel_counter))
-                    channel_counter += 1
-            # check whether there is a None entry in the layer_channels list
-            if None in self.layer_channels:
-                raise ValueError("Layer channels are not correctly specified")
-
-        else:
-            for i in range(channel_dict.get('channels', 1)):
-                self.layer_channels.append(LayerChannel(channel_dict, i))
 
     def get_head_string(self, channel_id=0):
         return get_label_string(self.layer_channels[channel_id].head_labels)
@@ -217,7 +185,7 @@ class RuleConvolutionLayer(nn.Module):
     classdocs for the GraphConvLayer: This class represents a convolutional layer for a RuleGNN
     """
 
-    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.RuleGNNDataset, bias=True, device='cpu'):
+    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.RuleGNNDataset, device='cpu'):
         """
         Constructor of the GraphConvLayer
         :param layer_id: the id of the layer
@@ -267,7 +235,8 @@ class RuleConvolutionLayer(nn.Module):
         self.bias_num = []
 
         self.para = parameters  # get the all the parameters of the experiment
-        self.bias = bias  # use bias or not default is True
+        self.bias_list = [channel.bias for channel in layer.layer_channels]
+        self.bias = any(self.bias_list)  # check if bias is used
         self.device = device  # set the device
         self.precision = torch.float # set the precision of the weights
         if parameters.run_config.config.get('precision', 'float') == 'double':
@@ -512,19 +481,20 @@ class RuleConvolutionLayer(nn.Module):
             self.set_bias(pos)
             self.forward_step_time += time.time() - begin
             if self.para.run_config.config.get('degree_matrix', False):
-                torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x) + self.current_B
+                torch.einsum('cij,jk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x) + self.current_B
             elif self.para.run_config.config.get('use_in_degrees', False):
-                self.in_edges[pos] * torch.einsum('cij,cjk->cik', self.current_W, x) + self.current_B
+                self.in_edges[pos] * torch.einsum('cij,jk->cik', self.current_W, x) + self.current_B
             else:
-                return torch.einsum('cij,cjk->cik', self.current_W, x) + self.current_B
+                x = torch.einsum('cij,jk->cik', self.current_W, x) + self.current_B
         else:
             self.forward_step_time += time.time() - begin
             if self.para.run_config.config.get('degree_matrix', False):
-                return self.in_edges[pos]*torch.einsum('cij,cjk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x)
+                x = self.in_edges[pos]*torch.einsum('cij,jk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x)
             elif self.para.run_config.config.get('use_in_degrees', False):
-                return self.in_edges[pos]*torch.einsum('cij,cjk->cik', self.current_W, x)
+                x = self.in_edges[pos]*torch.einsum('cij,jk->cik', self.current_W, x)
             else:
-                return torch.einsum('cij,cjk->cik', self.current_W, x)
+                x = torch.einsum('cij,jk->cik', self.current_W, x)
+        return x.permute(1, 2, 0)
 
 
     def get_weights(self):
@@ -726,7 +696,7 @@ class RuleAggregationLayer(nn.Module):
     It gets as input a matrix of size (nodes x graph_data.input_feature_dimension) and returns a matrix of size (output_dimension x graph_data.input_feature_dimension)
     '''
     def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.RuleGNNDataset,
-                 out_dim, bias=True, device='cpu'):
+                 out_dim, device='cpu'):
 
         super(RuleAggregationLayer, self).__init__()
         # set seed for reproducibility
@@ -748,6 +718,10 @@ class RuleAggregationLayer(nn.Module):
         self.device = device
         self.n_node_labels = []
         self.head_strings = []
+        # bias per channel
+        self.bias_list = [channel.bias for channel in layer.layer_channels]
+        # is there any bias
+        self.bias = any(self.bias_list)
         for i, channel in enumerate(layer.layer_channels):
             self.head_strings.append(layer.get_head_string(i))
             self.n_node_labels.append(graph_data.node_labels[self.head_strings[i]].num_unique_node_labels)
@@ -783,7 +757,7 @@ class RuleAggregationLayer(nn.Module):
 
         self.Param_W = self.init_weights(self.weight_num, init_type='aggregation')
 
-        self.bias = bias
+
         if self.bias:
             self.Param_b = self.init_weights(shape=(self.out_channels, out_dim, self.input_feature_dimension), init_type='aggregation_bias')
         self.forward_step_time = 0
@@ -888,10 +862,11 @@ class RuleAggregationLayer(nn.Module):
         self.forward_step_time += time.time() - begin
 
         if self.bias:
-            return torch.einsum('cij,cjk->cik', self.current_W, x) + self.Param_b
+            x = torch.einsum('cij,jk->cik', self.current_W, x) + self.Param_b
         else:
-            return torch.einsum('cij,cjk->cik', self.current_W, x)
-
+            x = torch.einsum('cij,jk->cik', self.current_W, x)
+        # flatten the output
+        return x.flatten()
         # if self.bias:
         #     return torch.mv(self.weight_matrices[pos], x) + self.Param_b.to("cpu")
         # else:
@@ -1038,3 +1013,30 @@ class RuleAggregationLayer(nn.Module):
                 node_sizes.append(graph_drawing[1].node_size * abs(graph_weights[i]) / weight_max_abs)
 
         nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
+
+
+class RuleGNNConcatenate(nn.Module):
+    """
+    Wrapper class for a linear layer that ignores the pos argument
+    """
+    def __init__(self, in_features, bias=True):
+        super(RuleGNNConcatenate, self).__init__()
+        self.linear = nn.Linear(in_features, 1, bias=bias)
+
+    def forward(self, x, pos):
+        x = self.linear(x)
+        # remove last dimension
+        return x.squeeze(-1)
+
+
+class RuleGNNLinear(nn.Module):
+    """
+    Wrapper class for a linear layer that ignores the pos argument
+    """
+
+    def __init__(self, in_features, out_features, bias=True):
+        super(RuleGNNLinear, self).__init__()
+        self.linear = nn.Linear(in_features, out_features, bias=bias)
+
+    def forward(self, x, pos):
+        return self.linear(x)

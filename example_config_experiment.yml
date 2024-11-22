@@ -53,13 +53,29 @@ early_stopping:
 networks:
   # first layer is a convolutional layer, second layer is an aggregation layer
   - - { layer_type: 'convolution',
-                  {labels: {head: {label_type: primary},
-                            tail: {label_type: primary},
-                            bias: {label_type: primary}},
+        bias: False,
+        channels:
+          [
+                  {labels: {head: {label_type: [ wl, primary ], depth: 2},
+                            tail: {label_type: [ wl, primary ], depth: 2},
+                            bias: {label_type: [ wl, primary ], depth: 2}},
                    properties: {name: distances, values: [1, 2, 3, 4, 5, 6]}
-                  }
+                  },
+                { labels: { head: { label_type: [ wl, primary ], depth: 2 },
+                            tail: { label_type: [ wl, primary ], depth: 2 },
+                            bias: { label_type: [ wl, primary ], depth: 2 } },
+                  properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6 ] }
+                }
+          ]
       }
-    - { layer_type: 'aggregation', labels: {label_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 }}
+    - { layer_type: 'aggregation',
+        bias: True,
+        channels:
+          [
+            { labels: { label_type: simple_cycles, max_cycle_length: 50, max_node_labels: 500 } },
+            { labels: { label_type: wl, depth: 2, max_node_labels: 500 } },
+          ]
+    }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here, the subgraph id of the layer corresponds to the index of the subgraph in the list
 subgraphs:

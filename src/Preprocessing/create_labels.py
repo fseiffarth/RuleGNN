@@ -392,7 +392,7 @@ def save_subgraph_labels(graph_data:RuleGNNDataset, subgraphs=List[nx.Graph], na
                 else:
                     labels[-1].append(len(label_dict))
 
-        save_labels_to_file(file, graph_data, l, labels, max_labels=max_labels)
+        save_labels_to_file(file, graph_data.name, l, labels, max_labels=max_labels)
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:

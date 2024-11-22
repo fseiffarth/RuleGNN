@@ -28,6 +28,10 @@ def generate_layer_options(layer_dict):
     options = []
     for label_type in layer_dict['labels']:
         properties_dict = []
+        base_dict = {}
+        for key, value in layer_dict.items():
+            if key != 'labels' and key != 'properties':
+                base_dict[key] = value
         if layer_dict.get('properties', None) is not None:
             for prop_val in layer_dict['properties']:
                 properties_dict.append(prop_val)
@@ -65,10 +69,7 @@ def generate_layer_options(layer_dict):
                     value_combinations = new_combinations
             for i, values in enumerate(value_combinations):
                 if properties_dict is None or len(properties_dict) == 0:
-                    curr_layer_dict = {}
-                    for key, value in layer_dict.items():
-                        if key != 'labels' and key != 'properties':
-                            curr_layer_dict[key] = value
+                    curr_layer_dict = base_dict
                     channels_list = []
                     label_dict = {'label_type': label_type['label_type']}
                     for j, value in enumerate(values):
@@ -78,10 +79,7 @@ def generate_layer_options(layer_dict):
                     options.append(curr_layer_dict)
                 else:
                     for prop_val in properties_dict:
-                        curr_layer_dict = {}
-                        for key, value in layer_dict.items():
-                            if key != 'labels' and key != 'properties':
-                                curr_layer_dict[key] = value
+                        curr_layer_dict = base_dict
                         channels_list = []
                         label_dict = {'label_type': label_type['label_type']}
                         for j, value in enumerate(values):
@@ -91,7 +89,7 @@ def generate_layer_options(layer_dict):
                         options.append(curr_layer_dict)
     return options
 
-def get_network_architectures(network_architectures_dict: dict):
+def preprocess_network_architectures(network_architectures_dict):
     network_architectures = []
     layers_per_architecture = []
     for network_architecture in network_architectures_dict:
@@ -124,14 +122,89 @@ def get_network_architectures(network_architectures_dict: dict):
     return network_architectures
 
 
+def check_layer(i, layer)->(bool, str):
+    if 'layer_type' not in layer:
+        return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
+    if 'channels' not in layer:
+        return False, f'Channels not defined in layer {i}'
+    else:
+        if not isinstance(layer['channels'], list):
+            return False, f'Channels must be a list in layer {i}'
+        else:
+            for channel in layer['channels']:
+                if 'bias' not in channel:
+                    return False, f'Bias not defined in layer {i}, it must be True or False'
+                if 'labels' not in channel:
+                    return False, f'Labels not defined in channel {i}'
+                else:
+                    if layer['layer_type'] == 'convolution':
+                        if 'head' not in channel['labels']:
+                            return False, f'Head not defined in channel {i}'
+                        else:
+                            if 'label_type' not in channel['labels']['head']:
+                                return False, f'Label type not defined in channel {i} for head'
+                        if 'tail' not in channel['labels']:
+                            return False, f'Tail not defined in channel {i}'
+                        else:
+                            if 'label_type' not in channel['labels']['tail']:
+                                return False, f'Label type not defined in channel {i} for tail'
+                        if 'bias' not in channel['labels']:
+                            return False, f'Bias not defined in channel {i}'
+                        else:
+                            if 'label_type' not in channel['labels']['bias']:
+                                return False, f'Label type not defined in channel {i} for bias'
+                        if 'properties' not in channel:
+                            return False, f'Properties not defined in channel {i}'
+                        else:
+                            if 'name' not in channel['properties']:
+                                return False, f'Property name not defined in channel {i}'
+                            if 'values' not in channel['properties']:
+                                return False, f'Property values not defined in channel {i}'
+                            else:
+                                if not isinstance(channel['properties']['values'], list):
+                                    return False, f'Property values must be a list in channel {i}'
+                    elif layer['layer_type'] == 'aggregation':
+                        if 'label_type' not in channel['labels']:
+                            return False, f'Label type not defined in channel {i}'
+
+    return True, ''
+
+
+def check_network_architectures(network_architectures):
+    '''
+    Checks if the network architectures is in the correct format
+    '''
+    invalid_architectures = []
+    for i, architecture in enumerate(network_architectures):
+        invalid_layers = []
+        for i, layer in enumerate(architecture):
+            correct, error = check_layer(i, layer)
+            if not correct:
+                invalid_layers.append(error)
+        if len(invalid_layers) > 0:
+            invalid_architectures.append(i)
+            for error in invalid_layers:
+                print(error)
+    if len(invalid_architectures) > 0:
+        for i in invalid_architectures:
+            print(f'Architecture {i} is invalid')
+        return False
+    return True
+
+
+
 def get_run_configs(experiment_configuration):
     # define the network type from the config file
     run_configs = []
     task = "classification"
     if 'task' in experiment_configuration:
         task = experiment_configuration['task']
-    # get networks from the config file
-    network_architectures = get_network_architectures(experiment_configuration['networks'])
+    # get networks from the config file and preprocess them
+    # bring the config file network architecture into the correct format
+    network_architectures = preprocess_network_architectures(experiment_configuration['networks'])
+    network_architectures = experiment_configuration['networks']
+    if not check_network_architectures(network_architectures):
+        raise ValueError('Network architecture not correctly defined')
     # iterate over all network architectures
     for network_architecture in network_architectures:
         layers = []

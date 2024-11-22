@@ -151,7 +151,7 @@ class ModelEvaluation:
             np.random.shuffle(self.training_data)
             self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
             train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
-
+            random_variation_bool = self.para.run_config.config.get('input_features', None).get('random_variation', None)
             for batch_counter, batch in enumerate(train_batches, 0):
                 timer.measure("forward")
                 self.optimizer.zero_grad()
@@ -162,26 +162,17 @@ class ModelEvaluation:
                 self.net.train(True)
                 for j, graph_id in enumerate(batch, 0):
                     timer.measure("forward_step")
-                    if self.para.run_config.config.get('input_features', None).get('random_variation', None):
-                        if self.para.run_config.config['input_features']['random_variation'] == 'unit_vector':
-                            random_unit_vector = scipy.stats.uniform_direction.rvs(dim=np.prod(self.graph_data.input_data[graph_id].shape)).reshape(self.graph_data.input_data[graph_id].shape)
-                            if self.para.run_config.config.get('precision', 'double') == 'float':
-                                network_input = torch.FloatTensor(random_unit_vector)
-                            else:
-                                network_input = torch.DoubleTensor(random_unit_vector)
+                    if random_variation_bool:
+                        mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
+                        std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
+                        random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size())
+                        if self.para.run_config.config.get('precision', 'double') == 'float':
+                            random_variation = torch.FloatTensor(random_variation)
                         else:
-                            mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
-                            std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
-                            # random variation as torch tensor
-                            random_variation = np.random.normal(mean, std, self.graph_data.input_data[graph_id].shape)
-                            if self.para.run_config.config.get('precision', 'double') == 'float':
-                                random_variation = torch.FloatTensor(random_variation)
-                            else:
-                                random_variation = torch.DoubleTensor(random_variation)
-                            network_input = self.graph_data.input_data[graph_id] + random_variation
+                            random_variation = torch.DoubleTensor(random_variation)
+                        outputs[j] = self.net(self.graph_data[graph_id].x + random_variation, graph_id)
                     else:
-                        network_input = self.graph_data.get_x(graph_id)
-                    outputs[j] = self.net(network_input, graph_id)
+                        outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
                     timer.measure("forward_step")
 
 
@@ -471,7 +462,7 @@ class ModelEvaluation:
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.validate_data):
                         self.net.train(False)
-                        outputs[j] = self.net(self.graph_data.get_x(data_pos), data_pos)
+                        outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
 
                 # get validation loss
                 validation_loss = self.criterion(outputs, labels).item()
@@ -557,7 +548,7 @@ class ModelEvaluation:
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.test_data, 0):
                         self.net.train(False)
-                        outputs[j] = self.net(self.graph_data.get_x(data_pos), data_pos)
+                        outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
 
 
                 test_loss = self.criterion(outputs, labels).item()
