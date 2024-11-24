@@ -1,3 +1,5 @@
+from typing import List
+
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
 class RunConfiguration:
     def __init__(self, config, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, weight_decay, loss, task="classification"):
@@ -89,24 +91,67 @@ def generate_layer_options(layer_dict):
                         options.append(curr_layer_dict)
     return options
 
+
 def preprocess_network_architectures(network_architectures_dict):
     network_architectures = []
     layers_per_architecture = []
     for network_architecture in network_architectures_dict:
         for i, layer in enumerate(network_architecture):
-            if layer.get('labels', None) is not None and type(layer['labels']) == list:
-                options = generate_layer_options(layer)
-                if len(layers_per_architecture) <= i:
-                    while len(layers_per_architecture) <= i:
-                        layers_per_architecture.append([])
-                for opt in options:
-                    layers_per_architecture[i].append(opt)
-            else:
+            correct, error = check_layer(i, layer)
+            if correct:
                 if len(layers_per_architecture) <= i:
                     while len(layers_per_architecture) <= i:
                         layers_per_architecture.append([])
                 layers_per_architecture[i].append(network_architecture[i])
                 break
+            else:
+                short_type, error = check_layer_short_type(i, layer)
+                if short_type:
+                    if layer['layer_type'] == 'convolution':
+                        a = len(layer['channels'])
+                        b = len(layer['labels'])
+                        c = len(layer['properties'])
+                    else:
+                        a = len(layer['channels'])
+                        b = len(layer['labels'])
+                        c = 0
+                    # get all possible combinations of the values in triples
+                    combinations = [(x, y, z) for x in range(a) for y in range(b) for z in range(c)]
+                    options = []
+                    for combination in combinations:
+                        curr_layer_dict = {}
+                        curr_layer_dict['layer_type'] = layer['layer_type']
+                        curr_layer_dict['channels'] = []
+                        for i in range(a):
+                            curr_channel_dict = {}
+                            curr_channel_dict['bias'] = layer['channels'][i]['bias']
+                            curr_channel_dict['labels'] = {}
+                            curr_channel_dict['labels']['label_type'] = layer['labels'][combination[1]]['label_type']
+                            if layer['layer_type'] == 'convolution':
+                                curr_channel_dict['properties'] = {}
+                                curr_channel_dict['properties']['name'] = layer['properties'][combination[2]]['name']
+                                curr_channel_dict['properties']['values'] = layer['properties'][combination[2]]['values']
+                            curr_layer_dict['channels'].append(curr_channel_dict)
+
+                    options = [{}] * len(layer['channels']) * len(layer['labels'])
+                    if layer['layer_type'] == 'convolution':
+                        options = [{}] * len(options) * len(layer['properties'])
+
+                    if layer.get('labels', None) is not None and type(layer['labels']) == list:
+                        options = generate_layer_options(layer)
+                        if len(layers_per_architecture) <= i:
+                            while len(layers_per_architecture) <= i:
+                                layers_per_architecture.append([])
+                        for opt in options:
+                            layers_per_architecture[i].append(opt)
+                    else:
+                        if len(layers_per_architecture) <= i:
+                            while len(layers_per_architecture) <= i:
+                                layers_per_architecture.append([])
+                        layers_per_architecture[i].append(network_architecture[i])
+                        break
+                else:
+                    raise ValueError(f'Layer {i} is not correctly defined: {error}')
     # get all possible network architectures using all combinations from layers per architecture
     for i in range(len(layers_per_architecture)):
         if len(network_architectures) == 0:
@@ -122,7 +167,7 @@ def preprocess_network_architectures(network_architectures_dict):
     return network_architectures
 
 
-def check_layer(i, layer)->(bool, str):
+def check_layer(i:int, layer: dict)->(bool, str):
     if 'layer_type' not in layer:
         return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
     if 'channels' not in layer:
@@ -132,6 +177,8 @@ def check_layer(i, layer)->(bool, str):
             return False, f'Channels must be a list in layer {i}'
         else:
             for channel in layer['channels']:
+                if not isinstance(channel, dict):
+                    return False, f'Channel must be a dictionary in layer {i}'
                 if 'bias' not in channel:
                     return False, f'Bias not defined in layer {i}, it must be True or False'
                 if 'labels' not in channel:
@@ -169,8 +216,47 @@ def check_layer(i, layer)->(bool, str):
 
     return True, ''
 
+def check_layer_short_type(i, layer):
+    if 'layer_type' not in layer:
+        return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
+    if 'bias' not in layer:
+        return False, f'Bias not defined in layer {i}, it must be True or False'
+    if 'channels' not in layer:
+        return False, f'Channels not defined in layer {i}, it must be a list of ints of parallel channels used'
+    else:
+        if not isinstance(layer['channels'], list):
+            return False, f'Channels must be a list in layer {i}'
+    if 'labels' not in layer:
+        return False, f'Labels not defined in layer {i}'
+    else:
+        if not isinstance(layer['labels'], list):
+            return False, f'Labels must be a list in layer {i}'
+        else:
+            for l in layer['labels']:
+                if not isinstance(l, dict):
+                    return False, f'Label must be a dictionary in layer {i}'
+                if 'label_type' not in l:
+                    return False, f'Label type not defined in label in layer {i}'
 
-def check_network_architectures(network_architectures):
+    if 'properties' not in layer and layer['layer_type'] == 'convolution':
+        return False, f'Properties not defined in layer {i}'
+    else:
+        if not isinstance(layer['properties'], list):
+            return False, f'Properties must be a list in layer {i}'
+        else:
+            for prop in layer['properties']:
+                if not isinstance(prop, dict):
+                    return False, f'Property must be a dictionary in layer {i}'
+                if 'name' not in prop:
+                    return False, f'Property name not defined in layer {i}'
+                if 'values' not in prop:
+                    return False, f'Property values not defined in layer {i}'
+                else:
+                    if not isinstance(prop['values'], list):
+                        return False, f'Property values must be a list'
+    return True, ''
+
+def check_network_architectures(network_architectures, print_errors=False):
     '''
     Checks if the network architectures is in the correct format
     '''
@@ -183,11 +269,13 @@ def check_network_architectures(network_architectures):
                 invalid_layers.append(error)
         if len(invalid_layers) > 0:
             invalid_architectures.append(i)
-            for error in invalid_layers:
-                print(error)
+            if print_errors:
+                for error in invalid_layers:
+                        print(error)
     if len(invalid_architectures) > 0:
-        for i in invalid_architectures:
-            print(f'Architecture {i} is invalid')
+        if print_errors:
+            for i in invalid_architectures:
+                print(f'Architecture {i} is invalid')
         return False
     return True
 
@@ -202,8 +290,7 @@ def get_run_configs(experiment_configuration):
     # get networks from the config file and preprocess them
     # bring the config file network architecture into the correct format
     network_architectures = preprocess_network_architectures(experiment_configuration['networks'])
-    network_architectures = experiment_configuration['networks']
-    if not check_network_architectures(network_architectures):
+    if not check_network_architectures(network_architectures, print_errors=True):
         raise ValueError('Network architecture not correctly defined')
     # iterate over all network architectures
     for network_architecture in network_architectures:

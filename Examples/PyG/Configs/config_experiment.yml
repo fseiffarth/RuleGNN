@@ -95,38 +95,42 @@ networks:
 #      }
 # networks: list of network configurations, each configuration is a list of layers, each layer is a dictionary with the layer_type and properties
   # first layer is a convolutional layer, second layer is an aggregation layer
-  - - { layer_type: 'convolution',
-        channels:
-          [
-                  { bias: False,
-                    labels: {head: {label_type: [ wl, primary ], depth: 2},
-                            tail: {label_type: [ wl, primary ], depth: 2},
-                            bias: {label_type: [ wl, primary ], depth: 2}},
-                   properties: {name: distances, values: [0, 1, 2, 3, 4, 5, 6]},
-
-                  },
-                { bias: False,
-                  labels: { head: { label_type: [ wl, primary ], depth: 2 },
-                            tail: { label_type: [ wl, primary ], depth: 2 },
-                            bias: { label_type: [ wl, primary ], depth: 2 } },
-                  properties: { name: distances, values: [0, 1, 2, 3, 4, 5, 6 ] },
-
-                }
-          ]
-      }
-    - { layer_type: 'aggregation',
-        channels:
-          [
-            { bias: True, labels: { label_type: simple_cycles, max_cycle_length: 50 } },
-            { bias: True, labels: { label_type: subgraph, id: 0 } },
-            { bias: True, labels: { label_type: subgraph, id: 1 } },
-          ]
+  - - { layer_type: convolution ,
+        bias: False,
+        channels: [1,2],
+        labels: [
+          { label_type: primary },
+          { label_type: [ wl, primary ], depth: [ 4,3,2,1,0 ] },
+          { label_type: [ simple_cycles, primary ], max_cycle_length: [ 10, 20 ] },
+        ],
+        properties: [
+          { name: distances, values: [ 0,1,2,3,4,5,6 ] },
+          { name: distances, values: [ 10 ] },
+        ]
+  }
+    - { layer_type: aggregation,
+        bias: True,
+        channels: [1,4],
+        labels: [
+          { label_type: [ wl, primary ], depth: [ 4,3,2,1,0 ] },
+          { label_type: [ simple_cycles, primary ], max_cycle_length: [ 6, 10, 20 ] },
+          { label_type: primary }
+        ]
     }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here, the subgraph id of the layer corresponds to the index of the subgraph in the list
 subgraphs:
-  - "[nx.cycle_graph(5), nx.star_graph(1)]"
-  - "[nx.cycle_graph(6), nx.star_graph(1)]"
+  - "[nx.cycle_graph(5)]"
+  - "[nx.cycle_graph(6)]"
+  - "[nx.cycle_graph(7)]"
+  - "[nx.cycle_graph(8)]"
+  - "[nx.cycle_graph(9)]"
+  - "[nx.cycle_graph(10)]"
+  - "[nx.cycle_graph(11)]"
+  - "[nx.cycle_graph(12)]"
+  - "[nx.cycle_graph(13)]"
+  - "[nx.cycle_graph(14)]"
+  - "[nx.cycle_graph(15)]"
 #  - - { layer_type: convolution ,
 #        bias: False,
 #        labels: [
