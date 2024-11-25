@@ -197,9 +197,18 @@ class ExperimentMain:
             elif dataset_configuration['type'] == 'TUDataset':
                 data_generation = 'TUDataset'
                 data_generation_args = None
+            elif dataset_configuration['type'] == 'gnn_benchmark':
+                data_generation = 'gnn_benchmark'
+                data_generation_args = None
+            elif dataset_configuration['type'] == 'ZINC':
+                data_generation = 'ZINC'
+                data_generation_args = None
             else:
                 print(
                     f"The type {dataset_configuration['type']} is not supported. Please use 'generate_from_function' or 'TUDataset'")
+        else:
+            print(f"The type of the dataset is not defined. Please define the type of the dataset.")
+
 
         if 'with_splits' in dataset_configuration:
             with_splits = dataset_configuration['with_splits']

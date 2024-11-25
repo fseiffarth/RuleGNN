@@ -2,6 +2,7 @@ networks:
   # mixed models
   - - { layer_type: convolution ,
         bias: False,
+        heads: [1],
         labels: [
           { label_type: primary}
         ],
@@ -11,6 +12,7 @@ networks:
       }
     - { layer_type: aggregation,
         bias: True,
+        heads: [1],
         labels: [
           { label_type: primary }
         ]

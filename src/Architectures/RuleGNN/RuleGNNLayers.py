@@ -494,7 +494,11 @@ class RuleConvolutionLayer(nn.Module):
                 x = self.in_edges[pos]*torch.einsum('cij,jk->cik', self.current_W, x)
             else:
                 x = torch.einsum('cij,jk->cik', self.current_W, x)
-        return x.permute(1, 2, 0)
+        x = x.permute(1, 2, 0)
+        # if last dimension is 1, remove it
+        if x.size(2) == 1:
+            x = x.squeeze(2)
+        return x
 
 
     def get_weights(self):

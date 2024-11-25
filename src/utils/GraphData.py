@@ -10,7 +10,7 @@ import torch_geometric.data
 from numpy.ma.core import shape
 from torch_geometric.data import InMemoryDataset, Data, TensorAttr
 from torch_geometric.data.data import BaseData
-from torch_geometric.datasets import ZINC, TUDataset
+from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset
 
 from src.utils import NodeLabeling, EdgeLabeling
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
@@ -29,22 +29,19 @@ class RuleGNNDataset(InMemoryDataset):
             transform: Optional[Callable] = None,
             pre_transform: Optional[Callable] = None,
             pre_filter: Optional[Callable] = None,
-            from_tu_dataset: Optional[bool] = None,
-            from_nel_dataset: Optional[bool] = None,
+            from_existing_data: Optional[str] = None,
             force_reload: bool = False,
             use_node_attr: bool = True,
             use_edge_attr: bool = True,
             delete_zero_columns: bool = True,
     ) -> None:
         self.name = name
-        self.from_tu_dataset = from_tu_dataset
-        self.from_nel_dataset = from_nel_dataset
+        self.from_existing_data = from_existing_data
         self.nx_graphs = []
         self.unique_node_labels = 0
         self.node_labels = {}
         self.edge_labels = {}
         self.properties = {}
-        self.node_numbers = []
         super(RuleGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
         out = fs.torch_load(self.processed_paths[0])
         if not isinstance(out, tuple) or len(out) < 3:
@@ -75,6 +72,13 @@ class RuleGNNDataset(InMemoryDataset):
             # remove columns with only zeros
             self._data.x = self._data.x[:, self._data.x.sum(dim=0) != 0]
             self.sizes['num_node_labels'] = self._data.x.shape[1]
+        else:
+            # create self._data.x using vectors of ones
+            self._data.x = torch.ones(self._data.num_nodes, 1)
+            self.sizes['num_node_labels'] = 1
+            self.slices['x'] = [0]
+            self.slices['x'] += [self[i].num_nodes for i in range(len(self))]
+            self.slices['x'] = torch.tensor(self.slices['x'], dtype=torch.long)
 
         if self._data.x is not None:
             self.node_labels['primary'] = torch.argmax(self._data.x[:, num_node_attributes:], dim=1)
@@ -90,10 +94,6 @@ class RuleGNNDataset(InMemoryDataset):
             if not use_edge_attr:
                 num_edge_attrs = self.num_edge_attributes
                 self._data.edge_attr = self._data.edge_attr[:, num_edge_attrs:]
-
-
-        for i in range(len(self.slices['x']) - 1):
-            self.node_numbers.append(self.slices['x'][i + 1] - self.slices['x'][i])
 
     @property
     def raw_dir(self) -> str:
@@ -136,11 +136,31 @@ class RuleGNNDataset(InMemoryDataset):
 
     def process(self):
         sizes = None
-        if self.from_tu_dataset is not None and self.from_tu_dataset:
-            tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
-            self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
-        elif self.from_nel_dataset is not None and self.from_nel_dataset:
-            self.data, self.slices, sizes = self.read_nel_data()
+        if self.from_existing_data is not None:
+            if self.from_existing_data == 'ZINC':
+                data = ZINC(root='tmp/', subset=True, split='train')
+                self.data, self.slices, sizes = data._data, data.slices, data.sizes
+            elif self.from_existing_data == 'TUDataset':
+                tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
+                self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
+            elif self.from_existing_data == 'NEL':
+                self.data, self.slices, sizes = self.read_nel_data()
+            elif self.from_existing_data == 'gnn_benchmark':
+                dataset = GNNBenchmarkDataset("tmp/", self.name)
+                sizes = {
+                    'num_node_labels': dataset.num_features,
+                    'num_node_attributes': dataset.num_node_features,
+                    'num_edge_labels': dataset.num_edge_features,
+                    'num_edge_attributes': 0
+                }
+                # add x to data uing num_nodes times 0
+                num_graphs = len(dataset.data.y)
+                dataset.data.x = torch.ones(dataset.data.num_nodes, 1)
+                nodes_per_graph = dataset.data.num_nodes // num_graphs
+                # remove num_nodes from x
+                dataset.slices['x'] = torch.linspace(0, dataset.data.num_nodes, num_graphs + 1, dtype=torch.long)
+                self.slices = dataset.slices
+                pass
         else:
             print('Cannot process the data')
 

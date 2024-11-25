@@ -1,6 +1,7 @@
 networks:
   - - { layer_type: convolution ,
         bias: False,
+        heads: [1],
         labels: [
           { label_type: simple_cycles, max_cycle_length: [ 5,4,3 ] },
           { label_type: wl, depth: [ 0,1,2,3,4 ] },
@@ -14,6 +15,7 @@ networks:
   }
     - { layer_type: aggregation,
         bias: True,
+        heads: [1],
         labels: [
           { label_type: wl, depth: [ 0,1,2,3,4 ] },
           { label_type: simple_cycles, max_cycle_length: [ 3,4,5 ] },

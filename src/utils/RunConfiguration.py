@@ -1,5 +1,7 @@
 from typing import List
 
+import numpy as np
+
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
 class RunConfiguration:
     def __init__(self, config, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, weight_decay, loss, task="classification"):
@@ -94,8 +96,8 @@ def generate_layer_options(layer_dict):
 
 def preprocess_network_architectures(network_architectures_dict):
     network_architectures = []
-    layers_per_architecture = []
     for network_architecture in network_architectures_dict:
+        layers_per_architecture = []
         for i, layer in enumerate(network_architecture):
             correct, error = check_layer(i, layer)
             if correct:
@@ -103,66 +105,113 @@ def preprocess_network_architectures(network_architectures_dict):
                     while len(layers_per_architecture) <= i:
                         layers_per_architecture.append([])
                 layers_per_architecture[i].append(network_architecture[i])
-                break
             else:
                 short_type, error = check_layer_short_type(i, layer)
                 if short_type:
-                    if layer['layer_type'] == 'convolution':
-                        a = len(layer['channels'])
-                        b = len(layer['labels'])
-                        c = len(layer['properties'])
+                    if isinstance(layer['heads'], int):
+                        channel_combinations = [layer['heads']]
+                    elif isinstance(layer['heads'], list):
+                        channel_combinations = layer['heads']
                     else:
-                        a = len(layer['channels'])
-                        b = len(layer['labels'])
-                        c = 0
+                        raise ValueError(f'Channels in layer {i} is not an int or a list')
+                    label_combinations = len(layer['labels'])
+                    key_combinations_per_label = []
+                    key_list_per_label = [None] * label_combinations
+                    for j, label in enumerate(layer['labels']):
+                        # get all keys except label_type
+                        key_list = list(label.keys())
+                        key_list.remove('label_type')
+                        key_list_per_label[j] = key_list
+                        # get all lenghts of the values of the keys
+                    for j, key_list in enumerate(key_list_per_label):
+                        if len(key_list) == 0:
+                            key_combinations_per_label.append([1])
+                        else:
+                            key_combinations_per_label.append([])
+                            for key in key_list:
+                                key_combinations_per_label[-1].append(len(layer['labels'][j][key]))
+                    if layer['layer_type'] == 'convolution':
+                        property_combinations = len(layer['properties'])
+                    else:
+                        property_combinations = 0
+
                     # get all possible combinations of the values in triples
-                    combinations = [(x, y, z) for x in range(a) for y in range(b) for z in range(c)]
-                    options = []
-                    for combination in combinations:
-                        curr_layer_dict = {}
-                        curr_layer_dict['layer_type'] = layer['layer_type']
-                        curr_layer_dict['channels'] = []
-                        for i in range(a):
-                            curr_channel_dict = {}
-                            curr_channel_dict['bias'] = layer['channels'][i]['bias']
-                            curr_channel_dict['labels'] = {}
-                            curr_channel_dict['labels']['label_type'] = layer['labels'][combination[1]]['label_type']
-                            if layer['layer_type'] == 'convolution':
-                                curr_channel_dict['properties'] = {}
-                                curr_channel_dict['properties']['name'] = layer['properties'][combination[2]]['name']
-                                curr_channel_dict['properties']['values'] = layer['properties'][combination[2]]['values']
-                            curr_layer_dict['channels'].append(curr_channel_dict)
+                    option_dicts = []
+                    for num_channels in channel_combinations:
+                        for label_id in range(label_combinations):
+                            num_different_keys = len(key_list_per_label[label_id])
+                            # generate all choices from a list of counts
+                            all_choices = []
+                            for j in range(num_different_keys):
+                                if len(all_choices) == 0:
+                                    for k in range(key_combinations_per_label[label_id][j]):
+                                        all_choices.append([k])
+                                else:
+                                    new_choices = []
+                                    for choice in all_choices:
+                                        for k in range(key_combinations_per_label[label_id][j]):
+                                            new_choices.append(choice + [k])
+                                    all_choices = new_choices
+                            for key_combinations in range(np.prod(key_combinations_per_label[label_id])):
+                                if layer['layer_type'] == 'convolution':
+                                    for property_id in range(property_combinations):
+                                        option_dict = {}
+                                        option_dict['layer_type'] = layer['layer_type']
+                                        option_dict['heads'] = []
+                                        for j in range(num_channels):
+                                            channel_dict = {}
+                                            channel_dict['bias'] = layer['bias']
+                                            label_dict = {}
+                                            label_dict['head'] = {'label_type': layer['labels'][label_id]['label_type']}
+                                            label_dict['tail'] = {'label_type': layer['labels'][label_id]['label_type']}
+                                            label_dict['bias'] = {'label_type': layer['labels'][label_id]['label_type']}
+                                            if len(all_choices) > 0:
+                                                choice = all_choices[key_combinations]
+                                                for c_idx, value in enumerate(choice):
+                                                    key = key_list_per_label[label_id][c_idx]
+                                                    label_dict['head'][key] = layer['labels'][label_id][key][value]
+                                                    label_dict['tail'][key] = layer['labels'][label_id][key][value]
+                                                    label_dict['bias'][key] = layer['labels'][label_id][key][value]
+                                            channel_dict['labels'] = label_dict.copy()
+                                            channel_dict['properties'] = {}
+                                            channel_dict['properties']['name'] = layer['properties'][property_id]['name']
+                                            channel_dict['properties']['values'] = layer['properties'][property_id]['values']
+                                            option_dict['heads'].append(channel_dict)
+                                        option_dicts.append(option_dict)
+                                else:
+                                    option_dict = {}
+                                    option_dict['layer_type'] = layer['layer_type']
+                                    option_dict['heads'] = []
+                                    for j in range(num_channels):
+                                        channel_dict = {}
+                                        channel_dict['bias'] = layer['bias']
+                                        label_dict = {'label_type': layer['labels'][label_id]['label_type']}
+                                        if len(all_choices) > 0:
+                                            choice = all_choices[key_combinations]
+                                            for c_idx, value in enumerate(choice):
+                                                key = key_list_per_label[label_id][c_idx]
+                                                label_dict[key] = layer['labels'][label_id][key][value]
+                                        channel_dict['labels'] = label_dict.copy()
+                                        option_dict['heads'].append(channel_dict)
+                                    option_dicts.append(option_dict)
 
-                    options = [{}] * len(layer['channels']) * len(layer['labels'])
-                    if layer['layer_type'] == 'convolution':
-                        options = [{}] * len(options) * len(layer['properties'])
-
-                    if layer.get('labels', None) is not None and type(layer['labels']) == list:
-                        options = generate_layer_options(layer)
-                        if len(layers_per_architecture) <= i:
-                            while len(layers_per_architecture) <= i:
-                                layers_per_architecture.append([])
-                        for opt in options:
-                            layers_per_architecture[i].append(opt)
-                    else:
-                        if len(layers_per_architecture) <= i:
-                            while len(layers_per_architecture) <= i:
-                                layers_per_architecture.append([])
-                        layers_per_architecture[i].append(network_architecture[i])
-                        break
+                    if len(layers_per_architecture) <= i:
+                        while len(layers_per_architecture) <= i:
+                            layers_per_architecture.append([])
+                    layers_per_architecture[i] = option_dicts.copy()
                 else:
                     raise ValueError(f'Layer {i} is not correctly defined: {error}')
     # get all possible network architectures using all combinations from layers per architecture
-    for i in range(len(layers_per_architecture)):
-        if len(network_architectures) == 0:
-            for layer in layers_per_architecture[i]:
-                network_architectures.append([layer])
-        else:
-            new_network_architectures = []
-            for network_architecture in network_architectures:
+        for i in range(len(layers_per_architecture)):
+            if len(network_architectures) == 0:
                 for layer in layers_per_architecture[i]:
-                    new_network_architectures.append(network_architecture + [layer])
-            network_architectures = new_network_architectures
+                    network_architectures.append([layer])
+            else:
+                new_network_architectures = []
+                for network_architecture in network_architectures:
+                    for layer in layers_per_architecture[i]:
+                        new_network_architectures.append(network_architecture + [layer])
+                network_architectures = new_network_architectures
 
     return network_architectures
 
@@ -170,13 +219,13 @@ def preprocess_network_architectures(network_architectures_dict):
 def check_layer(i:int, layer: dict)->(bool, str):
     if 'layer_type' not in layer:
         return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
-    if 'channels' not in layer:
+    if 'heads' not in layer:
         return False, f'Channels not defined in layer {i}'
     else:
-        if not isinstance(layer['channels'], list):
+        if not isinstance(layer['heads'], list):
             return False, f'Channels must be a list in layer {i}'
         else:
-            for channel in layer['channels']:
+            for channel in layer['heads']:
                 if not isinstance(channel, dict):
                     return False, f'Channel must be a dictionary in layer {i}'
                 if 'bias' not in channel:
@@ -221,10 +270,10 @@ def check_layer_short_type(i, layer):
         return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
     if 'bias' not in layer:
         return False, f'Bias not defined in layer {i}, it must be True or False'
-    if 'channels' not in layer:
+    if 'heads' not in layer:
         return False, f'Channels not defined in layer {i}, it must be a list of ints of parallel channels used'
     else:
-        if not isinstance(layer['channels'], list):
+        if not isinstance(layer['heads'], list):
             return False, f'Channels must be a list in layer {i}'
     if 'labels' not in layer:
         return False, f'Labels not defined in layer {i}'
@@ -238,8 +287,9 @@ def check_layer_short_type(i, layer):
                 if 'label_type' not in l:
                     return False, f'Label type not defined in label in layer {i}'
 
-    if 'properties' not in layer and layer['layer_type'] == 'convolution':
-        return False, f'Properties not defined in layer {i}'
+    if 'properties' not in layer:
+        if layer['layer_type'] == 'convolution':
+            return False, f'Properties not defined in convolution layer {i}'
     else:
         if not isinstance(layer['properties'], list):
             return False, f'Properties must be a list in layer {i}'

@@ -35,7 +35,6 @@ def main():
     ### Real World Data
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
     experiment.Preprocess()
-    return
 
     ### run synthetic experiment
     experiment_synthetic.GridSearch()
