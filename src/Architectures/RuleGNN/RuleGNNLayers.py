@@ -105,9 +105,9 @@ def get_label_string(label_dict: dict)->str:
     return l_string
 
 
-class LayerChannel:
-    def __init__(self, info_dict: dict, channel_id):
-        self.channel_id = channel_id
+class LayerHead:
+    def __init__(self, info_dict: dict, head_id):
+        self.head_id = head_id
         self.label_dict = info_dict.get('labels', None)
         self.property_dict = info_dict.get('properties', None)
         # if head, tail, bias is not specified, set head tail bias to the same value
@@ -138,46 +138,46 @@ class Layer:
         """
         self.layer_type = layer_dict["layer_type"]
         self.layer_dict = layer_dict
-        self.layer_channels = []
+        self.layer_heads = []
         self.layer_id = layer_id
-        for c_id, channel_entry in enumerate(layer_dict.get('channels', [])):
-            self.layer_channels.append(LayerChannel(channel_entry, c_id))
+        for c_id, head_entry in enumerate(layer_dict.get('heads', [])):
+            self.layer_heads.append(LayerHead(head_entry, c_id))
 
     def get_unique_layer_dicts(self):
         unique_dicts = []
-        for channel in self.layer_channels:
-            if channel.head_labels not in unique_dicts:
-                unique_dicts.append(channel.head_labels)
-            if channel.tail_labels not in unique_dicts:
-                unique_dicts.append(channel.tail_labels)
-            if channel.bias_labels not in unique_dicts:
-                unique_dicts.append(channel.bias_labels)
+        for head in self.layer_heads:
+            if head.head_labels not in unique_dicts:
+                unique_dicts.append(head.head_labels)
+            if head.tail_labels not in unique_dicts:
+                unique_dicts.append(head.tail_labels)
+            if head.bias_labels not in unique_dicts:
+                unique_dicts.append(head.bias_labels)
         return unique_dicts
 
     def get_unique_property_dicts(self):
         unique_dicts = []
-        for channel in self.layer_channels:
-            if channel.property_dict not in unique_dicts and channel.property_dict is not None:
-                unique_dicts.append(channel.property_dict)
+        for head in self.layer_heads:
+            if head.property_dict not in unique_dicts and head.property_dict is not None:
+                unique_dicts.append(head.property_dict)
         return unique_dicts
 
-    def get_head_string(self, channel_id=0):
-        return get_label_string(self.layer_channels[channel_id].head_labels)
-    def get_tail_string(self, channel_id=0):
-        return get_label_string(self.layer_channels[channel_id].tail_labels)
-    def get_bias_string(self, channel_id=0):
-        return get_label_string(self.layer_channels[channel_id].bias_labels)
+    def get_head_string(self, head_id=0):
+        return get_label_string(self.layer_heads[head_id].head_labels)
+    def get_tail_string(self, head_id=0):
+        return get_label_string(self.layer_heads[head_id].tail_labels)
+    def get_bias_string(self, head_id=0):
+        return get_label_string(self.layer_heads[head_id].bias_labels)
 
     def get_layer_label_strings(self)->list[str]:
         label_string_list = set()
-        for channel in range(len(self.layer_channels)):
-            label_string_list.add(get_label_string(self.layer_channels[channel].head_labels))
-            label_string_list.add(get_label_string(self.layer_channels[channel].tail_labels))
-            label_string_list.add(get_label_string(self.layer_channels[channel].bias_labels))
+        for head in range(len(self.layer_heads)):
+            label_string_list.add(get_label_string(self.layer_heads[head].head_labels))
+            label_string_list.add(get_label_string(self.layer_heads[head].tail_labels))
+            label_string_list.add(get_label_string(self.layer_heads[head].bias_labels))
         return list(label_string_list)
 
-    def num_channels(self):
-        return len(self.layer_channels)
+    def num_heads(self):
+        return len(self.layer_heads)
 
 
 class RuleConvolutionLayer(nn.Module):
@@ -206,36 +206,34 @@ class RuleConvolutionLayer(nn.Module):
         # get the graph data
         self.graph_data = graph_data
         # get the input features, i.e. the dimension of the input vector
-        self.input_feature_dimensions = graph_data.input_feature_dimensions
+        self.input_feature_dimensions = self.graph_data.num_node_features
         # set the node labels
         self.n_head_labels = []
         self.n_tail_labels = []
         self.n_bias_labels = []
         self.n_properties = []
-        self.out_channels = len(layer.layer_channels)
+        self.out_heads = len(layer.layer_heads)
         self.head_strings = []
         self.tail_strings = []
         self.bias_strings = []
         self.property_names = []
-        self.channel_skip_positions = [0]
-        for c, channel in enumerate(layer.layer_channels):
-            self.head_strings.append(layer.get_head_string(c))
-            self.n_head_labels.append(graph_data.node_labels[self.head_strings[c]].num_unique_node_labels)
-            self.tail_strings.append(layer.get_tail_string(c))
-            self.n_tail_labels.append(graph_data.node_labels[self.tail_strings[c]].num_unique_node_labels)
-            self.bias_strings.append(layer.get_bias_string(c))
-            self.n_bias_labels.append(graph_data.node_labels[self.bias_strings[c]].num_unique_node_labels)
-            self.property_names.append(channel.property_dict["name"])
-            self.n_properties.append(graph_data.properties[self.property_names[c]].num_properties[(layer_id,c)])
-            self.channel_skip_positions.append(self.channel_skip_positions[-1] + self.n_head_labels[c] * self.n_tail_labels[c] * self.n_properties[c])
+        for h_id, head in enumerate(layer.layer_heads):
+            self.head_strings.append(layer.get_head_string(h_id))
+            self.n_head_labels.append(graph_data.node_labels[self.head_strings[h_id]].num_unique_node_labels)
+            self.tail_strings.append(layer.get_tail_string(h_id))
+            self.n_tail_labels.append(graph_data.node_labels[self.tail_strings[h_id]].num_unique_node_labels)
+            self.bias_strings.append(layer.get_bias_string(h_id))
+            self.n_bias_labels.append(graph_data.node_labels[self.bias_strings[h_id]].num_unique_node_labels)
+            self.property_names.append(head.property_dict["name"])
+            self.n_properties.append(graph_data.properties[self.property_names[h_id]].num_properties[(layer_id,h_id)])
 
 
-        # channelwise weight num
+        # head-wise weight num
         self.weight_num = []
         self.bias_num = []
 
         self.para = parameters  # get the all the parameters of the experiment
-        self.bias_list = [channel.bias for channel in layer.layer_channels]
+        self.bias_list = [head.bias for head in layer.layer_heads]
         self.bias = any(self.bias_list)  # check if bias is used
         self.device = device  # set the device
         self.precision = torch.float # set the precision of the weights
@@ -257,7 +255,7 @@ class RuleConvolutionLayer(nn.Module):
         self.skips_description_text = [None]
         self.weight_distribution = [None] * len(graph_data)
         self.bias_distribution = [None] * len(graph_data)
-        for i, channel in enumerate(layer.layer_channels):
+        for i, head in enumerate(layer.layer_heads):
             valid_property_values = self.graph_data.properties[self.property_names[i]].valid_values[(layer_id, i)]
             # get subdict of valid properties
             # apply the head and tail labels to the subdict
@@ -289,7 +287,7 @@ class RuleConvolutionLayer(nn.Module):
                         valid_indices_graph = torch.where(valid_indices_bool[property_subdict_slices[idx]:property_subdict_slices[idx+1]])[0] + property_subdict_slices[idx]
                     else:
                         valid_indices_graph = torch.arange(property_subdict_slices[idx], property_subdict_slices[idx+1], dtype=torch.int64)
-                    # create new tensor where each row is the concatenation of channel_id, property_subdict_row, and indices
+                    # create new tensor where each row is the concatenation of head_id, property_subdict_row, and indices
                     new_weight_distribution = torch.zeros((len(valid_indices_graph), 4), dtype=torch.int64)
                     new_weight_distribution[:, 0] = i
                     new_weight_distribution[:, 1:3] = property_subdict[valid_indices_graph] - self.graph_data.slices['x'][idx] # check if subtracting is necessary
@@ -302,8 +300,8 @@ class RuleConvolutionLayer(nn.Module):
 
 
                 self.skips.append(self.skips[-1] + num_weights)
-                self.skips_description.append({'channel:': i, 'property': key, 'weights': num_weights})
-                self.skips_description_text.append(f"Channel {i} Property {key} has {num_weights} different weights")
+                self.skips_description.append({'head:': i, 'property': key, 'weights': num_weights})
+                self.skips_description_text.append(f"Head {i} Property {key} has {num_weights} different weights")
 
 
             self.weight_num.append(self.skips[-1])
@@ -315,9 +313,9 @@ class RuleConvolutionLayer(nn.Module):
                 _, indices, counts = torch.unique(bias_labels, dim=0, return_inverse=True, return_counts=True, sorted=False)
                 for idx in range(len(graph_data)):
                     for feature_id in range(self.input_feature_dimensions):
-                        new_bias_distribution = torch.zeros((graph_data.num_graph_nodes(idx), 4), dtype=torch.int64)
+                        new_bias_distribution = torch.zeros((graph_data.data.num_nodes[idx].item(), 4), dtype=torch.int64)
                         new_bias_distribution[:, 0] = i
-                        new_bias_distribution[:, 1] = torch.arange(graph_data.num_graph_nodes(idx), dtype=torch.int64) # alternative torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
+                        new_bias_distribution[:, 1] = torch.arange(graph_data.data.num_nodes[idx].item(), dtype=torch.int64) # alternative torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
                         new_bias_distribution[:, 2] = feature_id
                         new_bias_distribution[:, 3] = indices[graph_data.slices['x'][idx]:graph_data.slices['x'][idx+1]] + feature_id * self.n_bias_labels[i]
                         if self.bias_distribution[idx] is None:
@@ -339,6 +337,8 @@ class RuleConvolutionLayer(nn.Module):
             self.Param_b = self.init_weights(np.sum(self.bias_num), init_type='convolution_bias')
         self.Param_W = self.init_weights(np.sum(self.weight_num), init_type='convolution')
 
+
+        # TODO add pruning
         # in case of pruning is turned on, save the original weights
         self.Param_W_original = None
         self.mask = None
@@ -384,44 +384,11 @@ class RuleConvolutionLayer(nn.Module):
             torch.nn.init.constant_(weights, 0.01)
         return weights
 
-    def asymmetric_weight_map(self, channel, label1, label2, property_id)-> int:
-        '''
-        Maps the current indices to the index of the list of weights
-        '''
-        # compute weight_pos by first iterating over the channels (precomputed channel_skip_positions)
-        weight_pos = self.channel_skip_positions[channel]
-        # then iterate over the label combinations for each possible property
-        weight_pos += property_id*self.n_head_labels[channel]*self.n_tail_labels[channel] + label2*self.n_tail_labels[channel] + label1
-        return weight_pos
-
-    def symmetric_weight_map(self, channel, label1, label2, property_id)-> int:
-        '''
-        Maps the current indices to the index of the list of weights
-        '''
-        first_skip_size = (self.n_node_labels * (self.n_node_labels + 1)) // 2 * self.n_properties
-        second_step_size = self.n_properties
-        min_label = min(label1, label2)
-        max_label = max(label1, label2)
-        pos_from_labels = min_label * (2 * self.n_node_labels - min_label + 1) // 2 + (max_label - min_label)
-        return channel * first_skip_size + pos_from_labels * second_step_size + property_id
-
-    def bias_weight_map(self, channel, label, input_dimension)-> int:
-        '''
-        Maps the current indices to the index of the list of bias weights
-        '''
-        weight_pos = 0
-        for i in range(channel):
-            weight_pos += self.n_bias_labels[i]*self.input_feature_dimensions
-        weight_pos += label * self.input_feature_dimensions + input_dimension
-        return weight_pos
-
-
-
     def set_weights(self, pos):
-        input_size = self.graph_data.num_graph_nodes(pos)
+        input_size = self.graph_data.data.num_nodes[pos].item()
         # reshape self.current_W to the size of the weight matrix and fill it with minus infinity
-        #self.current_W = torch.fill(torch.zeros((self.out_channels, input_size, input_size), dtype=self.precision).to(self.device), float('-inf'))
-        self.current_W = torch.zeros((self.out_channels, input_size, input_size), dtype=self.precision).to(self.device)
+        #self.current_W = torch.fill(torch.zeros((self.out_heads, input_size, input_size), dtype=self.precision).to(self.device), float('-inf'))
+        self.current_W = torch.zeros((self.out_heads, input_size, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
         if len(weight_distr) != 0:
             # get third column of the weight_distribution: the index of self.Param_W
@@ -431,8 +398,8 @@ class RuleConvolutionLayer(nn.Module):
             self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_weights)
 
     def set_bias(self, pos):
-        input_size = self.graph_data.num_graph_nodes(pos)
-        self.current_B = torch.zeros((self.out_channels, input_size, self.input_feature_dimensions), dtype=self.precision).to(self.device)
+        input_size = self.graph_data.data.num_nodes[pos].item()
+        self.current_B = torch.zeros((self.out_heads, input_size, self.input_feature_dimensions), dtype=self.precision).to(self.device)
         bias_distr = self.bias_distribution[self.bias_distribution_slices[pos]:self.bias_distribution_slices[pos+1]]
         param_indices = bias_distr[:, 3]
         matrix_indices = bias_distr[:, 0:3].T
@@ -494,6 +461,7 @@ class RuleConvolutionLayer(nn.Module):
                 x = self.in_edges[pos]*torch.einsum('cij,jk->cik', self.current_W, x)
             else:
                 x = torch.einsum('cij,jk->cik', self.current_W, x)
+                # print torch type of current_W and x
         x = x.permute(1, 2, 0)
         # if last dimension is 1, remove it
         if x.size(2) == 1:
@@ -511,7 +479,7 @@ class RuleConvolutionLayer(nn.Module):
         else:
             return None
 
-    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], channel=0, filter_weights=None, with_graph=True, graph_only=False, draw_bias_labels=False):
+    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], head=0, filter_weights=None, with_graph=True, graph_only=False, draw_bias_labels=False):
         if with_graph or graph_only:
             graph = self.graph_data.graphs[graph_id]
 
@@ -564,7 +532,7 @@ class RuleConvolutionLayer(nn.Module):
 
                 draw_node_labels = self.graph_data.node_labels['primary']
                 if draw_bias_labels:
-                    draw_node_labels = self.graph_data.node_labels[self.bias_strings[channel]]
+                    draw_node_labels = self.graph_data.node_labels[self.bias_strings[head]]
 
                 cmap = graph_drawing[0].colormap
                 norm = matplotlib.colors.Normalize(vmin=0, vmax=draw_node_labels.num_unique_node_labels)
@@ -665,7 +633,7 @@ class RuleConvolutionLayer(nn.Module):
             node_colors = []
             node_sizes = []
             for node in digraph.nodes():
-                node_label = self.graph_data.node_labels[self.bias_strings[channel]].node_labels[graph_id][node]
+                node_label = self.graph_data.node_labels[self.bias_strings[head]].node_labels[graph_id][node]
                 node_colors.append(bias_colors[node_label])
                 node_sizes.append(graph_drawing[1].node_size * abs(bias[node_label]) / bias_max_abs)
 
@@ -674,7 +642,7 @@ class RuleConvolutionLayer(nn.Module):
         edge_widths = []
         for weight_id, entry in enumerate(weight_distribution):
             c = entry[0]
-            if c == channel:
+            if c == head:
                 i = entry[1]
                 j = entry[2]
                 if weights[weight_id] != 0:
@@ -717,37 +685,37 @@ class RuleAggregationLayer(nn.Module):
         if parameters.run_config.config.get('precision', 'float') == 'double':
             self.precision = torch.double
         self.output_dimension = out_dim
-        self.out_channels = len(layer.layer_channels)
+        self.out_heads = len(layer.layer_heads)
         # device
         self.device = device
         self.n_node_labels = []
         self.head_strings = []
-        # bias per channel
-        self.bias_list = [channel.bias for channel in layer.layer_channels]
+        # bias per head
+        self.bias_list = [head.bias for head in layer.layer_heads]
         # is there any bias
         self.bias = any(self.bias_list)
-        for i, channel in enumerate(layer.layer_channels):
+        for i, head in enumerate(layer.layer_heads):
             self.head_strings.append(layer.get_head_string(i))
             self.n_node_labels.append(graph_data.node_labels[self.head_strings[i]].num_unique_node_labels)
 
-        self.input_feature_dimension = graph_data.input_feature_dimensions
+        self.input_feature_dimension = self.graph_data.num_node_features
 
         self.weight_num = np.sum(self.n_node_labels) * out_dim
-        #self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.channels, out_dim, n_node_labels))
+        #self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.heads, out_dim, n_node_labels))
         self.current_W = torch.Tensor()
 
 
         self.weight_distribution = [None] * len(graph_data)
-        for i, channel in enumerate(layer.layer_channels):
+        for i, head in enumerate(layer.layer_heads):
             node_labels = self.graph_data.node_labels[self.head_strings[i]].node_labels
             # Set the bias weights
             _, indices, counts = torch.unique(node_labels, dim=0, return_inverse=True, return_counts=True, sorted=False)
             for idx in range(len(graph_data)):
                 for out_dim_id in range(out_dim):
-                    new_weight_distribution = torch.zeros((graph_data.num_graph_nodes(idx), 4), dtype=torch.int64)
+                    new_weight_distribution = torch.zeros((graph_data.data.num_nodes[idx].item(), 4), dtype=torch.int64)
                     new_weight_distribution[:, 0] = i
                     new_weight_distribution[:, 1] = out_dim_id
-                    new_weight_distribution[:, 2] = torch.arange(graph_data.num_graph_nodes(idx)) # torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
+                    new_weight_distribution[:, 2] = torch.arange(graph_data.data.num_nodes[idx].item()) # torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
                     new_weight_distribution[:, 3] = indices[graph_data.slices['x'][idx]:graph_data.slices['x'][idx+1]] + out_dim_id * self.n_node_labels[i]
                     if self.weight_distribution[idx] is None:
                         self.weight_distribution[idx] = new_weight_distribution.detach().clone()
@@ -763,7 +731,7 @@ class RuleAggregationLayer(nn.Module):
 
 
         if self.bias:
-            self.Param_b = self.init_weights(shape=(self.out_channels, out_dim, self.input_feature_dimension), init_type='aggregation_bias')
+            self.Param_b = self.init_weights(shape=(self.out_heads, out_dim, self.input_feature_dimension), init_type='aggregation_bias')
         self.forward_step_time = 0
 
 
@@ -809,19 +777,9 @@ class RuleAggregationLayer(nn.Module):
             torch.nn.init.constant_(weights, 0.01)
         return weights
 
-    def weight_map(self, channel, out_dim, label):
-        '''
-        Maps the current indices to the index of the list of weights
-        '''
-        weight_pos = 0
-        for i in range(channel):
-            weight_pos += self.n_node_labels[i] * self.output_dimension
-        weight_pos += out_dim * self.n_node_labels[channel] + label
-        return weight_pos
-
     def set_weights(self, pos):
-        input_size = self.graph_data.num_graph_nodes(pos)
-        self.current_W = torch.zeros((self.out_channels, self.output_dimension, input_size), dtype=self.precision).to(self.device)
+        input_size = self.graph_data.data.num_nodes[pos].item()
+        self.current_W = torch.zeros((self.out_heads, self.output_dimension, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
         param_indices = weight_distr[:, 3]
         matrix_indices = weight_distr[:, 0:3].T
@@ -882,7 +840,7 @@ class RuleAggregationLayer(nn.Module):
     def get_bias(self):
         return [x.item() for x in self.Param_b[0]]
 
-    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], channel=0, out_dimension=0, with_graph=True, graph_only=False):
+    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], head=0, out_dimension=0, with_graph=True, graph_only=False):
         if with_graph or graph_only:
             graph = self.graph_data.graphs[graph_id]
 
@@ -1012,7 +970,7 @@ class RuleAggregationLayer(nn.Module):
             o_dimension = index[1]
             node_idx = index[2]
             weight = index[3]
-            if c == channel and o_dimension == out_dimension:
+            if c == head and o_dimension == out_dimension:
                 node_colors.append(weight_colors[i])
                 node_sizes.append(graph_drawing[1].node_size * abs(graph_weights[i]) / weight_max_abs)
 

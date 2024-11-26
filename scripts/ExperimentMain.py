@@ -408,8 +408,8 @@ def preprocess_graph_data(db_name, experiment_configuration):
                                 task=experiment_configuration.get('task', 'graph_classification'),
                                 input_features=experiment_configuration.get('input_features', None),
                                 output_features=experiment_configuration.get('output_features', None),
-                                graph_format=experiment_configuration.get('format', 'RuleGNNDataset'))
-    graph_data.set_precision(experiment_configuration.get('precision', 'double'))
+                                graph_format=experiment_configuration.get('format', 'RuleGNNDataset'),
+                                precision=experiment_configuration.get('precision', 'double'))
     return graph_data
 
 

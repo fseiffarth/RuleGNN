@@ -156,7 +156,6 @@ class ModelEvaluation:
                 timer.measure("forward")
                 self.optimizer.zero_grad()
                 outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype)).to(self.device)
-                labels = self.graph_data.output_data[batch].to(self.device)
 
                 # TODO batch in one matrix ?
                 self.net.train(True)
@@ -176,7 +175,7 @@ class ModelEvaluation:
                     timer.measure("forward_step")
 
 
-                loss = self.criterion(outputs, labels)
+                loss = self.criterion(outputs, self.graph_data.y[batch])
                 timer.measure("forward")
 
                 weights = []
@@ -224,7 +223,7 @@ class ModelEvaluation:
                 '''
                 Evaluate the training accuracy
                 '''
-                epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch,train_values=epoch_values, validation_values=validation_values, test_values=test_values, evaluation_type='training', outputs=outputs, labels=labels,  batch_idx=batch_counter, batch_length=len(batch), num_batches=len(train_batches))
+                epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch,train_values=epoch_values, validation_values=validation_values, test_values=test_values, evaluation_type='training', outputs=outputs, labels=self.graph_data.y[batch],  batch_idx=batch_counter, batch_length=len(batch), num_batches=len(train_batches))
 
 
             '''
@@ -403,7 +402,7 @@ class ModelEvaluation:
         if evaluation_type == 'training':
             batch_acc = 0
             if self.para.run_config.task == 'classification':
-                batch_acc = 100 * ttd.get_accuracy(outputs, labels, one_hot_encoding=True)
+                batch_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
                 train_values.accuracy += batch_acc * (batch_length / len(self.training_data))
             # if num classes is one calculate the mae and mae_std or if the task is regression
             elif self.para.run_config.task == 'regression':
@@ -456,7 +455,7 @@ class ModelEvaluation:
             '''
             if self.validate_data.size != 0:
                 outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=self.dtype)
-                labels = self.graph_data.output_data[self.validate_data]
+                labels = self.graph_data.y[self.validate_data]
 
                 # use torch no grad to save memory
                 with torch.no_grad():
@@ -480,9 +479,7 @@ class ModelEvaluation:
                     validation_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
                     validation_values.mae_std = validation_mae_std
                 else:
-                    labels_argmax = labels.argmax(axis=1)
-                    outputs_argmax = outputs.argmax(axis=1)
-                    validation_acc = 100 * sklearn.metrics.accuracy_score(labels_argmax, outputs_argmax)
+                    validation_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
                     validation_values.accuracy = validation_acc
 
                 # update best epoch
@@ -543,7 +540,7 @@ class ModelEvaluation:
             if self.para.run_config.config.get('best_model', False):
                 # Test accuracy
                 outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=self.dtype)
-                labels = self.graph_data.output_data[self.test_data]
+                labels = self.graph_data.y[self.validate_data]
 
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.test_data, 0):
@@ -566,7 +563,7 @@ class ModelEvaluation:
                     test_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
                     test_values.mae_std = test_mae_std
                 else:
-                    test_acc = 100 * sklearn.metrics.accuracy_score(labels.argmax(axis=1), outputs.argmax(axis=1))
+                    test_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
                     test_values.accuracy = test_acc
 
                 if self.para.print_results:

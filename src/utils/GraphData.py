@@ -34,6 +34,10 @@ class RuleGNNDataset(InMemoryDataset):
             use_node_attr: bool = True,
             use_edge_attr: bool = True,
             delete_zero_columns: bool = True,
+            precision: str = 'float',
+            input_features = None,
+            output_features = None,
+            task = None
     ) -> None:
         self.name = name
         self.from_existing_data = from_existing_data
@@ -42,6 +46,9 @@ class RuleGNNDataset(InMemoryDataset):
         self.node_labels = {}
         self.edge_labels = {}
         self.properties = {}
+        self.precision = torch.float
+        if precision == 'double':
+            self.precision = torch.double
         super(RuleGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
         out = fs.torch_load(self.processed_paths[0])
         if not isinstance(out, tuple) or len(out) < 3:
@@ -58,42 +65,58 @@ class RuleGNNDataset(InMemoryDataset):
         else:
             data, self.slices, self.sizes, data_cls = out
 
+        self._num_graph_nodes = torch.zeros(len(self), dtype=torch.long)
+        num_node_attributes = self.num_node_attributes
+        num_edge_attributes = self.num_edge_attributes
+
+        # split node labels and attributes as well as edge labels and attributes
+        if data.get('x', None) is not None:
+            if delete_zero_columns:
+                # remove columns with only zeros
+                if self.precision == torch.float:
+                    data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].float()
+                else:
+                    data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].double()
+                self.sizes['num_node_labels'] = data['x'].shape[1]
+        else:
+            # create data['x'] using vectors of ones
+            data['x'] = torch.ones(data['num_nodes'], 1, dtype=self.precision)
+            self.sizes['num_node_labels'] = 1
+            self.slices['x'] = [0]
+            self.slices['x'] += data['_num_nodes']
+            self.slices['x'] = torch.tensor(self.slices['x'], dtype=torch.long).cumsum(dim=0)
+
+        if data.get('x', None) is not None:
+            self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
+            self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
+            if not use_node_attr:
+                num_node_attributes = self.num_node_attributes
+                data['x'] = data['x'][:, num_node_attributes:]
+
+
+
+        if data.get('edge_attr', None) is not None:
+            self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
+            if not use_edge_attr:
+                num_edge_attrs = self.num_edge_attributes
+                data['edge_attr'] = data['edge_attr'][:, num_edge_attrs:]
+
+        data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
+        for i in range(len(self)):
+            data['num_nodes'][i] = data['x'][self.slices['x'][i]:self.slices['x'][i+1]].shape[0]
+
+
+        self.preprocess_rule_gnn_data(data, input_features, output_features, task=task)
+
+
         if not isinstance(data, dict):  # Backward compatibility.
             self.data = data
         else:
             # split node labels and attributes as well as edge labels and attributes
             self.data = data_cls.from_dict(data)
 
+
         assert isinstance(self._data, Data)
-        num_node_attributes = self.num_node_attributes
-        num_edge_attributes = self.num_edge_attributes
-        # split node labels and attributes as well as edge labels and attributes
-        if self._data.x is not None and delete_zero_columns:
-            # remove columns with only zeros
-            self._data.x = self._data.x[:, self._data.x.sum(dim=0) != 0]
-            self.sizes['num_node_labels'] = self._data.x.shape[1]
-        else:
-            # create self._data.x using vectors of ones
-            self._data.x = torch.ones(self._data.num_nodes, 1)
-            self.sizes['num_node_labels'] = 1
-            self.slices['x'] = [0]
-            self.slices['x'] += [self[i].num_nodes for i in range(len(self))]
-            self.slices['x'] = torch.tensor(self.slices['x'], dtype=torch.long)
-
-        if self._data.x is not None:
-            self.node_labels['primary'] = torch.argmax(self._data.x[:, num_node_attributes:], dim=1)
-            self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
-            if not use_node_attr:
-                num_node_attributes = self.num_node_attributes
-                self._data.x = self._data.x[:, num_node_attributes:]
-
-
-
-        if self._data.edge_attr is not None:
-            self.edge_labels['primary'] = torch.argmax(self._data.edge_attr[:, num_edge_attributes:], dim=1)
-            if not use_edge_attr:
-                num_edge_attrs = self.num_edge_attributes
-                self._data.edge_attr = self._data.edge_attr[:, num_edge_attrs:]
 
     @property
     def raw_dir(self) -> str:
@@ -129,10 +152,6 @@ class RuleGNNDataset(InMemoryDataset):
     @property
     def processed_file_names(self) -> str:
         return 'data.pt'
-
-
-    def num_graph_nodes(self, graph_id) -> int:
-        return self.node_numbers[graph_id]
 
     def process(self):
         sizes = None
@@ -266,151 +285,131 @@ class RuleGNNDataset(InMemoryDataset):
                 counter += 1
         pass
 
-    def set_precision(self, precision: str = 'double'):
-        # adapt the precision of the input data
-        if precision == 'double':
-            self._data.x = self._data.x.double()
-            self.output_data = self.output_data.double()
+    def preprocess_rule_gnn_data(self, data, input_features=None, output_features=None, task=None) -> None:
+        if input_features is not None and task is not None:
+            use_labels = input_features.get('name', 'node_labels') == 'node_labels'
+            use_constant = input_features.get('name', 'node_labels') == 'constant'
+            use_features = input_features.get('name', 'node_labels') == 'node_features'
+            use_labels_and_features = input_features.get('name', 'node_labels') == 'all'
+            transformation = input_features.get('transformation', None)
+            use_features_as_channels = input_features.get('features_as_channels', False)
 
-    def preprocess_rule_gnn_data(self, input_features=None, output_features=None, task=None) -> None:
-        if input_features is None:
-            input_features = {'name': 'node_labels', 'transformation': {'name': 'normalize'}}
-        if output_features is None:
-            output_features = {}
-
-        use_labels = input_features.get('name', 'node_labels') == 'node_labels'
-        use_constant = input_features.get('name', 'node_labels') == 'constant'
-        use_features = input_features.get('name', 'node_labels') == 'node_features'
-        use_labels_and_features = input_features.get('name', 'node_labels') == 'all'
-        transformation = input_features.get('transformation', None)
-        use_features_as_channels = input_features.get('features_as_channels', False)
-
-        ### Determine the input data
-        if use_labels:
-            self._data.x = self._data.x[:, self.num_node_attributes:]
-            if transformation in ['one_hot', 'one_hot_encoding']:
-                pass
+            ### Determine the input data
+            if use_labels:
+                data['x'] = data['x'][:, self.num_node_attributes:]
+                if transformation in ['one_hot', 'one_hot_encoding']:
+                    pass
+                else:
+                    data['x'] = torch.argmax(data['x'], dim=1).unsqueeze(1)
+            elif use_constant:
+                data['x'] = torch.full(size=(data['x'].shape[0], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0), dtype=self.precision)
+            elif use_features:
+                data['x'] = data['x'][:, :self.num_node_attributes]
+            elif use_labels_and_features:
+                # get first self.num_node_attributes columns and on the rest apply argmax
+                data['x'] = torch.cat((data['x'][:, :self.num_node_attributes], torch.argmax(data['x'][:,self.num_node_attributes:], dim=1).unsqueeze(0)), dim=1)
             else:
-                self._data.x = torch.argmax(self._data.x, dim=1).unsqueeze(1)
-        elif use_constant:
-            self._data.x = torch.full(size=(self._data.x.shape[0], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0)).float()
-        elif use_features:
-            self._data.x = self._data.x[:, :self.num_node_attributes]
-        elif use_labels_and_features:
-            # get first self.num_node_attributes columns and on the rest apply argmax
-            self._data.x = torch.cat((self._data.x[:, :self.num_node_attributes], torch.argmax(self._data.x[:,self.num_node_attributes:], dim=1).unsqueeze(0)), dim=1)
-        else:
-            pass
+                pass
 
-        # normalize the graph input labels, i.e. to have values between -1 and 1, no zero values
-        if use_labels and transformation == 'normalize':
-            # get the number of unique node labels
-            num_node_labels = self.unique_node_labels
-            # get the next even number if the number of node labels is odd
-            if num_node_labels % 2 == 1:
-                num_node_labels += 1
-            intervals = num_node_labels + 1
-            interval_length = 1.0 / intervals
-            normalized_node_labels = torch.zeros(self.num_node_labels)
-            for idx, entry in enumerate(normalized_node_labels):
-                value = idx
-                value = int(value)
-                # if value is even, add 1 to make it odd
-                if value % 2 == 0:
+            # normalize the graph input labels, i.e. to have values between -1 and 1, no zero values
+            if use_labels and transformation == 'normalize':
+                # get the number of unique node labels
+                num_node_labels = self.unique_node_labels
+                # get the next even number if the number of node labels is odd
+                if num_node_labels % 2 == 1:
+                    num_node_labels += 1
+                intervals = num_node_labels + 1
+                interval_length = 1.0 / intervals
+                normalized_node_labels = torch.zeros(self.num_node_labels)
+                for idx, entry in enumerate(normalized_node_labels):
+                    value = idx
+                    value = int(value)
+                    # if value is even, add 1 to make it odd
+                    if value % 2 == 0:
+                        value = ((value + 1) * interval_length)
+                    else:
+                        value = (-1) * (value * interval_length)
+                    normalized_node_labels[idx] = value
+                # replace values in data['x'] by the normalized values
+                data['x'] = data['x'].apply_(lambda x: normalized_node_labels[x])
+            elif use_labels and transformation == 'normalize_positive':
+                # get the number of different node labels
+                num_node_labels = self.unique_node_labels
+                # get the next even number if the number of node labels is odd
+                intervals = num_node_labels + 1
+                interval_length = 1.0 / intervals
+                normalized_node_labels = torch.zeros(self.num_node_labels)
+                for idx, entry in enumerate(normalized_node_labels):
+                    value = idx
+                    value = int(value)
+                    # map the value to the interval [0,1]
                     value = ((value + 1) * interval_length)
-                else:
-                    value = (-1) * (value * interval_length)
-                normalized_node_labels[idx] = value
-            # replace values in self._data.x by the normalized values
-            self._data.x = self._data.x.apply_(lambda x: normalized_node_labels[x])
-        elif use_labels and transformation == 'normalize_positive':
-            # get the number of different node labels
-            num_node_labels = self.unique_node_labels
-            # get the next even number if the number of node labels is odd
-            intervals = num_node_labels + 1
-            interval_length = 1.0 / intervals
-            normalized_node_labels = torch.zeros(self.num_node_labels)
-            for idx, entry in enumerate(normalized_node_labels):
-                value = idx
-                value = int(value)
-                # map the value to the interval [0,1]
-                value = ((value + 1) * interval_length)
-                normalized_node_labels[idx] = value
-            # replace values in self._data.x by the normalized values
-            self._data.x = self._data.x.apply_(lambda x: normalized_node_labels[x])
-        elif use_labels and transformation == 'unit_circle':
-            '''
-            Arrange the labels in an 2D unit circle
-            '''
-            num_node_labels = self.unique_node_labels
-            # duplicate data column
-            self._data.x = self._data.x.repeat(1, 2)
-            self._data.x = self._data.x[:, 0:1].apply_(lambda x: torch.cos(2 * np.pi * x / num_node_labels))
-            self._data.x = self._data.x[:, 1:2].apply_(lambda x: torch.sin(2 * np.pi * x / num_node_labels))
-        elif use_labels_and_features and transformation == 'normalize_labels':
-            # get the number of unique node labels
-            num_node_labels = self.unique_node_labels
-            # get the next even number if the number of node labels is odd
-            if num_node_labels % 2 == 1:
-                num_node_labels += 1
-            intervals = num_node_labels + 1
-            interval_length = 1.0 / intervals
-            normalized_node_labels = torch.zeros(self.num_node_labels)
-            for idx, entry in enumerate(normalized_node_labels):
-                value = idx
-                value = int(value)
-                # if value is even, add 1 to make it odd
-                if value % 2 == 0:
+                    normalized_node_labels[idx] = value
+                # replace values in data['x'] by the normalized values
+                data['x'] = data['x'].apply_(lambda x: normalized_node_labels[x])
+            elif use_labels and transformation == 'unit_circle':
+                '''
+                Arrange the labels in an 2D unit circle
+                '''
+                num_node_labels = self.unique_node_labels
+                # duplicate data column
+                data['x'] = data['x'].repeat(1, 2)
+                data['x'] = data['x'][:, 0:1].apply_(lambda x: torch.cos(2 * np.pi * x / num_node_labels))
+                data['x'] = data['x'][:, 1:2].apply_(lambda x: torch.sin(2 * np.pi * x / num_node_labels))
+            elif use_labels_and_features and transformation == 'normalize_labels':
+                # get the number of unique node labels
+                num_node_labels = self.unique_node_labels
+                # get the next even number if the number of node labels is odd
+                if num_node_labels % 2 == 1:
+                    num_node_labels += 1
+                intervals = num_node_labels + 1
+                interval_length = 1.0 / intervals
+                normalized_node_labels = torch.zeros(self.num_node_labels)
+                for idx, entry in enumerate(normalized_node_labels):
+                    value = idx
+                    value = int(value)
+                    # if value is even, add 1 to make it odd
+                    if value % 2 == 0:
+                        value = ((value + 1) * interval_length)
+                    else:
+                        value = (-1) * (value * interval_length)
+                    normalized_node_labels[idx] = value
+                # replace values in data['x'] by the normalized values only for the last column
+                data['x'] = data['x'][:, -1].apply_(lambda x: normalized_node_labels[x])
+            elif use_labels_and_features and transformation == 'normalize_positive':
+                # get the number of different node labels
+                num_node_labels = self.unique_node_labels
+                # get the next even number if the number of node labels is odd
+                intervals = num_node_labels + 1
+                interval_length = 1.0 / intervals
+                normalized_node_labels = torch.zeros(self.num_node_labels)
+                for idx, entry in enumerate(normalized_node_labels):
+                    value = idx
+                    value = int(value)
+                    # map the value to the interval [0,1]
                     value = ((value + 1) * interval_length)
-                else:
-                    value = (-1) * (value * interval_length)
-                normalized_node_labels[idx] = value
-            # replace values in self._data.x by the normalized values only for the last column
-            self._data.x = self._data.x[:, -1].apply_(lambda x: normalized_node_labels[x])
-        elif use_labels_and_features and transformation == 'normalize_positive':
-            # get the number of different node labels
-            num_node_labels = self.unique_node_labels
-            # get the next even number if the number of node labels is odd
-            intervals = num_node_labels + 1
-            interval_length = 1.0 / intervals
-            normalized_node_labels = torch.zeros(self.num_node_labels)
-            for idx, entry in enumerate(normalized_node_labels):
-                value = idx
-                value = int(value)
-                # map the value to the interval [0,1]
-                value = ((value + 1) * interval_length)
-                normalized_node_labels[idx] = value
-            # replace values in self._data.x by the normalized values only for the last column
-            self._data.x = self._data.x[:, -1].apply_(lambda x: normalized_node_labels[x])
+                    normalized_node_labels[idx] = value
+                # replace values in data['x'] by the normalized values only for the last column
+                data['x'] = data['x'][:, -1].apply_(lambda x: normalized_node_labels[x])
 
 
-        # Determine the output data
-        #if task == 'regression':
-        #    self.num_classes = 1
-        #    if type(self.graph_labels[0]) == list:
-        #        self.num_classes = len(self.graph_labels[0])
-        #else:
-        #    try:
-        #        self.num_classes = len(set(self.graph_labels))
-        #    except:
-        #        self.num_classes = len(self.graph_labels[0])
-        #
-        # one hot encode y
+            # Determine the output data
+            #if task == 'regression':
+            #    self.num_classes = 1
+            #    if type(self.graph_labels[0]) == list:
+            #        self.num_classes = len(self.graph_labels[0])
+            #else:
+            #    try:
+            #        self.num_classes = len(set(self.graph_labels))
+            #    except:
+            #        self.num_classes = len(self.graph_labels[0])
+            #
+            # one hot encode y
 
-        if task == 'regression':
-            self.output_data = self._data.y
-            self.output_data = self.output_data.unsqueeze(1)
-            if output_features.get('transformation', None) is not None:
-                self.output_data = transform_data(self.output_data, output_features)
-
-            self.output_feature_dimensions = 1
-        else:
-            self.output_data = torch.nn.functional.one_hot(self._data.y, self.num_classes).float()
-            # the output feature dimension
-            self.output_feature_dimensions = self.output_data.shape[1]
-        # the input feature dimension
-        self.input_feature_dimensions = self._data.x.shape[1]
-        return None
+            if task == 'regression':
+                if output_features.get('transformation', None) is not None:
+                    data['y'] = transform_data(data['y'], output_features)
+            return None
 
     def __repr__(self) -> str:
         return f'{self.name}({len(self)})'
@@ -710,7 +709,10 @@ class GraphData:
         return None
 
     def set_precision(self, precision:str='double'):
-        # adapt the precision of the input data
+        """
+        Adapt the precision of the input data
+        :param precision: str - precision of the input data (double or float)
+        """
         if precision == 'double':
             for i in range(len(self.input_data)):
                 self.input_data[i] = self.input_data[i].double()
@@ -746,7 +748,7 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, output_features=None, graph_format='NEL', only_graphs=False):
+def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, output_features=None, graph_format='NEL', only_graphs=False, precision='double'):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
@@ -763,8 +765,7 @@ def get_graph_data(db_name: str, data_path : Path, task='graph_classification', 
         graph_data = GraphData()
         graph_data.load_nel_graphs(db_name=db_name, path=data_path, input_features=input_features, output_features=output_features, task=task, only_graphs=only_graphs)
     elif graph_format == 'RuleGNNDataset':
-        graph_data = RuleGNNDataset(root=str(data_path), name=db_name)
-        graph_data.preprocess_rule_gnn_data(input_features=input_features, output_features=output_features, task=task)
+        graph_data = RuleGNNDataset(root=str(data_path), name=db_name, precision=precision, input_features=input_features, output_features=output_features, task=task)
         pass
     else:
         raise ValueError(f'Graph format {graph_format} not supported')

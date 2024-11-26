@@ -53,7 +53,7 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
     for prop_name in unique_properties:
         valid_values = {}
         for i, l in enumerate(run_config.layers):
-            for j, c in enumerate(l.layer_channels):
+            for j, c in enumerate(l.layer_heads):
                 if c.property_dict is not None:
                     if c.property_dict.get('name', None) == prop_name:
                         valid_values[(i,j)] = c.property_dict.get('values', None)
