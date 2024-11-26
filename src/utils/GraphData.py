@@ -179,6 +179,7 @@ class RuleGNNDataset(InMemoryDataset):
                 # remove num_nodes from x
                 dataset.slices['x'] = torch.linspace(0, dataset.data.num_nodes, num_graphs + 1, dtype=torch.long)
                 self.slices = dataset.slices
+                self.data = dataset.data
                 pass
         else:
             print('Cannot process the data')
