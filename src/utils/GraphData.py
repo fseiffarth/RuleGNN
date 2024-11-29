@@ -207,12 +207,17 @@ class RuleGNNDataset(InMemoryDataset):
         node_labels = []
         node_attributes = []
         node_slices = [0]
-        for graph in graphs:
+        with_node_attributes = False
+        for graph_id, graph in enumerate(graphs):
+            node_labels += [0] * graph.number_of_nodes()
+            node_attributes += [0] * graph.number_of_nodes()
             for node in graph.nodes(data=True):
                 if 'label' in node[1]:
-                    node_labels.append(int(node[1]['label'][0]))
+                    index_start = np.sum(node_slices[0:graph_id+1])
+                    node_labels[index_start+node[0]] = int(node[1]['label'][0])
                     if len(node[1]['label']) > 1:
-                        node_attributes.append(node[1]['label'][1:])
+                        with_node_attributes = True
+                        node_attributes[index_start+node[0]] = node[1]['label'][1:]
             node_slices.append(graph.number_of_nodes())
         # convert the node labels to a tensor
         node_labels = torch.tensor(node_labels, dtype=torch.long)
@@ -220,7 +225,7 @@ class RuleGNNDataset(InMemoryDataset):
         node_labels = torch.nn.functional.one_hot(node_labels).float()
         # convert the node attributes to a tensor
         node_attributes = torch.tensor(node_attributes, dtype=torch.float)
-        if len(node_attributes) == 0:
+        if len(node_attributes) == 0 or not with_node_attributes:
             node_attributes = None
         if node_attributes is not None:
             # stack node attributes and node labels together to form the node feature matrix
