@@ -163,7 +163,7 @@ class RuleGNNDataset(InMemoryDataset):
                 tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
                 self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
             elif self.from_existing_data == 'NEL':
-                self.data, self.slices, sizes = self.read_nel_data()
+                self.data, self.slices, sizes = self.read_nel_data_v2()
             elif self.from_existing_data == 'gnn_benchmark':
                 dataset = GNNBenchmarkDataset("tmp/", self.name)
                 sizes = {
@@ -209,6 +209,7 @@ class RuleGNNDataset(InMemoryDataset):
         node_slices = [0]
         with_node_attributes = False
         for graph_id, graph in enumerate(graphs):
+            print(f'Processing graph {graph_id+1}/{len(graphs)}')
             node_labels += [0] * graph.number_of_nodes()
             node_attributes += [0] * graph.number_of_nodes()
             for node in graph.nodes(data=True):
@@ -273,6 +274,93 @@ class RuleGNNDataset(InMemoryDataset):
                  'num_node_attributes': node_attributes.shape[1] if node_attributes is not None else 0,
                  'num_edge_labels': edge_labels.shape[1],
                  'num_edge_attributes': edge_attributes.shape[1] if edge_attributes is not None else 0}
+        return data, slices, sizes
+
+    def read_nel_data_v2(self):
+        load_path = Path(self.raw_dir)
+        # load the nodes from the file
+        node_labels = []
+        node_attributes = []
+        node_slices = [0]
+        node_counter = 0
+        with open(load_path.joinpath(self.name + "_Nodes.txt"), "r") as f:
+            lines = f.readlines()
+            line_length = len(lines[0].strip().split(" "))
+            # convert into torch tensor
+            torch_lines = torch.zeros((len(lines), line_length), dtype=torch.float)
+            for i, line in enumerate(lines):
+                if i % 10000 == 0:
+                    print(f'Processing node {i+1}/{len(lines)}')
+                data = line.strip().split(" ")
+                torch_lines[i] = torch.tensor(list(map(float, data)))
+            graph_ids = torch_lines[:, 0].int()
+            # get slice vector from unique graph ids
+            slices = torch.unique(graph_ids, return_counts=True)[1]
+            # add 0 at the beginning
+            slices = torch.cat((torch.tensor([0]), slices)).cumsum(dim=0)
+            node_ids = torch_lines[:, 1].int()
+            node_labels = torch_lines[:, 2].int()
+            node_attr = None
+            # sort the node labels graph-wise (slices) according to the node ids
+            for idx in range(len(slices) - 1):
+                sorted_indices = torch.argsort(node_ids[slices[idx]:slices[idx+1]])
+                node_labels[slices[idx]:slices[idx+1]] = node_labels[slices[idx]:slices[idx+1]][sorted_indices]
+                if line_length > 3:
+                    node_attr = torch_lines[:, 3:]
+                    node_attr[slices[idx]:slices[idx+1]] = node_attr[slices[idx]:slices[idx+1]][sorted_indices]
+
+        x = None
+        if node_attr is not None:
+            x = torch.cat((node_attr, torch.nn.functional.one_hot(node_labels).float()), dim=1)
+        else:
+            x = node_labels
+
+        edge_indices = None
+        edge_slices = None
+        edge_labels = None
+        edge_attr = None
+        with open(load_path.joinpath(self.name + "_Edges.txt"), "r") as f:
+            lines = f.readlines()
+            line_length = len(lines[0].strip().split(" "))
+            torch_lines = torch.zeros((len(lines), line_length), dtype=torch.float)
+            for i, line in enumerate(lines):
+                if i % 10000 == 0:
+                    print(f'Processing node {i+1}/{len(lines)}')
+                data = line.strip().split(" ")
+                torch_lines[i] = torch.tensor(list(map(float, data)))
+            graph_ids = torch_lines[:, 0].int()
+            # get slice vector from unique graph ids
+            edge_slices = torch.unique(graph_ids, return_counts=True)[1]
+            # add 0 at the beginning
+            edge_slices = torch.cat((torch.tensor([0]), edge_slices)).cumsum(dim=0)
+            edge_indices = torch_lines[:, 1:3].int().T
+            edge_labels = torch_lines[:, 3].int()
+            edge_attr = None
+            if line_length > 4:
+                edge_attr = torch_lines[:, 4:]
+
+        y = None
+        with open(load_path.joinpath(self.name + "_Labels.txt"), "r") as f:
+            lines = f.readlines()
+            line_length = len(lines[0].strip().split(" "))
+            torch_lines = torch.zeros((len(lines), line_length - 1), dtype=torch.long)
+            for i, line in enumerate(lines):
+                data = line.strip().split(" ")
+                graph_name = data[0]
+                torch_lines[i] = torch.tensor(list(map(float, data[1:])))
+            y = torch_lines.long()
+
+
+        y_slices = torch.arange(0, len(y) + 1, dtype=torch.long)
+        data = Data(x=x, edge_index=edge_indices, edge_attr=edge_attr, y=y)
+        slices = {'edge_index': edge_slices,
+                  'x': node_slices,
+                  'edge_attr': edge_slices.detach().clone(),
+                  'y': y_slices}
+        sizes = {'num_node_labels': node_labels.shape[1],
+                 'num_node_attributes': node_attributes.shape[1] if node_attributes is not None else 0,
+                 'num_edge_labels': edge_labels.shape[1],
+                 'num_edge_attributes': edge_attr.shape[1] if edge_attr is not None else 0}
         return data, slices, sizes
 
     def create_nx_graphs(self, directed: bool = False):

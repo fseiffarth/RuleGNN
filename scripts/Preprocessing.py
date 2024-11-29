@@ -98,6 +98,20 @@ class Preprocessing:
                         # raise the error that has occurred
                         print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
 
+                else:
+                    try:
+                        self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                         name=db_name,
+                                                         use_node_attr=self.experiment_configuration.get(
+                                                             'use_node_attr', False),
+                                                         use_edge_attr=self.experiment_configuration.get(
+                                                             'use_edge_attr', False),
+                                                         delete_zero_columns=self.experiment_configuration.get(
+                                                             'delete_zero_columns', True),
+                                                        from_existing_data='NEL'
+                                                         )
+                    except:
+                        print(f'Could not process the data from {db_name} with the given configuration.')
 
         # load the graph data TODO: introduce new pyg format and load from the pt files
         #self.graph_data = get_graph_data(db_name=self.db_name,
