@@ -44,7 +44,6 @@ class Preprocessing:
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
         # generate the data only if it does not exist (i.e. the processed folder is empty)
-        nel_dataset = False
         if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'data.pt').is_file():
             if isinstance(data_generation, str):
                 if data_generation != 'generate_from_function':

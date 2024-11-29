@@ -6,7 +6,7 @@ networks:
           { label_type: [simple_cycles, primary], max_cycle_length: [ 10 ] }
         ],
         properties: [
-          { name: distances, values: [ 3 ] }
+          { name: distances, values: [ 0,3 ] }
         ]
   }
     - { layer_type: aggregation,

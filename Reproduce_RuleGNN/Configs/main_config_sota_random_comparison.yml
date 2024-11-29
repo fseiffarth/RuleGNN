@@ -66,9 +66,9 @@ rule_occurrence_threshold: 1
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
 weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
-                         convolution_bias: { type: 'constant', value: 0.001},
+                         convolution_bias: { type: 'constant', value: 0.0},
                          aggregation: { type: 'constant', value: 0.001 },
-                         aggregation_bias: { type: 'constant', value: 0.001 }}
+                         aggregation_bias: { type: 'constant', value: 0.0 }}
 
 
 

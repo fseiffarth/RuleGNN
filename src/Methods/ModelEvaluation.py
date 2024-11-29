@@ -164,11 +164,10 @@ class ModelEvaluation:
                     if random_variation_bool:
                         mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
                         std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
-                        random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size())
                         if self.para.run_config.config.get('precision', 'double') == 'float':
-                            random_variation = torch.tensor(random_variation).float().clone().detach()
+                            random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(), dtype=torch.float)
                         else:
-                            random_variation = torch.tensor(random_variation).double().clone().detach()
+                            random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(), dtype=torch.double)
                         outputs[j] = self.net(self.graph_data[graph_id].x + random_variation, graph_id)
                     else:
                         outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
@@ -540,7 +539,7 @@ class ModelEvaluation:
             if self.para.run_config.config.get('best_model', False):
                 # Test accuracy
                 outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=self.dtype)
-                labels = self.graph_data.y[self.validate_data]
+                labels = self.graph_data.y[self.test_data]
 
                 with torch.no_grad():
                     for j, data_pos in enumerate(self.test_data, 0):
