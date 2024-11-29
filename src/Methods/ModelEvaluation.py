@@ -166,9 +166,9 @@ class ModelEvaluation:
                         std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
                         random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size())
                         if self.para.run_config.config.get('precision', 'double') == 'float':
-                            random_variation = torch.FloatTensor(random_variation)
+                            random_variation = torch.tensor(random_variation).float()
                         else:
-                            random_variation = torch.DoubleTensor(random_variation)
+                            random_variation = torch.tensor(random_variation).double()
                         outputs[j] = self.net(self.graph_data[graph_id].x + random_variation, graph_id)
                     else:
                         outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
