@@ -19,7 +19,7 @@ learning_rate:
 
 # epochs: number of epochs used for training, use several options for hyperparameter search
 epochs:
-  - 200
+  - 50
 
 # dropout: dropout rate used for training, use several options for hyperparameter search
 dropout:
@@ -99,17 +99,20 @@ networks:
         bias: False,
         heads: [1],
         labels: [
-          { label_type: [wl, primary], depth: [2] },
+          { label_type: [wl, primary], depth: [4,3,2,1,0] },
+          { label_type: [simple_cycles, primary], max_cycle_length: [6, 10, 20] },
         ],
         properties: [
-          { name: distances, values: [ 0, 1, 2, 4, 5, 6] },
+          { name: distances, values: [ 0,1,2,3,4,5,6 ] },
+          { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10,11,12 ] },
         ]
   }
     - { layer_type: aggregation,
         bias: True,
         heads: [1],
         labels: [
-          { label_type: [simple_cycles, primary], max_cycle_length: [10] },
+          { label_type: [wl, primary], depth: [4,3,2,1,0] },
+          { label_type: [simple_cycles, primary], max_cycle_length: [6, 10, 20] },
         ]
     }
 

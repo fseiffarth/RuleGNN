@@ -79,6 +79,8 @@ class RuleGNNDataset(InMemoryDataset):
                     data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].double()
                 self.sizes['num_node_labels'] = data['x'].shape[1]
         else:
+            if data.get('num_nodes', None) is None:
+                data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
             # create data['x'] using vectors of ones
             data['x'] = torch.ones(data['num_nodes'], 1, dtype=self.precision)
             self.sizes['num_node_labels'] = 1
@@ -87,7 +89,10 @@ class RuleGNNDataset(InMemoryDataset):
             self.slices['x'] = torch.tensor(self.slices['x'], dtype=torch.long).cumsum(dim=0)
 
         if data.get('x', None) is not None:
-            self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
+            if data['x'].shape[1] == 1:
+                self.node_labels['primary'] = data['x'].clone().detach().long()
+            else:
+                self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
             self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
             if not use_node_attr:
                 num_node_attributes = self.num_node_attributes
@@ -280,9 +285,10 @@ class RuleGNNDataset(InMemoryDataset):
         load_path = Path(self.raw_dir)
         # load the nodes from the file
         node_labels = []
-        node_attributes = []
+        node_attributes = None
         node_slices = [0]
         node_counter = 0
+        unique_labels = []
         with open(load_path.joinpath(self.name + "_Nodes.txt"), "r") as f:
             lines = f.readlines()
             line_length = len(lines[0].strip().split(" "))
@@ -290,30 +296,34 @@ class RuleGNNDataset(InMemoryDataset):
             torch_lines = torch.zeros((len(lines), line_length), dtype=torch.float)
             for i, line in enumerate(lines):
                 if i % 10000 == 0:
-                    print(f'Processing node {i+1}/{len(lines)}')
+                    print(f'Processing node {i+1}/{len(lines)} in dataset {self.name}')
                 data = line.strip().split(" ")
                 torch_lines[i] = torch.tensor(list(map(float, data)))
-            graph_ids = torch_lines[:, 0].int()
+            graph_ids = torch_lines[:, 0].long()
             # get slice vector from unique graph ids
-            slices = torch.unique(graph_ids, return_counts=True)[1]
+            node_slices = torch.unique(graph_ids, return_counts=True)[1]
             # add 0 at the beginning
-            slices = torch.cat((torch.tensor([0]), slices)).cumsum(dim=0)
-            node_ids = torch_lines[:, 1].int()
-            node_labels = torch_lines[:, 2].int()
+            node_slices = torch.cat((torch.tensor([0]), node_slices)).cumsum(dim=0).long()
+            node_ids = torch_lines[:, 1].long()
+            node_labels = torch_lines[:, 2].long()
+            unique_labels = len(torch.unique(node_labels))
             node_attr = None
-            # sort the node labels graph-wise (slices) according to the node ids
-            for idx in range(len(slices) - 1):
-                sorted_indices = torch.argsort(node_ids[slices[idx]:slices[idx+1]])
-                node_labels[slices[idx]:slices[idx+1]] = node_labels[slices[idx]:slices[idx+1]][sorted_indices]
+            # sort the node labels graph-wise (node_slices) according to the node ids
+            for idx in range(len(node_slices) - 1):
+                sorted_indices = torch.argsort(node_ids[node_slices[idx]:node_slices[idx+1]])
+                node_labels[node_slices[idx]:node_slices[idx+1]] = node_labels[node_slices[idx]:node_slices[idx+1]][sorted_indices]
                 if line_length > 3:
                     node_attr = torch_lines[:, 3:]
-                    node_attr[slices[idx]:slices[idx+1]] = node_attr[slices[idx]:slices[idx+1]][sorted_indices]
+                    node_attr[node_slices[idx]:node_slices[idx+1]] = node_attr[node_slices[idx]:node_slices[idx+1]][sorted_indices]
 
         x = None
-        if node_attr is not None:
-            x = torch.cat((node_attr, torch.nn.functional.one_hot(node_labels).float()), dim=1)
+        # one hot encoding if number of node labels is smaller than 100
+        if unique_labels < 100:
+            x = torch.nn.functional.one_hot(node_labels).float()
         else:
             x = node_labels
+        if node_attr is not None:
+            x = torch.cat((node_attr, x), dim=1)
 
         edge_indices = None
         edge_slices = None
@@ -325,16 +335,17 @@ class RuleGNNDataset(InMemoryDataset):
             torch_lines = torch.zeros((len(lines), line_length), dtype=torch.float)
             for i, line in enumerate(lines):
                 if i % 10000 == 0:
-                    print(f'Processing node {i+1}/{len(lines)}')
+                    print(f'Processing edge {i+1}/{len(lines)} in dataset {self.name}')
                 data = line.strip().split(" ")
                 torch_lines[i] = torch.tensor(list(map(float, data)))
-            graph_ids = torch_lines[:, 0].int()
+            graph_ids = torch_lines[:, 0].long()
             # get slice vector from unique graph ids
             edge_slices = torch.unique(graph_ids, return_counts=True)[1]
             # add 0 at the beginning
-            edge_slices = torch.cat((torch.tensor([0]), edge_slices)).cumsum(dim=0)
-            edge_indices = torch_lines[:, 1:3].int().T
-            edge_labels = torch_lines[:, 3].int()
+            edge_slices = torch.cat((torch.tensor([0]), edge_slices)).cumsum(dim=0).long()
+            edge_indices = torch_lines[:, 1:3].long().T
+            edge_labels = torch_lines[:, 3].long()
+            edge_labels = torch.nn.functional.one_hot(edge_labels).float()
             edge_attr = None
             if line_length > 4:
                 edge_attr = torch_lines[:, 4:]
@@ -348,7 +359,7 @@ class RuleGNNDataset(InMemoryDataset):
                 data = line.strip().split(" ")
                 graph_name = data[0]
                 torch_lines[i] = torch.tensor(list(map(float, data[1:])))
-            y = torch_lines.long()
+            y = torch_lines[:, 0].long()
 
 
         y_slices = torch.arange(0, len(y) + 1, dtype=torch.long)
@@ -357,7 +368,8 @@ class RuleGNNDataset(InMemoryDataset):
                   'x': node_slices,
                   'edge_attr': edge_slices.detach().clone(),
                   'y': y_slices}
-        sizes = {'num_node_labels': node_labels.shape[1],
+
+        sizes = {'num_node_labels': unique_labels,
                  'num_node_attributes': node_attributes.shape[1] if node_attributes is not None else 0,
                  'num_edge_labels': edge_labels.shape[1],
                  'num_edge_attributes': edge_attr.shape[1] if edge_attr is not None else 0}
