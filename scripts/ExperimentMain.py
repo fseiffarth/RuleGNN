@@ -274,7 +274,7 @@ class ExperimentMain:
         """
         Split the data in training validation and test set
         """
-        seed = 56874687 + validation_id + para.n_val_runs * run_id
+        seed = 42 + validation_id + para.n_val_runs * run_id
         data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('transfer', False))
         test_data = data[0][validation_id]
         train_data = data[1][validation_id]

@@ -1,5 +1,6 @@
 #
 import os
+from pathlib import Path
 from typing import List
 
 import networkx as nx
@@ -8,6 +9,8 @@ from grakel import WeisfeilerLehman, VertexHistogram
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.svm import SVC, SVR
 from sklearn.metrics import accuracy_score, mean_absolute_error
+
+from src.utils.GraphData import RuleGNNDataset
 
 
 def nx_to_grakel(nx_graphs: List[nx.Graph]):
@@ -56,10 +59,12 @@ def nx_to_grakel(nx_graphs: List[nx.Graph]):
 
 
 class WLKernel:
-    def __init__(self, graph_data, run_num: int, validation_num: int, training_data: List[int],
+    def __init__(self, out_path:Path, graph_data:RuleGNNDataset, run_num: int, validation_num: int, training_data: List[int],
                  validate_data: List[int], test_data: List[int],
                  seed: int):
+        self.out_path = out_path
         self.graph_data = graph_data
+        self.graph_data.create_nx_graphs()
         self.training_data = training_data
         self.validate_data = validate_data
         self.test_data = test_data
@@ -67,15 +72,16 @@ class WLKernel:
         self.run_num = run_num
         self.validation_num = validation_num
 
+
     def Run(self):
 
-        train_graphs = [self.graph_data.graphs[i] for i in self.training_data]
-        val_graphs = [self.graph_data.graphs[i] for i in self.validate_data]
-        test_graphs = [self.graph_data.graphs[i] for i in self.test_data]
+        train_graphs = [self.graph_data.nx_graphs[i] for i in self.training_data]
+        val_graphs = [self.graph_data.nx_graphs[i] for i in self.validate_data]
+        test_graphs = [self.graph_data.nx_graphs[i] for i in self.test_data]
 
-        y_train = np.asarray([self.graph_data.graph_labels[i] for i in self.training_data])
-        y_val = np.asarray([self.graph_data.graph_labels[i] for i in self.validate_data])
-        y_test = np.asarray([self.graph_data.graph_labels[i] for i in self.test_data])
+        y_train = np.asarray([self.graph_data.y[i].item() for i in self.training_data])
+        y_val = np.asarray([self.graph_data.y[i].item()for i in self.validate_data])
+        y_test = np.asarray([self.graph_data.y[i].item() for i in self.test_data])
 
         grakel_train = nx_to_grakel(train_graphs)
         grakel_val = nx_to_grakel(val_graphs)
@@ -87,7 +93,8 @@ class WLKernel:
                 gk = WeisfeilerLehman(n_iter=n_iter, base_graph_kernel=VertexHistogram, normalize=True)
                 K_train = gk.fit_transform(grakel_train)
                 K_val = gk.transform(grakel_val)
-                K_test = gk.transform(grakel_test)
+                if len(grakel_test) > 0:
+                    K_test = gk.transform(grakel_test)
 
                 if type(y_train) is not np.ndarray:
                     clf = SVR(kernel='precomputed', C=c_param)
@@ -97,15 +104,22 @@ class WLKernel:
                 # Uses the SVM classifier to perform classification
                 clf.fit(K_train, y_train)
                 y_val_pred = clf.predict(K_val)
-                y_test_pred = clf.predict(K_test)
+                if len(grakel_test) > 0:
+                    y_test_pred = clf.predict(K_test)
 
                 if type(y_train) is not np.ndarray:
                     val_acc = mean_absolute_error(y_val, y_val_pred)
-                    test_acc = mean_absolute_error(y_test, y_test_pred)
+                    if len(grakel_test) > 0:
+                        test_acc = mean_absolute_error(y_test, y_test_pred)
+                    else:
+                        test_acc = 0
                 else:
                     # compute the validation accuracy and test accuracy and print it
                     val_acc = accuracy_score(y_val, y_val_pred)
-                    test_acc = accuracy_score(y_test, y_test_pred)
+                    if len(grakel_test) > 0:
+                        test_acc = accuracy_score(y_test, y_test_pred)
+                    else:
+                        test_acc = 0
 
 
 
@@ -116,11 +130,11 @@ class WLKernel:
                           ";HyperparameterSVC;HyperparameterAlgo;ValidationAccuracy;TestAccuracy\n")
 
                 # Save file for results and add header if the file is new
-                with open(f'Results/{file_name}', "a") as file_obj:
-                    if os.stat(f'Results/{file_name}').st_size == 0:
+                with open(self.out_path.joinpath(file_name), "a") as file_obj:
+                    if Path.stat(self.out_path.joinpath(file_name)).st_size == 0:
                         file_obj.write(header)
 
                 # Save results to file
-                with open(f'Results/{file_name}', "a") as file_obj:
+                with open(self.out_path.joinpath(file_name), "a") as file_obj:
                     file_obj.write(
                         f"{self.graph_data.name};{self.run_num};{self.validation_num};WLKernel;{len(self.training_data)};{len(self.validate_data)};{len(self.test_data)};{c_param};{n_iter};{val_acc};{test_acc}\n")

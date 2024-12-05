@@ -7,15 +7,13 @@ import networkx as nx
 import numpy as np
 import torch
 import torch_geometric.data
-from numpy.ma.core import shape
-from torch_geometric.data import InMemoryDataset, Data, TensorAttr
-from torch_geometric.data.data import BaseData
+from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset
 
 from src.utils import NodeLabeling, EdgeLabeling
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
-from torch_geometric.io import fs, read_tu_data
+from torch_geometric.io import fs
 from torch_geometric.utils.convert import to_networkx
 
 

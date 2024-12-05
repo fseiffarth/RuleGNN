@@ -1,8 +1,6 @@
 from typing import List
 
 import networkx as nx
-from sklearn.utils.multiclass import unique_labels
-
 
 def standard_node_labeling(graphs: List[nx.Graph]):
     """

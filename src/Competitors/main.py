@@ -4,7 +4,6 @@ import numpy as np
 from src.utils.GraphData import get_graph_data
 from Kernels.NoGKernel import NoGKernel
 from Kernels.GraphKernels import WLKernel
-from GraphData.DataSplits.load_splits import Load_Splits
 
 def validation(db_name, validation_id, graph_data):
     # three runs
@@ -25,7 +24,7 @@ def validation(db_name, validation_id, graph_data):
 def main(db_name, data_path="../../BenchmarkGraphs/DS_all/"):
     #datapath = "/home/mlai21/seiffart/BenchmarkGraphs/BenchmarkGraphs/DS_all/"
     # load the graph data
-    graph_data = get_graph_data(db_name, data_path=data_path, distance_path="../../Testing/Distances/")
+    graph_data = get_graph_data(db_name, data_path=data_path)
 
     validation_size = 10
     if db_name == "CSL_original":

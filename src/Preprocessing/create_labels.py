@@ -8,9 +8,7 @@ import torch
 from networkx.algorithms.isomorphism import GraphMatcher
 from torch_geometric.io import fs
 
-from src.utils import NodeLabeling
 from src.utils.GraphData import RuleGNNDataset
-from src.utils.GraphLabels import NodeLabels
 from src.utils.NodeLabeling import weisfeiler_lehman_node_labeling
 
 def save_labels_to_file(file:Path, dataset_name:str, label_name:str, graph_node_labels:Optional[Union[List[List[int]], torch.Tensor]], max_labels:None):

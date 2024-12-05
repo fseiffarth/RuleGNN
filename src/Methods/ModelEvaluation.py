@@ -4,9 +4,6 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
-import scipy.stats
-import sklearn
-from sklearn.metrics import accuracy_score
 import torch
 from torch import optim, nn
 from torch.autograd import Variable
@@ -54,7 +51,7 @@ class ModelEvaluation:
         if self.para.run_config.config.get('precision', 'float') == 'double':
             self.dtype = torch.double
 
-    def Run(self, run_seed: int = 687497, pretrained_network=None):
+    def Run(self, run_seed: int = 42, pretrained_network=None):
         """
         Set up the network
         parameters:
