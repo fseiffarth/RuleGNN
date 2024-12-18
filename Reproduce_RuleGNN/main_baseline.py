@@ -22,14 +22,17 @@ def validation(dataset, experiment_configuration, validation_id, graph_data):
     out_path = Path(out_path).joinpath("Baseline").joinpath(dataset)
     out_path.mkdir(exist_ok=True, parents=True)
 
+
+    noG = NoGKernel(out_path=out_path, graph_data=graph_data, run_num=0, validation_num=validation_id, training_data=training_data,
+                    validate_data=validate_data, test_data=test_data, seed=42)
+    noG.Run()
+
     wlKernel = WLKernel(out_path=out_path, graph_data=graph_data, run_num=0, validation_num=validation_id,
                         training_data=training_data, validate_data=validate_data, test_data=test_data,
                         seed=42)
     wlKernel.Run()
 
-    noG = NoGKernel(out_path=out_path, graph_data=graph_data, run_num=0, validation_num=validation_id, training_data=training_data,
-                    validate_data=validate_data, test_data=test_data, seed=42)
-    noG.Run()
+
 
 
 def evaluation(dataset, experiment_configuration, graph_data, algorithm, test=True):
@@ -72,6 +75,7 @@ def evaluation(dataset, experiment_configuration, graph_data, algorithm, test=Tr
         evaluation.append(
             {'HyperparameterSVC': avg['HyperparameterSVC'], 'HyperparameterAlgo': avg['HyperparameterAlgo'],
              'ValidationAccuracy': round(100 * avg['ValidationAccuracy'], 2),
+             'ValidationAccuracyStd': round(100 * std['ValidationAccuracy'], 2),
              'TestAccuracy': round(100 * avg['TestAccuracy'], 2),
              'TestAccuracyStd': round(100 * std['TestAccuracy'], 2)})
         # print the avg and std together with the hyperparameter and the algorithm used
@@ -84,7 +88,9 @@ def evaluation(dataset, experiment_configuration, graph_data, algorithm, test=Tr
     print(f"{dataset} Best hyperparameters:")
     for hyperparameter in best_hyperparameters:
         print(
-            f"Hyperparameter: SVC:{hyperparameter['HyperparameterSVC']} Algo:{hyperparameter['HyperparameterAlgo']} Validation Accuracy: {hyperparameter['ValidationAccuracy']}Test Accuracy: {hyperparameter['TestAccuracy']} +/- {hyperparameter['TestAccuracyStd']}")
+            f"Hyperparameter: SVC:{hyperparameter['HyperparameterSVC']} Algo:{hyperparameter['HyperparameterAlgo']} "
+            f"Validation Accuracy: {hyperparameter['ValidationAccuracy']} +/- {hyperparameter['ValidationAccuracyStd']} "
+            f"Test Accuracy: {hyperparameter['TestAccuracy']} +/- {hyperparameter['TestAccuracyStd']}")
 
 
 def main_baseline():
@@ -92,7 +98,7 @@ def main_baseline():
     Run the baseline models for the given dataset
     '''
     # load the yml file
-    for config in ['main_config_fair_synthetic.yml', 'main_config_fair_real_world.yml', 'main_config_sota_comparison.yml']:
+    for config in ['main_config_sota_comparison.yml']:
         experiment = ExperimentMain(Path(f"Reproduce_RuleGNN/Configs/{config}"))
         datasets = list(experiment.experiment_configurations.keys())
         for dataset in datasets:
@@ -109,8 +115,8 @@ def main_baseline():
             if dataset == "CSL":
                 validation_size = 5
             # run the validation for all validation sets in parallel
-            joblib.Parallel(n_jobs=10)(
-                joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in range(validation_size))
+            #joblib.Parallel(n_jobs=validation_size)(
+            #    joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in range(validation_size))
 
 
             test = True

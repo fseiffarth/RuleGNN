@@ -22,16 +22,14 @@ def nx_to_grakel(nx_graphs: List[nx.Graph]):
         edges = g.edges(data=True)
         for e in edges:
             label = 0
-            if 'label' in e[2]:
-                label = e[2]['label']
-                if len(label) == 1:
+            if 'primary_label' in e[2]:
+                label = e[2]['primary_label']
+                if isinstance(label, list) and len(label) == 1:
                     label = label[0]
                     try:
                         label = int(label)
                     except:
                         label = 0
-                else:
-                    label = 0
             else:
                 label = 0
             edge_dict[(e[0], e[1])] = label
@@ -41,16 +39,14 @@ def nx_to_grakel(nx_graphs: List[nx.Graph]):
         node_dict = {}
         for n in g.nodes(data=True):
             label = 0
-            if 'label' in n[1]:
-                label = n[1]['label']
-                if len(label) == 1:
+            if 'primary_label' in n[1]:
+                label = n[1]['primary_label']
+                if isinstance(label, list) and len(label) == 1:
                     label = label[0]
                     try:
                         label = int(label)
                     except:
                         label = 0
-                else:
-                    label = 0
             else:
                 label = 0
             node_dict[n[0]] = label

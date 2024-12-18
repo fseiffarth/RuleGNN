@@ -66,18 +66,18 @@ class NoGKernel():
                 clf = SVC(kernel='rbf', C=c_param, random_state=self.seed)
             clf.fit(X_train, Y_train)
             Y_val_pred = clf.predict(X_val)
-            if X_test is not []:
+            if len(X_test) > 0:
                 Y_test_pred = clf.predict(X_test)
             if type(Y_train) is not np.ndarray:
                 val_acc = mean_absolute_error(Y_val, Y_val_pred)
-                if X_test is not []:
+                if len(X_test) > 0:
                     test_acc = mean_absolute_error(Y_test, Y_test_pred)
                 else:
                     test_acc = 0
             else:
                 # calculate the accuracy of the prediction
                 val_acc = np.mean(Y_val_pred == Y_val)
-                if X_test is not []:
+                if len(X_test) > 0:
                     test_acc = np.mean(Y_test_pred == Y_test)
                 else:
                     test_acc = 0
