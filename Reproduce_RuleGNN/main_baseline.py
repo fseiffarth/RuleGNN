@@ -87,7 +87,7 @@ def evaluation(dataset, experiment_configuration, graph_data, algorithm, test=Tr
             f"Hyperparameter: SVC:{hyperparameter['HyperparameterSVC']} Algo:{hyperparameter['HyperparameterAlgo']} Validation Accuracy: {hyperparameter['ValidationAccuracy']}Test Accuracy: {hyperparameter['TestAccuracy']} +/- {hyperparameter['TestAccuracyStd']}")
 
 
-def main():
+def main_baseline():
     '''
     Run the baseline models for the given dataset
     '''
@@ -109,8 +109,8 @@ def main():
             if dataset == "CSL":
                 validation_size = 5
             # run the validation for all validation sets in parallel
-            #joblib.Parallel(n_jobs=10)(
-            #    joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in range(validation_size))
+            joblib.Parallel(n_jobs=10)(
+                joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in range(validation_size))
 
 
             test = True
@@ -119,12 +119,5 @@ def main():
             evaluation(dataset, experiment_configuration, graph_data, algorithm='NoGKernel', test=test)
             evaluation(dataset, experiment_configuration, graph_data, algorithm='WLKernel', test=test)
 
-
-
 if __name__ == "__main__":
-    # run parallel for all datasets
-    # joblib.Parallel(n_jobs=-1)(
-    #     joblib.delayed(main)(db_name) for db_name in ['CSL_original', 'DHFR', 'SYNTHETICnew', 'NCI1', 'NCI109', 'Mutagenicity'])
-    #main("IMDB-MULTI")
-    #main("SnowflakesCount", data_path="../GraphBenchmarks/BenchmarkGraphs/")
-    main()
+    main_baseline()

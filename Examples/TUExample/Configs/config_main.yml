@@ -6,7 +6,7 @@
 # -generate_function: if type is generate_from_function, the name of the function to generate the dataset from src/utils/SyntheticGraphs.py
 # -generate_function_args: if type is generate_from_function, the arguments for the generate function as a dictionary
 datasets:
-  - {name: "MUTAG", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
 
 # paths: paths to the data, properties, labels, results and splits
 paths:

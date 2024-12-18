@@ -24,6 +24,8 @@ def write_distance_properties(graph_data:RuleGNNDataset, cutoff=None, out_path: 
     out_yml = out_path.joinpath(f"{graph_data.name}_properties_{l}.yml")
     # check if the files already exists and if not create it
     if not os.path.exists(out) or not os.path.exists(out_yml):
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         distances = {}
         slices_dict = {}

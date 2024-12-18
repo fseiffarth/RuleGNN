@@ -39,7 +39,7 @@ class RuleGNNDataset(InMemoryDataset):
     ) -> None:
         self.name = name
         self.from_existing_data = from_existing_data
-        self.nx_graphs = []
+        self.nx_graphs = None
         self.unique_node_labels = 0
         self.node_labels = {}
         self.edge_labels = {}
@@ -287,6 +287,7 @@ class RuleGNNDataset(InMemoryDataset):
         node_slices = [0]
         node_counter = 0
         unique_labels = []
+        num_graphs = 0
         with open(load_path.joinpath(self.name + "_Nodes.txt"), "r") as f:
             lines = f.readlines()
             line_length = len(lines[0].strip().split(" "))
@@ -300,6 +301,7 @@ class RuleGNNDataset(InMemoryDataset):
             graph_ids = torch_lines[:, 0].long()
             # get slice vector from unique graph ids
             node_slices = torch.unique(graph_ids, return_counts=True)[1]
+            num_graphs = len(node_slices)
             # add 0 at the beginning
             node_slices = torch.cat((torch.tensor([0]), node_slices)).cumsum(dim=0).long()
             node_ids = torch_lines[:, 1].long()
@@ -337,10 +339,18 @@ class RuleGNNDataset(InMemoryDataset):
                 data = line.strip().split(" ")
                 torch_lines[i] = torch.tensor(list(map(float, data)))
             graph_ids = torch_lines[:, 0].long()
+            all_ids = torch.unique(graph_ids)
+            # missing ids are those not in all_ids but in range(0, num_graphs)
+            missing_ids = [i for i in range(num_graphs) if i not in all_ids]
             # get slice vector from unique graph ids
             edge_slices = torch.unique(graph_ids, return_counts=True)[1]
             # add 0 at the beginning
             edge_slices = torch.cat((torch.tensor([0]), edge_slices)).cumsum(dim=0).long()
+            edge_slices = [x.item() for x in edge_slices]
+            # duplicate the value at the index of the missing ids
+            for missing_id in missing_ids:
+                edge_slices.insert(missing_id+1, edge_slices[missing_id])
+            edge_slices = torch.tensor(edge_slices, dtype=torch.long)
             edge_indices = torch_lines[:, 1:3].long().T
             edge_labels = torch_lines[:, 3].long()
             edge_labels = torch.nn.functional.one_hot(edge_labels).float()
@@ -357,7 +367,7 @@ class RuleGNNDataset(InMemoryDataset):
                 data = line.strip().split(" ")
                 graph_name = data[0]
                 torch_lines[i] = torch.tensor(list(map(float, data[1:])))
-            y = torch_lines[:, 0].long()
+            y = torch_lines[:, 1].long()
 
 
         y_slices = torch.arange(0, len(y) + 1, dtype=torch.long)
@@ -377,6 +387,8 @@ class RuleGNNDataset(InMemoryDataset):
         self.nx_graphs = []
         counter = 0
         for g_id, graph in enumerate(self):
+            if g_id % 1000 == 0:
+                print(f'Processing graph {g_id+1}/{len(self)}')
             self.nx_graphs.append(to_networkx(
                 data=graph,
                 node_attrs=['x'],

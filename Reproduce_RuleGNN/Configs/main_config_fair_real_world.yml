@@ -1,8 +1,8 @@
 datasets:
   # real-world datasets
+  - { name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset" }
   - { name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset" }
   - { name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_IMDB.yml", type: "TUDataset" }
-  - { name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_DHFR.yml", type: "TUDataset" }
   - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
   - {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
   - {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_NCI1.yml", type: "TUDataset"}
@@ -68,9 +68,9 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'normal', mean: 0.001, std: 0.001 },
+weight_initialization: { convolution: {  type: 'uniform', min: -0.001, max: 0.001 },
                          convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'normal', mean: 0.001, std: 0.001 },
+                         aggregation: {  type: 'uniform', min: -0.001, max: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:

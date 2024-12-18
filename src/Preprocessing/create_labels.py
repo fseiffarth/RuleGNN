@@ -68,6 +68,8 @@ def save_degree_labels(graph_data:RuleGNNDataset, label_path=None, max_labels=No
         file = label_path.joinpath(f"{graph_data.name}_labels_{l}.pt")
     if not file.exists():
         print(f"Saving {l} for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         # iterate over the graphs and get the degree of each node
         node_labels = []
@@ -99,6 +101,8 @@ def save_labeled_degree_labels(graph_data:RuleGNNDataset, label_path=None, max_l
     # check whether the file already exists
     if not file.exists():
         print(f"Saving {l} labels for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         # iterate over the graphs and get the degree of each node
         node_labels = []
@@ -164,6 +168,8 @@ def save_index_labels(graph_data:RuleGNNDataset, max_labels=None, label_path=Non
     if not file.exists():
         print(f"Saving {l} labels for {graph_data.name} to {file}")
         node_labels = []
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         for graph in graph_data.nx_graphs:
             node_labels.append([index for index, node in enumerate(graph.nodes())])
@@ -190,6 +196,8 @@ def save_wl_labels(graph_data:RuleGNNDataset, depth, max_labels=None, label_path
         file = label_path.joinpath(f'{graph_data.name}_labels_{l}.pt')
     if not file.exists():
         print(f"Saving {l} labels for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         graph_node_labels, unique_node_labels, db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.nx_graphs, depth=depth, labeled=False)
         save_labels_to_file(file, graph_data.name, l, graph_node_labels, max_labels)
@@ -214,6 +222,8 @@ def save_wl_labeled_labels(graph_data:RuleGNNDataset, depth, max_labels=None, la
         file = label_path.joinpath(f'{graph_data.name}_labels_{l}.pt')
     if not file.exists():
         print(f"Saving {l} labels for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         node_labels, unique_node_labels, db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.nx_graphs, depth=depth, labeled=True)
         save_labels_to_file(file, graph_data.name, l, node_labels, max_labels)
@@ -243,6 +253,8 @@ def save_cycle_labels(graph_data:RuleGNNDataset, length_bound=6, max_labels=None
         file = label_path.joinpath(f'{graph_data.name}_labels_{l}.pt')
     if not file.exists():
         print(f"Saving {cycle_type} cycles for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         cycle_dict = []
         for graph in graph_data.nx_graphs:
@@ -306,6 +318,8 @@ def save_in_circle_labels(graph_data:RuleGNNDataset, length_bound=6, max_labels=
         file = label_path.joinpath(f'{graph_data.name}_labels_{l}.pt')
     if not file.exists():
         print(f"Saving in circle labels for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         node_in_cycle = []
         for graph in graph_data.nx_graphs:
@@ -349,6 +363,8 @@ def save_subgraph_labels(graph_data:RuleGNNDataset, subgraphs=List[nx.Graph], na
         file = label_path.joinpath(f'{graph_data.name}_labels_{l}.pt')
     if not file.exists():
         print(f"Saving {l} labels for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         subgraph_dict = []
         for i, graph in enumerate(graph_data.nx_graphs):
@@ -412,6 +428,8 @@ def save_clique_labels(graph_data:RuleGNNDataset, max_clique=6, max_labels=None,
         file = label_path.joinpath(f'{graph_data.name}_labels_{l}.pt')
     if not file.exists():
         print(f"Saving {l} labels for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         clique_dict = []
         for graph in graph_data.nx_graphs:
@@ -469,7 +487,8 @@ def relabel_node_labels(node_labels: torch.Tensor, max_number_labels:Optional[in
     param max_number_labels: Optional[int]
     return: n x 2 torch.Tensor with the original labels as first column and the new labels as second column
     '''
-    # get frequency of each value in the new labels
+    # get frequency of each value in the new labels, first flatten the tensor
+    node_labels = node_labels.flatten()
     unique_labels_count = torch.bincount(node_labels)
     # sort the unique labels by the frequency and keep the indices
     sorted_indices = torch.argsort(unique_labels_count, descending=True)

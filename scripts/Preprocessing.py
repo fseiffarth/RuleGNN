@@ -1,5 +1,6 @@
 import json
 import os
+import networkx as nx # do not remove this import, it is used in the preprocessing functions
 from pathlib import Path
 
 from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels, save_primary_labels, \
@@ -276,11 +277,13 @@ class Preprocessing:
         if properties['name'] == 'distances':
             if 'cutoff' not in properties:
                 properties['cutoff'] = None
+            print(f'Generating distance properties with cutoff {properties["cutoff"]}')
             write_distance_properties(self.graph_data, out_path=properties_path, cutoff=properties['cutoff'],  save_times=self.generation_times_properties_path)
         # TODO: change the edge_label_distances to the new torch format
         elif properties['name'] == 'edge_label_distances':
             if 'cutoff' not in properties:
                 properties['cutoff'] = None
+            print(f'Generating edge label distance properties with cutoff {properties["cutoff"]}')
             write_distance_edge_properties(self.graph_data, out_path=properties_path, cutoff=properties['cutoff'],  save_times=self.generation_times_properties_path)
 
     # generate preprocessing by scanning the config file
@@ -302,7 +305,7 @@ class Preprocessing:
                     json_layer = json.dumps(label_dict, sort_keys=True)
                     preprocessed_label_dicts.add(json_layer)
         # generate all necessary labels and properties, first need to create the nx graphs to run the algorithms on
-        self.graph_data.create_nx_graphs(directed=False)
+        #self.graph_data.create_nx_graphs(directed=False)
         for layer in preprocessed_label_dicts:
             self.layer_to_labels(layer)
         for preprocessed_property in preprocessed_properties:

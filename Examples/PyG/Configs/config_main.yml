@@ -55,12 +55,11 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: { type: 'constant', value: 0.01 },
-                         convolution_bias: { type: 'constant', value: 0.0 },
-                         aggregation: { type: 'constant', value: 0.01 },
-                         aggregation_bias: {type: 'constant', value: 0.0 },
+weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
+                         convolution_bias: { type: 'constant', value: 0.0},
+                         aggregation: {  type: 'constant', value: 0.001 },
+                         aggregation_bias: { type: 'constant', value: -0.1 }
 }
-
 
 # input_features: determine how the input features should be transformed, the following options show some examples
 # keys:
