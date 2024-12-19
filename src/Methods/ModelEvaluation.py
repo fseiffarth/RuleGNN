@@ -512,7 +512,7 @@ class ModelEvaluation:
                         if not os.path.exists(best_model_path):
                             os.makedirs(best_model_path)
                         # Save the model if best model is used
-                        if 'best_model' in self.para.run_config.config and self.para.run_config.config['best_model']:
+                        if self.para.run_config.config.get('best_model', False) or self.para.run_config.config.get('save_best_model', False):
                             final_path = self.results_path.joinpath(f'{self.para.db}/Models/model_{self.para.config_id}_run_{self.run_id}_val_step_{self.k_val}.pt')
                             torch.save(self.net.state_dict(), final_path)
 

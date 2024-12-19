@@ -477,6 +477,9 @@ class RuleConvolutionLayer(nn.Module):
         # return the weights as a numpy array
         return np.array(self.Param_W.detach().cpu())
 
+    def get_graph_weights(self, graph_id):
+        return self.weight_distribution[self.weight_distribution_slices[graph_id]:self.weight_distribution_slices[graph_id + 1]]
+
     def get_bias(self):
         if self.bias:
             return np.array(self.Param_b.detach().cpu())
@@ -484,12 +487,11 @@ class RuleConvolutionLayer(nn.Module):
             return None
 
     def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], head=0, filter_weights=None, with_graph=True, graph_only=False, draw_bias_labels=False):
+        # create graph
+        graph = self.graph_data.create_nx_graph(graph_id, directed=False)
+
         if with_graph or graph_only:
-            graph = self.graph_data.graphs[graph_id]
-
             # draw the graph
-
-
             # if graph is circular use the circular layout
             pos = dict()
             if graph_drawing[0].draw_type == 'circle':
@@ -517,8 +519,13 @@ class RuleConvolutionLayer(nn.Module):
                             break
             elif graph_drawing[0].draw_type == 'kawai':
                 pos = nx.kamada_kawai_layout(graph)
+            elif graph_drawing[0].draw_type == 'shell':
+                pos = nx.shell_layout(graph)
+            elif graph_drawing[0].draw_type == 'bfs':
+                pos = nx.bfs_layout(graph, 0)
             else:
                 pos = nx.nx_pydot.graphviz_layout(graph)
+
             # keys to ints
             pos = {int(k): v for k, v in pos.items()}
             if graph_only:
@@ -536,11 +543,15 @@ class RuleConvolutionLayer(nn.Module):
 
                 draw_node_labels = self.graph_data.node_labels['primary']
                 if draw_bias_labels:
-                    draw_node_labels = self.graph_data.node_labels[self.bias_strings[head]]
+                    draw_node_labels = self.graph_data.node_labels[self.bias_strings[head]].node_labels
+
+                num_unique_node_labels = torch.unique(draw_node_labels).size(0)
+                graph_node_labels = self.graph_data.node_labels['primary'][self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
+
 
                 cmap = graph_drawing[0].colormap
-                norm = matplotlib.colors.Normalize(vmin=0, vmax=draw_node_labels.num_unique_node_labels)
-                node_colors = [cmap(norm(draw_node_labels.node_labels[graph_id][node])) for node
+                norm = matplotlib.colors.Normalize(vmin=0, vmax=num_unique_node_labels)
+                node_colors = [cmap(norm(graph_node_labels[node])) for node
                                in graph.nodes()]
                 nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors,
                                        node_size=graph_drawing[0].node_size)
@@ -549,8 +560,7 @@ class RuleConvolutionLayer(nn.Module):
 
         all_weights = np.array(self.get_weights())
         bias = self.get_bias()
-        graph = self.graph_data.graphs[graph_id]
-        weight_distribution = self.weight_distribution[graph_id]
+        weight_distribution = self.get_graph_weights(graph_id)
         param_indices = np.array(weight_distribution[:, 3])
         matrix_indices = np.array(weight_distribution[:, 0:3])
         graph_weights = all_weights[param_indices]
@@ -623,6 +633,10 @@ class RuleConvolutionLayer(nn.Module):
                         break
         elif graph_drawing[0].draw_type == 'kawai':
             pos = nx.kamada_kawai_layout(graph)
+        elif graph_drawing[0].draw_type == 'shell':
+            pos = nx.shell_layout(graph)
+        elif graph_drawing[0].draw_type == 'bfs':
+            pos = nx.bfs_layout(graph,0)
         else:
             pos = nx.nx_pydot.graphviz_layout(graph)
         # keys to ints
@@ -651,7 +665,7 @@ class RuleConvolutionLayer(nn.Module):
                 j = entry[2]
                 if weights[weight_id] != 0:
                     # add edge with weight as data
-                    digraph.add_edge(i, j, weight=weight_id)
+                    digraph.add_edge(i.item(), j.item(), weight=weight_id)
         curved_edges = [edge for edge in digraph.edges(data=True)]
         curved_edges_colors = []
 
@@ -845,9 +859,9 @@ class RuleAggregationLayer(nn.Module):
         return [x.item() for x in self.Param_b[0]]
 
     def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], head=0, out_dimension=0, with_graph=True, graph_only=False):
+        # create graph
+        graph = self.graph_data.create_nx_graph(graph_id, directed=False)
         if with_graph or graph_only:
-            graph = self.graph_data.graphs[graph_id]
-
             # draw the graph
             # root node is the one with label 0
             root_node = None
@@ -877,6 +891,10 @@ class RuleAggregationLayer(nn.Module):
                             break
             elif graph_drawing[0].draw_type == 'kawai':
                 pos = nx.kamada_kawai_layout(graph)
+            elif graph_drawing[0].draw_type == 'shell':
+                pos = nx.shell_layout(graph)
+            elif graph_drawing[0].draw_type == 'bfs':
+                pos = nx.bfs_layout(graph, 0)
             else:
                 pos = nx.nx_pydot.graphviz_layout(graph)
             # keys to ints
@@ -956,6 +974,10 @@ class RuleAggregationLayer(nn.Module):
                         break
         elif graph_drawing[0].draw_type == 'kawai':
             pos = nx.kamada_kawai_layout(graph)
+        elif graph_drawing[0].draw_type == 'shell':
+            pos = nx.shell_layout(graph)
+        elif graph_drawing[0].draw_type == 'bfs':
+            pos = nx.bfs_layout(graph,0)
         else:
             pos = nx.nx_pydot.graphviz_layout(graph)
         # keys to ints

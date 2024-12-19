@@ -383,6 +383,20 @@ class RuleGNNDataset(InMemoryDataset):
                  'num_edge_attributes': edge_attr.shape[1] if edge_attr is not None else 0}
         return data, slices, sizes
 
+    def create_nx_graph(self, graph_id: int, directed: bool = False):
+        graph = self[graph_id]
+        primary_labels = self.node_labels['primary'][self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
+        nx_graph = to_networkx(
+            data=graph,
+            node_attrs=['x'],
+            edge_attrs=['edge_attr'] if graph.edge_attr is not None else None,
+            to_undirected=not directed)
+        # change node label 'x' to 'primary_label'
+        for node in nx_graph.nodes(data=True):
+            nx_graph.nodes[node[0]]['primary_label'] = primary_labels[node[0]].item()
+            del nx_graph.nodes[node[0]]['x']
+        return nx_graph
+
     def create_nx_graphs(self, directed: bool = False):
         self.nx_graphs = []
         counter = 0

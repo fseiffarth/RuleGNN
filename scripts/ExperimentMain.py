@@ -301,8 +301,20 @@ class ExperimentMain:
                 config_id = int(file.name.split('_')[3])
             else:
                 raise FileNotFoundError(f"Model directory {model_path} not found")
+        else:
+            # get config id of the model
+            if model_path.exists():
+                # get one file from the directory
+                file = next(model_path.iterdir())
+                # get the config id from the file name
+                config_id = int(file.name.split('_')[2])
+            else:
+                raise FileNotFoundError(f"Model directory {model_path} not found")
         run_config = run_configs[config_id]
-        model_path = model_path.joinpath(f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
+        if best:
+            model_path = model_path.joinpath(f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
+        else:
+            model_path = model_path.joinpath(f'model_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
         # check if the model exists
         if model_path.exists():
             with open(model_path, 'r'):

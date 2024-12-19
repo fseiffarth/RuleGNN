@@ -489,12 +489,19 @@ def relabel_node_labels(node_labels: torch.Tensor, max_number_labels:Optional[in
     '''
     # get frequency of each value in the new labels, first flatten the tensor
     node_labels = node_labels.flatten()
+    max_id = torch.max(node_labels) + 1
+    # set negative values to torch.max
+    node_labels = torch.where(node_labels < 0, max_id, node_labels)
     unique_labels_count = torch.bincount(node_labels)
+    unique_labels_count[-1] = 0
     # sort the unique labels by the frequency and keep the indices
-    sorted_indices = torch.argsort(unique_labels_count, descending=True)
+    sorted_indices = torch.argsort(unique_labels_count, descending=True, stable=True)
     # if max_number_labels is given, set sorted_indices after max_number_labels to max_number_labels - 1
     # reindex the unique labels: most frequent label is 0, second most frequent is 1, ...
     frequency_sorted_labels = node_labels.new(sorted_indices).argsort()[node_labels]
     if max_number_labels is not None:
         frequency_sorted_labels = torch.where(frequency_sorted_labels >= max_number_labels, max_number_labels - 1, frequency_sorted_labels)
+    # set max_id to -1
+    frequency_sorted_labels = torch.where(frequency_sorted_labels == max_id, -1, frequency_sorted_labels)
+    node_labels = torch.where(node_labels == max_id, -1, node_labels)
     return torch.stack([node_labels, frequency_sorted_labels], dim=1)
