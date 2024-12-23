@@ -1,4 +1,4 @@
-datasets: #TODO: repair broken NCI109
+datasets:
   # real-world datasets
   # real-world datasets
   - {name: "IMDB-MULTI", data: "Reproduce_RuleGNN/Data/TUDatasets/", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/config_social.yml", type: "TUDataset"}
@@ -65,10 +65,11 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'uniform', min: -0.001, max: 0.001 },
+weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
                          convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'uniform', min: -0.001, max: 0.001 },
-                         aggregation_bias: { type: 'constant', value: 0.0 }}
+                         aggregation: {  type: 'constant', value: 0.001 },
+                         aggregation_bias: { type: 'constant', value: 0.0 }
+}
 
 
 
@@ -80,7 +81,7 @@ epochs:
   - 50
 
 # num_workers: number of workers used
-num_workers: 10
+num_workers: 30
 
 # input_features: determine how the input features should be transformed, the following options show some examples
 #  - {name: constant, value: 1.0}, use a constant value as input feature
