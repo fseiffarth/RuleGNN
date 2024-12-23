@@ -28,8 +28,6 @@ def get_existing_splits():
 def main():
     get_existing_splits()
 
-
-
     ## Real World Data
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
     experiment.Preprocess()
