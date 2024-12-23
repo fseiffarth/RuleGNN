@@ -223,6 +223,8 @@ def splits_from_train_test_files(path:Path, db_name:str, output_path:Path = None
     # sort the files
     train_files.sort()
     test_files.sort()
+    if len(train_files) != len(test_files):
+        raise ValueError("Number of train and test files should be the same")
     splits = []
     for i in range(len(train_files)):
         training_data = []
@@ -236,6 +238,58 @@ def splits_from_train_test_files(path:Path, db_name:str, output_path:Path = None
         with open(test_files[i], "r") as f:
             for line in f:
                 validate_data.append(int(line.strip()))
+        # sort the training data
+        training_data = np.sort(training_data).tolist()
+        validate_data = np.sort(validate_data).tolist()
+
+
+        splits.append({"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
+    # save splits to json as one line use json.dumps
+    # check if the output path exists
+    if not output_path.joinpath(f"{db_name}_splits.json").exists():
+        print(f"Creating new split file at {output_path.joinpath(f'{db_name}_splits.json')}")
+        with open(output_path.joinpath(f"{db_name}_splits.json"), "w") as f:
+            f.write(json.dumps(splits))
+    else:
+        print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
+
+def splits_from_train_test_files_repair_NCI109(path:Path, db_name:str, output_path:Path = None):
+    '''
+    Convert the train, test files given by https://github.com/weihua916/powerful-gnns into our json split file format
+    :param path: path to the train, test files
+    '''
+    # get all the files in path that are of type train_idx-*.txt or test_idx-*.txt where * is an arbitrary number
+    train_files = list(path.glob("train_idx-*.txt"))
+    test_files = list(path.glob("test_idx-*.txt"))
+    # sort the files
+    train_files.sort()
+    test_files.sort()
+    splits = []
+    for i in range(len(test_files)):
+        training_data = []
+        validate_data = []
+        test_data = []
+
+        # read the test data (each line is an idx)
+        with open(test_files[i], "r") as f:
+            for line in f:
+                validate_data.append(int(line.strip()))
+        # sort the validation data
+        validate_data = np.sort(validate_data).tolist()
+
+        if i >= 8:
+            max_id = 4127
+            # get all ids not in the validation data
+            training_data = [x for x in range(max_id) if x not in validate_data]
+        else:
+            # read the training data (each line is an idx)
+            with open(train_files[i], "r") as f:
+                for line in f:
+                    training_data.append(int(line.strip()))
+        # sort the training data
+        training_data = np.sort(training_data).tolist()
+
+
 
 
         splits.append({"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
@@ -249,8 +303,6 @@ def splits_from_train_test_files(path:Path, db_name:str, output_path:Path = None
         print(f"File {output_path.joinpath(f'{db_name}_splits.json')} already exists. Skipping new split creation.")
 
 
-
-
 if __name__ == "__main__":
 
     for db in ['NCI1', 'NCI109', 'IMDBBINARY', 'IMDBMULTI']:
@@ -259,14 +311,18 @@ if __name__ == "__main__":
             db = 'IMDB-BINARY'
         elif db == 'IMDBMULTI':
             db = 'IMDB-MULTI'
-        splits_from_train_test_files(source_path, db, Path("Data/SplitsSimple/"))
 
-    zinc_splits()
+        if db == 'NCI109':
+            splits_from_train_test_files_repair_NCI109(source_path, db, Path("Data/SplitsSimple/"))
+        else:
+            splits_from_train_test_files(source_path, db, Path("Data/SplitsSimple/"))
+
+    #zinc_splits()
     #create_splits("DHFR")
     #create_splits("Mutagenicity")
     #create_splits("NCI109")
     #create_splits("SYNTHETICnew")
     # for db in ["DHFR", "Mutagenicity", "NCI109", "SYNTHETICnew", "MUTAG"]:
     #     create_splits(db)
-    for db in ['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR']:
-        create_splits(db)
+    #for db in ['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR']:
+    #    create_splits(db)

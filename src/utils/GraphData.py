@@ -385,7 +385,7 @@ class RuleGNNDataset(InMemoryDataset):
 
     def create_nx_graph(self, graph_id: int, directed: bool = False):
         graph = self[graph_id]
-        primary_labels = self.node_labels['primary'][self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
+        primary_labels = self.node_labels['primary'].node_labels[self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
         nx_graph = to_networkx(
             data=graph,
             node_attrs=['x'],
@@ -413,6 +413,10 @@ class RuleGNNDataset(InMemoryDataset):
                 self.nx_graphs[-1].nodes[node[0]]['primary_label'] = self.node_labels['primary'][counter].item()
                 del self.nx_graphs[-1].nodes[node[0]]['x']
                 counter += 1
+            if graph.edge_attr is not None:
+                for edge in self.nx_graphs[-1].edges(data=True):
+                    edge_label_one_hot = np.array(edge[2]['edge_attr'])[self.num_edge_attributes:]
+                    edge[2]['label'] = np.argmax(edge_label_one_hot)
         pass
 
     def preprocess_rule_gnn_data(self, data, input_features=None, output_features=None, task=None) -> None:

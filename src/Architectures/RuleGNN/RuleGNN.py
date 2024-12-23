@@ -98,7 +98,6 @@ class RuleGNN(nn.Module):
             else:
                     x = self.af(layer(x, pos))
                     x = self.dropout(x)
-                    # reshape the output to match the input (i.e. first dimension is the number of channels, must go to the back)
         return x
 
     def return_info(self):

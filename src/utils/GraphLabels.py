@@ -32,14 +32,31 @@ def combine_node_labels(labels: List[NodeLabels]):
     combined_label_name = '_'.join([l.label_name for l in labels])
     # stack all the node labels
     stacked_labels = torch.stack([l.node_labels for l in labels], dim=1)
+    # get all indices of the unique labels tensors containing -1
+    first_entry = stacked_labels[:, 0] == -1
+    second_entry = stacked_labels[:, 1] == -1
+    # compute or between the two tensors
+    or_entries = torch.logical_or(first_entry, second_entry)
+    # get the indices of True values
+    invalid_indices = torch.where(or_entries)[0]
+    # set stack_labels to max, max
+    max_first = torch.max(stacked_labels[:, 0] + 1)
+    max_second = torch.max(stacked_labels[:, 1] + 1)
+    stacked_labels[invalid_indices] = torch.tensor([max_first, max_second])
     # get all unique rows
     unique_labels, new_labels = torch.unique(stacked_labels, return_inverse=True, dim=0)
+
+    artificial_label = len(unique_labels) - 1
     # get frequency of each value in the new labels
     unique_labels_count = torch.bincount(new_labels)
+    # set count for invalid indices to 0
+    unique_labels_count[artificial_label] = 0
     # sort the unique labels by the frequency and keep the indices
-    sorted_indices = torch.argsort(unique_labels_count, descending=True)
+    sorted_indices = torch.argsort(unique_labels_count, descending=True, stable=True)
     # reindex the unique labels: most frequent label is 0, second most frequent is 1, ...
     frequency_sorted_labels = new_labels.new(sorted_indices).argsort()[new_labels]
+    new_labels[invalid_indices] = -1
+    frequency_sorted_labels[invalid_indices] = -1
     return NodeLabels(graph_name, combined_label_name, torch.stack([new_labels, frequency_sorted_labels], dim=1))
 
 class EdgeLabels:

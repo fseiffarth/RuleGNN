@@ -47,14 +47,14 @@ def write_distance_properties(graph_data:RuleGNNDataset, cutoff=None, out_path: 
 
 
         valid_properties = set(distances.keys())
-        properties_dict = {}
+        final_dict = {}
         for key in valid_properties:
-            properties_dict[key] = torch.tensor(distances[key], dtype=torch.long)
+            final_dict[key] = torch.tensor(distances[key], dtype=torch.long)
         for key in slices_dict:
             slices_dict[key] = torch.tensor(slices_dict[key], dtype=torch.long)
 
         # save list of dictionaries to a pickle file
-        pickle_data = pickle.dumps((valid_properties, properties_dict, slices_dict))
+        pickle_data = pickle.dumps((valid_properties, final_dict, slices_dict))
         # compress with gzip
         with open(out, 'wb') as f:
             f.write(gzip.compress(pickle_data))
@@ -147,16 +147,20 @@ def write_distance_circle_properties(graph_data:GraphData, label_path, db_name, 
 
 
 
-def write_distance_edge_properties(graph_data:GraphData, out_path:Path = Path(), cutoff=None,save_times=None) -> None:
-    out = out_path.joinpath(f"{graph_data.name}_edge_label_distances.prop")
-    out_yml = out_path.joinpath(f"{graph_data.name}_edge_label_distances.yml")
+def write_distance_edge_properties(graph_data:RuleGNNDataset, out_path:Path = Path(), cutoff=None,save_times=None) -> None:
+    l = 'edge_label_distances'
+    out = out_path.joinpath(f"{graph_data.name}_properties_{l}.pt")
+    out_yml = out_path.joinpath(f"{graph_data.name}_properties_{l}.yml")
     # check if the file already exists and if not create it
     if not os.path.exists(out) or not os.path.exists(out_yml):
-        distances = []
-        valid_properties = set()
-        final_properties = []
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
-        for graph in graph_data.graphs:
+        property_keys = {}
+        slices_dict = {}
+        for graph_id, graph in enumerate(graph_data.nx_graphs):
+            for key in slices_dict:
+                slices_dict[key].append(slices_dict[key][-1])
             graph_map = {}
             d = dict(nx.all_pairs_all_shortest_paths(graph))
             # replace the end nodes with the label of the edge between them
@@ -174,14 +178,11 @@ def write_distance_edge_properties(graph_data:GraphData, out_path:Path = Path(),
                                 edge_end = shortest_path[i + 1]
                                 # get the label of the edge
                                 edge_label = graph[edge_start][edge_end]['label']
-                                if len(edge_label) == 1:
-                                    edge_label_sequence.append(int(edge_label[0]))
-                                else:
-                                    # get the first entry of the edge label
-                                    try:
-                                        edge_label_sequence.append(int(edge_label[0]))
-                                    except:
-                                        raise ValueError("Edge label is not 1-dimensional.")
+                                edge_label_sequence.append(edge_label)
+                                try:
+                                    isinstance(edge_label, int)
+                                except:
+                                    raise ValueError("Edge label is not an integer.")
 
                             d_edges[key][key2][path_id] = edge_label_sequence
             for start_node in graph.nodes:
@@ -199,45 +200,40 @@ def write_distance_edge_properties(graph_data:GraphData, out_path:Path = Path(),
                                     label_occurrences.append(0)
                                 label_occurrences[label] += 1
                         label_tuple = (distance, number_of_paths, tuple(label_occurrences))
-                        if label_tuple in graph_map:
-                            graph_map[label_tuple].append((start_node, end_node))
+                        if label_tuple in property_keys:
+                            property_keys[label_tuple].append([start_node + graph_data.slices['x'][graph_id].item(),
+                                                        end_node + graph_data.slices['x'][graph_id].item()])
+                            if label_tuple in slices_dict:
+                                slices_dict[label_tuple][-1] += 1
                         else:
-                            graph_map[label_tuple] = [(start_node, end_node)]
-                        valid_properties.add(label_tuple)
+                            property_keys[label_tuple] = [[start_node + graph_data.slices['x'][graph_id].item(),
+                                                    end_node + graph_data.slices['x'][graph_id].item()]]
+                            slices_dict[label_tuple] = [0] * (graph_id + 2)
+                            slices_dict[label_tuple][-1] = 1
 
-            final_properties.append(graph_map)
+        valid_properties = set(property_keys.keys())
+        final_dict = {}
+        for key in valid_properties:
+            final_dict[key] = torch.tensor(property_keys[key], dtype=torch.long)
+        for key in slices_dict:
+            slices_dict[key] = torch.tensor(slices_dict[key], dtype=torch.long)
 
-        # sort valid properties by tuple 1,2,3 entries
-        valid_properties = sorted(valid_properties, key=lambda x: (x[0], x[1], x[2]))
         # save list of dictionaries to a pickle file
-        pickle_data = pickle.dumps(final_properties)
-
+        pickle_data = pickle.dumps((valid_properties, final_dict, slices_dict))
         # compress with gzip
         with open(out, 'wb') as f:
             f.write(gzip.compress(pickle_data))
 
-        # create a dictionary of valid properties
-        v_values = []
-        list_of_values = []
-        list_of_values_str = ''
-        for value in valid_properties:
-            value = convert_to_list(value)
-            v_values.append(f"{value}")
-            list_of_values.append(value)
-        list_of_values = f'{list_of_values}'
+        #fs.torch_save(
+        #    (valid_properties, properties_dict), str(out)
+        #)
         # save an additional .info file that stores the set of valid_properties as a yml file
-        valid_properties_dict = {"valid_values": v_values,
-                                 "description": "Distance, Path number, Edge label occurrences",
-                                 "list_of_values": list_of_values}
-        # save an additional .info file that stores the set of valid_properties as a yml file
-        with open(out_path.joinpath(f"{graph_data.name}_edge_label_distances.yml"), 'w') as f:
+        valid_properties_dict = {"valid_values": list(valid_properties), 'description': 'Distance',
+                                 'list_of_values': f'{list(valid_properties)}'}
+        with open(out_yml, 'w') as f:
             yaml.dump(valid_properties_dict, f)
         if save_times is not None:
-            try:
-                with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.name}, edge_label_distance, {time.time() - start_time}\n")
-            except:
-                print("Could not write to file")
-                pass
+            with open(save_times, 'a') as f:
+                f.write(f"{graph_data.name}, edge_label_distance, {time.time() - start_time}\n")
     else:
         print(f"File {out} already exists. Skipping.")

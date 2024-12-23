@@ -372,7 +372,7 @@ Moreover, give your new labeling function a unique ```label_type``` used as argu
 The file name should be ```<DB_NAME>_<your_characteristic_labeling_function_string>_labels.txt```.
 - **Load Labels**: Go to [src/Architectures/RuleGNN/RuleGNNLayers.py](src/Architectures/RuleGNN/RuleGNNLayers.py) and add a new case to the function ```get_layer_string``` that gives you the string ```<your_characteristic_labeling_function_string>``` for your labeling function based on possible additional arguments.
 - **Automatic Label Generation**: If you want to automatically generate the labels based on the config file you need to go to
-[scripts/Preprocessing.py](scripts/Preprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
+[scripts/Preprocessing.py](src/Preprocessing/Preprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
 
 ## Add new property functions
 To define a new property function, go to [src/Preprocessing/create_properties.py](src/Preprocessing/create_properties.py) and add a new function called ```write_<your_property_function>_properties```.
@@ -380,7 +380,7 @@ Moreover, give your new property function a unique ```properties``` key used as 
 - **Save Properties:**
 - **Load Properties:**
 - **Automatic Property Generation**: If you want to automatically generate the properties based on the config file you need to go to 
-[scripts/Preprocessing.py](scripts/Preprocessing.py) and add a new case in the function ```property_to_properties``` that calls your property function based on the ```properties``` given in the config file.
+[scripts/Preprocessing.py](src/Preprocessing/Preprocessing.py) and add a new case in the function ```property_to_properties``` that calls your property function based on the ```properties``` given in the config file.
 
 ## Plotting
 

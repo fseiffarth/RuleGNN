@@ -99,9 +99,10 @@ networks:
         bias: False,
         heads: [1],
         labels: [
-          { label_type: [wl_labeled], depth: [3,2,1,0] },
+          { label_type: [wl, primary], depth: [3,2,1,0] },
           { label_type: [simple_cycles, primary], max_cycle_length: [6, 10, 20] },
           { label_type: [induced_cycles, primary], max_cycle_length: [10, 20] },
+          { label_type: primary }
         ],
         properties: [
           { name: distances, values: [ 0,1,2,3,4,5,6 ] },
@@ -111,9 +112,10 @@ networks:
         bias: True,
         heads: [1],
         labels: [
-          { label_type: [wl_labeled], depth: [3,2,1,0] },
+          { label_type: [wl, primary], depth: [3,2,1,0] },
           { label_type: [simple_cycles, primary], max_cycle_length: [6, 10, 20] },
           { label_type: [induced_cycles, primary], max_cycle_length: [10, 20] },
+          { label_type: primary },
         ]
     }
 

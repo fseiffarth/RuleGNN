@@ -7,7 +7,7 @@ import torch
 import yaml
 
 from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
-from scripts.Preprocessing import Preprocessing
+from src.Preprocessing.Preprocessing import Preprocessing
 import src.utils.SyntheticGraphs as synthetic_graphs
 from src.Architectures.RuleGNN import RuleGNN
 from src.Methods.ModelEvaluation import ModelEvaluation

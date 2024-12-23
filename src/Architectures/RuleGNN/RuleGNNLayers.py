@@ -268,12 +268,22 @@ class RuleConvolutionLayer(nn.Module):
                 labeled_subdict = property_subdict.detach().clone()
                 labeled_subdict[:, 0] = head_labels[property_subdict[:, 0]]
                 labeled_subdict[:, 1] = tail_labels[property_subdict[:, 1]]
+                # set all indices to -1 where the head or tail label is -1
+                invalid_indices = torch.where(torch.logical_or(labeled_subdict[:, 0] == -1, labeled_subdict[:, 1] == -1))[0]
+                do_invalid_indices_exist = len(invalid_indices) > 0
+                max_first = torch.max(labeled_subdict[:, 0]) + 1
+                max_second = torch.max(labeled_subdict[:, 1]) + 1
+                labeled_subdict[invalid_indices] = torch.tensor([max_first, max_second])
                 # get unique rows of the property subdict together with counts and indices
                 _, indices, counts = torch.unique(labeled_subdict, dim=0, return_inverse=True, return_counts=True, sorted=False)
+                if do_invalid_indices_exist:
+                    counts[-1] = 0
                 # set all indices to -1 where the count is smaller than the threshold TODO
                 threshold = self.para.run_config.config.get('rule_occurrence_threshold', 1)
                 num_weights = len(counts)
-                if threshold > 1:
+                if do_invalid_indices_exist:
+                    num_weights -= 1
+                if threshold > 1 or do_invalid_indices_exist:
                     # get a bool tensor from indices where the entry is true if the indices entry is in the unique_rows
                     valid_values = torch.where(counts >= threshold)[0]
                     valid_value_dict = {idx: value.item() for idx, value in enumerate(valid_values)}
@@ -283,7 +293,7 @@ class RuleConvolutionLayer(nn.Module):
                     indices[valid_indices] = torch.tensor([valid_value_dict[idx.item()] for idx in indices[valid_indices]], dtype=torch.int64)
                     num_weights = len(valid_values)
                 for idx in range(len(graph_data)):
-                    if threshold > 1:
+                    if threshold > 1 or do_invalid_indices_exist:
                         valid_indices_graph = torch.where(valid_indices_bool[property_subdict_slices[idx]:property_subdict_slices[idx+1]])[0] + property_subdict_slices[idx]
                     else:
                         valid_indices_graph = torch.arange(property_subdict_slices[idx], property_subdict_slices[idx+1], dtype=torch.int64)
@@ -541,12 +551,12 @@ class RuleConvolutionLayer(nn.Module):
                                              font_color='black')
                 # get node colors from the node labels using the plasma colormap
 
-                draw_node_labels = self.graph_data.node_labels['primary']
+                draw_node_labels = self.graph_data.node_labels['primary'].node_labels
                 if draw_bias_labels:
                     draw_node_labels = self.graph_data.node_labels[self.bias_strings[head]].node_labels
 
                 num_unique_node_labels = torch.unique(draw_node_labels).size(0)
-                graph_node_labels = self.graph_data.node_labels['primary'][self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
+                graph_node_labels = self.graph_data.node_labels['primary'].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
 
 
                 cmap = graph_drawing[0].colormap
