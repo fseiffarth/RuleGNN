@@ -18,7 +18,7 @@ paths:
   splits:
     "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "Reproduce_RuleGNN/Results/RealWorld/" # Results will be saved in this folder
+    "Reproduce_RuleGNN/Results/RealWorld/Encoder/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'

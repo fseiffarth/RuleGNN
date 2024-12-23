@@ -57,6 +57,20 @@ def main():
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
+    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world_only_encoder.yml'))
+    experiment.Preprocess()
+    experiment.GridSearch()
+    experiment.EvaluateResults()
+    experiment.RunBestModel()
+    experiment.EvaluateResults(evaluate_best_model=True)
+
+    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world_only_decoder.yml'))
+    experiment.Preprocess()
+    experiment.GridSearch()
+    experiment.EvaluateResults()
+    experiment.RunBestModel()
+    experiment.EvaluateResults(evaluate_best_model=True)
+
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_sota_comparison.yml'))
     experiment.Preprocess()
     experiment.GridSearch()
