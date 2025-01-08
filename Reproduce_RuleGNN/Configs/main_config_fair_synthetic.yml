@@ -81,7 +81,7 @@ epochs:
 
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 

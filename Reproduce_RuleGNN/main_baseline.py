@@ -98,7 +98,7 @@ def main_baseline():
     Run the baseline models for the given dataset
     '''
     # load the yml file
-    for config in ['main_config_sota_comparison.yml']:
+    for config in ['main_config_fair_real_world.yml', 'main_config_sota_comparison.yml', 'main_config_fair_synthetic.yml']:
         experiment = ExperimentMain(Path(f"Reproduce_RuleGNN/Configs/{config}"))
         datasets = list(experiment.experiment_configurations.keys())
         for dataset in datasets:
@@ -115,8 +115,8 @@ def main_baseline():
             if dataset == "CSL":
                 validation_size = 5
             # run the validation for all validation sets in parallel
-            #joblib.Parallel(n_jobs=validation_size)(
-            #    joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in range(validation_size))
+            joblib.Parallel(n_jobs=validation_size)(
+                joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in range(validation_size))
 
 
             test = True
