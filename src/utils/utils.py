@@ -48,19 +48,19 @@ def save_graphs(path: Path, db_name, graphs: List[nx.Graph], labels: List[int] =
         for i, graph in enumerate(graphs):
             for node in graph.nodes(data=True):
                 # get list of all data entries of the node, first label then the rest
-                if 'label' not in node[1]:
+                if 'primary_label' not in node[1]:
                     data_list = [0]
                     if with_degree:
                         data_list.append(graph.degree(node[0]))
-                elif type(node[1]['label']) == np.ndarray or type(node[1]['label']) == list:
-                        data_list = [int(node[1]['label'][0])]
-                        for v in node[1]['label'][1:]:
+                elif type(node[1]['primary_label']) == np.ndarray or type(node[1]['primary_label']) == list:
+                        data_list = [int(node[1]['primary_label'][0])]
+                        for v in node[1]['primary_label'][1:]:
                             data_list.append(v)
                 else:
-                    data_list = [int(node[1]['label'])]
+                    data_list = [int(node[1]['primary_label'])]
                 # append all the other features
                 for key, value in node[1].items():
-                    if key != 'label':
+                    if key != 'primary_label':
                         if type(value) == int:
                             data_list.append(value)
                         elif type(value) == np.ndarray or type(value) == list:

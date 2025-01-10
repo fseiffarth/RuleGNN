@@ -121,15 +121,29 @@ def fair_gnn_results(algorithm: str, datasets:list[str], path:str, first_column:
     results = []
     # iterate over the datasets
     for dataset in datasets:
-        with open(f"{path}/{algorithm}_{dataset}_assessment/10_NESTED_CV/assessment_results.json", 'r') as f:
-            data = json.load(f)
-            pass
-        # open summary_best_mean.csv
-        test_acc = data['avg_TS_score']
-        test_std = data['std_TS_score']
-        # round the test accuracy and test std to 2 decimal places
-        test_acc = round(test_acc, 1)
-        test_std = round(test_std, 1)
+        if Path(f"{path}/{algorithm}_{dataset}_assessment/10_NESTED_CV/assessment_results.json").exists():
+            with open(f"{path}/{algorithm}_{dataset}_assessment/10_NESTED_CV/assessment_results.json", 'r') as f:
+                data = json.load(f)
+                pass
+            # open summary_best_mean.csv
+            test_acc = data['avg_TS_score']
+            test_std = data['std_TS_score']
+            # round the test accuracy and test std to 2 decimal places
+            test_acc = round(test_acc, 1)
+            test_std = round(test_std, 1)
+        elif Path(f"{path}/{algorithm}_{dataset}_assessment/5_NESTED_CV/assessment_results.json").exists():
+            with open(f"{path}/{algorithm}_{dataset}_assessment/5_NESTED_CV/assessment_results.json", 'r') as f:
+                data = json.load(f)
+                pass
+            # open summary_best_mean.csv
+            test_acc = data['avg_TS_score']
+            test_std = data['std_TS_score']
+            # round the test accuracy and test std to 2 decimal places
+            test_acc = round(test_acc, 1)
+            test_std = round(test_std, 1)
+        else:
+            test_acc = 0
+            test_std = 0
         results.append((test_acc, test_std))
         out_str += f' & ${test_acc} \\pm {test_std}$'
     return out_str, results
@@ -218,6 +232,82 @@ def fair_table():
                 , results,
                 [2, 7])
 
+def fair_table_full():
+    # print the large table
+    datasets = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
+    rows = []
+    results = []
+
+    baseline_algorithms = ['NoGKernel', 'WLKernel']
+    baseline_first_columns = ['\\cite{Schulz2019OnTN}', '\\cite{DBLP:journals/jmlr/ShervashidzeSLMB11}']
+    for i, algorithm in enumerate(baseline_algorithms):
+        row_string, row_results = baseline_results(algorithm, datasets, 'Reproduce_RuleGNN/Results/RealWorld/Baseline/', first_column=baseline_first_columns[i])
+        rows.append(row_string)
+        results.append(row_results)
+
+    fair_algorithms = ['GCN', 'GraphSAGE', 'GIN', 'GAT', 'GATv2']
+    fair_first_columns = ['\\cite{DBLP:conf/iclr/KipfW17}', '\\cite{Hamilton2017InductiveRL}', '\\cite{DBLP:conf/iclr/XuHLJ19}', '\\cite{Velickovic2017GraphAN}', '\\cite{DBLP:conf/iclr/Brody0Y22}']
+    fair_path = 'Reproduce_RuleGNN/RESULTS/'
+    for i, algorithm in enumerate(fair_algorithms):
+        row_string, row_results = fair_gnn_results(algorithm, datasets, fair_path, first_column=fair_first_columns[i])
+        rows.append(row_string)
+        results.append(row_results)
+
+    row, row_results = share_gnn_results('\\MyGNN (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Random (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/Random/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Encoder (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/Encoder/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Decoder (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/Decoder/')
+    rows.append(row)
+    results.append(row_results)
+    # results to numpy array
+    results = np.array(results)
+
+    synthetic_datasets = ['LongRings100', 'EvenOddRingsCount16', 'EvenOddRings2_16', 'CSL', 'Snowflakes']
+    synthetic_rows = []
+    synthetic_results = []
+    for i, algorithm in enumerate(baseline_algorithms):
+        row_string, row_results = baseline_results(algorithm, synthetic_datasets, 'Reproduce_RuleGNN/Results/Synthetic/Baseline/', first_column=baseline_first_columns[i])
+        synthetic_rows.append(row_string)
+        synthetic_results.append(row_results)
+
+    for i, algorithm in enumerate(fair_algorithms):
+        row_string, row_results = fair_gnn_results(algorithm, synthetic_datasets, fair_path, first_column=fair_first_columns[i])
+        synthetic_rows.append(row_string)
+        synthetic_results.append(row_results)
+
+    row, row_results = share_gnn_results('\\MyGNN (ours)', synthetic_datasets, 'Reproduce_RuleGNN/Results/Synthetic/')
+    synthetic_rows.append(row)
+    synthetic_results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Random (ours)', synthetic_datasets, 'Reproduce_RuleGNN/Results/Synthetic/Random/')
+    synthetic_rows.append(row)
+    synthetic_results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Encoder (ours)', synthetic_datasets, 'Reproduce_RuleGNN/Results/Synthetic/Encoder/')
+    synthetic_rows.append(row)
+    synthetic_results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Decoder (ours)', synthetic_datasets, 'Reproduce_RuleGNN/Results/Synthetic/Decoder/')
+    synthetic_rows.append(row)
+    synthetic_results.append(row_results)
+    # results to numpy array
+    synthetic_results = np.array(synthetic_results)
+    # concatenate the results
+    results = np.concatenate((results, synthetic_results), axis=1)
+
+
+    first_columns = ([f'{x} {baseline_first_columns[i]}' for i, x in enumerate(baseline_algorithms)]
+                     + [f'{x} {fair_first_columns[i]}' for i, x in enumerate(fair_algorithms)]
+                     + ['\\textbf{\\MyGNN (ours)}', '\\textbf{\\MyGNN-Random (ours)}', '\\textbf{\\MyGNN-Encoder (ours)}', '\\textbf{\\MyGNN-Decoder (ours)}'])
+
+    print_table(first_columns, ['\\textbf{NCI1}', '\\textbf{NCI109}', '\\textbf{Mutagen.}', '\\textbf{DHFR}', '\\textbf{IMDB-B}', '\\textbf{IMDB-M}',
+                                '\\textbf{RingT1}', '\\textbf{RingT2}', '\\textbf{RingT3}', '\\textbf{CSL}', '\\textbf{Snowfl.}']
+                , results,
+                [2, 7])
+
 
 def sota_baseline_and_share():
     datasets = ['NCI1', 'NCI109', 'IMDB-BINARY', 'IMDB-MULTI']
@@ -286,9 +376,10 @@ def synthetic_table():
 
 
 def main():
-    fair_table()
+    fair_table_full()
+    print('\n\n\n\n')
     sota_baseline_and_share()
-    synthetic_table()
+    #synthetic_table()
 
 
 if __name__ == '__main__':
