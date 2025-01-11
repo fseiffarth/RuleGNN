@@ -385,7 +385,12 @@ class RuleGNNDataset(InMemoryDataset):
 
     def create_nx_graph(self, graph_id: int, directed: bool = False):
         graph = self[graph_id]
-        primary_labels = self.node_labels['primary'].node_labels[self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
+        if isinstance(self.node_labels['primary'], NodeLabels):
+            primary_labels = self.node_labels['primary'].node_labels[self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
+        elif isinstance(self.node_labels['primary'], torch.Tensor):
+            primary_labels = self.node_labels['primary'][self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
+        else:
+            raise ValueError('Node labels are not of type NodeLabels or torch.Tensor')
         nx_graph = to_networkx(
             data=graph,
             node_attrs=['x'],

@@ -1,94 +1,100 @@
+### evaluate the distribution of rules in the datasets
 from pathlib import Path
 
-import matplotlib.colors as mcolors
-
+from matplotlib import pyplot as plt
+from scripts.Evaluation.Drawing.plotting import rules_vs_occurences, rules_vs_weights
 from scripts.ExperimentMain import ExperimentMain
-from scripts.WeightVisualization import WeightVisualization, GraphDrawing
-
-class CustomColorMap:
-    def __init__(self):
-        aqua = (0.0, 0.6196, 0.8902)
-        # 89,189,247
-        skyblue = (0.3490, 0.7412, 0.9686)
-        fuchsia = (232 / 255.0, 46 / 255.0, 130 / 255.0)
-        violet = (152 / 255.0, 48 / 255.0, 130 / 255.0)
-        white = (1.0, 1.0, 1.0)
-        # darknavy 12,18,43
-        darknavy = (12 / 255.0, 18 / 255.0, 43 / 255.0)
-
-        # Define the three colors and their positions
-        lamarr_colors = [aqua, white, fuchsia] # Color 3 (RGB values)
-
-        positions = [0.0, 0.5, 1.0]  # Positions of the colors (range: 0.0 to 1.0)
-
-        # Create a colormap using LinearSegmentedColormap
-        self.cmap = mcolors.LinearSegmentedColormap.from_list('custom_colormap', list(zip(positions, lamarr_colors)))
+from scripts.WeightVisualization import GraphDrawing
+from src.utils.GraphDrawing import CustomColorMap, TabColorMap
 
 def main():
-    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
+    import matplotlib as mpl
 
-    ### NCI1, NCI109, Mutagenicity
-    for db_name in ['NCI1', 'NCI109', 'Mutagenicity']:
-        graph_ids = [0, 1, 2]
-        filter_sizes = (None, 10, 3)
-        graph_drawing = (
-            GraphDrawing(node_size=40, edge_width=1),
-            GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10, colormap=CustomColorMap().cmap)
-        )
-        ww = WeightVisualization(db_name=db_name, experiment=experiment)
-        for validation_id in range(10):
-            for run in range(3):
-                ww.visualize(graph_ids, run=run, validation_id=validation_id, graph_drawing=graph_drawing, filter_sizes=filter_sizes)
+    #mpl.use("pgf")
+    import matplotlib.pyplot as plt
 
-    ### IMDB-BINARY, IMDB-MULTI
-    for db_name in ['IMDB-BINARY', 'IMDB-MULTI']:
-        experiment_config_file = f'Reproduce_RuleGNN/Configs/config_IMDB.yml'
-        graph_ids = [0, 1, 2]
-        filter_sizes = (None, 10, 3)
-        graph_drawing = (
-            GraphDrawing(node_size=40, edge_width=1),
-            GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10, colormap=CustomColorMap().cmap)
-        )
-        ww = WeightVisualization(db_name=db_name, experiment_config=experiment.experiment_configurations[db_name])
-        for validation_id in range(10):
-            for run in range(3):
-                ww.visualize(graph_ids, run=run, validation_id=validation_id, graph_drawing=graph_drawing, filter_sizes=filter_sizes)
+    plt.rcParams.update({
+        "font.family": "serif",  # use serif/main font for text elements
+        "text.usetex": True,  # use inline math for ticks
+        "pgf.rcfonts": False,  # don't setup fonts from rc parameters
+        "pgf.texsystem": "lualatex",
+        "pgf.preamble": "\n".join([
+            r"\usepackage{url}",  # load additional packages
+            r"\usepackage{unicode-math}",  # unicode math setup
+            r"\setmainfont{DejaVu Serif}",  # serif font via preamble
+        ])
+    })
+    #experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
+    #experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
 
-    ### DHFR
+
+    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world_random_variation.yml'))
     db_name = 'DHFR'
-    experiment_config_file = 'Reproduce_RuleGNN/Configs/config_DHFR.yml'
-    graph_ids = [0,1,2]
-    filter_sizes = (None, 10, 3)
+
+    net = experiment.load_model(db_name=db_name, run_id=0, validation_id=0, best=True)
+    convolution_layer = net.net_layers[-2]
+    channel = 0
+    sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
+    #rules_vs_occurences_properties(convolution_layer)
+    rules_vs_weights(convolution_layer, sort_indices, steps, db_name, channel)
+    # define nxm grid for the plots
+    n = 3
+    m = 4
+
+    fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(5*m, 5*n))
+    plt.subplots_adjust(wspace=0, hspace=0)
     graph_drawing = (
         GraphDrawing(node_size=40, edge_width=1),
-        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10, colormap=CustomColorMap().cmap)
+        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
+                     colormap=CustomColorMap().cmap)
     )
-    ww = WeightVisualization(db_name=db_name, experiment_config=experiment.experiment_configurations[db_name])
-    for validation_id in range(10):
-        for run in range(3):
-            ww.visualize(graph_ids, run=run, validation_id=validation_id, graph_drawing=graph_drawing, filter_sizes=filter_sizes)
-
-    ### Snowflakes
-    db_name = 'Snowflakes'
-    experiment_config_file = 'Reproduce_RuleGNN/Configs/config_Snowflakes.yml'
-    graph_ids = [0, 40, 80]
-    graph_drawing = (
-        GraphDrawing(node_size=20, edge_width=1, draw_type='kawai'),
-        GraphDrawing(node_size=5, weight_edge_width=1.5, edge_width=1, edge_alpha=0.3, weight_arrow_size=8, colormap=CustomColorMap().cmap)
+    # use plasma colormap for the bias
+    graph_bias_drawing = (
+        GraphDrawing(node_size=40, edge_width=1, colormap=TabColorMap().cmap),
+        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10)
     )
-    ww = WeightVisualization(db_name=db_name, experiment_config=experiment.experiment_configurations[db_name])
-    for validation_id in range(10):
-        for run in range(3):
-            ww.visualize(graph_ids, run=run, validation_id=validation_id, graph_drawing=graph_drawing, filter_sizes=(None, 10, 3))
+    # for idx, graph_id in enumerate([0,5,4]):
+    #     net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=0)
+    #     # get convolution layer
+    #     convolution_layer = net.net_layers[0]
+    #     aggregation_layer = net.net_layers[-1]
+    #     convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
+    #     convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None)
+    #     convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 10})
+    #     convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3})
+    #     aggregation_layer.draw(ax=axs[idx][4], graph_id=graph_id, graph_drawing=graph_drawing, out_dimension=0)
+    #     aggregation_layer.draw(ax=axs[idx][5], graph_id=graph_id, graph_drawing=graph_drawing, out_dimension=1)
 
+    # # add subplots column and row titles
+    # axs[0][0].set_title(f'Graphs')
+    # axs[0][1].set_title(f'Attention Coefficients')
+    # axs[0][2].set_title(f'Top $10$ Attention Coefficients')
+    # axs[0][3].set_title(f'Top $3$ Attention Coefficients')
+    # axs[0][4].set_title(f'Output Neuron $1$ Activations')
+    # axs[0][5].set_title(f'Output Neuron $2$ Activations')
+    graph_ids = [746, 747, 748]
+    graph_ids = [272, 273, 274]
 
+    for idx, graph_id in enumerate(graph_ids):
+        # get convolution layer
+        convolution_layer = net.net_layers[0]
+        aggregation_layer = net.net_layers[-1]
+        convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
+        convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_bias_drawing, graph_only=True, draw_bias_labels=True)
+        convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None)
+        convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3})
 
+    # add subplots column and row titles
+    axs[0][0].set_title(f'Atom Labels')
+    axs[0][1].set_title(f'Labels from Invariant')
+    axs[0][2].set_title(f'Learned Parameters')
+    axs[0][3].set_title(f'Top $3$ Learned Parameters')
 
+    for idx, graph_id in enumerate(graph_ids):
+        axs[idx][0].set_ylabel(f'Label {net.graph_data.y[graph_id].item()}')
 
-
-
-
-    ### NCI1
+    plt.savefig(f'scripts/Evaluation/Drawing/Figures/visualization_{db_name}.png')
+    plt.show()
 
 if __name__ == '__main__':
     main()

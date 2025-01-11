@@ -37,9 +37,9 @@ def main():
     net = experiment.load_model(db_name=db_name, config_id=41, run_id=0, validation_id=0)
     convolution_layer = net.net_layers[-2]
     channel = 0
-    #sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
+    sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
     #rules_vs_occurences_properties(convolution_layer)
-    #rules_vs_weights(convolution_layer, sort_indices, steps, db_name, channel)
+    rules_vs_weights(convolution_layer, sort_indices, steps, db_name, channel)
     # define nxm grid for the plots
     n = 3
     m = 4
@@ -90,10 +90,10 @@ def main():
     axs[0][0].set_title(f'Graphs with Atom Labels')
     axs[0][1].set_title(f'Graphs with Rule Labels')
     axs[0][2].set_title(f'All Coefficients')
-    axs[0][3].set_title(f'Top $5$ Coefficients')
+    axs[0][3].set_title(f'Top $3$ Coefficients')
 
-    for idx, graph_id in enumerate([0,5,4]):
-        axs[idx][0].set_ylabel(f'Graph Label {net.graph_data.graph_labels[graph_id]}')
+    for idx, graph_id in enumerate([746, 747, 748]):
+        axs[idx][0].set_ylabel(f'Graph Label {net.graph_data.y[graph_id].item()}')
 
     plt.savefig(f'scripts/Evaluation/Drawing/Figures/visualization_{db_name}.png')
     plt.show()

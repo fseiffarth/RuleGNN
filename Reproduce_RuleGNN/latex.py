@@ -219,6 +219,79 @@ def fair_table():
                 [2, 7])
 
 
+def fair_table_full():
+    # print the large table
+    datasets = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
+    datasets_synthetic = ['LongRings100', 'EvenOddRingsCount16', 'EvenOddRings2_16', 'CSL', 'Snowflakes']
+    rows = []
+    results = []
+
+    baseline_algorithms = ['NoGKernel', 'WLKernel']
+    baseline_first_columns = ['\\cite{Schulz2019OnTN}', '\\cite{DBLP:journals/jmlr/ShervashidzeSLMB11}']
+    for i, algorithm in enumerate(baseline_algorithms):
+        row_string, row_results = baseline_results(algorithm, datasets, 'Reproduce_RuleGNN/Results/RealWorld/Baseline/', first_column=baseline_first_columns[i])
+        rows.append(row_string)
+        results.append(row_results)
+
+    fair_algorithms = ['GCN', 'GraphSAGE', 'GIN', 'GAT', 'GATv2']
+    fair_first_columns = ['\\cite{DBLP:conf/iclr/KipfW17}', '\\cite{Hamilton2017InductiveRL}', '\\cite{DBLP:conf/iclr/XuHLJ19}', '\\cite{Velickovic2017GraphAN}', '\\cite{DBLP:conf/iclr/Brody0Y22}']
+    fair_path = 'Reproduce_RuleGNN/RESULTS/'
+    for i, algorithm in enumerate(fair_algorithms):
+        row_string, row_results = fair_gnn_results(algorithm, datasets, fair_path, first_column=fair_first_columns[i])
+        rows.append(row_string)
+        results.append(row_results)
+
+    row, row_results = share_gnn_results('\\MyGNN (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Random (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/Random/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Encoder (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/Encoder/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Decoder (ours)', datasets, 'Reproduce_RuleGNN/Results/RealWorld/Decoder/')
+    rows.append(row)
+    results.append(row_results)
+    # results to numpy array
+    results = np.array(results)
+
+    baseline_algorithms = ['NoGKernel', 'WLKernel']
+    baseline_first_columns = ['\\cite{Schulz2019OnTN}', '\\cite{DBLP:journals/jmlr/ShervashidzeSLMB11}']
+    for i, algorithm in enumerate(baseline_algorithms):
+        row_string, row_results = baseline_results(algorithm, datasets, 'Reproduce_RuleGNN/Results/Synthetic/Baseline/', first_column=baseline_first_columns[i])
+        rows.append(row_string)
+        results.append(row_results)
+
+    fair_algorithms = ['GCN', 'GraphSAGE', 'GIN', 'GAT', 'GATv2']
+    fair_first_columns = ['\\cite{DBLP:conf/iclr/KipfW17}', '\\cite{Hamilton2017InductiveRL}', '\\cite{DBLP:conf/iclr/XuHLJ19}', '\\cite{Velickovic2017GraphAN}', '\\cite{DBLP:conf/iclr/Brody0Y22}']
+    fair_path = 'Reproduce_RuleGNN/RESULTS/'
+    for i, algorithm in enumerate(fair_algorithms):
+        row_string, row_results = fair_gnn_results(algorithm, datasets, fair_path, first_column=fair_first_columns[i])
+        rows.append(row_string)
+        results.append(row_results)
+
+    row, row_results = share_gnn_results('\\MyGNN (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Random (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Random/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Encoder (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Encoder/')
+    rows.append(row)
+    results.append(row_results)
+    row, row_results = share_gnn_results('\\MyGNN-Decoder (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Decoder/')
+    rows.append(row)
+
+    first_columns = ([f'{x} {baseline_first_columns[i]}' for i, x in enumerate(baseline_algorithms)]
+                     + [f'{x} {fair_first_columns[i]}' for i, x in enumerate(fair_algorithms)]
+                     + ['\\textbf{\\MyGNN (ours)}', '\\textbf{\\MyGNN-Random (ours)}', '\\textbf{\\MyGNN-Encoder (ours)}', '\\textbf{\\MyGNN-Decoder (ours)}'])
+
+    print_table(first_columns, ['\\textbf{NCI1}', '\\textbf{NCI109}', '\\textbf{Mutagenicity}', '\\textbf{DHFR}', '\\textbf{IMDB-B}', '\\textbf{IMDB-M}',
+                                '\\textbf{RingT1}' , '\\textbf{RingT2}', '\\textbf{RingT3}', '\\textbf{CSL}', '\\textbf{Snowflakes}']
+                , results,
+                [2, 7])
+
 def sota_baseline_and_share():
     datasets = ['NCI1', 'NCI109', 'IMDB-BINARY', 'IMDB-MULTI']
     rows = []
@@ -286,7 +359,7 @@ def synthetic_table():
 
 
 def main():
-    fair_table()
+    fair_table_full()
     sota_baseline_and_share()
     synthetic_table()
 

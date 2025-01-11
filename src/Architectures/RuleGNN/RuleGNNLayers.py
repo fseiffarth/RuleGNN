@@ -14,6 +14,8 @@ import time
 import numpy as np
 
 from src.utils import GraphData, GraphDrawing
+from src.utils.GraphLabels import NodeLabels
+
 
 def get_label_string(label_dict: dict)->str:
     """
@@ -551,13 +553,29 @@ class RuleConvolutionLayer(nn.Module):
                                              font_color='black')
                 # get node colors from the node labels using the plasma colormap
 
-                draw_node_labels = self.graph_data.node_labels['primary'].node_labels
+
+                draw_node_labels = None
+                num_unique_node_labels = 0
+                if isinstance(self.graph_data.node_labels['primary'], NodeLabels):
+                    draw_node_labels = self.graph_data.node_labels['primary'].node_labels
+                    num_unique_node_labels = self.graph_data.node_labels['primary'].num_unique_node_labels
+                elif isinstance(self.graph_data.node_labels['primary'], torch.Tensor):
+                    draw_node_labels = self.graph_data.node_labels['primary']
+                    num_unique_node_labels = torch.unique(draw_node_labels).size(0)
+                else:
+                    raise ValueError("Node labels are not of type NodeLabels or torch.Tensor")
+
+                graph_node_labels = None
                 if draw_bias_labels:
-                    draw_node_labels = self.graph_data.node_labels[self.bias_strings[head]].node_labels
-
-                num_unique_node_labels = torch.unique(draw_node_labels).size(0)
-                graph_node_labels = self.graph_data.node_labels['primary'].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
-
+                    graph_node_labels = self.graph_data.node_labels[self.bias_strings[head]].node_labels
+                    num_unique_node_labels = self.graph_data.node_labels[self.bias_strings[head]].num_unique_node_labels
+                else:
+                    if isinstance(self.graph_data.node_labels['primary'], NodeLabels):
+                        graph_node_labels = self.graph_data.node_labels['primary'].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
+                    elif isinstance(self.graph_data.node_labels['primary'], torch.Tensor):
+                        graph_node_labels = self.graph_data.node_labels['primary'][self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
+                    else:
+                        raise ValueError("Node labels are not of type NodeLabels or torch.Tensor")
 
                 cmap = graph_drawing[0].colormap
                 norm = matplotlib.colors.Normalize(vmin=0, vmax=num_unique_node_labels)
