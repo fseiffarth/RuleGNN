@@ -3,6 +3,7 @@ Created on 15.03.2019
 
 @author:
 '''
+from pathlib import Path
 from typing import Tuple, Optional
 
 import matplotlib
@@ -498,48 +499,63 @@ class RuleConvolutionLayer(nn.Module):
         else:
             return None
 
-    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], head=0, filter_weights=None, with_graph=True, graph_only=False, draw_bias_labels=False):
+    def draw(self, ax, graph_id, graph_drawing: Tuple[GraphDrawing, GraphDrawing], head=0, filter_weights=None, with_graph=True, graph_only=False, draw_bias_labels=False,pos_path:str=''):
         # create graph
         graph = self.graph_data.create_nx_graph(graph_id, directed=False)
-
+        pos = dict()
+        # if pos_path is given and the file exists, load the positions from the file
+        if pos_path != '' and Path(pos_path).is_file():
+            pos = dict()
+            with open(pos_path, 'r') as f:
+                # iterate over the lines of the file
+                for line in f:
+                    # split the line by whitespaces
+                    line = line.split()
+                    # get the node id and the x and y position
+                    pos[int(line[0])] = (float(line[1]), float(line[2]))
         if with_graph or graph_only:
             # draw the graph
-            # if graph is circular use the circular layout
-            pos = dict()
-            if graph_drawing[0].draw_type == 'circle':
-                # root node is the one with label 0
-                root_node = None
-                for node in graph.nodes():
-                    if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
-                        root_node = node
-                        break
-                # get circular positions around (0,0) starting with the root node at (-400,0)
-                pos[root_node] = (400, 0)
-                angle = 2 * np.pi / (graph.number_of_nodes())
-                # iterate over the neighbors of the root node
-                cur_node = root_node
-                last_node = None
-                counter = 0
-                while len(pos) < graph.number_of_nodes():
-                    neighbors = list(graph.neighbors(cur_node))
-                    for next_node in neighbors:
-                        if next_node != last_node:
-                            counter += 1
-                            pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
-                            last_node = cur_node
-                            cur_node = next_node
+            if not Path(pos_path).is_file():
+                # if graph is circular use the circular layout
+                if graph_drawing[0].draw_type == 'circle':
+                    # root node is the one with label 0
+                    root_node = None
+                    for node in graph.nodes():
+                        if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                            root_node = node
                             break
-            elif graph_drawing[0].draw_type == 'kawai':
-                pos = nx.kamada_kawai_layout(graph)
-            elif graph_drawing[0].draw_type == 'shell':
-                pos = nx.shell_layout(graph)
-            elif graph_drawing[0].draw_type == 'bfs':
-                pos = nx.bfs_layout(graph, 0)
-            else:
-                pos = nx.nx_pydot.graphviz_layout(graph)
+                    # get circular positions around (0,0) starting with the root node at (-400,0)
+                    pos[root_node] = (400, 0)
+                    angle = 2 * np.pi / (graph.number_of_nodes())
+                    # iterate over the neighbors of the root node
+                    cur_node = root_node
+                    last_node = None
+                    counter = 0
+                    while len(pos) < graph.number_of_nodes():
+                        neighbors = list(graph.neighbors(cur_node))
+                        for next_node in neighbors:
+                            if next_node != last_node:
+                                counter += 1
+                                pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                                last_node = cur_node
+                                cur_node = next_node
+                                break
+                elif graph_drawing[0].draw_type == 'kawai':
+                    pos = nx.kamada_kawai_layout(graph)
+                elif graph_drawing[0].draw_type == 'shell':
+                    pos = nx.shell_layout(graph)
+                elif graph_drawing[0].draw_type == 'bfs':
+                    pos = nx.bfs_layout(graph, 0)
+                else:
+                    pos = nx.nx_pydot.graphviz_layout(graph)
 
-            # keys to ints
-            pos = {int(k): v for k, v in pos.items()}
+                # keys to ints
+                pos = {int(k): v for k, v in pos.items()}
+                # if pos_path is given, save the positions to the file
+                if pos_path != '':
+                    with open(pos_path, 'w') as f:
+                        for key, value in pos.items():
+                            f.write(f"{key} {value[0]} {value[1]}\n")
             if graph_only:
                 edge_labels = {}
                 for (key1, key2, value) in graph.edges(data=True):
@@ -567,7 +583,7 @@ class RuleConvolutionLayer(nn.Module):
 
                 graph_node_labels = None
                 if draw_bias_labels:
-                    graph_node_labels = self.graph_data.node_labels[self.bias_strings[head]].node_labels
+                    graph_node_labels = self.graph_data.node_labels[self.bias_strings[head]].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
                     num_unique_node_labels = self.graph_data.node_labels[self.bias_strings[head]].num_unique_node_labels
                 else:
                     if isinstance(self.graph_data.node_labels['primary'], NodeLabels):
@@ -583,6 +599,7 @@ class RuleConvolutionLayer(nn.Module):
                                in graph.nodes()]
                 nx.draw_networkx_nodes(graph, pos=pos, ax=ax, node_color=node_colors,
                                        node_size=graph_drawing[0].node_size)
+                #nx.draw_networkx_labels(graph, pos=pos, ax=ax, labels={node: node for node in graph.nodes()}, font_size=8)
                 return
             nx.draw_networkx_edges(graph, pos, ax=ax, edge_color=graph_drawing[1].edge_color, width=graph_drawing[1].edge_width, alpha=graph_drawing[1].edge_alpha*0.5)
 
@@ -633,42 +650,48 @@ class RuleConvolutionLayer(nn.Module):
 
         # draw the graph
         # if graph is circular use the circular layout
-        pos = dict()
-        if graph_drawing[0].draw_type == 'circle':
-            # root node is the one with label 0
-            root_node = None
-            for i, node in enumerate(graph.nodes()):
-                if i == 0:
-                    print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
-                if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
-                    root_node = node
-                    break
-            # get circular positions around (0,0) starting with the root node at (-400,0)
-            pos[root_node] = (400, 0)
-            angle = 2 * np.pi / (graph.number_of_nodes())
-            # iterate over the neighbors of the root node
-            cur_node = root_node
-            last_node = None
-            counter = 0
-            while len(pos) < graph.number_of_nodes():
-                neighbors = list(graph.neighbors(cur_node))
-                for next_node in neighbors:
-                    if next_node != last_node:
-                        counter += 1
-                        pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
-                        last_node = cur_node
-                        cur_node = next_node
+        # draw the graph
+        if pos == {}:
+            if graph_drawing[0].draw_type == 'circle':
+                # root node is the one with label 0
+                root_node = None
+                for i, node in enumerate(graph.nodes()):
+                    if i == 0:
+                        print(f"First node: {self.graph_data.node_labels['primary'].node_labels[graph_id][node]}")
+                    if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                        root_node = node
                         break
-        elif graph_drawing[0].draw_type == 'kawai':
-            pos = nx.kamada_kawai_layout(graph)
-        elif graph_drawing[0].draw_type == 'shell':
-            pos = nx.shell_layout(graph)
-        elif graph_drawing[0].draw_type == 'bfs':
-            pos = nx.bfs_layout(graph,0)
-        else:
-            pos = nx.nx_pydot.graphviz_layout(graph)
-        # keys to ints
-        pos = {int(k): v for k, v in pos.items()}
+                # get circular positions around (0,0) starting with the root node at (-400,0)
+                pos[root_node] = (400, 0)
+                angle = 2 * np.pi / (graph.number_of_nodes())
+                # iterate over the neighbors of the root node
+                cur_node = root_node
+                last_node = None
+                counter = 0
+                while len(pos) < graph.number_of_nodes():
+                    neighbors = list(graph.neighbors(cur_node))
+                    for next_node in neighbors:
+                        if next_node != last_node:
+                            counter += 1
+                            pos[next_node] = (400 * np.cos(counter * angle), 400 * np.sin(counter * angle))
+                            last_node = cur_node
+                            cur_node = next_node
+                            break
+            elif graph_drawing[0].draw_type == 'kawai':
+                pos = nx.kamada_kawai_layout(graph)
+            elif graph_drawing[0].draw_type == 'shell':
+                pos = nx.shell_layout(graph)
+            elif graph_drawing[0].draw_type == 'bfs':
+                pos = nx.bfs_layout(graph,0)
+            else:
+                pos = nx.nx_pydot.graphviz_layout(graph)
+            # keys to ints
+            pos = {int(k): v for k, v in pos.items()}
+            # if pos_path is given, save the positions to the file
+            if pos_path != '':
+                with open(pos_path, 'w') as f:
+                    for key, value in pos.items():
+                        f.write(f"{key} {value[0]} {value[1]}\n")
         # graph to digraph with
         digraph = nx.DiGraph()
         for node in graph.nodes():

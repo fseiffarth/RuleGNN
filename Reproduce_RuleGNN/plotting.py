@@ -5,7 +5,8 @@ from matplotlib import pyplot as plt
 from scripts.Evaluation.Drawing.plotting import rules_vs_occurences, rules_vs_weights
 from scripts.ExperimentMain import ExperimentMain
 from scripts.WeightVisualization import GraphDrawing
-from src.utils.GraphDrawing import CustomColorMap, TabColorMap
+from src.utils.GraphDrawing import CustomColorMap, TabColorMap, RandomColorMap
+
 
 def main():
     import matplotlib as mpl
@@ -15,6 +16,7 @@ def main():
 
     plt.rcParams.update({
         "font.family": "serif",  # use serif/main font for text elements
+        "font.size": 18,
         "text.usetex": True,  # use inline math for ticks
         "pgf.rcfonts": False,  # don't setup fonts from rc parameters
         "pgf.texsystem": "lualatex",
@@ -34,66 +36,69 @@ def main():
     net = experiment.load_model(db_name=db_name, run_id=0, validation_id=0, best=True)
     convolution_layer = net.net_layers[-2]
     channel = 0
-    sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
+    #sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
     #rules_vs_occurences_properties(convolution_layer)
-    rules_vs_weights(convolution_layer, sort_indices, steps, db_name, channel)
+    #rules_vs_weights(convolution_layer, sort_indices, steps, db_name, channel)
     # define nxm grid for the plots
-    n = 3
+    graph_ids = [746, 747, 748]
+    graph_ids = [272, 273, 274]
+    graph_ids = [272, 273]
+    n = len(graph_ids)
     m = 4
 
     fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(5*m, 5*n))
     plt.subplots_adjust(wspace=0, hspace=0)
     graph_drawing = (
-        GraphDrawing(node_size=40, edge_width=1),
-        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
+        GraphDrawing(node_size=80, edge_width=1),
+        GraphDrawing(node_size=80, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
                      colormap=CustomColorMap().cmap)
     )
     # use plasma colormap for the bias
     graph_bias_drawing = (
-        GraphDrawing(node_size=40, edge_width=1, colormap=TabColorMap().cmap),
-        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10)
+        GraphDrawing(node_size=80, edge_width=1, colormap=RandomColorMap('nipy_spectral', 99999).cmap),
+        GraphDrawing(node_size=80, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10)
     )
-    # for idx, graph_id in enumerate([0,5,4]):
-    #     net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=0)
-    #     # get convolution layer
-    #     convolution_layer = net.net_layers[0]
-    #     aggregation_layer = net.net_layers[-1]
-    #     convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
-    #     convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None)
-    #     convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 10})
-    #     convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3})
-    #     aggregation_layer.draw(ax=axs[idx][4], graph_id=graph_id, graph_drawing=graph_drawing, out_dimension=0)
-    #     aggregation_layer.draw(ax=axs[idx][5], graph_id=graph_id, graph_drawing=graph_drawing, out_dimension=1)
 
-    # # add subplots column and row titles
-    # axs[0][0].set_title(f'Graphs')
-    # axs[0][1].set_title(f'Attention Coefficients')
-    # axs[0][2].set_title(f'Top $10$ Attention Coefficients')
-    # axs[0][3].set_title(f'Top $3$ Attention Coefficients')
-    # axs[0][4].set_title(f'Output Neuron $1$ Activations')
-    # axs[0][5].set_title(f'Output Neuron $2$ Activations')
-    graph_ids = [746, 747, 748]
-    graph_ids = [272, 273, 274]
+    save_pos_path = Path('Reproduce_RuleGNN/Results/Drawing/')
 
-    for idx, graph_id in enumerate(graph_ids):
+    if len(graph_ids) == 1:
+        pos_path = save_pos_path.joinpath(f'{db_name}_{graph_ids[0]}_pos.txt')
         # get convolution layer
         convolution_layer = net.net_layers[0]
         aggregation_layer = net.net_layers[-1]
-        convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
-        convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_bias_drawing, graph_only=True, draw_bias_labels=True)
-        convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None)
-        convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3})
+        convolution_layer.draw(ax=axs[0], graph_id=graph_ids[0], graph_drawing=graph_drawing, graph_only=True, pos_path=pos_path)
+        convolution_layer.draw(ax=axs[1], graph_id=graph_ids[0], graph_drawing=graph_bias_drawing, graph_only=True, draw_bias_labels=True, pos_path=pos_path)
+        convolution_layer.draw(ax=axs[2], graph_id=graph_ids[0], graph_drawing=graph_drawing, filter_weights=None, pos_path=pos_path)
+        convolution_layer.draw(ax=axs[3], graph_id=graph_ids[0], graph_drawing=graph_drawing, filter_weights={'absolute': 3}, pos_path=pos_path)
 
-    # add subplots column and row titles
-    axs[0][0].set_title(f'Atom Labels')
-    axs[0][1].set_title(f'Labels from Invariant')
-    axs[0][2].set_title(f'Learned Parameters')
-    axs[0][3].set_title(f'Top $3$ Learned Parameters')
+        # add subplots column and row titles
+        axs[0].set_title(f'Atom Labels')
+        axs[1].set_title(f'Labels from Invariant')
+        axs[2].set_title(f'Learned Parameters')
+        axs[3].set_title(f'Top $3$ Learned Parameters')
 
-    for idx, graph_id in enumerate(graph_ids):
-        axs[idx][0].set_ylabel(f'Label {net.graph_data.y[graph_id].item()}')
+        axs[0].set_ylabel(f'Graph Label: {net.graph_data.y[graph_ids[0]].item()}')
+    else:
+        for idx, graph_id in enumerate(graph_ids):
+            pos_path = save_pos_path.joinpath(f'{db_name}_{graph_id}_pos.txt')
+            # get convolution layer
+            convolution_layer = net.net_layers[0]
+            aggregation_layer = net.net_layers[-1]
+            convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True, pos_path=pos_path)
+            convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_bias_drawing, graph_only=True, draw_bias_labels=True, pos_path=pos_path)
+            convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None, pos_path=pos_path)
+            convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3}, pos_path=pos_path)
 
-    plt.savefig(f'scripts/Evaluation/Drawing/Figures/visualization_{db_name}.png')
+        # add subplots column and row titles
+        axs[0][0].set_title(f'Atom Labels')
+        axs[0][1].set_title(f'Labels from Invariant')
+        axs[0][2].set_title(f'Learned Parameters')
+        axs[0][3].set_title(f'Top $3$ Learned Parameters')
+
+        for idx, graph_id in enumerate(graph_ids):
+            axs[idx][0].set_ylabel(f'Graph Label: {net.graph_data.y[graph_id].item()}')
+
+    plt.savefig(f'Reproduce_RuleGNN/Results/Drawing/visualization_{db_name}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == '__main__':

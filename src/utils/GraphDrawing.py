@@ -44,6 +44,21 @@ class TabColorMap:
         random.shuffle(colors)
         self.cmap = mcolors.ListedColormap(colors)
 
+class RandomColorMap:
+    def __init__(self, cmap_name:str, number_intervalls:int=1000, seed:int=42):
+        # split the colormap into number_intervalls
+        cmap = plt.get_cmap(cmap_name)
+        colors = []
+        for i in range(number_intervalls):
+            colors.append(cmap(i/number_intervalls))
+        # randomly shuffle the colors
+        import random
+        # set seed
+        random.seed(seed)
+        random.shuffle(colors)
+        self.cmap = mcolors.ListedColormap(colors)
+
+
 class GraphDrawing:
     def __init__(self, node_size=10.0, edge_width=1.0, weight_edge_width=1.0, weight_arrow_size=5.0, edge_color='black', edge_alpha=1, node_color='black', draw_type=None, colormap=plt.get_cmap('tab20')):
         self.node_size = node_size

@@ -148,7 +148,7 @@ def fair_gnn_results(algorithm: str, datasets:list[str], path:str, first_column:
         out_str += f' & ${test_acc} \\pm {test_std}$'
     return out_str, results
 
-def print_table(first_columns, column_names, results, rules:list[int], with_colors:bool=True):
+def print_table(first_columns, column_names, results, rules:list[int], with_colors:bool=True, with_std:bool=True, positive_negative_colors:bool=False):
 
     lines = []
     accuracies = results[:, :, :1].squeeze(2)
@@ -168,13 +168,37 @@ def print_table(first_columns, column_names, results, rules:list[int], with_colo
                     # get index of the value
                     index = np.where(best_column_values[:, j] == accuracies[i, j])[0][0]
                     if index == 0:
-                        line += f' & \\ThirdColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                        if with_std:
+                            line += f' & \\ThirdColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                        else:
+                            line += f' & \\ThirdColor{{{accuracies[i, j]}}}'
                     elif index == 1:
-                        line += f' & \\SecondColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                        if with_std:
+                            line += f' & \\SecondColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                        else:
+                            line += f' & \\SecondColor{{{accuracies[i, j]}}}'
                     elif index == 2:
-                        line += f' & \\FirstColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                        if with_std:
+                            line += f' & \\FirstColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                        else:
+                            line += f' & \\FirstColor{{{accuracies[i, j]}}}'
                 else:
-                    line += f' & ${accuracies[i, j]} \\pm {stds[i, j]}$'
+                    if positive_negative_colors:
+                        if with_std:
+                            if accuracies[i, j] > 0:
+                                line += f' & \\FirstColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                            else:
+                                line += f' & \\SecondColor{{{accuracies[i, j]} \\pm {stds[i, j]}}}'
+                        else:
+                            if accuracies[i, j] > 0:
+                                line += f' & \\FirstColor{{{accuracies[i, j]}}}'
+                            else:
+                                line += f' & \\SecondColor{{{accuracies[i, j]}}}'
+                    else:
+                        if with_std:
+                            line += f' & ${accuracies[i, j]} \\pm {stds[i, j]}$'
+                        else:
+                            line += f' & ${accuracies[i, j]}$'
             lines.append(line)
     # print the table in latex
     print('\\begin{tabular}{l' + 'c' * len(column_names) + '}')
@@ -375,10 +399,49 @@ def synthetic_table():
                 [2, 7])
 
 
+def features_evaluation():
+    fair_algorithms = ['GCN', 'GraphSAGE', 'GIN', 'GAT', 'GATv2']
+    fair_first_columns = ['\\cite{DBLP:conf/iclr/KipfW17}', '\\cite{Hamilton2017InductiveRL}',
+                          '\\cite{DBLP:conf/iclr/XuHLJ19}', '\\cite{Velickovic2017GraphAN}',
+                          '\\cite{DBLP:conf/iclr/Brody0Y22}']
+
+    datasets = ['NCI1', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
+    datasets_features = ['NCI1Features', 'DHFRFeatures', 'IMDB-BINARYFeatures', 'IMDB-MULTIFeatures']
+    rows = []
+    features_results = []
+    results = []
+    fair_path = 'Reproduce_RuleGNN/RESULTS/'
+
+    for i, algorithm in enumerate(fair_algorithms):
+        row_string, row_results = fair_gnn_results(algorithm, datasets, fair_path,
+                                                   first_column=fair_first_columns[i])
+        rows.append(row_string)
+        results.append(row_results)
+
+    for i, algorithm in enumerate(fair_algorithms):
+        row_string, row_results = fair_gnn_results(algorithm, datasets_features, fair_path,
+                                                   first_column=fair_first_columns[i])
+        rows.append(row_string)
+        features_results.append(row_results)
+
+    results = np.array(results)
+    features_results = np.array(features_results)
+    results = features_results - results
+    # round the results to 1 decimal place
+    results = np.round(results, 1)
+
+    first_columns = [f'{x} {fair_first_columns[i]}' for i, x in enumerate(fair_algorithms)]
+    print_table(first_columns, ['\\textbf{NCI1}', '\\textbf{DHFR}', '\\textbf{IMDB-B}', '\\textbf{IMDB-M}']
+                , np.array(results),
+                [], with_colors=False, with_std=False, positive_negative_colors=True)
+
+
 def main():
     fair_table_full()
     print('\n\n\n\n')
     sota_baseline_and_share()
+    print('\n\n\n\n')
+    features_evaluation()
     #synthetic_table()
 
 
