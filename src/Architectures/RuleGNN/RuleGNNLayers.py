@@ -274,9 +274,10 @@ class RuleConvolutionLayer(nn.Module):
                 # set all indices to -1 where the head or tail label is -1
                 invalid_indices = torch.where(torch.logical_or(labeled_subdict[:, 0] == -1, labeled_subdict[:, 1] == -1))[0]
                 do_invalid_indices_exist = len(invalid_indices) > 0
-                max_first = torch.max(labeled_subdict[:, 0]) + 1
-                max_second = torch.max(labeled_subdict[:, 1]) + 1
-                labeled_subdict[invalid_indices] = torch.tensor([max_first, max_second])
+                if do_invalid_indices_exist:
+                    max_first = torch.max(labeled_subdict[:, 0]) + 1
+                    max_second = torch.max(labeled_subdict[:, 1]) + 1
+                    labeled_subdict[invalid_indices] = torch.tensor([max_first, max_second])
                 # get unique rows of the property subdict together with counts and indices
                 _, indices, counts = torch.unique(labeled_subdict, dim=0, return_inverse=True, return_counts=True, sorted=False)
                 if do_invalid_indices_exist:
@@ -289,7 +290,7 @@ class RuleConvolutionLayer(nn.Module):
                 if threshold > 1 or do_invalid_indices_exist:
                     # get a bool tensor from indices where the entry is true if the indices entry is in the unique_rows
                     valid_values = torch.where(counts >= threshold)[0]
-                    valid_value_dict = {idx: value.item() for idx, value in enumerate(valid_values)}
+                    valid_value_dict = {value.item(): idx for idx, value in enumerate(valid_values)}
                     valid_indices_bool = torch.isin(indices, valid_values)
                     valid_indices = torch.where(valid_indices_bool)[0]
                     # relabel indices

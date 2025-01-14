@@ -1,0 +1,18 @@
+networks:
+  - - { layer_type: convolution ,
+        bias: False,
+        heads: [1],
+        labels: [
+          { label_type: [wl_labeled], depth: [2] },
+        ],
+        properties: [
+          { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10 ] },
+        ]
+  }
+    - { layer_type: aggregation,
+        bias: True,
+        heads: [1],
+        labels: [
+          { label_type: [wl_labeled], depth: [2] },
+        ]
+    }
