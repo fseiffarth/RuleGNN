@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -436,7 +437,98 @@ def features_evaluation():
                 [], with_colors=False, with_std=False, positive_negative_colors=True)
 
 
+def ablation_threshold(dataset='NCI1'):
+    ablation_results = dict()
+    for i in list(range(1, 21)) + [30, 40, 50]:
+        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+        # check if the path exists
+        if Path(path).exists():
+            results_str, results = share_gnn_results('ShareGNN', [dataset], path, False)
+            if i in ablation_results and isinstance(ablation_results[i], dict):
+                ablation_results[i]['accuracy'] = results[0][0]
+                ablation_results[i]['std'] = results[0][1]
+            else:
+                ablation_results[i] = {'accuracy': results[0][0], 'std': results[0][1]}
+    # get number of parameters
+    for i in list(range(1, 21)) + [30, 40, 50]:
+        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+        if Path(path).exists():
+            # get the file from results folder that contains Best and Network
+            for file in Path(f'{path}/{dataset}/Results').iterdir():
+                if 'Best_Configuration' in file.name and 'Network' in file.name:
+                    with open(file, 'r') as f:
+                        data = f.read()
+                        data = data.split('\n')
+                        for line in data:
+                            if 'Total trainable parameters' in line:
+                                num_parameters = int(line.split(':')[-1].strip())
+                                ablation_results[i]['parameters'] = num_parameters
+                                break
+                    break
+    # get avg best epoch
+    for i in list(range(1, 21)) + [30, 40, 50]:
+        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+        if Path(path).exists():
+            # get the file from results folder that contains Best and Network
+            df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
+            ablation_results[i]['mean_epoch'] = df['Epoch Mean'].values[0]
+    # get avg best epoch and avg epoch runtime
+    for i in list(range(1, 21)) + [30, 40, 50]:
+        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+        if Path(path).exists():
+            # get the file from results folder that contains Best and Network
+            df_all = None
+            for file in Path(f'{path}/{dataset}/Results').iterdir():
+                if f'{dataset}_Configuration' in file.name and '.csv' in file.suffix:
+                    df = pd.read_csv(file, delimiter=";")
+                    # concatenate the dataframes
+                    if df_all is None:
+                        df_all = df
+                    else:
+                        df_all = pd.concat([df_all, df], ignore_index=True)
+            # get the mean of all epoch times
+            mean_epoch_time = df_all['EpochTime'].mean()
+            ablation_results[i]['mean_epoch_time'] = mean_epoch_time
+
+    fig, ax1 = plt.subplots()
+
+    # ticks inside
+    plt.tick_params(axis='both', direction='in')
+    # set title to dataset
+    plt.title(f'{dataset}')
+    # create a bar plot with x-axis as keys of ablation_results and y-axis as accuracy
+    ax1.errorbar(ablation_results.keys(), [ablation_results[i]['accuracy'] for i in ablation_results],
+                 yerr=[ablation_results[i]['std'] for i in ablation_results], fmt='o', capsize=5)
+    ax1.set_ylabel('Accuracy in \\%')
+    # set range to 80 - 90
+    ax1.set_ylim([80, 90])
+
+
+    # add number of parameters to the right y-axis in thousand
+    ax2 = plt.gca().twinx()
+    # ticks at the inside
+    ax2.tick_params(axis='y', direction='in')
+    ax2.plot(ablation_results.keys(), [ablation_results[i]['parameters']/1000 for i in ablation_results], 'r', marker='s')
+    ax2.set_ylabel('Parameters (in thousands)')
+    # set range to 0 - 400
+    ax2.set_ylim([0, 400])
+
+    #  add one legend for both axes
+    plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.175, 0.85), ncols=2)
+    # set ticks to list(range(1, 21)) + [30, 40, 50]
+    plt.xticks(list(range(1, 21, 2)))
+    # set x-axis label to the figure
+    ax1.set_xlabel('Minimum \\# of Occurrences per Shared Weight (Encoder)')
+    plt.savefig('Reproduce_RuleGNN/Results/Ablation/ablation_threshold.pdf', bbox_inches='tight', backend='pgf')
+
+    pass
+
+
+
+
+
 def main():
+    ablation_threshold()
     fair_table_full()
     print('\n\n\n\n')
     sota_baseline_and_share()

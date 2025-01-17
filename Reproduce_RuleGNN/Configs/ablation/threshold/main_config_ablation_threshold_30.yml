@@ -14,12 +14,12 @@ paths:
   splits:
     "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "Reproduce_RuleGNN/Results/Ablation/7/" # Results will be saved in this folder
+    "Reproduce_RuleGNN/Results/Ablation/30/" # Results will be saved in this folder
 
 # rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
 # -type: [graph, total], graph: the rule has to be present in a graph, total: the rule has to be present in the whole dataset
 # -threshold: the threshold for the rule occurrence at least this many times
-rule_occurrence_threshold: 7
+rule_occurrence_threshold: 30
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'

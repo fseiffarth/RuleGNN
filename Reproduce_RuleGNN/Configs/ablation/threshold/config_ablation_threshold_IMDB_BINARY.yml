@@ -1,0 +1,25 @@
+networks:
+  - - { layer_type: convolution ,
+        bias: False,
+        heads: [1],
+        labels: [
+          { label_type: subgraph, id: [ 3 ] }
+        ],
+        properties: [
+          { name: distances, values: [ 0,1,2 ] },
+        ]
+  }
+    - { layer_type: aggregation,
+        bias: True,
+        heads: [1],
+        labels: [
+          { label_type: simple_cycles, max_cycle_length: [ 4 ] },
+        ]
+    }
+
+# if subgraph labels are used the corresponding list of subgraphs should be provided here:
+subgraphs:
+  - "[nx.complete_graph(4)]"
+  - "[nx.cycle_graph(3), nx.star_graph(1)]"
+  - "[nx.cycle_graph(4), nx.star_graph(1)]"
+  - "[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)]"
