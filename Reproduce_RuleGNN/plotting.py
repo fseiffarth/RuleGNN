@@ -16,7 +16,7 @@ def main():
 
     plt.rcParams.update({
         "font.family": "serif",  # use serif/main font for text elements
-        "font.size": 18,
+        "font.size": 24,
         "text.usetex": True,  # use inline math for ticks
         "pgf.rcfonts": False,  # don't setup fonts from rc parameters
         "pgf.texsystem": "lualatex",
@@ -49,14 +49,14 @@ def main():
     fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(5*m, 5*n))
     plt.subplots_adjust(wspace=0, hspace=0)
     graph_drawing = (
-        GraphDrawing(node_size=80, edge_width=1),
-        GraphDrawing(node_size=80, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
+        GraphDrawing(node_size=160, edge_width=1),
+        GraphDrawing(node_size=160, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
                      colormap=CustomColorMap().cmap)
     )
     # use plasma colormap for the bias
     graph_bias_drawing = (
-        GraphDrawing(node_size=80, edge_width=1, colormap=RandomColorMap('nipy_spectral', 99999).cmap),
-        GraphDrawing(node_size=80, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10)
+        GraphDrawing(node_size=160, edge_width=1, colormap=RandomColorMap('nipy_spectral', 99999).cmap),
+        GraphDrawing(node_size=160, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10)
     )
 
     save_pos_path = Path('Reproduce_RuleGNN/Results/Drawing/')
@@ -75,7 +75,7 @@ def main():
         axs[0].set_title(f'Atom Labels')
         axs[1].set_title(f'Labels from Invariant')
         axs[2].set_title(f'Learned Parameters')
-        axs[3].set_title(f'Top $3$ Learned Parameters')
+        axs[3].set_title(f'Top $3$ Parameters')
 
         axs[0].set_ylabel(f'Graph Label: {net.graph_data.y[graph_ids[0]].item()}')
     else:
@@ -93,7 +93,7 @@ def main():
         axs[0][0].set_title(f'Atom Labels')
         axs[0][1].set_title(f'Labels from Invariant')
         axs[0][2].set_title(f'Learned Parameters')
-        axs[0][3].set_title(f'Top $3$ Learned Parameters')
+        axs[0][3].set_title(f'Top $3$ Parameters')
 
         for idx, graph_id in enumerate(graph_ids):
             axs[idx][0].set_ylabel(f'Graph Label: {net.graph_data.y[graph_id].item()}')
