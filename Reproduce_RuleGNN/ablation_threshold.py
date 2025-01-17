@@ -29,7 +29,7 @@ def main():
     get_existing_splits()
 
     for threshold in range(1,11):
-        ablation_experiment = ExperimentMain(Path(f'Reproduce_RuleGNN/Configs/main_config_ablation_threshold_{threshold}.yml'))
+        ablation_experiment = ExperimentMain(Path(f'Reproduce_RuleGNN/Configs/ablation/threshold/main_config_ablation_threshold_{threshold}.yml'))
         ablation_experiment.Preprocess()
         ablation_experiment.GridSearch()
         ablation_experiment.EvaluateResults()
