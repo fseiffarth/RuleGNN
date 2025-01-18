@@ -1,6 +1,6 @@
 datasets:
   # real-world datasets
-  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/distances/config_ablation_distances.yml", type: "TUDataset"}
+  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/distances/config_ablation_distances_test.yml", type: "TUDataset"}
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
