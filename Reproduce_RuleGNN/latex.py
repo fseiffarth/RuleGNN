@@ -501,7 +501,7 @@ def ablation_threshold(dataset='NCI1'):
                  yerr=[ablation_results[i]['std'] for i in ablation_results], fmt='o', capsize=5)
     ax1.set_ylabel('Accuracy in \\%')
     # set range to 80 - 90
-    ax1.set_ylim([80, 90])
+    #ax1.set_ylim([80, 90])
 
 
     # add number of parameters to the right y-axis in thousand
@@ -511,7 +511,7 @@ def ablation_threshold(dataset='NCI1'):
     ax2.plot(ablation_results.keys(), [ablation_results[i]['parameters']/1000 for i in ablation_results], 'r', marker='s')
     ax2.set_ylabel('Parameters (in thousands)')
     # set range to 0 - 400
-    ax2.set_ylim([0, 400])
+    #ax2.set_ylim([0, 400])
 
     #  add one legend for both axes
     plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.175, 0.85), ncols=2)
