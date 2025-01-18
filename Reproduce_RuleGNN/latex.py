@@ -353,7 +353,7 @@ def sota_baseline_and_share():
     rows.append(row)
     results.append(row_results)
     first_columns = ([f'{x} {baseline_first_columns[i]}' for i, x in enumerate(baseline_algorithms)]
-                     + ['\\textbf{\\MyGNN (ours)}', '\\textbf{\\MyGNN-Random (ours)}'])
+                     + ['\\textbf{\\MyGNN}', '\\textbf{\\MyGNN-Random}'])
     print_table(first_columns, ['\\textbf{NCI1}', '\\textbf{NCI109}', '\\textbf{IMDB-B}', '\\textbf{IMDB-M}']
                 , np.array(results),
                 [], with_colors=False)
@@ -379,16 +379,16 @@ def synthetic_table():
         rows.append(row_string)
         results.append(row_results)
 
-    row, row_results = share_gnn_results('\\MyGNN (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/')
+    row, row_results = share_gnn_results('\\MyGNN', datasets, 'Reproduce_RuleGNN/Results/Synthetic/')
     rows.append(row)
     results.append(row_results)
-    row, row_results = share_gnn_results('\\MyGNN-Random (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Random/')
+    row, row_results = share_gnn_results('\\MyGNN-Random', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Random/')
     rows.append(row)
     results.append(row_results)
-    row, row_results = share_gnn_results('\\MyGNN-Encoder (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Encoder/')
+    row, row_results = share_gnn_results('\\MyGNN-Encoder', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Encoder/')
     rows.append(row)
     results.append(row_results)
-    row, row_results = share_gnn_results('\\MyGNN-Decoder (ours)', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Decoder/')
+    row, row_results = share_gnn_results('\\MyGNN-Decoder', datasets, 'Reproduce_RuleGNN/Results/Synthetic/Decoder/')
     rows.append(row)
     results.append(row_results)
 
@@ -519,7 +519,7 @@ def ablation_threshold(dataset='NCI1'):
     plt.xticks(list(range(1, 21, 2)))
     # set x-axis label to the figure
     ax1.set_xlabel('Minimum \\# of Occurrences per Shared Weight (Encoder)')
-    plt.savefig('Reproduce_RuleGNN/Results/Ablation/ablation_threshold.pdf', bbox_inches='tight', backend='pgf')
+    plt.savefig(f'Reproduce_RuleGNN/Results/Ablation/ablation_threshold_{dataset}.pdf', bbox_inches='tight', backend='pgf')
 
     pass
 
@@ -528,7 +528,8 @@ def ablation_threshold(dataset='NCI1'):
 
 
 def main():
-    ablation_threshold()
+    ablation_threshold('NCI1')
+    ablation_threshold('IMDB-BINARY')
     fair_table_full()
     print('\n\n\n\n')
     sota_baseline_and_share()
