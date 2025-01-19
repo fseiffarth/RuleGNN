@@ -96,7 +96,8 @@ def generate_layer_options(layer_dict):
 
 def preprocess_network_architectures(network_architectures_dict):
     network_architectures = []
-    for network_architecture in network_architectures_dict:
+    for network_id, network_architecture in enumerate(network_architectures_dict):
+        current_network_architectures = []
         layers_per_architecture = []
         for i, layer in enumerate(network_architecture):
             correct, error = check_layer(i, layer)
@@ -203,15 +204,16 @@ def preprocess_network_architectures(network_architectures_dict):
                     raise ValueError(f'Layer {i} is not correctly defined: {error}')
     # get all possible network architectures using all combinations from layers per architecture
         for i in range(len(layers_per_architecture)):
-            if len(network_architectures) == 0:
+            if len(current_network_architectures) == 0:
                 for layer in layers_per_architecture[i]:
-                    network_architectures.append([layer])
+                    current_network_architectures.append([layer])
             else:
                 new_network_architectures = []
-                for network_architecture in network_architectures:
+                for network_architecture in current_network_architectures:
                     for layer in layers_per_architecture[i]:
-                        new_network_architectures.append(network_architecture + [layer])
-                network_architectures = new_network_architectures
+                        new_network_architectures.append(current_network_architectures + [layer])
+                current_network_architectures = new_network_architectures.copy()
+        network_architectures += current_network_architectures
 
     return network_architectures
 
