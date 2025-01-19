@@ -87,4 +87,7 @@ early_stopping:
 # num_workers: number of workers used
 num_workers: 30
 
+best_model: True
+
 input_features: {name: constant, value: 1.0}
+

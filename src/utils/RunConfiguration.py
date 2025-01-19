@@ -1,6 +1,9 @@
+import itertools
 from typing import List
 
 import numpy as np
+from sklearn.utils.extmath import cartesian
+from torch import cartesian_prod
 
 from src.Architectures.RuleGNN.RuleGNNLayers import Layer
 class RunConfiguration:
@@ -202,19 +205,10 @@ def preprocess_network_architectures(network_architectures_dict):
                     layers_per_architecture[i] = option_dicts.copy()
                 else:
                     raise ValueError(f'Layer {i} is not correctly defined: {error}')
-    # get all possible network architectures using all combinations from layers per architecture
-        for i in range(len(layers_per_architecture)):
-            if len(current_network_architectures) == 0:
-                for layer in layers_per_architecture[i]:
-                    current_network_architectures.append([layer])
-            else:
-                new_network_architectures = []
-                for network_architecture in current_network_architectures:
-                    for layer in layers_per_architecture[i]:
-                        new_network_architectures.append(current_network_architectures + [layer])
-                current_network_architectures = new_network_architectures.copy()
-        network_architectures += current_network_architectures
+        # cartesian product over all entries of layers_per_architecture
+        combinations = [x for x in itertools.product(*layers_per_architecture)]
 
+        network_architectures += [list(x) for x in combinations]
     return network_architectures
 
 

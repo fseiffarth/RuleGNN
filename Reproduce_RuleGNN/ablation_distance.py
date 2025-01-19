@@ -27,12 +27,11 @@ def get_existing_splits():
 
 def main():
     get_existing_splits()
-    for threshold in range(1,21):
-        ablation_experiment = ExperimentMain(Path(f'Reproduce_RuleGNN/Configs/ablation/distances/main_config_ablation_distances.yml'))
-        ablation_experiment.Preprocess()
-        ablation_experiment.GridSearch()
-        ablation_experiment.EvaluateResults()
-        ablation_experiment.RunBestModel()
-        ablation_experiment.EvaluateResults(evaluate_best_model=True)
+    ablation_experiment = ExperimentMain(Path(f'Reproduce_RuleGNN/Configs/ablation/distances/main_config_ablation_distances.yml'))
+    ablation_experiment.Preprocess()
+    ablation_experiment.GridSearch()
+    ablation_experiment.EvaluateResults()
+    ablation_experiment.RunBestModel()
+    ablation_experiment.EvaluateResults(evaluate_best_model=True)
 if __name__ == '__main__':
     main()
