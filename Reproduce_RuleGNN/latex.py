@@ -523,11 +523,15 @@ def ablation_threshold(dataset='NCI1'):
 
     pass
 
-
+def ablation_distance(dataset='NCI1'):
+    path = f'Reproduce_RuleGNN/Results/Distance/{dataset}/'
+    # get the summary.csv file
+    df = pd.read_csv(f'{path}/summary_best_mean.csv', delimiter=",")
 
 
 
 def main():
+    ablation_distance('NCI1')
     ablation_threshold('NCI1')
     ablation_threshold('IMDB-BINARY')
     fair_table_full()
