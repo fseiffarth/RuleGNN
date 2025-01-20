@@ -4,6 +4,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import torch
+
+from scripts.ExperimentMain import ExperimentMain
+
 
 def baseline_results(algorithm: str, datasets:list[str], path:str, sota:bool=False, first_column:str=''):
     '''
@@ -524,13 +528,172 @@ def ablation_threshold(dataset='NCI1'):
     pass
 
 def ablation_distance(dataset='NCI1'):
-    path = f'Reproduce_RuleGNN/Results/Distance/{dataset}/'
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    path = Path(f'Reproduce_RuleGNN/Results/Distance/{dataset}/')
     # get the summary.csv file
-    df = pd.read_csv(f'{path}/summary_best_mean.csv', delimiter=",")
+    df = pd.read_csv(path.joinpath('summary.csv'), delimiter=",")
+    model_layers_depths = []
+    for i in range(1, 21):
+        model_layers_depths.append((1, i))
+    for i in range(1, 11):
+        model_layers_depths.append((2, i))
+    for i in range(1, 7):
+        model_layers_depths.append((3, i))
+    for i in range(1, 6):
+        model_layers_depths.append((4, i))
+    for i in range(1, 5):
+        model_layers_depths.append((5, i))
+    for i in range(1, 4):
+        model_layers_depths.append((6, i))
+    for i in range(1, 3):
+        model_layers_depths.append((7, i))
+    for i in range(1, 3):
+        model_layers_depths.append((8, i))
+    for i in range(1, 3):
+        model_layers_depths.append((9, i))
+    for i in range(1, 3):
+        model_layers_depths.append((10, i))
+
+    # add layer depth information to df
+    df['Layers'] = [model_layers_depths[i][0] for i in range(len(model_layers_depths))]
+    df['Depth'] = [model_layers_depths[i][1] for i in range(len(model_layers_depths))]
+
+    max_depth = 13
+    np_array = np.zeros((11, max_depth))
+    # iterate over rows of the dataframe and fill the np_array
+    for i, row in df.iterrows():
+        if row['Depth'] < max_depth:
+            np_array[int(row['Layers']), int(row['Depth'])] = row['Test Accuracy Mean']
+
+    # plot the np_array in a coordinate system
+    # normalize viridis to min, max of np_array where min is not zero
+    cmap_custom = plt.cm.get_cmap('Blues')
+    norm = plt.Normalize(vmin=np_array[np_array != 0].min() - 10.0, vmax=np_array.max())
+    # set 0 to white
+    cmap_custom.set_under('white')
+
+    plt.figure()
+    ax = plt.gca()
+    im = plt.imshow(np_array, cmap=cmap_custom, norm=norm)
+    # add the values to the plot
+    for i in range(np_array.shape[0]):
+        for j in range(np_array.shape[1]):
+            array_color = cmap_custom(norm(np_array[i, j]))
+            if np_array[i, j] != 0:
+                # if color is dark, add white text, else add black text
+                if np_array[i, j] > 63:
+                    plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='white', fontsize=9)
+                else:
+                    plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='black', fontsize=9)
+            else:
+                # add -
+                #plt.text(j, i, '-', ha='center', va='center', color='black')
+                pass
+    # invert y-axis
+    plt.gca().invert_yaxis()
+    # set x-axis to Layers
+    plt.ylabel('Layers')
+    # set y-axis to Depth
+    plt.xlabel('Depth')
+    plt.title(f'{dataset}')
+    # add colorbar and set height to axes height
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    plt.colorbar(im, cax=cax).set_label('Accuracy in $\\%$')
+    plt.savefig(f'Reproduce_RuleGNN/Results/Distance/ablation_distance_{dataset}.pdf', bbox_inches='tight', backend='pgf')
+    plt.show()
+    pass
+
+
+
+def training_and_preprocessing_time():
+    datasets = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
+    results = {key: dict() for key in datasets}
+
+
+    path = f'Reproduce_RuleGNN/Results/RealWorld/'
+    if Path(path).exists():
+        # get number of parameters
+        for dataset in datasets:
+            # get the file from results folder that contains Best and Network
+            for file in Path(f'{path}/{dataset}/Results').iterdir():
+                if 'Best_Configuration' in file.name and 'Network' in file.name:
+                    with open(file, 'r') as f:
+                        data = f.read()
+                        data = data.split('\n')
+                        for line in data:
+                            if 'Total trainable parameters' in line:
+                                num_parameters = int(line.split(':')[-1].strip())
+                                results[dataset]['parameters'] = num_parameters
+                                break
+                    break
+        # get avg best epoch
+        for dataset in datasets:
+                # get the file from results folder that contains Best and Network
+                df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
+                results[dataset]['mean_epoch'] = df['Epoch Mean'].values[0]
+                results[dataset]['std_epoch'] = df['Epoch Std'].values[0]
+
+        # get avg best epoch and avg epoch runtime
+        for dataset in datasets:
+            # get the file from results folder that contains Best and Network
+            df_all = None
+            for file in Path(f'{path}/{dataset}/Results').iterdir():
+                if f'{dataset}_Best_Configuration' in file.name and '.csv' in file.suffix:
+                    df = pd.read_csv(file, delimiter=";")
+                    # concatenate the dataframes
+                    if df_all is None:
+                        df_all = df
+                    else:
+                        df_all = pd.concat([df_all, df], ignore_index=True)
+            # get the mean of all epoch times
+            mean_epoch_time = df_all['EpochTime'].mean()
+            std_epoch_time = df_all['EpochTime'].std()
+            results[dataset]['mean_epoch_time'] = mean_epoch_time
+            results[dataset]['std_epoch_time'] = std_epoch_time
+
+        # get preprocessing time for distances
+        with open(path + 'generation_times_properties.txt', 'r') as f:
+            for i, line in enumerate(f):
+                if i != 0:
+                    dataset, _ , time = line.split(',')
+                    results[dataset.strip()]['preprocessing_time'] = float(time.strip())
+
+
+        # best label strings per dataset
+        ## Real World Data
+        experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
+        experiment.Preprocess()
+        for dataset in datasets:
+            net = experiment.load_model(f'{dataset}', 0, 0, 0, best=True)
+            for layer in net.net_layers:
+                if isinstance(layer, RuleGNNLayer):
+                    best_label_strings = layer.best_label_strings
+                    break
+        best_label_strings = dict()
+        for dataset in datasets:
+            # get the file from results folder that contains Best and Network
+            for file in Path(f'{path}/{dataset}/Results').iterdir():
+                if 'Best_Configuration' in file.name and 'Network' in file.name:
+                    pass
+
+
+        # get preprocessing time for features
+        with open(path + 'generation_times_labels.txt', 'r') as f:
+            for i, line in enumerate(f):
+                if i != 0:
+                    dataset, label , time = line.split(',')
+                    results[dataset.strip()]['preprocessing_time_features'] = float(time.strip())
+
+
+
+
+
 
 
 
 def main():
+    training_and_preprocessing_time()
     ablation_distance('NCI1')
     ablation_threshold('NCI1')
     ablation_threshold('IMDB-BINARY')
