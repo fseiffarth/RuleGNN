@@ -1,7 +1,11 @@
 datasets:
   # real-world datasets
-  - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/threshold/config_ablation_threshold_IMDB_BINARY.yml", type: "TUDataset"}
-  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/threshold/config_ablation_threshold_NCI1.yml", type: "TUDataset"}
+  - {name: "IMDB-BINARY", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/Ablation/threshold/config_ablation_threshold_IMDB_BINARY.yml", type: "TUDataset"}
+  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/Ablation/threshold/config_ablation_threshold_NCI1.yml", type: "TUDataset"}
+  - {name: "IMDB-MULTI", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/Ablation/threshold/config_ablation_threshold_IMDB_MULTI.yml", type: "TUDataset"}
+  - {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/Ablation/threshold/config_ablation_threshold_NCI109.yml", type: "TUDataset"}
+  - {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/Ablation/threshold/config_ablation_threshold_Mutagenicity.yml", type: "TUDataset"}
+  - {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/Ablation/threshold/config_ablation_threshold_DHFR.yml", type: "TUDataset"}
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
