@@ -3,7 +3,7 @@ datasets:
   - {name: "NCI109", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/distances/config_ablation_distances_NCI109.yml", type: "TUDataset" }
   - {name: "Mutagenicity", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/distances/config_ablation_distances_Mutagenicity.yml", type: "TUDataset"}
   - {name: "DHFR", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/distances/config_ablation_distances_DHFR.yml", type: "TUDataset"}
-  #- {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/distances/config_ablation_distances.yml", type: "TUDataset"}
+  - {name: "NCI1", validation_folds: 10, experiment_config_file: "Reproduce_RuleGNN/Configs/ablation/distances/config_ablation_distances_NCI1.yml", type: "TUDataset"}
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
@@ -92,5 +92,4 @@ num_workers: 30
 
 best_model: True
 
-input_features: {name: constant, value: 1.0}
 

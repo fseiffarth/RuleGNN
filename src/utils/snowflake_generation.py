@@ -211,18 +211,18 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
                     # add node labels to the last graph in snowflakes
                     for node in snowflakes[-1].nodes():
                         if node == rand_index1:
-                            snowflakes[-1].nodes[node]['label'] = 1
+                            snowflakes[-1].nodes[node]['primary_label'] = 1
                         elif node >= i:
                             # set node to random label between 0 and 4
                             rand_node_label = np.random.randint(0, 1)
-                            snowflakes[-1].nodes[node]['label'] = rand_node_label
+                            snowflakes[-1].nodes[node]['primary_label'] = rand_node_label
                         #elif node == rand_index2:
                         #    snowflakes[-1].nodes[node]['label'] = 1
                         #elif node == rand_index3:
                         #    snowflakes[-1].nodes[node]['label'] = 1
                         else:
                             rand_node_label = np.random.randint(0, 1)
-                            snowflakes[-1].nodes[node]['label'] = rand_node_label
+                            snowflakes[-1].nodes[node]['primary_label'] = rand_node_label
                     label = part_list[rand_index1]
                     labels.append(label)
 

@@ -8,6 +8,7 @@ import torch
 
 from scripts.ExperimentMain import ExperimentMain
 from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer, RuleAggregationLayer
+from src.utils.RunConfiguration import get_run_configs
 
 
 def baseline_results(algorithm: str, datasets:list[str], path:str, sota:bool=False, first_column:str=''):
@@ -607,124 +608,352 @@ def ablation_distance(dataset='NCI1'):
 
 
 
+def labels_to_string(label_string:str):
+    # if label string of type wl_x return WL, Depth x
+    # wl_labeled_x return WL with Node Labels, Depth x
+    # simple_cycles_x return Pattern: Simple Cycles, Max. Length x
+    if 'wl' in label_string:
+        if not 'primary' in label_string:
+            return 'WL, Depth ' + label_string.split('_')[-1]
+        else:
+            # remove _primary
+            label_string = label_string.replace('_primary', '')
+            return 'WL + Node Labels, Depth ' + label_string.split('_')[-1]
+    elif 'wl_labeled' in label_string:
+        return 'WL with Node Labels, Depth ' + label_string.split('_')[-1]
+    elif 'simple_cycles' in label_string:
+        if not 'primary' in label_string:
+            return 'Simple Cycles, Max. Length ' + label_string.split('_')[-1]
+        else:
+            # remove _primary
+            label_string = label_string.replace('_primary', '')
+            return f'Simple Cycles, Max. Length {label_string.split("_")[-1]} + Node Labels'
+    elif 'induced_cycles' in label_string:
+        if not 'primary' in label_string:
+            return 'Induced Cycles, Max. Length ' + label_string.split('_')[-1]
+        else:
+            # remove _primary
+            label_string = label_string.replace('_primary', '')
+            return f'Induced Cycles, Max. Length {label_string.split("_")[-1]} + Node Labels'
+    elif 'clique' in label_string:
+        if not 'primary' in label_string:
+            return 'Clique, Max. Size ' + label_string.split('_')[-1]
+        else:
+            # remove _primary
+            label_string = label_string.replace('_primary', '')
+            return f'Clique, Max. Size {label_string.split("_")[-1]} + Node Labels'
+    elif 'subgraph_0' in label_string:
+        if not 'primary' in label_string:
+            return 'Clique Size 4'
+        else:
+            return 'Clique Size 4 + Node Labels,'
+    elif 'subgraph_1' in label_string:
+        if not 'primary' in label_string:
+            return 'Triangles + Node Degree'
+        else:
+            return 'Triangles + Node Degree + Node Labels'
+    elif 'subgraph_2' in label_string:
+        if not 'primary' in label_string:
+            return 'Squares + Node Degree'
+        else:
+            return 'Squares + Node Degree + Node Labels'
+    elif 'subgraph_3' in label_string:
+        if not 'primary' in label_string:
+            return 'Triangles, Squares + Node Degree'
+        else:
+            return 'Triangles, Squares + Node Degree + Node Labels'
+
+    elif 'primary' in label_string:
+        return 'Node Labels'
+
+def properties_to_string(properties_dict):
+    # if there are consecutive numbers in properties_dict use , \\ldots between min and max
+    min_val = min(properties_dict['values'])
+    max_val = max(properties_dict['values'])
+    if len(properties_dict['values']) > 3 and max_val - min_val == len(properties_dict['values']) - 1:
+        return f'{min_val}, \\ldots, {max_val}'
+    properties_string = ''
+    for i,x in enumerate(properties_dict['values']):
+        if i == len(properties_dict['values']) - 1:
+            properties_string += f'{x}'
+        else:
+            properties_string += f'{x}, '
+    return properties_string
+
+def format_number(number:str):
+    # add \, to each 3rd digit
+    for i in range(len(number) - 3, 0, -3):
+        number = number[:i] + '\\,' + number[i:]
+    return number
+
+
+
 def training_and_preprocessing_time():
     datasets_real_world = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
     dataset_synthetic = ['LongRings100', 'EvenOddRingsCount16', 'EvenOddRings2_16', 'CSL', 'Snowflakes']
     results = {key: dict() for key in datasets_real_world + dataset_synthetic}
 
+    # check if results file already exists
+    if Path('Reproduce_RuleGNN/Results/Latex/training_preprocessing_time.json').exists():
+        results = json.load(open('Reproduce_RuleGNN/Results/Latex/training_preprocessing_time.json', 'r'))
+    else:
 
-    path_real_world = f'Reproduce_RuleGNN/Results/RealWorld/'
-    path_synthetic = f'Reproduce_RuleGNN/Results/Synthetic/'
-    for path, datasets in [[path_real_world, datasets_real_world], [path_synthetic, dataset_synthetic]]:
-        if Path(path).exists():
-            # get number of parameters
-            for dataset in datasets:
-                # get the file from results folder that contains Best and Network
-                for file in Path(f'{path}/{dataset}/Results').iterdir():
-                    if 'Best_Configuration' in file.name and 'Network' in file.name:
-                        with open(file, 'r') as f:
-                            data = f.read()
-                            data = data.split('\n')
-                            for line in data:
-                                if 'Total trainable parameters' in line:
-                                    num_parameters = int(line.split(':')[-1].strip())
-                                    results[dataset]['parameters'] = num_parameters
-                                    break
-                        break
-            # get avg best epoch
-            for dataset in datasets:
+        path_real_world = f'Reproduce_RuleGNN/Results/RealWorld/'
+        path_synthetic = f'Reproduce_RuleGNN/Results/Synthetic/'
+        for path, datasets in [[path_real_world, datasets_real_world], [path_synthetic, dataset_synthetic]]:
+            if Path(path).exists():
+                # get number of parameters
+                for dataset in datasets:
                     # get the file from results folder that contains Best and Network
-                    df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
-                    results[dataset]['mean_epoch'] = df['Epoch Mean'].values[0]
-                    results[dataset]['std_epoch'] = df['Epoch Std'].values[0]
+                    for file in Path(f'{path}/{dataset}/Results').iterdir():
+                        if 'Best_Configuration' in file.name and 'Network' in file.name:
+                            with open(file, 'r') as f:
+                                data = f.read()
+                                data = data.split('\n')
+                                for line in data:
+                                    if 'Trainable Parameters' in line:
+                                        if 'trainable_parameters_per_layer' in results[dataset]:
+                                            results[dataset]['trainable_parameters_per_layer'].append(int(line.split(':')[-1].strip()))
+                                        else:
+                                            results[dataset]['trainable_parameters_per_layer'] = [int(line.split(':')[-1].strip())]
+                                    if 'Total trainable parameters' in line:
+                                        num_parameters = int(line.split(':')[-1].strip())
+                                        results[dataset]['parameters'] = num_parameters
+                                        break
+                            break
+                # get avg best epoch
+                for dataset in datasets:
+                        # get the file from results folder that contains Best and Network
+                        df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
+                        results[dataset]['mean_epoch'] = df['Epoch Mean'].values[0] + 1
+                        results[dataset]['std_epoch'] = df['Epoch Std'].values[0]
 
-            # get avg best epoch and avg epoch runtime
-            for dataset in datasets:
-                # get the file from results folder that contains Best and Network
-                df_all = None
-                for file in Path(f'{path}/{dataset}/Results').iterdir():
-                    if f'{dataset}_Best_Configuration' in file.name and '.csv' in file.suffix:
-                        df = pd.read_csv(file, delimiter=";")
-                        # concatenate the dataframes
-                        if df_all is None:
-                            df_all = df
-                        else:
-                            df_all = pd.concat([df_all, df], ignore_index=True)
-                # get the mean of all epoch times
-                mean_epoch_time = df_all['EpochTime'].mean()
-                std_epoch_time = df_all['EpochTime'].std()
-                results[dataset]['mean_epoch_time'] = mean_epoch_time
-                results[dataset]['std_epoch_time'] = std_epoch_time
+                # get avg best epoch and avg epoch runtime
+                for dataset in datasets:
+                    # get the file from results folder that contains Best and Network
+                    df_all = None
+                    for file in Path(f'{path}/{dataset}/Results').iterdir():
+                        if f'{dataset}_Best_Configuration' in file.name and '.csv' in file.suffix:
+                            df = pd.read_csv(file, delimiter=";")
+                            # concatenate the dataframes
+                            if df_all is None:
+                                df_all = df
+                            else:
+                                df_all = pd.concat([df_all, df], ignore_index=True)
+                    # get the mean of all epoch times
+                    mean_epoch_time = df_all['EpochTime'].mean()
+                    std_epoch_time = df_all['EpochTime'].std()
+                    results[dataset]['mean_epoch_time'] = mean_epoch_time
+                    results[dataset]['std_epoch_time'] = std_epoch_time
 
-            # get preprocessing time for distances
-            with open(path + 'generation_times_properties.txt', 'r') as f:
-                for i, line in enumerate(f):
-                    if i != 0:
-                        dataset, _ , time = line.split(',')
-                        results[dataset.strip()]['preprocessing_time'] = float(time.strip())
-
-
-
-            # get preprocessing time for features
-            preprocessing_times = dict()
-            with open(path + 'generation_times_labels.txt', 'r') as f:
-                for i, line in enumerate(f):
-                    if i != 0:
-                        dataset, label , time = line.split(',')
-                        # remove _None from label
-                        label = label.replace('_None', '')
-                        # if the word simple or induced appears twice, remove all after the second appearance
-                        if label.count('simple') > 1:
-                            label = label[:label.rfind('simple')]
-                        if label.count('induced') > 1:
-                            label = label[:label.rfind('induced')]
-
-                        if dataset not in preprocessing_times:
-                            preprocessing_times[dataset.strip()] = dict()
-                            preprocessing_times[dataset.strip()]['all'] = 0
-                        preprocessing_times[dataset.strip()][label.strip()] = float(time.strip())
-                        preprocessing_times[dataset.strip()]['all'] += float(time.strip())
-
-            # best label strings per dataset
-            ## Real World Data
-            config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml')
-            if path == path_synthetic:
-                config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml')
-            experiment = ExperimentMain(Path(config_path))
-            experiment.Preprocess(num_jobs=1)
+                # get preprocessing time for distances
+                with open(path + 'generation_times_properties.txt', 'r') as f:
+                    for i, line in enumerate(f):
+                        if i != 0:
+                            dataset, _ , time = line.split(',')
+                            results[dataset.strip()]['preprocessing_time'] = float(time.strip())
 
 
-            for dataset in datasets:
-                print(f'Load model for Dataset: {dataset}')
-                net = experiment.load_model(f'{dataset}', 0, 0, 0, best=True)
-                print('Loading Finished')
-                label_strings = set()
-                for layer in net.net_layers:
-                    if isinstance(layer, RuleConvolutionLayer):
-                        for x in layer.head_strings:
-                            label_strings.add(x)
-                        for x in layer.tail_strings:
-                            label_strings.add(x)
-                        for x in layer.bias_strings:
-                            label_strings.add(x)
-                    elif isinstance(layer, RuleAggregationLayer):
-                        for x in layer.head_strings:
-                            label_strings.add(x)
+
+                # get preprocessing time for features
+                preprocessing_times = dict()
+                with open(path + 'generation_times_labels.txt', 'r') as f:
+                    for i, line in enumerate(f):
+                        if i != 0:
+                            dataset, label , time = line.split(',')
+                            # remove _None from label
+                            label = label.replace('_None', '')
+                            # if the word simple or induced appears twice, remove all after the second appearance
+                            if label.count('simple') > 1:
+                                label = label[:label.rfind('simple')]
+                            if label.count('induced') > 1:
+                                label = label[:label.rfind('induced')]
+
+                            if dataset not in preprocessing_times:
+                                preprocessing_times[dataset.strip()] = dict()
+                                preprocessing_times[dataset.strip()]['all'] = 0
+                            preprocessing_times[dataset.strip()][label.strip()] = float(time.strip())
+                            preprocessing_times[dataset.strip()]['all'] += float(time.strip())
+                for dataset in preprocessing_times:
+                    if dataset in results:
+                        results[dataset]['preprocessing_times'] = preprocessing_times[dataset]
                     else:
-                        pass
-                # remove all strings with _primary from label_strings
-                label_strings = set([x for x in label_strings if '_primary' not in x])
-                results[dataset]['preprocessing_time_labels'] = sum([preprocessing_times[dataset][label] for label in label_strings])
-        pass
-    pass
+                        results[dataset] = dict()
+                        results[dataset]['preprocessing_times'] = preprocessing_times[dataset]
+
+                # best label strings per dataset
+                ## Real World Data
+                config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml')
+                if path == path_synthetic:
+                    config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml')
+                experiment = ExperimentMain(Path(config_path))
+                experiment.Preprocess(num_jobs=1)
+
+
+                for dataset in datasets:
+                    print(f'Load model for Dataset: {dataset}')
+                    net = experiment.load_model(f'{dataset}', 0, 0, 0, best=True)
+                    print('Loading Finished')
+                    label_strings = set()
+                    for i, layer in enumerate(net.net_layers):
+                        if isinstance(layer, RuleConvolutionLayer):
+                            if 'heads' in results[dataset]:
+                                results[dataset]['heads'].append(len(layer.n_head_labels))
+                            else:
+                                results[dataset]['heads'] = [len(layer.n_head_labels)]
+                            if 'property_names' in results[dataset]:
+                                results[dataset]['property_names'].append(layer.property_names)
+                            else:
+                                results[dataset]['property_names'] = [layer.property_names]
+                            if 'property_dicts' in results[dataset]:
+                                results[dataset]['property_dicts'].append([x.property_dict for x in net.para.layers[i].layer_heads])
+                            else:
+                                results[dataset]['property_dicts'] = [[x.property_dict for x in net.para.layers[i].layer_heads]]
+                            for x in layer.head_strings:
+                                label_strings.add(x)
+                                if 'layer_labels_head' in results[dataset]:
+                                    results[dataset]['layer_labels_head'].append(x)
+                                else:
+                                    results[dataset]['layer_labels_head'] = [x]
+                            for x in layer.tail_strings:
+                                label_strings.add(x)
+                                if 'layer_labels_tail' in results[dataset]:
+                                    results[dataset]['layer_labels_tail'].append(x)
+                                else:
+                                    results[dataset]['layer_labels_tail'] = [x]
+                            for x in layer.bias_strings:
+                                label_strings.add(x)
+                                if 'layer_labels_bias' in results[dataset]:
+                                    results[dataset]['layer_labels_bias'].append(x)
+                                else:
+                                    results[dataset]['layer_labels_bias'] = [x]
+                        elif isinstance(layer, RuleAggregationLayer):
+                            for x in layer.head_strings:
+                                label_strings.add(x)
+                                if 'layer_labels_aggregation' in results[dataset]:
+                                    results[dataset]['layer_labels_aggregation'].append(x)
+                                else:
+                                    results[dataset]['layer_labels_aggregation'] = [x]
+                        else:
+                            pass
+                    # remove all strings with _primary from label_strings
+                    label_strings = set([x for x in label_strings if '_primary' not in x])
+                    results[dataset]['preprocessing_time_labels'] = sum([preprocessing_times[dataset][label] for label in label_strings])
+
+        # save results in file
+        with open('Reproduce_RuleGNN/Results/Latex/training_preprocessing_time.json', 'w') as f:
+            json.dump(results, f)
+
+
+    ### Best Run Table
+    dataset_synthetic_names = ['RingTransfer1', 'RingTransfer2', 'RingTransfer3', 'CSL', 'Snowflakes']
     # create a table with the results Best Epoch, Epoch Time (s), #Parameters for the Best parameter configuration
-    table_str = ''
+    table_str = '\\begin{tabular}{lcc|ccr|cr|r}\n'
+    table_str += '\\toprule\n'
+    table_str += 'Dataset & Best Epoch & Time per Epoch (s) & \\multicolumn{3}{c}{Encoder Layers} & \\multicolumn{2}{c}{Decoder Layer} & \\# Total Parameters \\\\ \n'
+    table_str += ' & & & Invariants & Distances & \\# Parameters & Invariants & \\# Parameters & \\\\ \n'
+    table_str += '\\midrule\n'
     for dataset in datasets_real_world:
-        table_str +=
+        table_str += f'{dataset} & ${round(results[dataset]["mean_epoch"],1)} \\pm {round(results[dataset]["std_epoch"],1)}$ & ${round(results[dataset]["mean_epoch_time"],1)} \\pm {round(results[dataset]["std_epoch_time"],1)}$ & {labels_to_string(results[dataset]["layer_labels_head"][0])} & {properties_to_string(results[dataset]["property_dicts"][0][0])} & {format_number(str(results[dataset]["trainable_parameters_per_layer"][0]))} & {labels_to_string(results[dataset]["layer_labels_aggregation"][0])} & {format_number(str(results[dataset]["trainable_parameters_per_layer"][-1]))} & ${format_number(str(results[dataset]["parameters"]))}$ \\\\ \n'
+    table_str += '\\midrule\n'
+    for i, dataset in enumerate(dataset_synthetic):
+        table_str += f'{dataset_synthetic_names[i]} & ${round(results[dataset]["mean_epoch"],1)} \\pm {round(results[dataset]["std_epoch"],1)}$ & ${round(results[dataset]["mean_epoch_time"],1)} \\pm {round(results[dataset]["std_epoch_time"],1)}$ & {labels_to_string(results[dataset]["layer_labels_head"][0])} & {properties_to_string(results[dataset]["property_dicts"][0][0])} & {format_number(str(results[dataset]["trainable_parameters_per_layer"][0]))} & {labels_to_string(results[dataset]["layer_labels_aggregation"][0])} & {format_number(str(results[dataset]["trainable_parameters_per_layer"][-1]))} & ${format_number(str(results[dataset]["parameters"]))}$ \\\\ \n'
+    table_str += '\\bottomrule\n'
+    table_str += '\\end{tabular}\n'
+    # save table under best run properties table
+    with open('Reproduce_RuleGNN/Results/Latex/best_run_details_table.txt', 'w') as f:
+        f.write(table_str)
+
+    ### Preprocessing Time Table
+    # create a table with the results Best Epoch, Epoch Time (s), #Parameters for the Best parameter configuration
+    table_str = '\\begin{tabular}{lrr}\n'
+    table_str += '\\toprule\n'
+    table_str += 'Dataset & Preprocessing Distances (s) & Preprocessing Labels (s) \\\\ \n'
+    table_str += '\\midrule\n'
+    for dataset in datasets_real_world:
+        table_str += f'{dataset} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]['preprocessing_times']["all"],1)}$ \\\\ \n'
+    table_str += '\\midrule\n'
+    for i, dataset in enumerate(dataset_synthetic):
+        table_str += f'{dataset_synthetic_names[i]} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]['preprocessing_times']["all"],1)}$ \\\\ \n'
+    table_str += '\\bottomrule\n'
+    table_str += '\\end{tabular}\n'
+    # save table under best run properties table
+    with open('Reproduce_RuleGNN/Results/Latex/preprocessing_times.txt', 'w') as f:
+        f.write(table_str)
 
 
+
+def hyper_parameter_configurations():
+    # check if json has been produced
+    json_files = ['Reproduce_RuleGNN/Results/Latex/molecule_convolution_configs.json',
+                    'Reproduce_RuleGNN/Results/Latex/molecule_aggregation_configs.json',
+                    'Reproduce_RuleGNN/Results/Latex/social_convolution_configs.json',
+                    'Reproduce_RuleGNN/Results/Latex/social_aggregation_configs.json']
+    if all([Path(x).exists() for x in json_files]):
+        pass
+    else:
+        molecule = 'NCI1'
+        social = 'IMDB-BINARY'
+        # best label strings per dataset
+        ## Real World Data
+        config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml')
+        experiment = ExperimentMain(Path(config_path))
+        experiment.Preprocess(num_jobs=1)
+        run_configs_molecule = get_run_configs(experiment.experiment_configurations[molecule])
+        run_configs_social = get_run_configs(experiment.experiment_configurations[social])
+        for run_configs in [run_configs_molecule, run_configs_social]:
+            convolution_configs = set()
+            aggregation_configs = set()
+            for run_config in run_configs:
+                for layer in run_config.layers:
+                    if layer.layer_type == 'convolution':
+                        layer_string = layer.get_layer_label_strings()
+                        for x in layer_string:
+                            convolution_configs.add(labels_to_string(x))
+                    elif layer.layer_type == 'aggregation':
+                        layer_string = layer.get_layer_label_strings()
+                        for x in layer_string:
+                            aggregation_configs.add(labels_to_string(x))
+            convolution_configs = sorted(list(convolution_configs))
+            aggregation_configs = sorted(list(aggregation_configs))
+            # save the configurations in a file
+            if run_configs == run_configs_molecule:
+                with open(f'Reproduce_RuleGNN/Results/Latex/molecule_convolution_configs.json', 'w') as f:
+                    json.dump(list(convolution_configs), f)
+                with open(f'Reproduce_RuleGNN/Results/Latex/molecule_aggregation_configs.json', 'w') as f:
+                    json.dump(list(aggregation_configs), f)
+            elif run_configs == run_configs_social:
+                with open(f'Reproduce_RuleGNN/Results/Latex/social_convolution_configs.json', 'w') as f:
+                    json.dump(list(convolution_configs), f)
+                with open(f'Reproduce_RuleGNN/Results/Latex/social_aggregation_configs.json', 'w') as f:
+                    json.dump(list(aggregation_configs), f)
+    molecule_convolution_configs = json.load(
+        open('Reproduce_RuleGNN/Results/Latex/molecule_convolution_configs.json', 'r'))
+    molecule_aggregation_configs = json.load(
+        open('Reproduce_RuleGNN/Results/Latex/molecule_aggregation_configs.json', 'r'))
+    social_convolution_configs = json.load(open('Reproduce_RuleGNN/Results/Latex/social_convolution_configs.json', 'r'))
+    social_aggregation_configs = json.load(open('Reproduce_RuleGNN/Results/Latex/social_aggregation_configs.json', 'r'))
+
+    # create four tables: Molecules Encoder Invariants, Molecules Decoder Invariants, Social Encoder Invariants, Social Decoder Invariants
+    for x, y, z in zip([molecule_convolution_configs, molecule_aggregation_configs, social_convolution_configs, social_aggregation_configs],
+                 ['Molecules Encoder Invariants', 'Molecules Decoder Invariants', 'Social Encoder Invariants', 'Social Decoder Invariants'],
+                    ['molecule_convolution_configs', 'molecule_aggregation_configs', 'social_convolution_configs', 'social_aggregation_configs']):
+
+        table_string = '\\begin{tabular}{c}\n'
+        table_string += '\\toprule\n'
+        table_string += f'{y} \\\\ \n'
+        table_string += '\\midrule\n'
+        for config in x:
+            table_string += f'{config} \\\\ \n'
+        table_string += '\\bottomrule\n'
+        table_string += '\\end{tabular}\n'
+        with open(f'Reproduce_RuleGNN/Results/Latex/{z}.txt', 'w') as f:
+            f.write(table_string)
 
 def main():
+    # create Latex dir under Results
+    Path('Reproduce_RuleGNN/Results/Latex').mkdir(parents=True, exist_ok=True)
+    hyper_parameter_configurations()
     training_and_preprocessing_time()
     ablation_distance('NCI1')
     ablation_threshold('NCI1')

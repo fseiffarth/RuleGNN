@@ -296,8 +296,8 @@ class RuleGNNDataset(InMemoryDataset):
             for i, line in enumerate(lines):
                 if i % 10000 == 0:
                     print(f'Processing node {i+1}/{len(lines)} in dataset {self.name}')
-                data = line.strip().split(" ")
-                torch_lines[i] = torch.tensor(list(map(float, data)))
+                line_data = line.strip().split(" ")
+                torch_lines[i] = torch.tensor(list(map(float, line_data)))
             graph_ids = torch_lines[:, 0].long()
             # get slice vector from unique graph ids
             node_slices = torch.unique(graph_ids, return_counts=True)[1]

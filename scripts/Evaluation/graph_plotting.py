@@ -69,55 +69,6 @@ def plot_all_graphs_from_db(db_name, experiment):
         plt.close()
 
 
-def plot_specific_graphs_from_db(db_name, graph_ids, experiment):
-    import matplotlib as mpl
-
-    #mpl.use("pgf")
-    import matplotlib.pyplot as plt
-
-    plt.rcParams.update({
-        "font.family": "serif",  # use serif/main font for text elements
-        "text.usetex": True,  # use inline math for ticks
-        "pgf.rcfonts": False,  # don't setup fonts from rc parameters
-        "pgf.texsystem": "lualatex",
-        "pgf.preamble": "\n".join([
-            r"\usepackage{url}",  # load additional packages
-            r"\usepackage{unicode-math}",  # unicode math setup
-            r"\setmainfont{DejaVu Serif}",  # serif font via preamble
-        ])
-    })
-    # remove matplotlib frame
-    # remove frame from each side of plot
-    plt.rcParams['axes.spines.left'] = False
-    plt.rcParams['axes.spines.right'] = False
-    plt.rcParams['axes.spines.top'] = False
-    plt.rcParams['axes.spines.bottom'] = False
-
-
-    net = experiment.load_model(db_name=db_name, config_id=41, run_id=0, validation_id=0)
-
-    # make dir f'scripts/Evaluation/Drawing/Graphs/{db_name}/' if it does not exist
-    Path(f'scripts/Evaluation/Drawing/Graphs/{db_name}').mkdir(exist_ok=True, parents=True)
-    fig, ax = plt.subplots(1, len(graph_ids), figsize=(5*len(graph_ids), 5*1))
-    for i, graph_id in enumerate(graph_ids):
-        plt.subplots_adjust(wspace=0, hspace=0)
-        graph_drawing = (
-            GraphDrawing(node_size=200, edge_width=1),
-            GraphDrawing(node_size=200, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,
-                         colormap=CustomColorMap().cmap)
-        )
-        # get convolution layer
-        convolution_layer = net.net_layers[0]
-        convolution_layer.draw(ax=ax[i], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
-
-        # add subplots column and row titles
-        #axs.set_title(f'Graphs with Atom Labels')
-        ax[i].set_xlabel(f'Graph Label: ${net.graph_data.y[graph_id]}$')
-
-
-
-    plt.savefig(f'scripts/Evaluation/Drawing/Graphs/{db_name}/{db_name}_{'_'.join(map(str, graph_ids))}.pdf', bbox_inches='tight', backend='pgf')
-    plt.close()
 
 
 if __name__ == '__main__':

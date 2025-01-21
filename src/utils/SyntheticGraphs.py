@@ -32,10 +32,10 @@ def long_rings(data_size=1200, ring_size=100, seed=764,*args, **kwargs) -> (List
         # randomly shuffle {1,2,3,4} and assign to the nodes
         rand_perm = np.random.permutation([1, 2, 3, 4])
         # change the labels of the nodes
-        G.nodes[node_0]["label"] = rand_perm[0]
-        G.nodes[node_1]["label"] = rand_perm[1]
-        G.nodes[node_2]["label"] = rand_perm[2]
-        G.nodes[node_3]["label"] = rand_perm[3]
+        G.nodes[node_0]["primary_label"] = rand_perm[0]
+        G.nodes[node_1]["primary_label"] = rand_perm[1]
+        G.nodes[node_2]["primary_label"] = rand_perm[2]
+        G.nodes[node_3]["primary_label"] = rand_perm[3]
         # find position of 1 in rand_perm
         pos_one = np.where(rand_perm == 1)[0][0]
         # find label opposite to 1
@@ -98,13 +98,13 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
                 class_number = 2
                 opposite_nodes = []
                 for node in G.nodes(data=True):
-                    node_label = node[1]["label"]
+                    node_label = node[1]["primary_label"]
                     node_id = node[0]
                     pos = np.where(random_permutation == node_id)[0][0]
                     # get opposite node in the ring
                     opposite_node = random_permutation[(pos + ring_size // 2) % ring_size]
                     # get opposite node label in the ring
-                    opposite_node_label = G.nodes[opposite_node]["label"]
+                    opposite_node_label = G.nodes[opposite_node]["primary_label"]
                     # add node_label + opposite_node_label to opposite_nodes
                     opposite_nodes.append(node_label + opposite_node_label)
                 # count odd and even entries in opposite_nodes
@@ -129,11 +129,11 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
                 node_4 = random_permutation[(pos + 1) % ring_size]
                 node_5 = random_permutation[(pos - 1 + ring_size) % ring_size]
 
-                label_node_1 = G.nodes[node_1]["label"]
-                label_node_2 = G.nodes[node_2]["label"]
-                label_node_3 = G.nodes[node_3]["label"]
-                label_node_4 = G.nodes[node_4]["label"]
-                label_node_5 = G.nodes[node_5]["label"]
+                label_node_1 = G.nodes[node_1]["primary_label"]
+                label_node_2 = G.nodes[node_2]["primary_label"]
+                label_node_3 = G.nodes[node_3]["primary_label"]
+                label_node_4 = G.nodes[node_4]["primary_label"]
+                label_node_5 = G.nodes[node_5]["primary_label"]
 
                 # add the labels of the nodes
                 a = 0 + label_node_2

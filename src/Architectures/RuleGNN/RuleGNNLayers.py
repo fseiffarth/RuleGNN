@@ -284,12 +284,16 @@ class RuleConvolutionLayer(nn.Module):
                     counts[-1] = 0
                 # set all indices to -1 where the count is smaller than the threshold TODO
                 threshold = self.para.run_config.config.get('rule_occurrence_threshold', 1)
+                upper_threshold = self.para.run_config.config.get('rule_occurrence_upper_threshold', None)
                 num_weights = len(counts)
                 if do_invalid_indices_exist:
                     num_weights -= 1
-                if threshold > 1 or do_invalid_indices_exist:
+                if threshold > 1 or do_invalid_indices_exist or upper_threshold is not None:
                     # get a bool tensor from indices where the entry is true if the indices entry is in the unique_rows
-                    valid_values = torch.where(counts >= threshold)[0]
+                    if upper_threshold is not None:
+                        valid_values = torch.where(torch.logical_and(counts >= threshold, counts <= upper_threshold))[0]
+                    else:
+                        valid_values = torch.where(counts >= threshold)[0]
                     valid_value_dict = {value.item(): idx for idx, value in enumerate(valid_values)}
                     valid_indices_bool = torch.isin(indices, valid_values)
                     valid_indices = torch.where(valid_indices_bool)[0]
@@ -297,7 +301,7 @@ class RuleConvolutionLayer(nn.Module):
                     indices[valid_indices] = torch.tensor([valid_value_dict[idx.item()] for idx in indices[valid_indices]], dtype=torch.int64)
                     num_weights = len(valid_values)
                 for idx in range(len(graph_data)):
-                    if threshold > 1 or do_invalid_indices_exist:
+                    if threshold > 1 or do_invalid_indices_exist or upper_threshold is not None:
                         valid_indices_graph = torch.where(valid_indices_bool[property_subdict_slices[idx]:property_subdict_slices[idx+1]])[0] + property_subdict_slices[idx]
                     else:
                         valid_indices_graph = torch.arange(property_subdict_slices[idx], property_subdict_slices[idx+1], dtype=torch.int64)
@@ -522,7 +526,7 @@ class RuleConvolutionLayer(nn.Module):
                     # root node is the one with label 0
                     root_node = None
                     for node in graph.nodes():
-                        if self.graph_data.node_labels['primary'].node_labels[graph_id][node] == 0:
+                        if self.graph_data.node_labels['primary'].node_labels[self.graph_data.slices['x'][graph_id] + node] == 0:
                             root_node = node
                             break
                     # get circular positions around (0,0) starting with the root node at (-400,0)
@@ -620,6 +624,7 @@ class RuleConvolutionLayer(nn.Module):
                 upper_bound_weight = sorted_weights[int(len(sorted_weights) * (1 - percentage))]
             elif filter_weights.get('absolute', None) is not None:
                 absolute = filter_weights['absolute']
+                absolute = min(absolute, len(sorted_weights))
                 lower_bound_weight = sorted_weights[absolute - 1]
                 upper_bound_weight = sorted_weights[-absolute]
             # set all weights smaller than the lower bound and larger than the upper bound to zero
