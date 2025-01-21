@@ -45,8 +45,8 @@ class Preprocessing:
                 if data_generation != 'generate_from_function':
                     try:
                         path = Path(self.experiment_configuration['paths']['data'])
-                        if Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'raw').exists() and len(
-                                list(Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'raw').iterdir())) > 0:
+                        if Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'processed').exists() and len(
+                                list(Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'processed').iterdir())) > 0:
                             print(f"Dataset {db_name} already exists in {Path(self.experiment_configuration['paths']['data'])} . Skip the data generation.")
                             return
                         # download the dataset

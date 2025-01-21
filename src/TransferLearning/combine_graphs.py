@@ -1,6 +1,7 @@
 import os
+from pathlib import Path
 
-from src.Preprocessing.create_labels import save_standard_labels, save_cycle_labels, save_subgraph_labels, \
+from src.Preprocessing.create_labels import  save_cycle_labels, save_subgraph_labels, \
     save_clique_labels
 from src.Preprocessing.create_properties import write_distance_properties
 from src.Preprocessing.create_splits import create_splits, create_transfer_splits
@@ -29,7 +30,7 @@ def create_dataset(dataset_name, layers=None, with_degree=False):
     save_graphs(path=output_path, db_name=f'{dataset_name}', graphs=graph_data.graphs, labels=graph_data.graph_labels, with_degree=with_degree, graph_format='NEL')
 
 
-def combine_nel_graphs(dataset_names):
+def combine_nel_graphs(data_path:Path, output_path:Path, dataset_names):
     edge_files = []
     label_files = []
     node_files = []
@@ -41,24 +42,27 @@ def combine_nel_graphs(dataset_names):
             new_name = dataset
         else:
             new_name += f'_{dataset}'
-        if not os.path.exists(f'Data/NEL_Format/{dataset}'):
-            raise FileNotFoundError(f'Data/NEL_Format/{dataset} does not exist')
-        edge_files.append(f'Data/NEL_Format/{dataset}/raw/{dataset}_Edges.txt')
-        label_files.append(f'Data/NEL_Format/{dataset}/raw/{dataset}_Labels.txt')
-        node_files.append(f'Data/NEL_Format/{dataset}/raw/{dataset}_Nodes.txt')
+        if not Path(data_path.joinpath(f'{dataset}')).exists():
+            raise FileNotFoundError(data_path.joinpath(f'{dataset}'))
+        edge_files.append(data_path.joinpath(f'{dataset}/raw/{dataset}_Edges.txt'))
+        label_files.append(data_path.joinpath(f'{dataset}/raw/{dataset}_Labels.txt'))
+        node_files.append(data_path.joinpath(f'{dataset}/raw/{dataset}_Nodes.txt'))
         # get number of graphs in each dataset using the number of lines in the label file
-        with open(f'Data/NEL_Format/{dataset}/raw/{dataset}_Labels.txt', 'r') as f:
+        with open(data_path.joinpath(f'{dataset}/raw/{dataset}_Labels.txt'), 'r') as f:
             num_graphs_per_dataset.append(len(f.readlines()))
 
     # ceate new folder
-    os.makedirs(f'Data/NEL_Format/{new_name}', exist_ok = True)
-    os.makedirs(f'Data/NEL_Format/{new_name}/raw', exist_ok = True)
-    os.makedirs(f'Data/NEL_Format/{new_name}/processed', exist_ok = True)
+    if not output_path.exists():
+        raise FileNotFoundError(output_path)
+    else:
+        Path(output_path.joinpath(f'{new_name}')).mkdir(parents=True, exist_ok=True)
+        Path(output_path.joinpath(f'{new_name}/raw')).mkdir(parents=True, exist_ok=True)
+        Path(output_path.joinpath(f'{new_name}/processed')).mkdir(parents=True, exist_ok=True)
 
 
 
     # ceate new files from new_name.Eges.txt using edge_files
-    with open(f'Data/NEL_Format/{new_name}/raw/{new_name}_Edges.txt', 'w') as f:
+    with open(output_path.joinpath(f'{new_name}/raw/{new_name}_Edges.txt'), 'w') as f:
         start_index = 0
         for i, edge_file in enumerate(edge_files):
             if i != 0:
@@ -74,7 +78,7 @@ def combine_nel_graphs(dataset_names):
 
 
     # ceate new files from new_name.Nodes.txt using node_files
-    with open(f'Data/NEL_Format/{new_name}/raw/{new_name}_Nodes.txt', 'w') as f:
+    with open(output_path.joinpath(f'{new_name}/raw/{new_name}_Nodes.txt'), 'w') as f:
         start_index = 0
         for i, node_file in enumerate(node_files):
             if i != 0:
@@ -89,7 +93,7 @@ def combine_nel_graphs(dataset_names):
             start_index += num_graphs_per_dataset[i]
 
     # ceate new files from new_name.Labels.txt using label_files
-    with open(f'Data/NEL_Format/{new_name}/raw/{new_name}_Labels.txt', 'w') as f:
+    with open(output_path.joinpath(f'{new_name}/raw/{new_name}_Labels.txt'), 'w') as f:
         start_index = 0
         for i, label_file in enumerate(label_files):
             if i != 0:
@@ -121,10 +125,16 @@ def transfer_IMDB():
     save_subgraph_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'],
                          subgraphs=[nx.cycle_graph(3), nx.star_graph(1)], label_path="Data/Labels/", id=1, format='NEL')
     create_splits(db_name='IMDB-BINARY_IMDB-MULTI', data_path="Data/NEL_Format/", output_path="Data/Splits/", graph_format='NEL')
-    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",
-                           data_format='NEL', split_type='transfer')
-    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI', path="Data/NEL_Format/", output_path="Data/Splits/",
-                           data_format='NEL', split_type='mixed')
+    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI',
+                           path="Data/NEL_Format/",
+                           output_path="Data/Splits/",
+                           data_format='NEL',
+                           split_type='transfer')
+    create_transfer_splits(db_name='IMDB-BINARY_IMDB-MULTI',
+                           path="Data/NEL_Format/",
+                           output_path="Data/Splits/",
+                           data_format='NEL',
+                           split_type='mixed')
 
 def transfer_PTC():
     names = ['PTC_FM', 'PTC_FR', 'PTC_MM', 'PTC_MR']

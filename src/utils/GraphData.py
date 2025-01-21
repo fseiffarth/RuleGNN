@@ -691,8 +691,8 @@ class GraphData:
 
         self.max_nodes = max([g.number_of_nodes() for g in self.graphs])
 
-        self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
-        self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
+        #self.add_node_labels(node_labeling_name='primary', node_labeling_method=NodeLabeling.standard_node_labeling)
+        #self.add_edge_labels(edge_labeling_name='primary', edge_labeling_method=EdgeLabeling.standard_edge_labeling)
 
         if not only_graphs:
             if input_features is None:

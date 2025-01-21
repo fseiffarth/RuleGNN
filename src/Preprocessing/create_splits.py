@@ -32,7 +32,7 @@ def zinc_splits():
     with open(f"{db_name}_splits.json", "w") as f:
         f.write(json.dumps(splits))
 
-def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Data/Splits/", data_format=None, split_type='random'):
+def create_transfer_splits(db_name, path:Path, output_path:Path, data_format=None, split_type='random'):
     '''
     Create splits for transfer learning
     :param db_name: name of the dataset
@@ -52,7 +52,7 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
         create_splits(db_name, path, output_path, data_format)
         return
     k = 10
-    graph_data = get_graph_data(db_name, path, graph_format=data_format)
+    graph_data = get_graph_data(db_name, path, graph_format=data_format, only_graphs=True)
     # number of graphs per graph_dataset
     graph_number_map = defaultdict(list)
     graph_datasets = []
@@ -88,7 +88,7 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
                 {"test": test_data[i], "model_selection": [{"train": training_data, "validation": validate_data}]})
 
         # save splits to json as one line use json.dumps
-        with open(f"{output_path}{db_name}_splits_transfer.json", "w") as f:
+        with open(output_path.joinpath(f"{db_name}_splits_transfer.json"), "w") as f:
             f.write(json.dumps(splits))
     elif split_type == "mixed":
         # split the graph_datasets equally into k parts
@@ -139,7 +139,7 @@ def create_transfer_splits(db_name, path="../GraphData/DS_all/", output_path="Da
                 {"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
 
         # save splits to json as one line use json.dumps
-        with open(f"{output_path}{db_name}_splits_mixed.json", "w") as f:
+        with open(output_path.joinpath(f"{db_name}_splits_mixed.json"), "w") as f:
             f.write(json.dumps(splits))
 
 def splits_from_index_lists(training_indices, validation_indices, test_indices, db_name, output_path):
