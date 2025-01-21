@@ -7,6 +7,7 @@ import pandas as pd
 import torch
 
 from scripts.ExperimentMain import ExperimentMain
+from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer, RuleAggregationLayer
 
 
 def baseline_results(algorithm: str, datasets:list[str], path:str, sota:bool=False, first_column:str=''):
@@ -607,88 +608,119 @@ def ablation_distance(dataset='NCI1'):
 
 
 def training_and_preprocessing_time():
-    datasets = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
-    results = {key: dict() for key in datasets}
+    datasets_real_world = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
+    dataset_synthetic = ['LongRings100', 'EvenOddRingsCount16', 'EvenOddRings2_16', 'CSL', 'Snowflakes']
+    results = {key: dict() for key in datasets_real_world + dataset_synthetic}
 
 
-    path = f'Reproduce_RuleGNN/Results/RealWorld/'
-    if Path(path).exists():
-        # get number of parameters
-        for dataset in datasets:
-            # get the file from results folder that contains Best and Network
-            for file in Path(f'{path}/{dataset}/Results').iterdir():
-                if 'Best_Configuration' in file.name and 'Network' in file.name:
-                    with open(file, 'r') as f:
-                        data = f.read()
-                        data = data.split('\n')
-                        for line in data:
-                            if 'Total trainable parameters' in line:
-                                num_parameters = int(line.split(':')[-1].strip())
-                                results[dataset]['parameters'] = num_parameters
-                                break
-                    break
-        # get avg best epoch
-        for dataset in datasets:
+    path_real_world = f'Reproduce_RuleGNN/Results/RealWorld/'
+    path_synthetic = f'Reproduce_RuleGNN/Results/Synthetic/'
+    for path, datasets in [[path_real_world, datasets_real_world], [path_synthetic, dataset_synthetic]]:
+        if Path(path).exists():
+            # get number of parameters
+            for dataset in datasets:
                 # get the file from results folder that contains Best and Network
-                df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
-                results[dataset]['mean_epoch'] = df['Epoch Mean'].values[0]
-                results[dataset]['std_epoch'] = df['Epoch Std'].values[0]
+                for file in Path(f'{path}/{dataset}/Results').iterdir():
+                    if 'Best_Configuration' in file.name and 'Network' in file.name:
+                        with open(file, 'r') as f:
+                            data = f.read()
+                            data = data.split('\n')
+                            for line in data:
+                                if 'Total trainable parameters' in line:
+                                    num_parameters = int(line.split(':')[-1].strip())
+                                    results[dataset]['parameters'] = num_parameters
+                                    break
+                        break
+            # get avg best epoch
+            for dataset in datasets:
+                    # get the file from results folder that contains Best and Network
+                    df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
+                    results[dataset]['mean_epoch'] = df['Epoch Mean'].values[0]
+                    results[dataset]['std_epoch'] = df['Epoch Std'].values[0]
 
-        # get avg best epoch and avg epoch runtime
-        for dataset in datasets:
-            # get the file from results folder that contains Best and Network
-            df_all = None
-            for file in Path(f'{path}/{dataset}/Results').iterdir():
-                if f'{dataset}_Best_Configuration' in file.name and '.csv' in file.suffix:
-                    df = pd.read_csv(file, delimiter=";")
-                    # concatenate the dataframes
-                    if df_all is None:
-                        df_all = df
+            # get avg best epoch and avg epoch runtime
+            for dataset in datasets:
+                # get the file from results folder that contains Best and Network
+                df_all = None
+                for file in Path(f'{path}/{dataset}/Results').iterdir():
+                    if f'{dataset}_Best_Configuration' in file.name and '.csv' in file.suffix:
+                        df = pd.read_csv(file, delimiter=";")
+                        # concatenate the dataframes
+                        if df_all is None:
+                            df_all = df
+                        else:
+                            df_all = pd.concat([df_all, df], ignore_index=True)
+                # get the mean of all epoch times
+                mean_epoch_time = df_all['EpochTime'].mean()
+                std_epoch_time = df_all['EpochTime'].std()
+                results[dataset]['mean_epoch_time'] = mean_epoch_time
+                results[dataset]['std_epoch_time'] = std_epoch_time
+
+            # get preprocessing time for distances
+            with open(path + 'generation_times_properties.txt', 'r') as f:
+                for i, line in enumerate(f):
+                    if i != 0:
+                        dataset, _ , time = line.split(',')
+                        results[dataset.strip()]['preprocessing_time'] = float(time.strip())
+
+
+
+            # get preprocessing time for features
+            preprocessing_times = dict()
+            with open(path + 'generation_times_labels.txt', 'r') as f:
+                for i, line in enumerate(f):
+                    if i != 0:
+                        dataset, label , time = line.split(',')
+                        # remove _None from label
+                        label = label.replace('_None', '')
+                        # if the word simple or induced appears twice, remove all after the second appearance
+                        if label.count('simple') > 1:
+                            label = label[:label.rfind('simple')]
+                        if label.count('induced') > 1:
+                            label = label[:label.rfind('induced')]
+
+                        if dataset not in preprocessing_times:
+                            preprocessing_times[dataset.strip()] = dict()
+                            preprocessing_times[dataset.strip()]['all'] = 0
+                        preprocessing_times[dataset.strip()][label.strip()] = float(time.strip())
+                        preprocessing_times[dataset.strip()]['all'] += float(time.strip())
+
+            # best label strings per dataset
+            ## Real World Data
+            config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml')
+            if path == path_synthetic:
+                config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml')
+            experiment = ExperimentMain(Path(config_path))
+            experiment.Preprocess(num_jobs=1)
+
+
+            for dataset in datasets:
+                print(f'Load model for Dataset: {dataset}')
+                net = experiment.load_model(f'{dataset}', 0, 0, 0, best=True)
+                print('Loading Finished')
+                label_strings = set()
+                for layer in net.net_layers:
+                    if isinstance(layer, RuleConvolutionLayer):
+                        for x in layer.head_strings:
+                            label_strings.add(x)
+                        for x in layer.tail_strings:
+                            label_strings.add(x)
+                        for x in layer.bias_strings:
+                            label_strings.add(x)
+                    elif isinstance(layer, RuleAggregationLayer):
+                        for x in layer.head_strings:
+                            label_strings.add(x)
                     else:
-                        df_all = pd.concat([df_all, df], ignore_index=True)
-            # get the mean of all epoch times
-            mean_epoch_time = df_all['EpochTime'].mean()
-            std_epoch_time = df_all['EpochTime'].std()
-            results[dataset]['mean_epoch_time'] = mean_epoch_time
-            results[dataset]['std_epoch_time'] = std_epoch_time
-
-        # get preprocessing time for distances
-        with open(path + 'generation_times_properties.txt', 'r') as f:
-            for i, line in enumerate(f):
-                if i != 0:
-                    dataset, _ , time = line.split(',')
-                    results[dataset.strip()]['preprocessing_time'] = float(time.strip())
-
-
-        # best label strings per dataset
-        ## Real World Data
-        experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
-        experiment.Preprocess()
-        for dataset in datasets:
-            net = experiment.load_model(f'{dataset}', 0, 0, 0, best=True)
-            for layer in net.net_layers:
-                if isinstance(layer, RuleGNNLayer):
-                    best_label_strings = layer.best_label_strings
-                    break
-        best_label_strings = dict()
-        for dataset in datasets:
-            # get the file from results folder that contains Best and Network
-            for file in Path(f'{path}/{dataset}/Results').iterdir():
-                if 'Best_Configuration' in file.name and 'Network' in file.name:
-                    pass
-
-
-        # get preprocessing time for features
-        with open(path + 'generation_times_labels.txt', 'r') as f:
-            for i, line in enumerate(f):
-                if i != 0:
-                    dataset, label , time = line.split(',')
-                    results[dataset.strip()]['preprocessing_time_features'] = float(time.strip())
-
-
-
-
-
+                        pass
+                # remove all strings with _primary from label_strings
+                label_strings = set([x for x in label_strings if '_primary' not in x])
+                results[dataset]['preprocessing_time_labels'] = sum([preprocessing_times[dataset][label] for label in label_strings])
+        pass
+    pass
+    # create a table with the results Best Epoch, Epoch Time (s), #Parameters for the Best parameter configuration
+    table_str = ''
+    for dataset in datasets_real_world:
+        table_str +=
 
 
 
