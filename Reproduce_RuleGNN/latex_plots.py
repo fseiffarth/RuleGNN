@@ -115,7 +115,7 @@ def ablation_distance(dataset='NCI1'):
     if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_distance_{dataset}.pdf').exists():
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
-            "font.size": 15,
+            "font.size": 12,
             "text.usetex": True,  # use inline math for ticks
             "pgf.rcfonts": False,  # don't setup fonts from rc parameters
             "pgf.texsystem": "lualatex",
@@ -180,9 +180,9 @@ def ablation_distance(dataset='NCI1'):
                 if np_array[i, j] != 0:
                     # if color is dark, add white text, else add black text
                     if np_array[i, j] > 63:
-                        plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='white', fontsize=9)
+                        plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='white', fontsize=8)
                     else:
-                        plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='black', fontsize=9)
+                        plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='black', fontsize=8)
                 else:
                     # add -
                     #plt.text(j, i, '-', ha='center', va='center', color='black')
@@ -429,7 +429,7 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0) -> np.n
 
         ax.legend(loc='upper right')
         plt.xlabel('Learnable parameters')
-        plt.ylabel('\# Occurrences in Dataset')
+        plt.ylabel('\\# Occurrences in Dataset')
         #plt.title('Number of occurrences per rule')
         # use pgf backend for latex
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/occurrences_per_rule_{db_name}.png', bbox_inches='tight')
