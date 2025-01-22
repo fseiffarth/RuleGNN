@@ -26,7 +26,7 @@ def main():
                            split_type='mixed')
 
     experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/ablation/transfer/main_config_ablation_transfer.yml'))
-    experiment.Preprocess()
+    experiment.Preprocess(num_jobs=1)
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel()

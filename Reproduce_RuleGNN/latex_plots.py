@@ -115,7 +115,7 @@ def ablation_distance(dataset='NCI1'):
     if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_distance_{dataset}.pdf').exists():
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
-            "font.size": 12,
+            "font.size": 10,
             "text.usetex": True,  # use inline math for ticks
             "pgf.rcfonts": False,  # don't setup fonts from rc parameters
             "pgf.texsystem": "lualatex",
@@ -420,7 +420,7 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0) -> np.n
         fig, ax = plt.subplots()
         for i, p in enumerate(range(layer.n_properties[channel])):
             ax.scatter([], [], color=property_colors[i], label=property_legend[i])
-        ax.scatter(np.arange(num_weights), weight_array, s=0.5, alpha=1, c=node_colors)
+        ax.scatter(np.arange(num_weights), weight_array, s=1.0, alpha=1, c=node_colors)
         # add legend title
 
         # add vertical lines for the steps
@@ -428,8 +428,9 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0) -> np.n
             ax.axvline(steps[i], color='black', linestyle='--', linewidth=0.5)
 
         ax.legend(loc='upper right')
-        plt.xlabel('Learnable parameters')
+        plt.xlabel('Learnable Parameters (Encoder, Sorted by Occurrences)')
         plt.ylabel('\\# Occurrences in Dataset')
+        plt.title(f'{db_name}')
         #plt.title('Number of occurrences per rule')
         # use pgf backend for latex
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/occurrences_per_rule_{db_name}.png', bbox_inches='tight')
@@ -461,8 +462,9 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray, steps,
 
         ax.scatter(np.arange(len(weights)), weights, s=1, alpha=1, c=node_colors)
         ax.legend(loc='upper right')
-        plt.xlabel('Learnable parameters (sorted by occurrences)')
-        plt.ylabel('Value of the parameter')
+        plt.xlabel('Learnable parameters (Encoder, Sorted by Occurrences)')
+        plt.ylabel('Parameter Value')
+        plt.title(f'{db_name}')
         #plt.title('Distribution of rules')
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/weights_per_rule_{db_name}.png', bbox_inches='tight')
 
@@ -472,7 +474,6 @@ def plot_shared_weights(path, db_name):
              f'Reproduce_RuleGNN/Results/Latex/Plots/weights_per_rule_{db_name}.png']
     if not all([Path(p).exists() for p in paths]):
         experiment = ExperimentMain(Path(path))
-
         net = experiment.load_model(db_name=db_name, best=True)
         convolution_layer = net.net_layers[0]
         channel = 0
@@ -489,9 +490,9 @@ def main():
     plot_network_path_random = 'Reproduce_RuleGNN/Configs/main_config_fair_real_world_random_variation.yml'
     plot_network_path_synthetic = 'Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml'
 
-    plot_shared_weights(plot_network_path, 'DHFR')
-    plot_shared_weights(plot_network_path, 'IMDB-BINARY')
-    plot_shared_weights(plot_network_path, 'IMDB-MULTI')
+    plot_shared_weights(plot_network_path_random, 'DHFR')
+    plot_shared_weights(plot_network_path_random, 'IMDB-BINARY')
+    plot_shared_weights(plot_network_path_random, 'IMDB-MULTI')
     plot_shared_weights(plot_network_path, 'NCI1')
     plot_shared_weights(plot_network_path, 'NCI109')
     plot_shared_weights(plot_network_path, 'Mutagenicity')
@@ -516,6 +517,7 @@ def main():
     plot_network(plot_network_path, 'NCI109', [56, 18, 3165], draw_type='kawai', filtering=[None, {'absolute' : 3}])
     plot_network(plot_network_path, 'Mutagenicity', [1654, 257, 360], draw_type='kawai', filtering=[None, {'absolute' : 3}])
     ablation_distance('NCI1')
+    ablation_distance('NCI109')
     ablation_threshold('NCI1')
     ablation_threshold('IMDB-BINARY')
 
