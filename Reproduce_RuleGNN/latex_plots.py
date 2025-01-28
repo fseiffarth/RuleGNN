@@ -12,11 +12,11 @@ from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer, RuleAg
 from src.utils.GraphDrawing import GraphDrawing, CustomColorMap, RandomColorMap
 from src.utils.RunConfiguration import get_run_configs
 
-def ablation_threshold(dataset='NCI1'):
-    if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_threshold_{dataset}.pdf').exists():
+def ablation_threshold(dataset, type):
+    if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_threshold_{dataset}_{type}.pdf').exists():
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
-            "font.size": 10,
+            "font.size": 12,
             "text.usetex": True,  # use inline math for ticks
             "pgf.rcfonts": False,  # don't setup fonts from rc parameters
             "pgf.texsystem": "lualatex",
@@ -29,7 +29,7 @@ def ablation_threshold(dataset='NCI1'):
 
         ablation_results = dict()
         for i in list(range(1, 21)) + [30, 40, 50]:
-            path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+            path = f'Reproduce_RuleGNN/Results/Ablation/{type}/{i}/'
             # check if the path exists
             if Path(path).exists():
                 results_str, results = share_gnn_results('ShareGNN', [dataset], path, False)
@@ -40,7 +40,7 @@ def ablation_threshold(dataset='NCI1'):
                     ablation_results[i] = {'accuracy': results[0][0], 'std': results[0][1]}
         # get number of parameters
         for i in list(range(1, 21)) + [30, 40, 50]:
-            path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+            path = f'Reproduce_RuleGNN/Results/Ablation/{type}/{i}/'
             if Path(path).exists():
                 # get the file from results folder that contains Best and Network
                 for file in Path(f'{path}/{dataset}/Results').iterdir():
@@ -56,14 +56,14 @@ def ablation_threshold(dataset='NCI1'):
                         break
         # get avg best epoch
         for i in list(range(1, 21)) + [30, 40, 50]:
-            path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+            path = f'Reproduce_RuleGNN/Results/Ablation/{type}{i}/'
             if Path(path).exists():
                 # get the file from results folder that contains Best and Network
                 df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
                 ablation_results[i]['mean_epoch'] = df['Epoch Mean'].values[0]
         # get avg best epoch and avg epoch runtime
         for i in list(range(1, 21)) + [30, 40, 50]:
-            path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
+            path = f'Reproduce_RuleGNN/Results/Ablation/{type}/{i}/'
             if Path(path).exists():
                 # get the file from results folder that contains Best and Network
                 df_all = None
@@ -103,16 +103,16 @@ def ablation_threshold(dataset='NCI1'):
         #ax2.set_ylim([0, 400])
 
         #  add one legend for both axes
-        plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.175, 0.85), ncols=2)
+        plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.42, 0.79))
         # set ticks to list(range(1, 21)) + [30, 40, 50]
         plt.xticks(list(range(1, 21, 2)))
         # set x-axis label to the figure
         ax1.set_xlabel('Minimum \\# of Occurrences per Shared Weight (Encoder)')
-        plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_threshold_{dataset}.pdf', bbox_inches='tight', backend='pgf')
+        plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_threshold_{dataset}_{type}.pdf', bbox_inches='tight', backend='pgf')
         pass
 
-def ablation_distance(dataset='NCI1'):
-    if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_distance_{dataset}.pdf').exists():
+def ablation_distance(dataset='NCI1', max_distance=12):
+    if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_distance_{dataset}_{max_distance}.pdf').exists():
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
             "font.size": 10,
@@ -156,7 +156,7 @@ def ablation_distance(dataset='NCI1'):
         df['Layers'] = [model_layers_depths[i][0] for i in range(len(model_layers_depths))]
         df['Depth'] = [model_layers_depths[i][1] for i in range(len(model_layers_depths))]
 
-        max_depth = 13
+        max_depth = max_distance + 1
         np_array = np.zeros((11, max_depth))
         # iterate over rows of the dataframe and fill the np_array
         for i, row in df.iterrows():
@@ -189,16 +189,22 @@ def ablation_distance(dataset='NCI1'):
                     pass
         # invert y-axis
         plt.gca().invert_yaxis()
+        # set x and y min to 1
+        plt.xlim(0.5, max_depth - 1 + 0.5)
+        plt.ylim(0.5, 10.5)
+        # add tick at 1
+        plt.xticks(range(1, max_depth))
+        plt.yticks(range(1, 11))
         # set x-axis to Layers
         plt.ylabel('Layers')
         # set y-axis to Depth
-        plt.xlabel('Depth')
+        plt.xlabel('Maximum Distance')
         plt.title(f'{dataset}')
         # add colorbar and set height to axes height
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(im, cax=cax).set_label('Accuracy in $\\%$')
-        plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_distance_{dataset}.pdf', bbox_inches='tight', backend='pgf')
+        plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_distance_{dataset}_{max_distance}.pdf', bbox_inches='tight', backend='pgf')
         pass
 
 def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_labels_from_invariant=True, with_aggregation=False, molecule=False, channel=0):
@@ -318,7 +324,7 @@ def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_label
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/visualization_{db_name}_{graph_id_string}.pdf', bbox_inches='tight', backend='pgf')
 
 def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_size=200):
-    if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/{db_name}_{'_'.join(map(str, graph_ids))}.pdf').exists():
+    if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/{db_name}_{"_".join(map(str, graph_ids))}.pdf').exists():
         # make dir f'scripts/Evaluation/Drawing/Graphs/{db_name}/' if it does not exist
         Path(f'Reproduce_RuleGNN/Results/Latex/Plots/').mkdir(exist_ok=True, parents=True)
         import matplotlib as mpl
@@ -366,7 +372,7 @@ def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_
 
 
 
-        plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/{db_name}_{'_'.join(map(str, graph_ids))}.pdf', bbox_inches='tight', backend='pgf')
+        plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/{db_name}_{"_".join(map(str, graph_ids))}.pdf', bbox_inches='tight', backend='pgf')
 
 def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0) -> np.ndarray:
     if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/occurrences_per_rule_{db_name}.png').exists():
@@ -502,13 +508,13 @@ def main():
     plot_specific_graphs_from_db(plot_network_path_synthetic,db_name='EvenOddRingsCount16', graph_ids=[0,5], draw_type='circle')
     plot_specific_graphs_from_db(plot_network_path_synthetic,db_name='LongRings100',  graph_ids=[1,3,5], draw_type='circle', node_size=100)
     plot_specific_graphs_from_db(plot_network_path_synthetic,db_name='Snowflakes', graph_ids=[9,120,372,501], draw_type='kawai', node_size=50)
-    plot_specific_graphs_from_db(plot_network_path_synthetic,db_name='CSL',  graph_ids=[0,11,21], draw_type='kawai')
+    plot_specific_graphs_from_db(plot_network_path_synthetic,db_name='CSL',  graph_ids=[0,16,31], draw_type='kawai')
 
     plot_network(plot_network_path_synthetic, 'EvenOddRings2_16', [2, 1, 4], with_labels_from_invariant=False, draw_type='circle', filtering=[None])
     plot_network(plot_network_path_synthetic, 'EvenOddRings2_16', [2, 1, 4], with_labels_from_invariant=False, draw_type='circle', filtering=[None])
     plot_network(plot_network_path_synthetic, 'EvenOddRingsCount16', [0,5,6], with_labels_from_invariant=False, draw_type='circle', filtering=[None])
     plot_network(plot_network_path_synthetic, 'Snowflakes', [9,120,372], draw_type='kawai', filtering=[None, {'absolute' : 3}])
-    plot_network(plot_network_path_synthetic, 'CSL', [0,11,21], draw_type='kawai', filtering=[None])
+    plot_network(plot_network_path_synthetic, 'CSL', [0,16,31], draw_type='kawai', filtering=[None])
     plot_network(plot_network_path_random, 'IMDB-MULTI', [25,805,1265], draw_type='kawai', filtering=[None, {'absolute' : 3}])
     plot_network(plot_network_path_random, 'IMDB-BINARY', [101,68,612], draw_type='kawai', filtering=[None, {'absolute' : 3}])
 
@@ -518,8 +524,40 @@ def main():
     plot_network(plot_network_path, 'Mutagenicity', [1654, 257, 360], draw_type='kawai', filtering=[None, {'absolute' : 3}])
     ablation_distance('NCI1')
     ablation_distance('NCI109')
-    ablation_threshold('NCI1')
-    ablation_threshold('IMDB-BINARY')
+    ablation_distance('Mutagenicity')
+    ablation_distance('DHFR')
+
+    ablation_distance('NCI1', 10)
+    ablation_distance('NCI109', 10)
+    ablation_distance('Mutagenicity', 10)
+    ablation_distance('DHFR', 10)
+
+    ablation_distance('NCI1', 20)
+    ablation_distance('NCI109', 20)
+    ablation_distance('Mutagenicity', 20)
+    ablation_distance('DHFR', 20)
+
+    ablation_threshold('NCI1', 'Upper')
+    ablation_threshold('NCI109', 'Upper')
+    ablation_threshold('Mutagenicity', 'Upper')
+    ablation_threshold('IMDB-BINARY', 'Upper')
+    ablation_threshold('IMDB-MULTI', 'Upper')
+    ablation_threshold('DHFR', 'Upper')
+
+    ablation_threshold('NCI1', 'Lower')
+    ablation_threshold('NCI109', 'Lower')
+    ablation_threshold('Mutagenicity', 'Lower')
+    ablation_threshold('IMDB-BINARY', 'Lower')
+    ablation_threshold('IMDB-MULTI', 'Lower')
+    ablation_threshold('DHFR', 'Lower')
+
+    ablation_threshold('NCI1', 'LowerUpper')
+    ablation_threshold('NCI109', 'LowerUpper')
+    ablation_threshold('Mutagenicity', 'LowerUpper')
+    ablation_threshold('IMDB-BINARY', 'LowerUpper')
+    ablation_threshold('IMDB-MULTI', 'LowerUpper')
+    ablation_threshold('DHFR', 'LowerUpper')
+
 
 
 

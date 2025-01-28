@@ -871,10 +871,10 @@ def training_and_preprocessing_time():
     table_str += 'Dataset & Preprocessing Distances (s) & Preprocessing Labels (s) \\\\ \n'
     table_str += '\\midrule\n'
     for dataset in datasets_real_world:
-        table_str += f'{dataset} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]['preprocessing_times']["all"],1)}$ \\\\ \n'
+        table_str += f'{dataset} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]["preprocessing_times"]["all"],1)}$ \\\\ \n'
     table_str += '\\midrule\n'
     for i, dataset in enumerate(dataset_synthetic):
-        table_str += f'{dataset_synthetic_names[i]} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]['preprocessing_times']["all"],1)}$ \\\\ \n'
+        table_str += f'{dataset_synthetic_names[i]} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]["preprocessing_times"]["all"],1)}$ \\\\ \n'
     table_str += '\\bottomrule\n'
     table_str += '\\end{tabular}\n'
     # save table under best run properties table
