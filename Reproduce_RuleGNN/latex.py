@@ -340,6 +340,7 @@ def fair_table_full():
                 [2, 7])
 
 
+
 def sota_baseline_and_share():
     datasets = ['NCI1', 'NCI109', 'IMDB-BINARY', 'IMDB-MULTI']
     rows = []
@@ -443,205 +444,41 @@ def features_evaluation():
                 [], with_colors=False, with_std=False, positive_negative_colors=True)
 
 
-def ablation_threshold(dataset='NCI1'):
-    ablation_results = dict()
-    for i in list(range(1, 21)) + [30, 40, 50]:
-        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
-        # check if the path exists
-        if Path(path).exists():
-            results_str, results = share_gnn_results('ShareGNN', [dataset], path, False)
-            if i in ablation_results and isinstance(ablation_results[i], dict):
-                ablation_results[i]['accuracy'] = results[0][0]
-                ablation_results[i]['std'] = results[0][1]
-            else:
-                ablation_results[i] = {'accuracy': results[0][0], 'std': results[0][1]}
-    # get number of parameters
-    for i in list(range(1, 21)) + [30, 40, 50]:
-        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
-        if Path(path).exists():
-            # get the file from results folder that contains Best and Network
-            for file in Path(f'{path}/{dataset}/Results').iterdir():
-                if 'Best_Configuration' in file.name and 'Network' in file.name:
-                    with open(file, 'r') as f:
-                        data = f.read()
-                        data = data.split('\n')
-                        for line in data:
-                            if 'Total trainable parameters' in line:
-                                num_parameters = int(line.split(':')[-1].strip())
-                                ablation_results[i]['parameters'] = num_parameters
-                                break
-                    break
-    # get avg best epoch
-    for i in list(range(1, 21)) + [30, 40, 50]:
-        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
-        if Path(path).exists():
-            # get the file from results folder that contains Best and Network
-            df = pd.read_csv(f'{path}/{dataset}/summary_best_mean.csv', delimiter=",")
-            ablation_results[i]['mean_epoch'] = df['Epoch Mean'].values[0]
-    # get avg best epoch and avg epoch runtime
-    for i in list(range(1, 21)) + [30, 40, 50]:
-        path = f'Reproduce_RuleGNN/Results/Ablation/{i}/'
-        if Path(path).exists():
-            # get the file from results folder that contains Best and Network
-            df_all = None
-            for file in Path(f'{path}/{dataset}/Results').iterdir():
-                if f'{dataset}_Configuration' in file.name and '.csv' in file.suffix:
-                    df = pd.read_csv(file, delimiter=";")
-                    # concatenate the dataframes
-                    if df_all is None:
-                        df_all = df
-                    else:
-                        df_all = pd.concat([df_all, df], ignore_index=True)
-            # get the mean of all epoch times
-            mean_epoch_time = df_all['EpochTime'].mean()
-            ablation_results[i]['mean_epoch_time'] = mean_epoch_time
-
-    fig, ax1 = plt.subplots()
-
-    # ticks inside
-    plt.tick_params(axis='both', direction='in')
-    # set title to dataset
-    plt.title(f'{dataset}')
-    # create a bar plot with x-axis as keys of ablation_results and y-axis as accuracy
-    ax1.errorbar(ablation_results.keys(), [ablation_results[i]['accuracy'] for i in ablation_results],
-                 yerr=[ablation_results[i]['std'] for i in ablation_results], fmt='o', capsize=5)
-    ax1.set_ylabel('Accuracy in \\%')
-    # set range to 80 - 90
-    #ax1.set_ylim([80, 90])
-
-
-    # add number of parameters to the right y-axis in thousand
-    ax2 = plt.gca().twinx()
-    # ticks at the inside
-    ax2.tick_params(axis='y', direction='in')
-    ax2.plot(ablation_results.keys(), [ablation_results[i]['parameters']/1000 for i in ablation_results], 'r', marker='s')
-    ax2.set_ylabel('Parameters (in thousands)')
-    # set range to 0 - 400
-    #ax2.set_ylim([0, 400])
-
-    #  add one legend for both axes
-    plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.175, 0.85), ncols=2)
-    # set ticks to list(range(1, 21)) + [30, 40, 50]
-    plt.xticks(list(range(1, 21, 2)))
-    # set x-axis label to the figure
-    ax1.set_xlabel('Minimum \\# of Occurrences per Shared Weight (Encoder)')
-    plt.savefig(f'Reproduce_RuleGNN/Results/Ablation/ablation_threshold_{dataset}.pdf', bbox_inches='tight', backend='pgf')
-
-    pass
-
-def ablation_distance(dataset='NCI1'):
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    path = Path(f'Reproduce_RuleGNN/Results/Distance/{dataset}/')
-    # get the summary.csv file
-    df = pd.read_csv(path.joinpath('summary.csv'), delimiter=",")
-    model_layers_depths = []
-    for i in range(1, 21):
-        model_layers_depths.append((1, i))
-    for i in range(1, 11):
-        model_layers_depths.append((2, i))
-    for i in range(1, 7):
-        model_layers_depths.append((3, i))
-    for i in range(1, 6):
-        model_layers_depths.append((4, i))
-    for i in range(1, 5):
-        model_layers_depths.append((5, i))
-    for i in range(1, 4):
-        model_layers_depths.append((6, i))
-    for i in range(1, 3):
-        model_layers_depths.append((7, i))
-    for i in range(1, 3):
-        model_layers_depths.append((8, i))
-    for i in range(1, 3):
-        model_layers_depths.append((9, i))
-    for i in range(1, 3):
-        model_layers_depths.append((10, i))
-
-    # add layer depth information to df
-    df['Layers'] = [model_layers_depths[i][0] for i in range(len(model_layers_depths))]
-    df['Depth'] = [model_layers_depths[i][1] for i in range(len(model_layers_depths))]
-
-    max_depth = 13
-    np_array = np.zeros((11, max_depth))
-    # iterate over rows of the dataframe and fill the np_array
-    for i, row in df.iterrows():
-        if row['Depth'] < max_depth:
-            np_array[int(row['Layers']), int(row['Depth'])] = row['Test Accuracy Mean']
-
-    # plot the np_array in a coordinate system
-    # normalize viridis to min, max of np_array where min is not zero
-    cmap_custom = plt.cm.get_cmap('Blues')
-    norm = plt.Normalize(vmin=np_array[np_array != 0].min() - 10.0, vmax=np_array.max())
-    # set 0 to white
-    cmap_custom.set_under('white')
-
-    plt.figure()
-    ax = plt.gca()
-    im = plt.imshow(np_array, cmap=cmap_custom, norm=norm)
-    # add the values to the plot
-    for i in range(np_array.shape[0]):
-        for j in range(np_array.shape[1]):
-            array_color = cmap_custom(norm(np_array[i, j]))
-            if np_array[i, j] != 0:
-                # if color is dark, add white text, else add black text
-                if np_array[i, j] > 63:
-                    plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='white', fontsize=9)
-                else:
-                    plt.text(j, i, '$\\mathbf{' + f'{np_array[i, j]:.1f}' + '}$', ha='center', va='center', color='black', fontsize=9)
-            else:
-                # add -
-                #plt.text(j, i, '-', ha='center', va='center', color='black')
-                pass
-    # invert y-axis
-    plt.gca().invert_yaxis()
-    # set x-axis to Layers
-    plt.ylabel('Layers')
-    # set y-axis to Depth
-    plt.xlabel('Depth')
-    plt.title(f'{dataset}')
-    # add colorbar and set height to axes height
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    plt.colorbar(im, cax=cax).set_label('Accuracy in $\\%$')
-    plt.savefig(f'Reproduce_RuleGNN/Results/Distance/ablation_distance_{dataset}.pdf', bbox_inches='tight', backend='pgf')
-    plt.show()
-    pass
-
-
 
 def labels_to_string(label_string:str):
-    # if label string of type wl_x return WL, Depth x
-    # wl_labeled_x return WL with Node Labels, Depth x
-    # simple_cycles_x return Pattern: Simple Cycles, Max. Length x
+    # if label string of type wl_x return WL, Iterations x
+    # wl_labeled_x return WL with Node Labels, Iterations x
+    # simple_cycles_x return Pattern: Simple Cycles, Max.~Length x
     if 'wl' in label_string:
         if not 'primary' in label_string:
-            return 'WL, Depth ' + label_string.split('_')[-1]
+            return 'WL, Iterations ' + label_string.split('_')[-1]
         else:
             # remove _primary
             label_string = label_string.replace('_primary', '')
-            return 'WL + Node Labels, Depth ' + label_string.split('_')[-1]
+            return 'WL + Node Labels, Iterations ' + label_string.split('_')[-1]
     elif 'wl_labeled' in label_string:
-        return 'WL with Node Labels, Depth ' + label_string.split('_')[-1]
+        return 'WL with Node Labels, Iterations ' + label_string.split('_')[-1]
     elif 'simple_cycles' in label_string:
         if not 'primary' in label_string:
-            return 'Simple Cycles, Max. Length ' + label_string.split('_')[-1]
+            return 'Simple Cycles, Max.~Length ' + label_string.split('_')[-1]
         else:
             # remove _primary
             label_string = label_string.replace('_primary', '')
-            return f'Simple Cycles, Max. Length {label_string.split("_")[-1]} + Node Labels'
+            return f'Simple Cycles, Max.~Length {label_string.split("_")[-1]} + Node Labels'
     elif 'induced_cycles' in label_string:
         if not 'primary' in label_string:
-            return 'Induced Cycles, Max. Length ' + label_string.split('_')[-1]
+            return 'Induced Cycles, Max.~Length ' + label_string.split('_')[-1]
         else:
             # remove _primary
             label_string = label_string.replace('_primary', '')
-            return f'Induced Cycles, Max. Length {label_string.split("_")[-1]} + Node Labels'
+            return f'Induced Cycles, Max.~Length {label_string.split("_")[-1]} + Node Labels'
     elif 'clique' in label_string:
         if not 'primary' in label_string:
-            return 'Clique, Max. Size ' + label_string.split('_')[-1]
+            return 'Clique, Max.~Size ' + label_string.split('_')[-1]
         else:
             # remove _primary
             label_string = label_string.replace('_primary', '')
-            return f'Clique, Max. Size {label_string.split("_")[-1]} + Node Labels'
+            return f'Clique, Max.~Size {label_string.split("_")[-1]} + Node Labels'
     elif 'subgraph_0' in label_string:
         if not 'primary' in label_string:
             return 'Clique Size 4'
@@ -688,18 +525,21 @@ def format_number(number:str):
 
 
 
-def training_and_preprocessing_time():
+def training_and_preprocessing_time(share_gnn_type=''):
     datasets_real_world = ['NCI1', 'NCI109', 'Mutagenicity', 'DHFR', 'IMDB-BINARY', 'IMDB-MULTI']
     dataset_synthetic = ['LongRings100', 'EvenOddRingsCount16', 'EvenOddRings2_16', 'CSL', 'Snowflakes']
     results = {key: dict() for key in datasets_real_world + dataset_synthetic}
 
     # check if results file already exists
-    if Path('Reproduce_RuleGNN/Results/Latex/training_preprocessing_time.json').exists():
-        results = json.load(open('Reproduce_RuleGNN/Results/Latex/training_preprocessing_time.json', 'r'))
+    appendix = ''
+    if share_gnn_type != '':
+        appendix = f'_{share_gnn_type}'
+    if Path(f'Reproduce_RuleGNN/Results/Latex/training_preprocessing_time{appendix}.json').exists():
+        results = json.load(open(f'Reproduce_RuleGNN/Results/Latex/training_preprocessing_time{appendix}.json', 'r'))
     else:
 
-        path_real_world = f'Reproduce_RuleGNN/Results/RealWorld/'
-        path_synthetic = f'Reproduce_RuleGNN/Results/Synthetic/'
+        path_real_world = f'Reproduce_RuleGNN/Results/RealWorld/{share_gnn_type}'
+        path_synthetic = f'Reproduce_RuleGNN/Results/Synthetic/{share_gnn_type}'
         for path, datasets in [[path_real_world, datasets_real_world], [path_synthetic, dataset_synthetic]]:
             if Path(path).exists():
                 # get number of parameters
@@ -747,7 +587,7 @@ def training_and_preprocessing_time():
                     results[dataset]['std_epoch_time'] = std_epoch_time
 
                 # get preprocessing time for distances
-                with open(path + 'generation_times_properties.txt', 'r') as f:
+                with open(Path(path).joinpath('generation_times_properties.txt'), 'r') as f:
                     for i, line in enumerate(f):
                         if i != 0:
                             dataset, _ , time = line.split(',')
@@ -756,36 +596,47 @@ def training_and_preprocessing_time():
 
 
                 # get preprocessing time for features
-                preprocessing_times = dict()
-                with open(path + 'generation_times_labels.txt', 'r') as f:
-                    for i, line in enumerate(f):
-                        if i != 0:
-                            dataset, label , time = line.split(',')
-                            # remove _None from label
-                            label = label.replace('_None', '')
-                            # if the word simple or induced appears twice, remove all after the second appearance
-                            if label.count('simple') > 1:
-                                label = label[:label.rfind('simple')]
-                            if label.count('induced') > 1:
-                                label = label[:label.rfind('induced')]
+                if share_gnn_type == '':
+                    preprocessing_times = dict()
+                    with open(Path(path).joinpath('generation_times_labels.txt'), 'r') as f:
+                        for i, line in enumerate(f):
+                            if i != 0:
+                                dataset, label , time = line.split(',')
+                                # remove _None from label
+                                label = label.replace('_None', '')
+                                # if the word simple or induced appears twice, remove all after the second appearance
+                                if label.count('simple') > 1:
+                                    label = label[:label.rfind('simple')]
+                                if label.count('induced') > 1:
+                                    label = label[:label.rfind('induced')]
 
-                            if dataset not in preprocessing_times:
-                                preprocessing_times[dataset.strip()] = dict()
-                                preprocessing_times[dataset.strip()]['all'] = 0
-                            preprocessing_times[dataset.strip()][label.strip()] = float(time.strip())
-                            preprocessing_times[dataset.strip()]['all'] += float(time.strip())
-                for dataset in preprocessing_times:
-                    if dataset in results:
-                        results[dataset]['preprocessing_times'] = preprocessing_times[dataset]
-                    else:
-                        results[dataset] = dict()
-                        results[dataset]['preprocessing_times'] = preprocessing_times[dataset]
+                                if dataset not in preprocessing_times:
+                                    preprocessing_times[dataset.strip()] = dict()
+                                    preprocessing_times[dataset.strip()]['all'] = 0
+                                preprocessing_times[dataset.strip()][label.strip()] = float(time.strip())
+                                preprocessing_times[dataset.strip()]['all'] += float(time.strip())
+                    for dataset in preprocessing_times:
+                        if dataset in results:
+                            results[dataset]['preprocessing_times'] = preprocessing_times[dataset]
+                        else:
+                            results[dataset] = dict()
+                            results[dataset]['preprocessing_times'] = preprocessing_times[dataset]
 
                 # best label strings per dataset
                 ## Real World Data
-                config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml')
+                if share_gnn_type == '':
+                    config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml')
+                elif share_gnn_type == 'Random':
+                    config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world_random_variation.yml')
+                else:
+                    raise ValueError('share_gnn_type not recognized')
                 if path == path_synthetic:
-                    config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml')
+                    if share_gnn_type == '':
+                        config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml')
+                    elif share_gnn_type == 'Random':
+                        config_path = Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic_random_variation.yml')
+                    else:
+                        raise ValueError('share_gnn_type not recognized')
                 experiment = ExperimentMain(Path(config_path))
                 experiment.Preprocess(num_jobs=1)
 
@@ -838,10 +689,11 @@ def training_and_preprocessing_time():
                             pass
                     # remove all strings with _primary from label_strings
                     label_strings = set([x for x in label_strings if '_primary' not in x])
-                    results[dataset]['preprocessing_time_labels'] = sum([preprocessing_times[dataset][label] for label in label_strings])
+                    if share_gnn_type == '':
+                        results[dataset]['preprocessing_time_labels'] = sum([preprocessing_times[dataset][label] for label in label_strings])
 
         # save results in file
-        with open('Reproduce_RuleGNN/Results/Latex/training_preprocessing_time.json', 'w') as f:
+        with open(f'Reproduce_RuleGNN/Results/Latex/training_preprocessing_time{appendix}.json', 'w') as f:
             json.dump(results, f)
 
 
@@ -861,25 +713,26 @@ def training_and_preprocessing_time():
     table_str += '\\bottomrule\n'
     table_str += '\\end{tabular}\n'
     # save table under best run properties table
-    with open('Reproduce_RuleGNN/Results/Latex/best_run_details_table.txt', 'w') as f:
+    with open(f'Reproduce_RuleGNN/Results/Latex/best_run_details_table{appendix}.txt', 'w') as f:
         f.write(table_str)
 
-    ### Preprocessing Time Table
-    # create a table with the results Best Epoch, Epoch Time (s), #Parameters for the Best parameter configuration
-    table_str = '\\begin{tabular}{lrr}\n'
-    table_str += '\\toprule\n'
-    table_str += 'Dataset & Preprocessing Distances (s) & Preprocessing Labels (s) \\\\ \n'
-    table_str += '\\midrule\n'
-    for dataset in datasets_real_world:
-        table_str += f'{dataset} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]["preprocessing_times"]["all"],1)}$ \\\\ \n'
-    table_str += '\\midrule\n'
-    for i, dataset in enumerate(dataset_synthetic):
-        table_str += f'{dataset_synthetic_names[i]} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]["preprocessing_times"]["all"],1)}$ \\\\ \n'
-    table_str += '\\bottomrule\n'
-    table_str += '\\end{tabular}\n'
-    # save table under best run properties table
-    with open('Reproduce_RuleGNN/Results/Latex/preprocessing_times.txt', 'w') as f:
-        f.write(table_str)
+    if share_gnn_type == '':
+        ### Preprocessing Time Table
+        # create a table with the results Best Epoch, Epoch Time (s), #Parameters for the Best parameter configuration
+        table_str = '\\begin{tabular}{lrr}\n'
+        table_str += '\\toprule\n'
+        table_str += 'Dataset & Preprocessing Distances (s) & Preprocessing Labels (s) \\\\ \n'
+        table_str += '\\midrule\n'
+        for dataset in datasets_real_world:
+            table_str += f'{dataset} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]["preprocessing_times"]["all"],1)}$ \\\\ \n'
+        table_str += '\\midrule\n'
+        for i, dataset in enumerate(dataset_synthetic):
+            table_str += f'{dataset_synthetic_names[i]} & ${round(results[dataset]["preprocessing_time"],1)}$ & ${round(results[dataset]["preprocessing_times"]["all"],1)}$ \\\\ \n'
+        table_str += '\\bottomrule\n'
+        table_str += '\\end{tabular}\n'
+        # save table under best run properties table
+        with open('Reproduce_RuleGNN/Results/Latex/preprocessing_times.txt', 'w') as f:
+            f.write(table_str)
 
 
 
@@ -955,9 +808,7 @@ def main():
     Path('Reproduce_RuleGNN/Results/Latex').mkdir(parents=True, exist_ok=True)
     hyper_parameter_configurations()
     training_and_preprocessing_time()
-    ablation_distance('NCI1')
-    ablation_threshold('NCI1')
-    ablation_threshold('IMDB-BINARY')
+    training_and_preprocessing_time('Random')
     fair_table_full()
     print('\n\n\n\n')
     sota_baseline_and_share()
