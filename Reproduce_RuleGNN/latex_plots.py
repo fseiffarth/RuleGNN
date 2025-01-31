@@ -85,7 +85,8 @@ def ablation_threshold(dataset, threshold_type):
         # ticks inside
         plt.tick_params(axis='both', direction='in')
         # set title to dataset
-        plt.title(f'{dataset}')
+        # plt.title(f'{dataset}')
+        #
         # create a bar plot with x-axis as keys of ablation_results and y-axis as accuracy
         ax1.errorbar(ablation_results.keys(), [ablation_results[i]['accuracy'] for i in ablation_results],
                      yerr=[ablation_results[i]['std'] for i in ablation_results], fmt='o', capsize=5)
@@ -99,17 +100,17 @@ def ablation_threshold(dataset, threshold_type):
         # ticks at the inside
         ax2.tick_params(axis='y', direction='in')
         ax2.plot(ablation_results.keys(), [ablation_results[i]['parameters']/1000 for i in ablation_results], 'r', marker='s')
-        ax2.set_ylabel('Parameters (in thousands)')
+        ax2.set_ylabel('Weights (in thousands)')
         # set range to 0 - 400
         #ax2.set_ylim([0, 400])
 
         #  add one legend for both axes
         if threshold_type == 'Lower':
-            plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.42, 0.79))
+            plt.figlegend(['Accuracy in \\%', 'Weights in thousands)'], loc=(0.42, 0.79))
         elif threshold_type == 'Upper':
-            plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.2, 0.79))
+            plt.figlegend(['Accuracy in \\%', 'Weights in thousands)'], loc=(0.2, 0.79))
         elif threshold_type == 'LowerUpper':
-            plt.figlegend(['Accuracy in \\%', 'Parameters (in thousands)'], loc=(0.42, 0.79))
+            plt.figlegend(['Accuracy in \\%', 'Weights in thousands)'], loc=(0.42, 0.79))
         # set ticks to list(range(1, 21)) + [30, 40, 50]
         plt.xticks(list(range(1, 21, 2)))
         # set x-axis label to the figure
@@ -122,11 +123,11 @@ def ablation_threshold(dataset, threshold_type):
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_threshold_{dataset}_{threshold_type}.pdf', bbox_inches='tight', backend='pgf')
         pass
 
-def ablation_distance(dataset='NCI1', max_distance=12, fontsize=8):
+def ablation_distance(dataset='NCI1', max_distance=12, fontsize=9):
     if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/ablation_distance_{dataset}_{max_distance}.pdf').exists():
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
-            "font.size": 10,
+            "font.size": 12,
             "text.usetex": True,  # use inline math for ticks
             "pgf.rcfonts": False,  # don't setup fonts from rc parameters
             "pgf.texsystem": "lualatex",
@@ -207,10 +208,11 @@ def ablation_distance(dataset='NCI1', max_distance=12, fontsize=8):
         plt.xticks(range(1, max_depth))
         plt.yticks(range(1, 11))
         # set x-axis to Layers
-        plt.ylabel('Layers')
+        plt.ylabel('Encoder Layers')
         # set y-axis to Depth
-        plt.xlabel('Maximum Distance')
-        plt.title(f'{dataset}')
+        plt.xlabel('Maximum Message-Passing Distance $D$')
+        # plt.title(f'{dataset}')
+
         # add colorbar and set height to axes height
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -237,6 +239,13 @@ def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_label
                 r"\setmainfont{DejaVu Serif}",  # serif font via preamble
             ])
         })
+
+        # remove matplotlib frame
+        # remove frame from each side of plot
+        plt.rcParams['axes.spines.left'] = False
+        plt.rcParams['axes.spines.right'] = False
+        plt.rcParams['axes.spines.top'] = False
+        plt.rcParams['axes.spines.bottom'] = False
         #experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
         #experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
         experiment = ExperimentMain(Path(path))
@@ -347,6 +356,13 @@ def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_label
 
 
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/visualization_{db_name}_{graph_id_string}.pdf', bbox_inches='tight', backend='pgf')
+        # remove matplotlib frame
+        # remove frame from each side of plot
+        plt.rcParams['axes.spines.left'] = True
+        plt.rcParams['axes.spines.right'] = True
+        plt.rcParams['axes.spines.top'] = True
+        plt.rcParams['axes.spines.bottom'] = True
+
 
 def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_size=200):
     if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/{db_name}_{"_".join(map(str, graph_ids))}.pdf').exists():
@@ -399,12 +415,19 @@ def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_
 
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/{db_name}_{"_".join(map(str, graph_ids))}.pdf', bbox_inches='tight', backend='pgf')
 
+        # remove matplotlib frame
+        # remove frame from each side of plot
+        plt.rcParams['axes.spines.left'] = True
+        plt.rcParams['axes.spines.right'] = True
+        plt.rcParams['axes.spines.top'] = True
+        plt.rcParams['axes.spines.bottom'] = True
+
 def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0, appendix='') -> np.ndarray:
     if not Path(f'Reproduce_RuleGNN/Results/Latex/Plots/occurrences_per_rule_{db_name}{appendix}.png').exists():
 
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
-            "font.size": 12,
+            "font.size": 14,
             "text.usetex": True,  # use inline math for ticks
             "pgf.rcfonts": False,  # don't setup fonts from rc parameters
             "pgf.texsystem": "lualatex",
@@ -464,7 +487,8 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0, appendi
         ax.legend(loc='upper right')
         plt.xlabel('Weights of Encoder (Sorted by Occurrences)')
         plt.ylabel('\\# Occurrences in Dataset')
-        plt.title(f'{db_name}')
+        # plt.title(f'{dataset}')
+
         #plt.title('Number of occurrences per rule')
         # use pgf backend for latex
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/occurrences_per_rule_{db_name}{appendix}.png', bbox_inches='tight')
@@ -500,8 +524,9 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray, steps,
         ax.scatter(np.arange(len(weights)), weights, s=1, alpha=1, c=node_colors)
         ax.legend(loc='upper right')
         plt.xlabel('Weights of Encoder (Sorted by Occurrences)')
-        plt.ylabel('Parameter Value')
-        plt.title(f'{db_name}')
+        plt.ylabel('Weight Value')
+        # plt.title(f'{dataset}')
+
         #plt.title('Distribution of rules')
         plt.savefig(f'Reproduce_RuleGNN/Results/Latex/Plots/weights_per_rule_{db_name}{appendix}.png', bbox_inches='tight')
 

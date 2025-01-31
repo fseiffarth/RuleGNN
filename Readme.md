@@ -1,14 +1,14 @@
-# RuleGNN
+# ShareGNN
 
-This repository contains the code for experiments with RuleGNNs as described in the paper [Rule Based Learning with Dynamic (Graph) Neural Networks](https://arxiv.org/abs/2406.09954).
+This repository contains the code for experiments with ShareGNNs.
 First, we give an overview of the repository and how to reproduce the experiments of the paper.
-Then, we explain how to use RuleGNNs for [custom datasets](#Customize-Experiments) and how to add new [layers](#Layers), [labeling functions](#Add-new-labeling-functions), and [property functions](#Add-new-property-functions).
+Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experiments) and how to add new [layers](#Layers), [labeling functions](#Add-new-labeling-functions), and [property functions](#Add-new-property-functions).
 
 ## Setting up the Environment
 
 1. Clone the repository using
     ```bash
-    git clone git@github.com:fseiffarth/RuleGNN.git
+    git clone git@github.com:fseiffarth/ShareGNN.git
     ```
 2. Install the required packages using the environment.yml file using the following command:
    ```bash
@@ -16,26 +16,26 @@ Then, we explain how to use RuleGNNs for [custom datasets](#Customize-Experiment
    ```
 3. **(for command line)** To run the scripts with the correct paths please set your PYTHONPATH (working directory) to the root directory of the repository.
    ```bash
-   export PYTHONPATH=/path/to/RuleGNN
+   export PYTHONPATH=/path/to/ShareGNN
    ```
     **(for IDE)** If you are working in an IDE, you can set the PYTHONPATH in the run configuration. 
    E.g., in PyCharm, you have to change the working directory path to the root directory of the repository.
     Go to ```File -> Settings -> Project Structure``` and mark the the root directory as ```Sources``` (blue folder icon).
 
-## Reproduce RuleGNN Experiments
-To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_RuleGNN](Reproduce_RuleGNN) folder.
+## Reproduce ShareGNN Experiments
+To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_ShareGNN](Reproduce_ShareGNN) folder.
 The experiments take approximately 2 days on an AMD Ryzen 9 7950X with 16 cores and 32 threads and 128 GB of RAM.
 
 The commands
 ```bash
-python Reproduce_RuleGNN/main_fair.py
+python Reproduce_ShareGNN/main_fair.py
 ```
 
 ```bash
-python Reproduce_RuleGNN/main_sota.py
+python Reproduce_ShareGNN/main_sota.py
 ```
 ```bash
-python Reproduce_RuleGNN/main_sota_random.py
+python Reproduce_ShareGNN/main_sota_random.py
 ```
 
 will run the experiments in the fair evaluation and the state-of-the-art evaluation, respectively.
@@ -48,8 +48,8 @@ The following steps are executed:
    - run the best models three times with different seeds
    - evaluate the results
 
-All results related to the fair evaluation will be saved in the [Reproduce_RuleGNN/Results](Reproduce_RuleGNN/Results) folder.
-All results related to the state-of-the-art evaluation will be saved in the [Reproduce_RuleGNN/Results_SOTA](Reproduce_RuleGNN/ResultsSOTA) folder.
+All results related to the fair evaluation will be saved in the [Reproduce_ShareGNN/Results](Reproduce_ShareGNN/Results) folder.
+All results related to the state-of-the-art evaluation will be saved in the [Reproduce_ShareGNN/Results_SOTA](Reproduce_ShareGNN/ResultsSOTA) folder.
 
 The following evaluation files are produced:
     - ```summary.csv```: contains the results of the grid search (fair evaluation) one row per hyperparameter setting
@@ -58,15 +58,15 @@ The following evaluation files are produced:
 
 To visualize the results run:
 ```bash
-python Reproduce_RuleGNN/plotting.py
+python Reproduce_ShareGNN/plotting.py
 ```
-The results will be saved in the corresponding ```Plots``` folder under ```Reproduce_RuleGNN/Results/<DB_NAME>```.
+The results will be saved in the corresponding ```Plots``` folder under ```Reproduce_ShareGNN/Results/<DB_NAME>```.
 
 ## Experiments on the TU Dortmund Graph Benchmark
 All datasets from the TU Dortmund Benchmark available [here](https://chrsmrrs.github.io/datasets/docs/datasets/) can be used directly for experiments as shown in [Examples/TUExample](Examples/TUExample).
 
 ## Customize Experiments
-An example of how to use RuleGNNs for custom datasets can be found in [Examples/CustomExample](Examples/CustomExample).
+An example of how to use ShareGNNs for custom datasets can be found in [Examples/CustomExample](Examples/CustomExample).
 Most importantly, your dataset needs to be in the correct format.
 At the moment, the code supports two different options.
 
@@ -117,20 +117,20 @@ datasets:
   # in case of a given generation function called ring_diagonals in this case
   - {name: "EXAMPLE_DB", data: "Examples/CustomExample/Data/SyntheticDatasets/", validation_folds: 10, experiment_config_file: "Examples/CustomExample/Configs/config_experiment.yml", type: "generate_from_function", generate_function: ring_diagonals, generate_function_args: {data_size: 1000, ring_size: 50}}
   # in case of a dataset from the TU Dortmund Benchmark
-  - {name: "PTC_FM", data: "Reproduce_RuleGNN/Data/TUDatasets/",, validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
+  - {name: "PTC_FM", data: "Reproduce_ShareGNN/Data/TUDatasets/",, validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
   # in case of a dataset in the correct format (the path to the data is given in the experiment config file)
-  - {name: "CSL",data: "Reproduce_RuleGNN/Data/SyntheticDatasets/", validation_folds: 5, experiment_config_file: "Reproduce_RuleGNN/Configs/config_CSL.yml"}
+  - {name: "CSL",data: "Reproduce_ShareGNN/Data/SyntheticDatasets/", validation_folds: 5, experiment_config_file: "Reproduce_ShareGNN/Configs/config_CSL.yml"}
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
   properties:
-    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
+    "Reproduce_ShareGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
+    "Reproduce_ShareGNN/Data/Labels/" # Path to the folder containing the labels
   splits:
-    "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
+    "Reproduce_ShareGNN/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "Reproduce_RuleGNN/Results/" # Results will be saved in this folder
+    "Reproduce_ShareGNN/Results/" # Results will be saved in this folder
 
 ```
 The following keys are used:
@@ -370,7 +370,7 @@ The node labels should be generated as list of lists of integers (one list of no
 Moreover, give your new labeling function a unique ```label_type``` used as argument in the config file.
 - **Save Labels:** Use ```write_node_labels(file, node_labels)``` to save the labels to the path ```file```.
 The file name should be ```<DB_NAME>_<your_characteristic_labeling_function_string>_labels.txt```.
-- **Load Labels**: Go to [src/Architectures/RuleGNN/RuleGNNLayers.py](src/Architectures/RuleGNN/RuleGNNLayers.py) and add a new case to the function ```get_layer_string``` that gives you the string ```<your_characteristic_labeling_function_string>``` for your labeling function based on possible additional arguments.
+- **Load Labels**: Go to [src/Architectures/ShareGNN/ShareGNNLayers.py](src/Architectures/ShareGNN/ShareGNNLayers.py) and add a new case to the function ```get_layer_string``` that gives you the string ```<your_characteristic_labeling_function_string>``` for your labeling function based on possible additional arguments.
 - **Automatic Label Generation**: If you want to automatically generate the labels based on the config file you need to go to
 [scripts/Preprocessing.py](src/Preprocessing/Preprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
 
