@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from scripts.ExperimentMain import ExperimentMain
-
+import click
 
 def get_existing_splits():
     # copy the splits from the Data folder to the Splits folder
@@ -23,18 +23,25 @@ def get_existing_splits():
         target_path = Path("Reproduce/Data/SplitsSimple").joinpath(f"{split}_splits.json")
         target_path.write_text(source_path.read_text())
 
-def main():
+
+def main_standard_real_world(num_threads=-1):
     get_existing_splits()
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_sota_comparison.yml'))
-    experiment.Preprocess()
-    experiment.GridSearch()
+    experiment.Preprocess(num_threads=num_threads)
+    experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_validation_only=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_sota_random_comparison.yml'))
-    experiment.Preprocess()
-    experiment.GridSearch()
+    experiment.Preprocess(num_threads=num_threads)
+    experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_validation_only=True)
+
+@click.command()
+@click.option('--num_threads', default=-1, help='Number of threads to use')
+def main(num_threads):
+    main_standard_real_world(num_threads)
+
 
 
 if __name__ == '__main__':

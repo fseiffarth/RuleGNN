@@ -1,6 +1,10 @@
 from pathlib import Path
 
+import joblib
+from torch.ao.nn.quantized.functional import threshold
+
 from scripts.ExperimentMain import ExperimentMain
+import click
 
 
 def get_existing_splits():
@@ -24,30 +28,32 @@ def get_existing_splits():
         target_path.write_text(source_path.read_text())
 
 
+def run_ablation_experiment(num_threads, threshold_type, threshold):
+    ablation_experiment = ExperimentMain(
+        Path(f'Reproduce/Configs/ablation/threshold/{threshold_type}/main_config_ablation_threshold_{threshold}.yml'))
+    ablation_experiment.Preprocess(num_threads=1)
+    ablation_experiment.GridSearch(num_threads=1)
+    ablation_experiment.EvaluateResults()
+    ablation_experiment.RunBestModel(num_threads=1)
+    ablation_experiment.EvaluateResults(evaluate_best_model=True)
 
-def main():
+def main_threshold(num_threads=-1):
     get_existing_splits()
-    for threshold in range(1,21):
-        ablation_experiment = ExperimentMain(Path(f'Reproduce/Configs/ablation/threshold/upper/main_config_ablation_threshold_{threshold}.yml'))
-        ablation_experiment.Preprocess()
-        ablation_experiment.GridSearch()
-        ablation_experiment.EvaluateResults()
-        ablation_experiment.RunBestModel()
-        ablation_experiment.EvaluateResults(evaluate_best_model=True)
-    for threshold in range(1,21):
-        ablation_experiment = ExperimentMain(Path(f'Reproduce/Configs/ablation/threshold/lower_upper/main_config_ablation_threshold_{threshold}.yml'))
-        ablation_experiment.Preprocess()
-        ablation_experiment.GridSearch()
-        ablation_experiment.EvaluateResults()
-        ablation_experiment.RunBestModel()
-        ablation_experiment.EvaluateResults(evaluate_best_model=True)
-    for threshold in range(1,21):
-        ablation_experiment = ExperimentMain(Path(f'Reproduce/Configs/ablation/threshold/lower/main_config_ablation_threshold_{threshold}.yml'))
-        ablation_experiment.Preprocess()
-        ablation_experiment.GridSearch()
-        ablation_experiment.EvaluateResults()
-        ablation_experiment.RunBestModel()
-        ablation_experiment.EvaluateResults(evaluate_best_model=True)
+    num_threads = num_threads
+    types = ['upper', 'lower_upper', 'lower']
+    thresholds = range(1, 21)
+    # zip the types and thresholds together
+    combinations = [(num_threads, threshold_type, t) for threshold_type in types for t in thresholds]
+    # use joblib to parallelize the experiments
+    joblib.Parallel(n_jobs=num_threads)(
+        joblib.delayed(run_ablation_experiment)(*combination) for combination in combinations
+    )
+
+@click.command()
+@click.option('--num_threads', default=-1, help='Number of threads to use')
+def main(num_threads):
+    main_threshold(num_threads)
+
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from scripts.ExperimentMain import ExperimentMain
-
+import click
 
 def get_existing_splits():
     # copy the splits from the Data folder to the Splits folder
@@ -23,16 +23,21 @@ def get_existing_splits():
         target_path = Path("Reproduce/Data/SplitsSimple").joinpath(f"{split}_splits.json")
         target_path.write_text(source_path.read_text())
 
-
-
-def main():
+def main_ablation_distance(num_threads=-1):
     get_existing_splits()
     ablation_experiment = ExperimentMain(Path(f'Reproduce/Configs/ablation/distances/main_config_ablation_distances.yml'))
-    ablation_experiment.Preprocess()
-    ablation_experiment.GridSearch()
+    ablation_experiment.Preprocess(num_threads=num_threads)
+    ablation_experiment.GridSearch(num_threads=num_threads)
     ablation_experiment.EvaluateResults()
-    ablation_experiment.RunBestModel()
+    ablation_experiment.RunBestModel(num_threads=num_threads)
     ablation_experiment.EvaluateResults(evaluate_best_model=True)
+
+
+@click.command()
+@click.option('--num_threads', default=-1, help='Number of threads to use')
+def main(num_threads):
+    main_ablation_distance(num_threads)
+
 
 if __name__ == '__main__':
     main()

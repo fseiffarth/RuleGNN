@@ -1,8 +1,11 @@
+import os
 from pathlib import Path
 
+import click
 import joblib
 import numpy as np
 import pandas as pd
+from contourpy import max_threads
 
 from scripts.ExperimentMain import ExperimentMain
 from src.Competitors.Kernels.GraphKernels import WLKernel
@@ -93,37 +96,57 @@ def evaluation(dataset, experiment_configuration, graph_data, algorithm, test=Tr
             f"Test Accuracy: {hyperparameter['TestAccuracy']} +/- {hyperparameter['TestAccuracyStd']}")
 
 
-def main_baseline():
+def dataset_baseline(dataset, experiment, config, inner_job_num=1):
+    experiment_configuration = experiment.experiment_configurations[dataset]
+    # load the graph data
+    graph_data = get_graph_data(db_name=dataset, data_path=experiment_configuration['paths']['data'],
+                                task=experiment_configuration.get('task', 'graph_classification'),
+                                input_features=experiment_configuration.get('input_features', None),
+                                output_features=experiment_configuration.get('output_features', None),
+                                graph_format=experiment_configuration.get('format', 'RuleGNNDataset'),
+                                precision=experiment_configuration.get('precision', 'double'))
+
+    validation_size = 10
+    if dataset == "CSL":
+        validation_size = 5
+    # run the validation for all validation sets in parallel
+    joblib.Parallel(n_jobs=inner_job_num)(
+        joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in
+        range(validation_size))
+
+    test = True
+    if config == 'main_config_sota_comparison.yml':
+        test = False
+    evaluation(dataset, experiment_configuration, graph_data, algorithm='NoGKernel', test=test)
+    evaluation(dataset, experiment_configuration, graph_data, algorithm='WLKernel', test=test)
+
+
+def main_baseline(num_threads=-1):
     '''
     Run the baseline models for the given dataset
     '''
+    if num_threads == -1:
+        num_threads = os.cpu_count()
+    experiment_tuples = []
     # load the yml file
     for config in ['main_config_fair_real_world.yml', 'main_config_sota_comparison.yml', 'main_config_fair_synthetic.yml']:
         experiment = ExperimentMain(Path(f"Reproduce/Configs/{config}"))
         datasets = list(experiment.experiment_configurations.keys())
         for dataset in datasets:
-            experiment_configuration = experiment.experiment_configurations[dataset]
-            # load the graph data
-            graph_data = get_graph_data(db_name=dataset, data_path=experiment_configuration['paths']['data'],
-                                        task=experiment_configuration.get('task', 'graph_classification'),
-                                        input_features=experiment_configuration.get('input_features', None),
-                                        output_features=experiment_configuration.get('output_features', None),
-                                        graph_format=experiment_configuration.get('format', 'RuleGNNDataset'),
-                                        precision=experiment_configuration.get('precision', 'double'))
+            experiment_tuples.append((dataset, experiment, config))
 
-            validation_size = 10
-            if dataset == "CSL":
-                validation_size = 5
-            # run the validation for all validation sets in parallel
-            joblib.Parallel(n_jobs=validation_size)(
-                joblib.delayed(validation)(dataset, experiment_configuration, validation_id, graph_data) for validation_id in range(validation_size))
+    num_threads = min(num_threads, len(experiment_tuples))
+    inner_job_num = 1
+    if num_threads > len(experiment_tuples):
+        inner_job_num = (num_threads//len(experiment_tuples))
+    joblib.Parallel(n_jobs=num_threads)(
+        joblib.delayed(dataset_baseline)(*experiment_tuples, inner_job_num=inner_job_num) for experiment_tuples in experiment_tuples)
 
+@click.command()
+@click.option('--num_threads', default=-1, help='Number of tasks to run in parallel')
+def main(num_threads):
+    main_baseline(num_threads)
 
-            test = True
-            if config == 'main_config_sota_comparison.yml':
-                test = False
-            evaluation(dataset, experiment_configuration, graph_data, algorithm='NoGKernel', test=test)
-            evaluation(dataset, experiment_configuration, graph_data, algorithm='WLKernel', test=test)
 
 if __name__ == "__main__":
-    main_baseline()
+    main()

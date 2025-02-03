@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from scripts.ExperimentMain import ExperimentMain
-
+import click
 
 def get_existing_splits():
     # copy the splits from the Data folder to the Splits folder
@@ -24,37 +24,44 @@ def get_existing_splits():
         target_path.write_text(source_path.read_text())
 
 
-def main():
+def main_fair_real_world(num_threads=-1):
     get_existing_splits()
 
     ## Real World Data
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
-    experiment.Preprocess()
-    experiment.GridSearch()
+    experiment.Preprocess(num_threads=num_threads)
+    experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults()
-    experiment.RunBestModel()
+    experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_random_variation.yml'))
-    experiment.Preprocess()
-    experiment.GridSearch()
+    experiment.Preprocess(num_threads=num_threads)
+    experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults()
-    experiment.RunBestModel()
+    experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_only_encoder.yml'))
-    experiment.Preprocess()
-    experiment.GridSearch()
+    experiment.Preprocess(num_threads=num_threads)
+    experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults()
-    experiment.RunBestModel()
+    experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_only_decoder.yml'))
-    experiment.Preprocess()
+    experiment.Preprocess(num_threads=num_threads)
     experiment.GridSearch()
     experiment.EvaluateResults()
-    experiment.RunBestModel()
+    experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)
+
+
+
+@click.command()
+@click.option('--num_threads', default=-1, help='Number of threads to use')
+def main(num_threads):
+    main_fair_real_world(num_threads=num_threads)
 
 if __name__ == '__main__':
     main()

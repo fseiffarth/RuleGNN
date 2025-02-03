@@ -51,7 +51,7 @@ class ExperimentMain:
         self.check_config_consistency()
 
 
-    def GridSearch(self):
+    def GridSearch(self, num_threads=-1):
         """
         Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
         """
@@ -62,10 +62,14 @@ class ExperimentMain:
             self.create_folders(dataset['name'])
             print(f"Running experiment for dataset {dataset['name']}")
             experiment_configuration = self.experiment_configurations[dataset['name']]
-            # determine the number of parallel jobs
-            num_workers = experiment_configuration.get('num_workers', min(os.cpu_count(), dataset.get('validation_folds', 10)))
-            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
 
+            # determine the number of parallel jobs
+            max_threads = os.cpu_count()
+            num_threads = min(experiment_configuration.get('num_workers', num_threads), num_threads)
+            if num_threads == -1:
+                num_threads = max_threads
+
+            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
             # copy config file to the results directory if it is not already there
             absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
             absolute_path = Path(absolute_path)
@@ -84,9 +88,9 @@ class ExperimentMain:
 
             # zip validation_id,  config_id and run_id to parallelize over them
             run_loops = [(validation_id, run_id, c_idx) for validation_id in range(dataset.get('validation_folds', 10)) for run_id in range(dataset.get('num_runs', 1)) for c_idx in range(len(run_configs))]
-            num_workers = min(num_workers, len(run_loops))
-            print(f"Run the grid search for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_workers} number of parallel jobs")
-            joblib.Parallel(n_jobs=num_workers)(
+            num_threads = min(num_threads, len(run_loops))
+            print(f"Run the grid search for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_threads} number of parallel jobs")
+            joblib.Parallel(n_jobs=num_threads)(
                 joblib.delayed(self.run_models)(dataset=dataset,
                                                 graph_data=graph_data,
                                                 run_config=run_configs[run_loops[i][2]],
@@ -119,7 +123,7 @@ class ExperimentMain:
                                        experiment_config=experiment_configuration,
                                        evaluate_validation_only=evaluate_validation_only)
 
-    def RunBestModel(self):
+    def RunBestModel(self, num_threads=-1):
         """
         Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
         """
@@ -135,8 +139,15 @@ class ExperimentMain:
             # parallelize over (run_id, validation_id) pairs
             evaluation_run_number = self.main_config.get('evaluation_run_number', 3)
             experiment_configuration = self.update_experiment_configuration(dataset)
+
+            # determine the number of parallel jobs
+            max_threads = os.cpu_count()
+            num_threads = min(experiment_configuration.get('num_workers', num_threads), num_threads)
+            if num_threads == -1:
+                num_threads = max_threads
+
             parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
-            num_workers = experiment_configuration.get('num_workers', min(os.cpu_count(), len(parallelization_pairs)))
+            num_threads = min(num_threads, len(parallelization_pairs))
             graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
             best_config_id = None
             experiment_configuration['best_model'] = True
@@ -147,7 +158,7 @@ class ExperimentMain:
             run_configs = get_run_configs(experiment_configuration)
             config_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'
             print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {num_workers}")
-            joblib.Parallel(n_jobs=num_workers)(joblib.delayed(self.run_models)(dataset=dataset,
+            joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.run_models)(dataset=dataset,
                                                         graph_data=graph_data,
                                                         run_config=run_configs[best_config_id],
                                                         validation_id=validation_id,
@@ -170,13 +181,13 @@ class ExperimentMain:
             experiment_configuration[key] = self.main_config[key]
         return experiment_configuration
 
-    def Preprocess(self, num_jobs=-1):
+    def Preprocess(self, num_threads=-1):
         # parallelize over the datasets
-        if num_jobs == -1:
-            num_jobs = min(len(self.main_config['datasets']), os.cpu_count())
-            num_jobs = self.main_config.get('num_workers', num_jobs)
-            num_jobs = min(num_jobs, len(self.main_config['datasets']))
-        joblib.Parallel(n_jobs=num_jobs)(joblib.delayed(self.PreprocessParallel)(dataset_configuration) for dataset_configuration in self.main_config['datasets'])
+        if num_threads == -1:
+            num_threads = min(len(self.main_config['datasets']), os.cpu_count())
+            num_threads = self.main_config.get('num_workers', num_threads)
+            num_threads = min(num_threads, len(self.main_config['datasets']))
+        joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.PreprocessParallel)(dataset_configuration) for dataset_configuration in self.main_config['datasets'])
 
     def PreprocessParallel(self, dataset_configuration):
         db_name = dataset_configuration['name']

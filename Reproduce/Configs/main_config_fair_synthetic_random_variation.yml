@@ -85,8 +85,6 @@ early_stopping:
   patience:
     25
 
-# num_workers: number of workers used
-num_workers: 30
 
 # input_features: determine how the input features should be transformed, the following options show some examples
 #  - {name: constant, value: 1.0}, use a constant value as input feature
