@@ -51,50 +51,9 @@ early_stopping:
 
 # networks: list of network configurations, each configuration is a list of layers, each layer is a dictionary with the layer_type and properties
 networks:
-  # first layer is a convolutional layer, second layer is an aggregation layer
-#  - - { layer_type: convolution,
-#        channels:
-#          [
-#            { channels: 1,
-#              labels: { head: { label_type: wl, depth: 2, max_labels: 500 },
-#                        tail: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
-#                        bias: { label_type: primary } },
-#              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
-#            },
-#            { channels: 1,
-#              labels: { head: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
-#                        tail: { label_type: wl, depth: 2, max_labels: 500 },
-#                        bias: { label_type: primary } },
-#              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
-#            },
-#            { channels: 1,
-#              labels: { head: { label_type: wl, depth: 2, max_labels: 500 },
-#                        tail: { label_type: wl, depth: 2, max_labels: 500 },
-#                        bias: { label_type: primary } },
-#              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
-#            },
-#            { channels: 1,
-#              labels: { head: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
-#                        tail: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 },
-#                        bias: { label_type: primary } },
-#              properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ] }
-#            }
-#          ],
-#        channel_aggregation: { type: sum }
-#      }
-#    - { layer_type: aggregation,
-#        channels:
-#          [
-#            { channels: 2,
-#              labels: { label_type: simple_cycles, max_cycle_length: 10, max_labels: 500 }
-#            },
-#            { channels: 2,
-#              labels: { label_type: wl, depth: 2, max_labels: 500 }
-#            }
-#          ]
-#      }
   - - { layer_type: convolution ,
         bias: False,
+        heads: [1],
         labels: [
           { label_type: [wl, primary], depth: [2,1,0] },
         ],
@@ -104,6 +63,7 @@ networks:
   }
     - { layer_type: aggregation,
         bias: True,
+        heads: [1],
         labels: [
           { label_type: [induced_cycles, primary], max_cycle_length: [6] },
         ]

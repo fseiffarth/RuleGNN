@@ -1,4 +1,4 @@
-name: RuleGNN
+name: ShareGNN
 channels:
   - defaults
 dependencies:

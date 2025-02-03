@@ -357,6 +357,7 @@ class RuleGNNDataset(InMemoryDataset):
             edge_attr = None
             if line_length > 4:
                 edge_attr = torch_lines[:, 4:]
+            edge_data = torch.cat((edge_attr, edge_labels), dim=1)
 
         y = None
         with open(load_path.joinpath(self.name + "_Labels.txt"), "r") as f:
@@ -371,7 +372,7 @@ class RuleGNNDataset(InMemoryDataset):
 
 
         y_slices = torch.arange(0, len(y) + 1, dtype=torch.long)
-        data = Data(x=x, edge_index=edge_indices, edge_attr=edge_attr, y=y)
+        data = Data(x=x, edge_index=edge_indices, edge_attr=edge_data, y=y)
         slices = {'edge_index': edge_slices,
                   'x': node_slices,
                   'edge_attr': edge_slices.detach().clone(),

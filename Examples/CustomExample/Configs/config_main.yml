@@ -3,6 +3,9 @@ datasets:
 
 
 paths:
+  # Path to the folder containing the graph data
+  data:
+    "Examples/CustomExample/Data/"
   properties:
     "Examples/CustomExample/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:

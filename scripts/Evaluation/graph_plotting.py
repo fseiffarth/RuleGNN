@@ -25,7 +25,7 @@ def plot_all_graphs_from_db(db_name, experiment):
             r"\setmainfont{DejaVu Serif}",  # serif font via preamble
         ])
     })
-    #experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
+    #experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
     #experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
 
 
@@ -72,8 +72,8 @@ def plot_all_graphs_from_db(db_name, experiment):
 
 
 if __name__ == '__main__':
-    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_real_world.yml'))
-    experiment = ExperimentMain(Path('Reproduce_RuleGNN/Configs/main_config_fair_synthetic.yml'))
+    experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
+    experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic.yml'))
     plot_all_graphs_from_db(db_name='CSL', experiment=experiment)
     #plot_all_graphs_from_db(db_name='EvenOddRingsCount16', experiment=experiment)
     #plot_all_graphs_from_db(db_name='EvenOddRings2_16', experiment=experiment)

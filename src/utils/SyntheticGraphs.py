@@ -192,6 +192,8 @@ def ring_diagonals( data_size=1200, ring_size=100,*args, **kwargs) -> (List[nx.G
         # get the distance in the ring between the two nodes
         dist = nx.shortest_path_length(G, diag_start, diag_end)
         G.add_edge(diag_start, diag_end)
+        G[diag_start][diag_end]['label'] = np.random.randint(0, 2)
+        G[diag_start][diag_end]['feature'] = [np.random.rand(), np.random.rand(), np.random.rand()]
         # determine the label of the graph G
         # Case 1: Edge Label of the diagonal is 1
         # Case 2: Labels of the two end nodes of the diagonal are the same

@@ -7,9 +7,7 @@ Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experimen
 ## Setting up the Environment
 
 1. Clone the repository using
-    ```bash
-    git clone git@github.com:fseiffarth/ShareGNN.git
-    ```
+
 2. Install the required packages using the environment.yml file using the following command:
    ```bash
    conda env create -f environment.yml
@@ -22,23 +20,42 @@ Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experimen
    E.g., in PyCharm, you have to change the working directory path to the root directory of the repository.
     Go to ```File -> Settings -> Project Structure``` and mark the the root directory as ```Sources``` (blue folder icon).
 
-## Reproduce ShareGNN Experiments
-To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce_ShareGNN](Reproduce_ShareGNN) folder.
+## Reproduce Paper Experiments
+To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce](Reproduce) folder.
 The experiments take approximately 2 days on an AMD Ryzen 9 7950X with 16 cores and 32 threads and 128 GB of RAM.
 
-The commands
+To run all experiments use:
 ```bash
-python Reproduce_ShareGNN/main_fair.py
+python Reproduce/experiments_all.py
 ```
 
-```bash
-python Reproduce_ShareGNN/main_sota.py
-```
-```bash
-python Reproduce_ShareGNN/main_sota_random.py
-```
+To run only a subset of the experiments use:
+1. Real World Fair Evaluation
+    ```bash
+    python Reproduce/experiments_fair_real_world.py
+    ```
+2. Real World Standard Evaluation
+    ```bash
+    python Reproduce/experiments_standard_real_world.py
+    ```
+3. Synthetic Fair Evaluation
+    ```bash
+    python Reproduce/experiments_synthetic.py
+    ```
+4. Baseline Comparison
+    ```bash
+    python Reproduce/experiments_baseline.py
+    ```
 
-will run the experiments in the fair evaluation and the state-of-the-art evaluation, respectively.
+5. Distance/Layer Ablation
+    ```bash
+    python Reproduce/experiments_distance_ablation.py
+    ```
+
+6. Number of Weights Ablation
+    ```bash
+    python Reproduce/experiments_threshold_ablation.py
+    ```
 
 The following steps are executed:
 
@@ -47,9 +64,9 @@ The following steps are executed:
    - run the grid search to find the best hyperparameters for different models
    - run the best models three times with different seeds
    - evaluate the results
+   - create the Feature Data for the best runs
 
-All results related to the fair evaluation will be saved in the [Reproduce_ShareGNN/Results](Reproduce_ShareGNN/Results) folder.
-All results related to the state-of-the-art evaluation will be saved in the [Reproduce_ShareGNN/Results_SOTA](Reproduce_ShareGNN/ResultsSOTA) folder.
+All results will be saved in the [Reproduce/Results](Reproduce/Results) folder.
 
 The following evaluation files are produced:
     - ```summary.csv```: contains the results of the grid search (fair evaluation) one row per hyperparameter setting
@@ -58,21 +75,29 @@ The following evaluation files are produced:
 
 To visualize the results run:
 ```bash
-python Reproduce_ShareGNN/plotting.py
+python Reproduce/latex_plots.py
 ```
-The results will be saved in the corresponding ```Plots``` folder under ```Reproduce_ShareGNN/Results/<DB_NAME>```.
+The results will be saved under ```Reproduce/Results/Latex/Plots/```.
 
 ## Experiments on the TU Dortmund Graph Benchmark
 All datasets from the TU Dortmund Benchmark available [here](https://chrsmrrs.github.io/datasets/docs/datasets/) can be used directly for experiments as shown in [Examples/TUExample](Examples/TUExample).
 
+To run the example use:
+```bash
+python Examples/TUExample/main.py
+```
+
+
 ## Customize Experiments
 An example of how to use ShareGNNs for custom datasets can be found in [Examples/CustomExample](Examples/CustomExample).
 Most importantly, your dataset needs to be in the correct format.
-At the moment, the code supports two different options.
+At the moment, the code supports three different options.
 
-- Option 1 (preferred): Save your favorite graph dataset in the format described below in [Data Format](#Data-Format).
+- Option 1: Use a pytorch geometric dataset
 
-- Option 2: Add your function ```favorite_graph_dataset_generator``` to [src/utils/SyntheticGraphs.py](src/utils/SyntheticGraphs.py) 
+- Option 2: Save your favorite graph dataset in the format described below in [Data Format](#Data-Format).
+
+- Option 3: Add your function ```favorite_graph_dataset_generator``` to [src/utils/SyntheticGraphs.py](src/utils/SyntheticGraphs.py) 
    that returns a tuple of the form 
     ```
       (List[networkx.Graph], List[int/float])
@@ -80,10 +105,10 @@ At the moment, the code supports two different options.
    where the first list contains the networkx graphs (optional with node and edge labels) and the second list contains the labels of the graphs. 
 
 All the experiment details are defined in two configuration files:
-- the [main config file](#main-config-file)  that defines which datasets you want to use and how many splits are used for validation
-- the [experiment config file](#experiment-config-file) that defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.)
+- the [main config file](Examples/ConfigurationFiles/example_config_main.yml)  that defines which datasets you want to use and how many splits are used for validation
+- the [experiment config file](Examples/ConfigurationFiles/example_config_experiment.yml) that defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.)
 
-To run the experiment you only need the following code:
+To run an experiment you only need the following code:
 
    ```python
    from pathlib import Path
@@ -95,8 +120,8 @@ def main():
     experiment = ExperimentMain(Path('Path/To/Your/Main/Config/File.yml'))
     experiment.Preprocess()
     experiment.GridSearch()
-    experiment.RunBestModel()
     experiment.EvaluateResults()
+    experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
 
@@ -110,175 +135,12 @@ if __name__ == '__main__':
 
 
 ### Main Config File
-In the main config file, you define which datasets you want to use and how to split the data into training, validation, and test sets.
-The file should look like this:
-```yaml
-datasets:
-  # in case of a given generation function called ring_diagonals in this case
-  - {name: "EXAMPLE_DB", data: "Examples/CustomExample/Data/SyntheticDatasets/", validation_folds: 10, experiment_config_file: "Examples/CustomExample/Configs/config_experiment.yml", type: "generate_from_function", generate_function: ring_diagonals, generate_function_args: {data_size: 1000, ring_size: 50}}
-  # in case of a dataset from the TU Dortmund Benchmark
-  - {name: "PTC_FM", data: "Reproduce_ShareGNN/Data/TUDatasets/",, validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_experiment.yml", type: "TUDataset"}
-  # in case of a dataset in the correct format (the path to the data is given in the experiment config file)
-  - {name: "CSL",data: "Reproduce_ShareGNN/Data/SyntheticDatasets/", validation_folds: 5, experiment_config_file: "Reproduce_ShareGNN/Configs/config_CSL.yml"}
-
-paths:
-  # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
-  properties:
-    "Reproduce_ShareGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
-  labels:
-    "Reproduce_ShareGNN/Data/Labels/" # Path to the folder containing the labels
-  splits:
-    "Reproduce_ShareGNN/Data/Splits/" # Path to the folder containing the data splits
-  results:
-    "Reproduce_ShareGNN/Results/" # Results will be saved in this folder
-
-```
-The following keys are used:
-- ```name```: the name of the dataset
-- ```data```: the path to the folder containing the graph data or where the data will be saved if generated or downloaded
-- ```validation_folds```: the number of splits used for validation
-- ```experiment_config_file```: the path to the experiment config file
-- ```type``` (optional): the type of the dataset, if not given the dataset is assumed to be in the correct format in the path given in the experiment config file, if given it should be one of the following:
-  - ```generate_from_function```: the dataset is generated using a function defined in [src/utils/SyntheticGraphs.py](src/utils/SyntheticGraphs.py)
-  - ```TUDataset```: the dataset is from the TU Dortmund Benchmark
-- ```generate_function``` (optional): the name of the function used to generate the dataset if the type is ```generate_from_function```
-- ```generate_function_args``` (optional): the arguments of the function used to generate the dataset as a dictionary if the type is ```generate_from_function```
-
-The paths key defines where to save the precomputed properties, labels, splits, and results. 
-If not given, the paths are assumed to be in the path given in the experiment config file.
+The main config file defines which datasets to use and how to split the data into training, validation, and test sets.
+Moreover, all hyperparameters of the network are defined here.
 
 ### Experiment Config File
 
-The experiment config file defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.).
-For each dataset, you need to link an experiment config file in the main config file using the key ```experiment_config_file```.
-```yaml
-paths:
-  data:
-    "Examples/CustomExample/Data/" # Path to the folder containing the graph data
-  properties:
-    "Examples/CustomExample/Data/Properties/" # Precomputed properties will be loaded from this folder
-  labels:
-    "Examples/CustomExample/Data/Labels/" # Path to the folder containing the labels
-  results:
-    "Examples/CustomExample/Results/" # Results will be saved in this folder
-  splits:
-    "Examples/CustomExample/Data/Splits/" # Path to the folder containing the data splits
-
-device: # cpu or cuda, cpu is recommended for the experiments mode as it is faster at the moment
-  cpu
-mode:
-  experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
-batch_size:
-  - 128
-learning_rate:
-  - 0.05
-epochs:
-  - 10
-scheduler:
-  False
-dropout:
-  - 0.0
-optimizer:
-  - Adam
-loss:
-  - CrossEntropyLoss
-early_stopping:
-  enabled:
-    False
-  patience:
-    25
-networks:
-  #- - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
-  #  - { layer_type: wl, depth: 0, properties: { name: distances, values: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ] } }
-  #  - { layer_type: wl, depth: 0 }
-
-  # wl model
-  - - { layer_type: wl, depth: 2, max_labels: 500, properties: {name: distances, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]} }
-    - { layer_type: wl, depth: 2, max_labels: 500 }
-
-
-
-use_features: # if True uses normlized node labels as input features, if False uses 1-vector as input features
-  False
-use_attributes: # if True uses node attributes instead of node labels
-  False
-random_variation: # if True adds random variation to the input features
-  False
-load_splits: # if True loads precomputed data splits (use False only for new datasets)
-  True
-
-# data options
-balance_training:
-  False
-
-# Additional options for analysis only possible in debug mode
-additional_options:
-  draw: # draw the accuracy and loss during training
-    True
-  save_weights: # save the weights of the model
-    False
-  save_prediction_values:
-    False
-  plot_graphs: # Plot all graphs in the dataset
-    False
-  print_results: # Print accuracy and loss in the console
-    True
-
-
-prune:
-  enabled:
-    False
-  epochs: # prune after this many epochs
-    25
-  percentage: # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
-    - 0.999
-    - 0.5
-
-precision:
-  double
-
-best_model:
-  False
-save_last:
-  False
-```
-The current available keys are:
-- ```paths```: [optional] will overwrite the paths in the main config, the paths to the data, properties, labels, results, and splits
-  - ```data```: the path to the folder containing the graph data or where the data will be saved if generated or downloaded
-  - ```properties```: the path to the folder containing the precomputed properties
-  - ```labels```: the path to the folder containing the labels
-  - ```splits```: the path to the folder containing the data splits  
-  - ```results```: the path to the folder where the results will be saved
-- ```device```: the device used for training, either 'cpu' or 'cuda' (recommended: 'cpu')
-- ```mode```: the mode of the experiment, either 'experiments' or 'debug' (recommended: 'experiments' for experiments and 'debug' for debugging)
-- ```batch_size```: the batch size used for training
-- ```learning_rate```: the learning rate used for training
-- ```epochs```: the number of epochs used for training
-- ```scheduler```: if True, a scheduler is used
-- ```dropout```: the dropout rate used for training (not tested yet)
-- ```optimizer```: the optimizer used for training
-- ```loss```: the loss function used for training
-- ```early_stopping```: if True, early stopping is used
- - ```enabled```: if True, early stopping is enabled
- - ```patience```: the patience of the early stopping, after how many epochs without improvement of the validation accuracy the training stops
-- ```networks```: the network architecture used for training (see [Layers](#Layers)) for more details)
-- ```use_features```: if True, uses the normalized node labels as input features, if False uses the 1-vector as input features
-- ```use_attributes```: if True, uses node attributes instead of node labels
-- ```random_variation```: if True, adds random variation to the input features
-- ```balance_training```: if True, balances the training set
-- ```additional_options```: additional options for analysis only possible in debug mode
- - ```draw```: if True, draws the accuracy and loss during training
- - ```save_weights```: if True, saves the weights of the model
- - ```save_prediction_values```: if True, saves the prediction values
- - ```plot_graphs```: if True, plots all graphs in the dataset
- - ```print_results```: if True, prints accuracy and loss in the console
- - ```prune```: if True, prunes the model
-   - ```enabled```: if True, pruning is enabled
-   - ```epochs```: prune after this many epochs
-   - ```percentage```: the number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
-- ```precision```: the precision used for training
-- ```best_model```: if True, also test accuracy is evaluated for all models
-- ```save_last```: if True, saves the last model
+The experiment config defines the hyperparameters for the layers of the model
 
 
 
@@ -306,61 +168,74 @@ The graph dataset is represented using three files:
       where `graph_name` is the name of the graph, `graph_id` is the id of the graph, and `graph_label` is the label of the graph.
 
 ## Layers
-At the moment, the following layers are implemented:
+At the moment, the following layers are implemented.
+The list of parameters always iterates over all combinations.
 - Primary-Layer
   ```yaml
-  - { layer_type: primary, properties: { name: edge_label_distances, values: [ 1 ] } }
+  - { label_type: primary }
   ```
   The primary layer uses the initial node labels.
 - WL-Layer
   ```yaml
-  - { layer_type: wl, depth: 2, max_labels: 500, properties: { name: distances, values: [1] }}
+  - { label_type: wl, depth: [ 0,1,2,3,4 ] },
   ```
-    The WL-Layer uses the Weisfeiler-Lehman algorithm to generate node labels. The parameter ```depth``` specifies the number of iterations of the Weisfeiler-Lehman algorithm. The parameter ```max_labels``` specifies the maximum number of node labels used in the layer. The parameter ```properties``` specifies the inter-node properties used, see [Property Functions](#Property-Functions).
+    The WL-Layer uses the Weisfeiler-Lehman algorithm to generate node labels. 
+    The parameter ```depth``` specifies the number of iterations of the Weisfeiler-Lehman algorithm. 
+    The parameter ```max_labels``` specifies the maximum number of node labels used in the layer. If not given the number is unlimited.
 - Subgraph-Layer
     ```yaml
-    - { layer_type: subgraph, id: 0, properties: { name: distances, values: [ 3 ] }}
+  - { label_type: subgraph, id: [ 0,1,2,3 ] }
     ```
     For the subgraph layer, you need to specify under the keyword ```subgraph```  the list of subgraphs as nx.Graph objects, e.g.
    ```yaml
-   subgraphs:
-     - "[nx.cycle_graph(4), nx.cycle_graph(5)]"
-    ```
+    subgraphs:
+    - "[nx.complete_graph(4)]"
+    - "[nx.cycle_graph(3), nx.star_graph(1)]"
+    - "[nx.cycle_graph(4), nx.star_graph(1)]"
+    - "[nx.cycle_graph(3), nx.cycle_graph(4), nx.star_graph(1)]"
+  ```
   The parameter ```id``` specifies which list of subgraphs to use.
   In this example the layer uses the labels of the nodes induced by the embeddings of the subgraphs (in this case cycles of length 4 and 5).
   
 - Cycle-Layer (special case of Subgraph-Layer)
   ```yaml
-    - { layer_type: simple_cycles, max_cycle_length: 10, properties: { name: distances, values: [1,2,3,4,5,6] }}
+    - { label_type: simple_cycles, max_cycle_length: [ 3,4,5 ] },
     ```
   generates the node labels using the embeddings of simple_cycles of length 1 to 10.
   ```yaml
-   - { layer_type: induced_cycles, max_cycle_length: 10, max_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
+   - { label_type: induced_cycles, max_cycle_length: [ 4,5,10,20 ] },
   ```
     generates the node labels using the embeddings of induced_cycles of length 1 to 10.
 - Cliques-Layer (special case of Subgraph-Layer)
     ```yaml
-        - { layer_type: cliques, max_clique_size: 10, max_labels: 500, properties: { name: distances, values: [1,2,3,4,5,6] }}
+        - { label_type: cliques, max_clique_size: [ 3,4,6,10,20,50 ] },
     ```
     generates the node labels using the embeddings of cliques of size 1 to 10.
 
 ## Property Functions
 
 The property functions assign each pair of nodes in a graph a property value. This can be distances, information about edge labels between the nodes or different values if one node is in a circle and the other is not.
+In the paper the property functions are always distances.
 At the moment, the following property functions are implemented:
 - Distances
     ```yaml
-    - properties: { name: distances, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25] }
+    - properties: [
+          { name: distances, values: [ 0,1,2 ] },
+        ]
     ```
     Each distance in values is considered. If the distance between two nodes is not in the values list, then no corresponding learnable parameter (weight) is created.
 - Edge Label Distances
     ```yaml
-    - properties: { name: edge_label_distances, values: [1] }
+    - properties: [
+          { name: edge_label_distances, values: [ 0,1,2 ] },
+        ]
     ```
     Not only distances are considered but also the counts of all edge labels between all shortest paths of the nodes.
 - Circle Distances
     ```yaml
-    - properties: { name: circle_distances, values: [1] }
+    - properties: [
+          { name: circle_distances, values: [ 0,1,2,3 ] },
+        ]
     ```
     For each distance depicted in values, there are four different values: 0 if both nodes are not in a circle, 1 if both nodes are in a circle, 2 if only the first node is in a circle, and 3 if only the second node is in a circle.
 
@@ -385,23 +260,4 @@ Moreover, give your new property function a unique ```properties``` key used as 
 ## Plotting
 
 For plotting you need ```graphviz```
-
-Use the following code to plot the learned parameters of the model:
-```python
-    db_name = 'DB_NAME'
-    main_config_file = 'path/from/root/to/main_config_file.yml'
-    experiment_config_file = 'path/from/root/to/experiment_config_file.yml'
-    colormap = matplotlib.cm.get_cmap('viridis') # colormap for the weights
-    graph_ids = [0,1,2] # list of graph ids to plot (test set ids
-    filter_sizes = (None, 10, 3) #filter by largest absolute values, None means no filter
-    # parameters for the graph drawing (node_size, edge_width, weight_edge_width, weight_arrow_size, colormap, etc.)
-    # The first entry is for the original graph, the second for the learned parameters
-    graph_drawing = (
-        GraphDrawing(node_size=40, edge_width=1),
-        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10, colormap=colormap)
-    ) 
-    ww = WeightVisualization(db_name=db_name, main_config=main_config_file, experiment_config=experiment_config_file)
-    for validation_id in range(10):
-        for run in range(3):
-            ww.visualize(graph_ids, run=run, validation_id=validation_id, graph_drawing=graph_drawing, filter_sizes=filter_sizes)
-```
+See [Reproduce/latex_plots.py](Reproduce/latex_plots.py) for an example of how to plot the graphs.

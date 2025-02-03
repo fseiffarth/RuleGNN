@@ -40,7 +40,7 @@ output_activation: 'tanh'
 # rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
 # -type: [graph, total], graph: the rule has to be present in a graph, total: the rule has to be present in the whole dataset
 # -threshold: the threshold for the rule occurrence at least this many times
-rule_occurrence_threshold: { type: 'graph', threshold: 1 }
+rule_occurrence_threshold: 1
 
 # weight initialization: weight initialization for the network (TODO)
 # - convolution: weight initialization for the convolutional layers
@@ -78,7 +78,7 @@ weight_initialization: { convolution: { type: 'constant', value: 0.001 },
 input_features: { name: constant, value: 1.0 }
 
 # num_workers: number of workers used
-num_workers: 10
+num_workers: 1
 
 
 

@@ -21,26 +21,69 @@ paths:
   # Path to the folder containing the data splits
   splits: "Examples/TUExample/Data/Splits/"
 
-# network options
-# bias: Turn on or off the bias in all layers
-bias: True
 
-# convolution_grad: Turn on or off learning for the convolutional layers
-convolution_grad: True
+#### data options
+# balance_training: balance the training data, set to True to balance the training data
+#  - True
+#  - False
+balance_training: False
 
-# aggregation_grad: Turn on or off learning for the aggregation layer
-aggregation_grad: True
+# mode: mode of the experiment, there are two modes one for debugging and one for running the experiments
+#   - debug
+#   - experiments
+mode: experiments # options: [debug, experiments] if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 
-# activation: activation function for the convolutional layers
-activation: 'tanh'
+# device: the device to use, cpu is recommended as it is faster at the moment
+#   - cpu (recommended)
+#   - cuda
+device: cpu
 
-# output_activation: activation function for the output layer
-output_activation: 'tanh'
+### Experiment options
+# batch_size: batch size used for training, use several options for hyperparameter search, use None to set the batch size to the size of the dataset
+batch_size:
+  - 64
 
-# rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
-# -type: [graph, total], graph: the rule has to be present in a graph, total: the rule has to be present in the whole dataset
-# -threshold: the threshold for the rule occurrence at least this many times
-rule_occurrence_threshold: { type: 'graph', threshold: 1 }
+# learning_rate: learning rate used for training, use several options for hyperparameter search
+learning_rate:
+  - 0.01
+
+# epochs: number of epochs used for training, use several options for hyperparameter search
+epochs:
+  - 200
+
+# dropout: dropout rate used for training, use several options for hyperparameter search
+dropout:
+  - 0.0
+
+# weight_decay: weight decay used for training, use several options for hyperparameter search (TODO)
+weight_decay:
+  - 0.0
+
+# optimizer: optimizer used for training, use several options for hyperparameter search
+optimizer:
+  - Adam
+
+# loss: loss function used for training, use several options for hyperparameter search
+loss:
+  - CrossEntropyLoss
+
+# scheduler: learning rate scheduler used for training, use several options for hyperparameter search (TODO: different schedulers),
+#  - False
+#  - True (each 5 epochs the learning rate is reduced by a factor of 0.5)
+scheduler: False
+
+# early_stopping: early stopping used for training, enabled can be set to True or False, patience is the number of epochs to wait for improvement of the validation accuracy
+early_stopping:
+  enabled:
+    True
+  patience:
+    25
+
+# rule_occurrence_threshold: threshold that determines how often a weight has to be present to be used in the network for message passing
+rule_occurrence_threshold: 3
+
+# rule_occurrence_upper_threshold: threshold that determines how often a weight has to be present to be used in the network for message passing
+rule_occurrence_upper_threshold: 20
 
 # weight initialization: weight initialization for the network
 # - type: [constant, uniform, normal]
@@ -54,6 +97,22 @@ weight_initialization: { convolution: { type: 'uniform', min: -0.1, max: 0.1 },
                          aggregation: { type: 'uniform', min: -0.1, max: 0.1 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
+# Pruning options (TODO: not tested yet)
+prune:
+  # enabled: enable pruning
+  enabled: False
+  # prune after this many epochs
+  epochs: 25
+  # number of total weights pruned at the end of training per layer (0.1 means 10% of the weights will be pruned)
+  percentage:
+    - 0.999
+    - 0.5
+
+# precision: precision of the model, can be set to float or double
+#  - float
+#  - double
+precision: double
+
 # input_features: determine how the input features should be transformed, the following options show some examples
 #  - {name: constant, value: 1.0}, use a constant value as input feature
 #  - {name: node_labels, transformation: normalize}, use node labels and normalize them between -1 and 1
@@ -66,6 +125,11 @@ input_features: { name: constant, value: 1.0 }
 
 # num_workers: number of workers used
 num_workers: 4
+
+# best_model: compute test set accuracy directly
+#best_model: False
+# save_last: save the last model
+#save_last: False
 
 
 

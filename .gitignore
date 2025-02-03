@@ -9,10 +9,10 @@
 /Data/*
 !/Data/Splits/
 !/Data/SplitsSimple/
-# ignore everything in the Reproduce_RuleGNN folder except for the Configs folder and .py files
-/Reproduce_RuleGNN/*
-!/Reproduce_RuleGNN/Configs/
-!Reproduce_RuleGNN/*.py
+# ignore everything in the Reproduce folder except for the Configs folder and .py files
+/Reproduce/*
+!/Reproduce/Configs/
+!Reproduce/*.py
 # ignore all results and data folders after Examples
 /Examples/*/Data/
 /Examples/*/Results/
