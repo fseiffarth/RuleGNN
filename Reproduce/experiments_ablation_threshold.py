@@ -37,7 +37,7 @@ def run_ablation_experiment(num_threads, threshold_type, threshold):
     ablation_experiment.RunBestModel(num_threads=1)
     ablation_experiment.EvaluateResults(evaluate_best_model=True)
 
-def main_threshold(num_threads=-1):
+def main_ablation_threshold(num_threads=-1):
     get_existing_splits()
     num_threads = num_threads
     types = ['upper', 'lower_upper', 'lower']
@@ -52,7 +52,7 @@ def main_threshold(num_threads=-1):
 @click.command()
 @click.option('--num_threads', default=-1, help='Number of threads to use')
 def main(num_threads):
-    main_threshold(num_threads)
+    main_ablation_threshold(num_threads)
 
 
 if __name__ == '__main__':
