@@ -1,12 +1,13 @@
 # ShareGNN
 
-This repository contains the code for experiments with ShareGNNs.
+This repository contains the code for experiments with ShareGNNs to run the competitors please use
+https://anonymous.4open.science/r/FairSetup-F3DE/CONTRIBUTING.md.
 First, we give an overview of the repository and how to reproduce the experiments of the paper.
 Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experiments) and how to add new [layers](#Layers), [labeling functions](#Add-new-labeling-functions), and [property functions](#Add-new-property-functions).
 
 ## Setting up the Environment
 
-1. Clone the repository using
+1. Clone the repository
 
 2. Install the required packages using the environment.yml file using the following command:
    ```bash
@@ -22,62 +23,87 @@ Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experimen
 
 ## Reproduce Paper Experiments
 To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce](Reproduce) folder.
-The experiments take approximately 2 days on an AMD Ryzen 9 7950X with 16 cores and 32 threads and 128 GB of RAM.
+All experiments take approximately 4 days on an AMD Ryzen 9 7950X with 16 cores and 32 threads and 128 GB of RAM.
+Also single experiments can be started, see [Run specific experiment](#Run-specific-experiment).
 
-To run all experiments use:
+### Run all experiments
 ```bash
-python Reproduce/experiments_all.py
+python Reproduce/experiments_all.py --num_threads 30
 ```
 
-To run only a subset of the experiments use:
+The following steps are executed:
+
+   - download of the datasets
+   - preprocessing of the datasets
+   - experiments regarding fair evaluation, the standard evaluation, the synthetic data, the baselines and the ablation experiments
+   - grid search to find the best hyperparameters for different models
+   - best models three times with different seeds
+   - evaluation of the results
+   - creation of the Feature Data for the best runs
+
+
+All results will be saved in the [Reproduce/Results](Reproduce/Results) folder.
+
+For each experiment and each dataset the following evaluation files are produced:
+
+- ```summary.csv```: contains the results of the grid search (fair evaluation) one row per hyperparameter setting
+- ```summary_best.csv```: contains the results of the best model (hyperparameter setting) one row per seed
+- ```summary_best_mean.csv```: contains the mean and standard deviation of the best model results over all seeds
+
+At the end of the experiments there will exist the folder [Reproduce/DataGNNComparison](Reproduce/DataGNNComparison) containing the
+graph data with the labels from the best ShareGNN run.
+These graph data can be directly used further for the competitors, see https://anonymous.4open.science/r/FairSetup-F3DE/CONTRIBUTING.md for the details
+
+### Visualize the results
+The results will be saved under ```Reproduce/Results/Latex/Plots/```.
+```bash
+python Reproduce/latex_plots.py
+```
+
+### Get Latex Tables
+Note, that to get the full tables of the paper also the competitors need to be run, see https://anonymous.4open.science/r/FairSetup-F3DE/CONTRIBUTING.md
+```bash
+python Reproduce/latex.py
+```
+
+
+
+
+
+
+
+
+
+
+### Run specific experiment
 1. Real World Fair Evaluation
     ```bash
-    python Reproduce/experiments_fair_real_world.py
+    python Reproduce/experiments_fair_real_world.py --num_threads 30
     ```
 2. Real World Standard Evaluation
     ```bash
-    python Reproduce/experiments_standard_real_world.py
+    python Reproduce/experiments_standard_real_world.py --num_threads 30
     ```
 3. Synthetic Fair Evaluation
     ```bash
-    python Reproduce/experiments_synthetic.py
+    python Reproduce/experiments_synthetic.py --num_threads 30
     ```
 4. Baseline Comparison
     ```bash
-    python Reproduce/experiments_baseline.py
+    python Reproduce/experiments_baseline.py --num_threads 30
     ```
 
 5. Distance/Layer Ablation
     ```bash
-    python Reproduce/experiments_distance_ablation.py
+    python Reproduce/experiments_distance_ablation.py --num_threads 30
     ```
 
 6. Number of Weights Ablation
     ```bash
-    python Reproduce/experiments_threshold_ablation.py
+    python Reproduce/experiments_threshold_ablation.py --num_threads 30
     ```
 
-The following steps are executed:
 
-   - download the datasets
-   - preprocess the datasets
-   - run the grid search to find the best hyperparameters for different models
-   - run the best models three times with different seeds
-   - evaluate the results
-   - create the Feature Data for the best runs
-
-All results will be saved in the [Reproduce/Results](Reproduce/Results) folder.
-
-The following evaluation files are produced:
-    - ```summary.csv```: contains the results of the grid search (fair evaluation) one row per hyperparameter setting
-    - ```summary_best.csv```: contains the results of the best model (hyperparameter setting) one row per seed
-    - ```summary_best_mean.csv```: contains the mean and standard deviation of the best model results over all seeds
-
-To visualize the results run:
-```bash
-python Reproduce/latex_plots.py
-```
-The results will be saved under ```Reproduce/Results/Latex/Plots/```.
 
 ## Experiments on the TU Dortmund Graph Benchmark
 All datasets from the TU Dortmund Benchmark available [here](https://chrsmrrs.github.io/datasets/docs/datasets/) can be used directly for experiments as shown in [Examples/TUExample](Examples/TUExample).
