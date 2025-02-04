@@ -157,7 +157,7 @@ class ExperimentMain:
                                                         experiment_config=experiment_configuration)
             run_configs = get_run_configs(experiment_configuration)
             config_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'
-            print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {num_workers}")
+            print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {num_threads}")
             joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.run_models)(dataset=dataset,
                                                         graph_data=graph_data,
                                                         run_config=run_configs[best_config_id],
