@@ -61,7 +61,8 @@ python Reproduce/latex_plots.py
 ```
 
 ### Get Latex Tables
-Note, that to get the full tables of the paper also the competitors need to be run, see https://anonymous.4open.science/r/FairSetup-F3DE/CONTRIBUTING.md
+Note, that to get the full tables of the paper also the competitors need to be run, see https://anonymous.4open.science/r/FairSetup-F3DE/CONTRIBUTING.md.
+Then copy the RESULTS folder to this repository.
 ```bash
 python Reproduce/latex.py
 ```
