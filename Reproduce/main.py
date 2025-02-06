@@ -31,16 +31,17 @@ def main():
     ## Real World Data
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
     experiment.Preprocess()
-
-    ## Synthetic Data
-    experiment_synthetic = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic.yml'))
-    experiment_synthetic.Preprocess()
-
     ## run real world experiment
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
+
+    ## Synthetic Data
+    experiment_synthetic = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic.yml'))
+    experiment_synthetic.Preprocess()
+
+
 
     ## run synthetic experiment
     experiment_synthetic.GridSearch()

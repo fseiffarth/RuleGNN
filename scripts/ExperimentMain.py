@@ -43,11 +43,19 @@ class ExperimentMain:
         for dataset in self.main_config['datasets']:
             experiment_configuration = self.update_experiment_configuration(dataset)
             experiment_configuration['format'] = 'RuleGNNDataset'
-            self.experiment_configurations[dataset['name']] = experiment_configuration.copy()
-            self.dataset_configs[dataset['name']] = dataset.copy()
-
-
-
+            if isinstance(dataset['name'], list):
+                str_concatenation = ''
+                for i, name in enumerate(dataset['name']):
+                    str_concatenation += name
+                    if i < len(dataset['name']) - 1:
+                        str_concatenation += '_'
+                self.experiment_configurations[str_concatenation] = experiment_configuration.copy()
+                self.experiment_configurations[str_concatenation]['single_datasets'] = dataset['name']
+                self.dataset_configs[str_concatenation] = dataset.copy()
+                self.dataset_configs[str_concatenation]['single_datasets'] = dataset['name']
+            else:
+                self.experiment_configurations[dataset['name']] = experiment_configuration.copy()
+                self.dataset_configs[dataset['name']] = dataset.copy()
         self.check_config_consistency()
 
 
@@ -191,6 +199,13 @@ class ExperimentMain:
 
     def PreprocessParallel(self, dataset_configuration):
         db_name = dataset_configuration['name']
+        if isinstance(db_name, list):
+            # concatenate the names of the datasets
+            str_concatenation = ''
+            for i, name in enumerate(db_name):
+                str_concatenation += name
+                if i < len(db_name) - 1:
+                    str_concatenation += '_'
         experiment_configuration = self.experiment_configurations[db_name]
         data_generation = None
         data_generation_args = None

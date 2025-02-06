@@ -19,7 +19,7 @@ Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experimen
    ```
     **(for IDE)** If you are working in an IDE, you can set the PYTHONPATH in the run configuration. 
    E.g., in PyCharm, you have to change the working directory path to the root directory of the repository.
-    Go to ```File -> Settings -> Project Structure``` and mark the the root directory as ```Sources``` (blue folder icon).
+    Go to ```File -> Settings -> Project Structure``` and mark the root directory as ```Sources``` (blue folder icon).
 
 ## Reproduce Paper Experiments
 To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce](Reproduce) folder.
