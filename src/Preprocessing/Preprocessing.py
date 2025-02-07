@@ -8,6 +8,7 @@ from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels,
     save_labeled_degree_labels, save_wl_labeled_labels, save_labels_to_file
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
+from src.Preprocessing.split_functions import *
 from src.utils.GraphData import RuleGNNDataset
 from src.utils.GraphLabels import combine_node_labels
 from src.utils.RunConfiguration import get_run_configs
@@ -98,7 +99,8 @@ class Preprocessing:
                                                              'use_edge_attr', False),
                                                          delete_zero_columns=self.experiment_configuration.get(
                                                              'delete_zero_columns', True),
-                                                        from_existing_data='NEL'
+                                                        from_existing_data='NEL',
+                                                         task=self.experiment_configuration.get('task', 'graph')
                                                          )
                     except:
                         # raise the error that has occurred
@@ -114,7 +116,8 @@ class Preprocessing:
                                                              'use_edge_attr', False),
                                                          delete_zero_columns=self.experiment_configuration.get(
                                                              'delete_zero_columns', True),
-                                                        from_existing_data='NEL'
+                                                        from_existing_data='NEL',
+                                                         task=self.experiment_configuration.get('task', 'graph')
                                                          )
                     except:
                         print(f'Could not process the data from {db_name} with the given configuration.')
@@ -132,6 +135,7 @@ class Preprocessing:
                                              use_node_attr=self.experiment_configuration.get('use_node_attr', False),
                                                 use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
                                              delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
+                                             task=self.experiment_configuration.get('task', 'graph')
                                              )
 
         # generate the splits
@@ -140,6 +144,13 @@ class Preprocessing:
             Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
             # generate splits
             create_splits(db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.dataset_configuration['validation_folds'], graph_data=self.graph_data)
+        else:
+            if self.experiment_configuration.get('split_function', None) is not None:
+                # create the splits folder if it does not exist
+                Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
+                # generate splits
+                split_function = self.experiment_configuration['split_function']
+                split_function(self.experiment_configuration['paths']['splits'])
 
         # copy the splits to the processed folder
         if self.experiment_configuration['paths']['splits'].joinpath(f'{db_name}_splits.json').exists():

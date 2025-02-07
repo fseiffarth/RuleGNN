@@ -1,9 +1,18 @@
 datasets:
+#  - {
+#        name: "PTC_FM",
+#        task: "graph_classification",
+#        validation_folds: 10,
+#        experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
+#        type: "TUDataset"
+#    }
+
   - {
       name: "ZINC",
       task: "graph_regression",
       validation_folds: 1,
       with_splits: False,
+      split_function: zinc_splits,
       experiment_config_file: "Examples/Foundation/Configs/config_regression.yml",
       type: 'ZINC',
   }

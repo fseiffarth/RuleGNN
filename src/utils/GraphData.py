@@ -37,13 +37,13 @@ class RuleGNNDataset(InMemoryDataset):
             output_features = None,
             task = None
     ) -> None:
-        self.name = name
-        self.from_existing_data = from_existing_data
-        self.nx_graphs = None
-        self.unique_node_labels = 0
-        self.node_labels = {}
-        self.edge_labels = {}
-        self.properties = {}
+        self.name = name # name of the dataset
+        self.from_existing_data = from_existing_data # create the dataset from existing data
+        self.nx_graphs = None # networkx graphs
+        self.unique_node_labels = 0 # number of unique node labels
+        self.node_labels = {} # different node labels for the graph data
+        self.edge_labels = {} # different edge labels for the graph data
+        self.properties = {} # different pairwise properties for the graph data
         self.precision = torch.float
         if precision == 'double':
             self.precision = torch.double
@@ -86,20 +86,27 @@ class RuleGNNDataset(InMemoryDataset):
             self.slices['x'] += data['_num_nodes']
             self.slices['x'] = torch.tensor(self.slices['x'], dtype=torch.long).cumsum(dim=0)
 
-        if data.get('x', None) is not None:
-            if data['x'].shape[1] == 1:
-                self.node_labels['primary'] = data['x'].clone().detach().long()
-            else:
-                self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
-            self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
-            if not use_node_attr:
-                num_node_attributes = self.num_node_attributes
-                data['x'] = data['x'][:, num_node_attributes:]
+        if len(data['x'].shape) == 1:
+            data['x'] = data['x'].unsqueeze(1)
+        if data['x'].shape[1] == 1:
+            self.node_labels['primary'] = data['x'].clone().detach().long()
+        else:
+            self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
+        self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
+        if not use_node_attr:
+            num_node_attributes = self.num_node_attributes
+            data['x'] = data['x'][:, num_node_attributes:]
 
 
 
         if data.get('edge_attr', None) is not None:
-            self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
+            if len(data['edge_attr'].shape) == 1:
+                # unsqueeze the edge_attr tensor
+                data['edge_attr'] = data['edge_attr'].unsqueeze(1)
+            if data['edge_attr'].shape[1] == 1:
+                self.edge_labels['primary'] = data['edge_attr'].clone().detach().long()
+            else:
+                self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
             if not use_edge_attr:
                 num_edge_attrs = self.num_edge_attributes
                 data['edge_attr'] = data['edge_attr'][:, num_edge_attrs:]
@@ -160,8 +167,25 @@ class RuleGNNDataset(InMemoryDataset):
         sizes = None
         if self.from_existing_data is not None:
             if self.from_existing_data == 'ZINC':
-                data = ZINC(root='tmp/', subset=True, split='train')
-                self.data, self.slices, sizes = data._data, data.slices, data.sizes
+                train_data = ZINC(root='tmp/', subset=True, split='train')
+                validation_data = ZINC(root='tmp/', subset=True, split='val')
+                test_data = ZINC(root='tmp/', subset=True, split='test')
+                # merge train_data._data, validation_data._data and test_data._data
+                all_data = torch_geometric.data.InMemoryDataset.collate([train_data._data, validation_data._data, test_data._data])
+
+                self.data = all_data[0]
+                # merge the slices
+                self.slices = dict()
+                for key in train_data.slices.keys():
+                    validation_data.slices[key] += train_data.slices[key][-1]
+                    test_data.slices[key] += validation_data.slices[key][-1]
+                    self.slices[key] = torch.cat((train_data.slices[key], validation_data.slices[key][1:], test_data.slices[key][1:]))
+
+                sizes = {'num_edge_attributes': 0,
+                         'num_edge_labels': len(torch.unique(self.data.edge_attr)),
+                         'num_node_attributes': 0,
+                         'num_node_labels': 0
+                }
             elif self.from_existing_data == 'TUDataset':
                 tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
                 self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
