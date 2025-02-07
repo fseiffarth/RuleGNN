@@ -235,18 +235,20 @@ class ExperimentMain:
         else:
             print(f"The type of the dataset is not defined. Please define the type of the dataset.")
 
-
-        if 'with_splits' in dataset_configuration:
-            with_splits = dataset_configuration['with_splits']
-        else:
-            with_splits = True
+        # generate new splits for the dataset
+        generate_new_splits = dataset_configuration.get('with_splits', True)
 
         paths = collect_paths(main_configuration=self.main_config, dataset_configuration=dataset_configuration, experiment_configuration=experiment_configuration)
         experiment_configuration['paths'] = paths
         # paths to Path objects
         config_paths_to_absolute(experiment_configuration, Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
         # preprocess the data
-        Preprocessing(db_name=db_name, dataset_configuration=dataset_configuration, experiment_configuration=experiment_configuration, with_splits=with_splits,data_generation=data_generation, data_generation_args=data_generation_args)
+        Preprocessing(db_name=db_name,
+                      dataset_configuration=dataset_configuration,
+                      experiment_configuration=experiment_configuration,
+                      generate_new_splits=generate_new_splits,
+                      data_generation=data_generation,
+                      data_generation_args=data_generation_args)
 
     def check_config_consistency(self):
         pass

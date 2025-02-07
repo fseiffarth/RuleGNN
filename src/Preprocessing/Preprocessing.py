@@ -16,7 +16,17 @@ from src.utils.utils import save_graphs
 
 
 class Preprocessing:
-    def __init__(self, db_name:str, dataset_configuration, experiment_configuration, with_splits=True, with_labels_and_properties=True, data_generation=None, data_generation_args=None, create_pt_files = True):
+    """
+    Preprocessing class to load the data, generate the splits, labels and properties and save them in the correct folders.
+    params:
+    db_name: str: name of the dataset
+    dataset_configuration: dict: configuration for the dataset
+    experiment_configuration: dict: configuration for the experiment
+    with_splits: bool: generate the splits
+    with_labels_and_properties: bool: generate the labels and properties
+    data_generation: str: name of the data generation function
+    """
+    def __init__(self, db_name:str, dataset_configuration, experiment_configuration, generate_new_splits=True, with_labels_and_properties=True, data_generation=None, data_generation_args=None, create_pt_files = True):
         self.db_name = db_name
         self.graph_data = None
         # load the config file
@@ -125,7 +135,7 @@ class Preprocessing:
                                              )
 
         # generate the splits
-        if with_splits:
+        if generate_new_splits:
             # create the splits folder if it does not exist
             Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
             # generate splits
