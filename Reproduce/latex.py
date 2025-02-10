@@ -638,7 +638,7 @@ def training_and_preprocessing_time(share_gnn_type=''):
                     else:
                         raise ValueError('share_gnn_type not recognized')
                 experiment = ExperimentMain(Path(config_path))
-                experiment.Preprocess(num_jobs=1)
+                experiment.ExperimentPreprocessing(num_jobs=1)
 
 
                 for dataset in datasets:
@@ -751,7 +751,7 @@ def hyper_parameter_configurations():
         ## Real World Data
         config_path = Path('Reproduce/Configs/main_config_fair_real_world.yml')
         experiment = ExperimentMain(Path(config_path))
-        experiment.Preprocess(num_jobs=1)
+        experiment.ExperimentPreprocessing(num_jobs=1)
         run_configs_molecule = get_run_configs(experiment.experiment_configurations[molecule])
         run_configs_social = get_run_configs(experiment.experiment_configurations[social])
         for run_configs in [run_configs_molecule, run_configs_social]:

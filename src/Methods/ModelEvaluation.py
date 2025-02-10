@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import torch
 from torch import optim, nn
-from torch.autograd import Variable
 from torch.optim.lr_scheduler import StepLR
 from src.Architectures.RuleGNN import RuleGNN
 from src.utils import GraphData
@@ -59,6 +58,7 @@ class ModelEvaluation:
         net: RuleGNN -> if not None use a pretrained network
         """
 
+        print(f'Initializing network with seed {run_seed}')
         if pretrained_network is not None:
             self.net = torch.load(pretrained_network)
         else:
@@ -67,6 +67,7 @@ class ModelEvaluation:
                                        seed=self.seed, device=self.device)
         # set the network to device
         self.net.to(self.device)
+        print(f'Network initialized with seed {run_seed}')
 
         timer = TimeClass()
 
@@ -152,7 +153,10 @@ class ModelEvaluation:
             for batch_counter, batch in enumerate(train_batches, 0):
                 timer.measure("forward")
                 self.optimizer.zero_grad()
-                outputs = Variable(torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype)).to(self.device)
+                if self.graph_data.num_classes == 1:
+                    outputs = torch.zeros((len(batch)), dtype=self.dtype).to(self.device)
+                else:
+                    outputs = torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
 
                 # TODO batch in one matrix ?
                 self.net.train(True)
@@ -381,7 +385,7 @@ class ModelEvaluation:
                 file_obj.write("")
 
         # header use semicolon as delimiter
-        if self.para.run_config.task == 'regression':
+        if self.para.run_config.task == 'graph_regression':
             header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
                      "EpochAccuracy;EpochTime;EpochMAE;EpochMAEStd;ValidationLoss;ValidationAccuracy;ValidationMAE;ValidationMAEStd;TestLoss;TestAccuracy;TestMAE;TestMAEStd\n"
         else:
@@ -397,11 +401,11 @@ class ModelEvaluation:
     def evaluate_results(self, epoch: int, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues, evaluation_type, outputs=None, labels=None, batch_idx=0, batch_length=0, num_batches=0):
         if evaluation_type == 'training':
             batch_acc = 0
-            if self.para.run_config.task == 'classification':
+            if self.para.run_config.task == 'graph_classification':
                 batch_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
                 train_values.accuracy += batch_acc * (batch_length / len(self.training_data))
             # if num classes is one calculate the mae and mae_std or if the task is regression
-            elif self.para.run_config.task == 'regression':
+            elif self.para.run_config.task == 'graph_regression':
                 # flatten the labels and outputs
                 flatten_labels = labels.detach().clone().flatten()
                 flatten_outputs = outputs.detach().clone().flatten()
@@ -414,7 +418,7 @@ class ModelEvaluation:
                 train_values.mae_std += batch_mae_std * (batch_length / len(self.training_data))
 
             if self.para.print_results:
-                if self.graph_data.num_classes == 1 or self.para.run_config.task == 'regression':
+                if self.graph_data.num_classes == 1 or self.para.run_config.task == 'graph_regression':
                     print(
                         "\tepoch: {}/{}, batch: {}/{}, loss: {}, acc: {} %, mae: {}, mae_std: {}".format(epoch + 1,
                                                                                                          self.para.n_epochs,
@@ -450,7 +454,10 @@ class ModelEvaluation:
             Evaluate the validation accuracy for each epoch
             '''
             if self.validate_data.size != 0:
-                outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=self.dtype)
+                if self.graph_data.num_classes == 1:
+                    outputs = torch.zeros((len(self.validate_data)), dtype=self.dtype).to(self.device)
+                else:
+                    outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
                 labels = self.graph_data.y[self.validate_data]
 
                 # use torch no grad to save memory
@@ -462,7 +469,7 @@ class ModelEvaluation:
                 # get validation loss
                 validation_loss = self.criterion(outputs, labels).item()
                 validation_values.loss = validation_loss
-                if self.para.run_config.task == 'regression':
+                if self.para.run_config.task == 'graph_regression':
                     flatten_labels = labels.detach().clone().flatten()
                     flatten_outputs = outputs.detach().clone().flatten()
                     if self.para.run_config.config.get('output_features_inverse', None) is not None:
@@ -479,7 +486,7 @@ class ModelEvaluation:
                     validation_values.accuracy = validation_acc
 
                 # update best epoch
-                if self.para.run_config.task == 'regression':
+                if self.para.run_config.task == 'graph_regression':
                     if validation_values.mae <= self.best_epoch["val_mae"] or valid_pruning_configuration(self.para, epoch):
                         self.best_epoch["epoch"] = epoch
                         self.best_epoch["acc"] = train_values.accuracy
@@ -535,7 +542,10 @@ class ModelEvaluation:
             # print only if run best model is used
             if self.para.run_config.config.get('best_model', False):
                 # Test accuracy
-                outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=self.dtype)
+                if self.graph_data.num_classes == 1:
+                    outputs = torch.zeros((len(self.test_data)), dtype=self.dtype).to(self.device)
+                else:
+                    outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
                 labels = self.graph_data.y[self.test_data]
 
                 with torch.no_grad():
@@ -546,7 +556,7 @@ class ModelEvaluation:
 
                 test_loss = self.criterion(outputs, labels).item()
                 test_values.loss = test_loss
-                if self.para.run_config.task == 'regression':
+                if self.para.run_config.task == 'graph_regression':
                     flatten_labels = labels.detach().clone().flatten()
                     flatten_outputs = outputs.detach().clone().flatten()
                     if self.para.run_config.config.get('output_features_inverse', None) is not None:
@@ -568,8 +578,8 @@ class ModelEvaluation:
                     # np array of correct/incorrect predictions
                     labels_argmax = np_labels.argmax(axis=1)
                     outputs_argmax = np_outputs.argmax(axis=1)
-                    # change if task is regression
-                    if 'task' in self.para.run_config.config and self.para.run_config.config['task'] == 'regression':
+                    # change if task is graph_regression
+                    if 'task' in self.para.run_config.config and self.para.run_config.config['task'] == 'graph_regression':
                         np_correct = np_labels - np_outputs
                     else:
                         np_correct = labels_argmax == outputs_argmax
@@ -596,7 +606,7 @@ class ModelEvaluation:
     def postprocess_writer(self, epoch, epoch_time, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues):
         if self.para.print_results:
             # if class num is one print the mae and mse
-            if self.para.run_config.task == 'regression':
+            if self.para.run_config.task == 'graph_regression':
                 print(
                     f'run: {self.run_id} val step: {self.k_val} epoch: {epoch + 1}/{self.para.n_epochs} epoch loss: {train_values.loss} epoch acc: {train_values.accuracy} epoch mae: {train_values.mae} +- {train_values.mae_std} epoch time: {epoch_time}'
                     f' validation acc: {validation_values.accuracy} validation loss: {validation_values.loss} validation mae: {validation_values.mae} +- {validation_values.mae_std}'
@@ -609,7 +619,7 @@ class ModelEvaluation:
                     f'test acc: {test_values.accuracy} test loss: {test_values.loss}'
                     f'time: {epoch_time}')
 
-        if self.para.run_config.task == 'regression':
+        if self.para.run_config.task == 'graph_regression':
             res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
                       f"{train_values.loss};{train_values.accuracy};{epoch_time};{train_values.mae};{train_values.mae_std};" \
                         f"{validation_values.loss};{validation_values.accuracy};{validation_values.mae};{validation_values.mae_std};" \

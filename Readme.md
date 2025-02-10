@@ -145,7 +145,7 @@ from scripts.ExperimentMain import ExperimentMain
 
 def main():
     experiment = ExperimentMain(Path('Path/To/Your/Main/Config/File.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel()

@@ -30,7 +30,7 @@ def main():
 
     ## Real World Data
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     ## run real world experiment
     experiment.GridSearch()
     experiment.EvaluateResults()
@@ -39,7 +39,7 @@ def main():
 
     ## Synthetic Data
     experiment_synthetic = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic.yml'))
-    experiment_synthetic.Preprocess()
+    experiment_synthetic.ExperimentPreprocessing()
 
 
 
@@ -50,54 +50,54 @@ def main():
     experiment_synthetic.EvaluateResults(evaluate_best_model=True)
 
     experiment_synthetic = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic_random_variation.yml'))
-    experiment_synthetic.Preprocess()
+    experiment_synthetic.ExperimentPreprocessing()
     experiment_synthetic.GridSearch()
     experiment_synthetic.EvaluateResults()
     experiment_synthetic.RunBestModel()
     experiment_synthetic.EvaluateResults(evaluate_best_model=True)
 
     experiment_synthetic = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic_only_encoder.yml'))
-    experiment_synthetic.Preprocess()
+    experiment_synthetic.ExperimentPreprocessing()
     experiment_synthetic.GridSearch()
     experiment_synthetic.EvaluateResults()
     experiment_synthetic.RunBestModel()
     experiment_synthetic.EvaluateResults(evaluate_best_model=True)
 
     experiment_synthetic = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic_only_decoder.yml'))
-    experiment_synthetic.Preprocess()
+    experiment_synthetic.ExperimentPreprocessing()
     experiment_synthetic.GridSearch()
     experiment_synthetic.EvaluateResults()
     experiment_synthetic.RunBestModel()
     experiment_synthetic.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_random_variation.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_only_encoder.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_only_decoder.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_sota_comparison.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     experiment.GridSearch()
     experiment.EvaluateResults(evaluate_validation_only=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_sota_random_comparison.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     experiment.GridSearch()
     experiment.EvaluateResults(evaluate_validation_only=True)
 

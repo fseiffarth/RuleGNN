@@ -28,12 +28,12 @@ def main_standard_real_world(num_threads=-1):
     get_existing_splits()
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_sota_comparison.yml'))
-    experiment.Preprocess(num_threads=num_threads)
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
     experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_validation_only=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_sota_random_comparison.yml'))
-    experiment.Preprocess(num_threads=num_threads)
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
     experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_validation_only=True)
 

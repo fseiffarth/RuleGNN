@@ -29,28 +29,28 @@ def main_fair_real_world(num_threads=-1):
 
     ## Real World Data
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
-    experiment.Preprocess(num_threads=num_threads)
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
     experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults()
     experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_random_variation.yml'))
-    experiment.Preprocess(num_threads=num_threads)
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
     experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults()
     experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_only_encoder.yml'))
-    experiment.Preprocess(num_threads=num_threads)
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
     experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults()
     experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)
 
     experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world_only_decoder.yml'))
-    experiment.Preprocess(num_threads=num_threads)
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
     experiment.GridSearch()
     experiment.EvaluateResults()
     experiment.RunBestModel(num_threads=num_threads)

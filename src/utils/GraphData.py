@@ -45,6 +45,7 @@ class RuleGNNDataset(InMemoryDataset):
         self.edge_labels = {} # different edge labels for the graph data
         self.properties = {} # different pairwise properties for the graph data
         self.precision = torch.float
+        self.task = task
         if precision == 'double':
             self.precision = torch.double
         super(RuleGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
@@ -162,6 +163,21 @@ class RuleGNNDataset(InMemoryDataset):
     @property
     def processed_file_names(self) -> str:
         return 'data.pt'
+
+    @property
+    def num_classes(self) -> int:
+        # use the task to determine the number of classes
+        if self.task == 'graph_classification':
+            return len(torch.unique(self.data.y))
+        if self.task == 'graph_regression':
+            return 1
+        if self.task == 'node_classification':
+            return self.num_node_labels
+        if self.task == 'edge_classification':
+            return self.num_edge_labels
+        if self.task == 'link_prediction':
+            return 2
+        raise ValueError('Task not supported')
 
     def process(self):
         sizes = None

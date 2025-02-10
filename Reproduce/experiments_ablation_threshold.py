@@ -31,7 +31,7 @@ def get_existing_splits():
 def run_ablation_experiment(num_threads, threshold_type, threshold):
     ablation_experiment = ExperimentMain(
         Path(f'Reproduce/Configs/ablation/threshold/{threshold_type}/main_config_ablation_threshold_{threshold}.yml'))
-    ablation_experiment.Preprocess(num_threads=1)
+    ablation_experiment.ExperimentPreprocessing(num_threads=1)
     ablation_experiment.GridSearch(num_threads=1)
     ablation_experiment.EvaluateResults()
     ablation_experiment.RunBestModel(num_threads=1)

@@ -185,6 +185,8 @@ def preprocess_network_architectures(network_architectures_dict):
                                 else:
                                     option_dict = {}
                                     option_dict['layer_type'] = layer['layer_type']
+                                    if layer.get('out_dim', None) is not None:
+                                        option_dict['out_dim'] = layer['out_dim']
                                     option_dict['heads'] = []
                                     for j in range(num_channels):
                                         channel_dict = {}

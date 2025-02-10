@@ -5,7 +5,7 @@ from scripts.ExperimentMain import ExperimentMain
 
 def main():
     experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
-    experiment.Preprocess()
+    experiment.ExperimentPreprocessing()
     experiment.GridSearch()
     experiment.RunBestModel()
 

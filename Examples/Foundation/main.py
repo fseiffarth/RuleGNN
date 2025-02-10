@@ -7,7 +7,7 @@ from scripts.ExperimentMain import ExperimentMain
 
 def main_foundation(num_threads=-1):
     experiment = ExperimentMain(Path('Examples/Foundation/Configs/main_config.yml'))
-    experiment.Preprocess(num_threads=num_threads)
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
     ## run real world experiment
     experiment.GridSearch(num_threads=num_threads)
     experiment.EvaluateResults()

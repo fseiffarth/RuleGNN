@@ -8,7 +8,7 @@ from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels,
     save_labeled_degree_labels, save_wl_labeled_labels, save_labels_to_file
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
-from src.Preprocessing.split_functions import *
+import src.Preprocessing.split_functions as split_functions
 from src.utils.GraphData import RuleGNNDataset
 from src.utils.GraphLabels import combine_node_labels
 from src.utils.RunConfiguration import get_run_configs
@@ -16,7 +16,9 @@ from src.utils.load_labels import load_labels
 from src.utils.utils import save_graphs
 
 
-class Preprocessing:
+
+
+class DatasetPreprocessing:
     """
     Preprocessing class to load the data, generate the splits, labels and properties and save them in the correct folders.
     params:
@@ -27,18 +29,42 @@ class Preprocessing:
     with_labels_and_properties: bool: generate the labels and properties
     data_generation: str: name of the data generation function
     """
-    def __init__(self, db_name:str, dataset_configuration, experiment_configuration, generate_new_splits=True, with_labels_and_properties=True, data_generation=None, data_generation_args=None, create_pt_files = True):
-        self.db_name = db_name
-        self.graph_data = None
-        # load the config file
-        self.experiment_configuration = experiment_configuration
-        self.dataset_configuration = dataset_configuration
+    def __init__(self, dataset_configurations, with_labels_and_properties=True):
+        for configuration in dataset_configurations:
+            self.db_name = configuration['name']
+            self.graph_data = None
+            # load the config file
+            self.experiment_configuration = configuration
+            self.generation_times_labels_path = None
+            self.generation_times_properties_path = None
+
+            # create the folders and files for the results and preprocessing data
+            self.create_folders_and_files()
+            # generate the data only if it does not exist (i.e. the processed folder is empty)
+            if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'data.pt').is_file():
+                self.generate_data()
+            self.load_data()
+            # generate the split files
+            self.generate_splits()
+
+            # generate the labels and properties automatically from the config file
+            if with_labels_and_properties:
+                self.preprocessing_from_config()
+
+
+    def create_folders_and_files(self):
         # create config folders if they do not exist
         self.experiment_configuration['paths']['data'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['labels'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['properties'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['splits'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['results'].mkdir(exist_ok=True, parents=True)
+        # create folders plots, weights, models and results in the results folder under the db_name
+        self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Plots').mkdir(exist_ok=True, parents=True)
+        self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Weights').mkdir(exist_ok=True, parents=True)
+        self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Models').mkdir(exist_ok=True, parents=True)
+        self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Results').mkdir(exist_ok=True, parents=True)
+
 
         # if not exists create the generation_times_labels.txt and generation_times_properties.txt in the Results folder
         if not Path(self.experiment_configuration['paths']['results']).joinpath('generation_times_labels.txt').exists():
@@ -50,34 +76,35 @@ class Preprocessing:
         self.generation_times_labels_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_labels.txt')
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
-        # generate the data only if it does not exist (i.e. the processed folder is empty)
-        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'data.pt').is_file():
-            if isinstance(data_generation, str):
+    def generate_data(self):
+            data_generation = self.experiment_configuration['data_generation']
+            data_generation_args = self.experiment_configuration['data_generation_args']
+            if isinstance(self.experiment_configuration['data_generation'], str):
                 if data_generation != 'generate_from_function':
                     try:
                         path = Path(self.experiment_configuration['paths']['data'])
-                        if Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'processed').exists() and len(
-                                list(Path(Path(self.experiment_configuration['paths']['data']) / db_name / 'processed').iterdir())) > 0:
-                            print(f"Dataset {db_name} already exists in {Path(self.experiment_configuration['paths']['data'])} . Skip the data generation.")
+                        if Path(Path(self.experiment_configuration['paths']['data']) / self.db_name / 'processed').exists() and len(
+                                list(Path(Path(self.experiment_configuration['paths']['data']) / self.db_name / 'processed').iterdir())) > 0:
+                            print(f"Dataset {self.db_name} already exists in {Path(self.experiment_configuration['paths']['data'])} . Skip the data generation.")
                             return
                         # download the dataset
                         # create a tmp folder to store the dataset
                         if not Path('tmp').exists():
                             Path('tmp').mkdir()
                         self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                         name=db_name,
+                                                         name=self.db_name,
                                                          from_existing_data=data_generation,
                                                          )
-                        if not os.path.exists(path.joinpath(Path(db_name))):
-                            os.makedirs(path.joinpath(Path(db_name)))
-                        # create processed and raw folders in path+db_name
-                        if not os.path.exists(path.joinpath(Path(db_name + "/processed"))):
-                            os.makedirs(path.joinpath(Path(db_name + "/processed")))
-                        if not os.path.exists(path.joinpath(Path(db_name + "/raw"))):
-                            os.makedirs(path.joinpath(Path(db_name + "/raw")))
-                        #tu_to_nel(db_name=db_name, out_path=Path(self.experiment_configuration['paths']['data']))
+                        if not os.path.exists(path.joinpath(Path(self.db_name))):
+                            os.makedirs(path.joinpath(Path(self.db_name)))
+                        # create processed and raw folders in path+self.db_name
+                        if not os.path.exists(path.joinpath(Path(self.db_name + "/processed"))):
+                            os.makedirs(path.joinpath(Path(self.db_name + "/processed")))
+                        if not os.path.exists(path.joinpath(Path(self.db_name + "/raw"))):
+                            os.makedirs(path.joinpath(Path(self.db_name + "/raw")))
+                        #tu_to_nel(self.db_name=self.db_name, out_path=Path(self.experiment_configuration['paths']['data']))
                     except:
-                        print(f'Could not generate {db_name} from TUDataset')
+                        print(f'Could not generate {self.db_name} from TUDataset')
                 else:
                     print(f'Do not know how to handle data from {data_generation}. Do you mean "TUDataset"?')
                 pass
@@ -92,7 +119,7 @@ class Preprocessing:
                         # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
                         save_graphs(Path(self.experiment_configuration['paths']['data']), self.db_name, graphs, labels, with_degree=False, graph_format='NEL')
                         self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                         name=db_name,
+                                                         name=self.db_name,
                                                          use_node_attr=self.experiment_configuration.get(
                                                              'use_node_attr', False),
                                                          use_edge_attr=self.experiment_configuration.get(
@@ -104,12 +131,12 @@ class Preprocessing:
                                                          )
                     except:
                         # raise the error that has occurred
-                        print(f'Could not generate {db_name} from function {data_generation} with arguments {data_generation_args}')
+                        print(f'Could not generate {self.db_name} from function {data_generation} with arguments {data_generation_args}')
 
                 else:
                     try:
                         self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                         name=db_name,
+                                                         name=self.db_name,
                                                          use_node_attr=self.experiment_configuration.get(
                                                              'use_node_attr', False),
                                                          use_edge_attr=self.experiment_configuration.get(
@@ -117,53 +144,43 @@ class Preprocessing:
                                                          delete_zero_columns=self.experiment_configuration.get(
                                                              'delete_zero_columns', True),
                                                         from_existing_data='NEL',
-                                                         task=self.experiment_configuration.get('task', 'graph')
+                                                         task=self.dataset_configuration.get('task', None)
                                                          )
                     except:
-                        print(f'Could not process the data from {db_name} with the given configuration.')
+                        print(f'Could not process the data from {self.db_name} with the given configuration.')
 
-        # load the graph data TODO: introduce new pyg format and load from the pt files
-        #self.graph_data = get_graph_data(db_name=self.db_name,
-        #                                 data_path=self.experiment_configuration['paths']['data'],
-        #                                 graph_format='NEL',
-        #                                 only_graphs=True)
 
+    def load_data(self):
         # load graph data from pt files if it exists in the processed folder
-        if self.graph_data is None and self.experiment_configuration['paths']['data'].joinpath(f'{db_name}').joinpath('processed').exists():
+        if self.graph_data is None and self.experiment_configuration['paths']['data'].joinpath(f'{self.db_name}').joinpath('processed').exists():
             self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                             name=db_name,
+                                             name=self.db_name,
                                              use_node_attr=self.experiment_configuration.get('use_node_attr', False),
                                                 use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
                                              delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
-                                             task=self.experiment_configuration.get('task', 'graph')
+                                             task=self.experiment_configuration.get('task', None)
                                              )
 
+    def generate_splits(self):
         # generate the splits
-        if generate_new_splits:
-            # create the splits folder if it does not exist
-            Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
+        if self.experiment_configuration['with_splits']:
             # generate splits
-            create_splits(db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.dataset_configuration['validation_folds'], graph_data=self.graph_data)
+            create_splits(self.db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.experiment_configuration['validation_folds'], graph_data=self.graph_data)
         else:
             if self.experiment_configuration.get('split_function', None) is not None:
-                # create the splits folder if it does not exist
-                Path(self.experiment_configuration['paths']['splits']).mkdir(exist_ok=True)
                 # generate splits
-                split_function = self.experiment_configuration['split_function']
-                split_function(self.experiment_configuration['paths']['splits'])
+                self.experiment_configuration['split_function'](self.experiment_configuration['paths']['splits'])
+            else:
+                raise ValueError(f'Please specify a split function in the main config file for the dataset {self.db_name} using the key "split_function".')
 
         # copy the splits to the processed folder
-        if self.experiment_configuration['paths']['splits'].joinpath(f'{db_name}_splits.json').exists():
-            split_file_path = self.experiment_configuration['paths']['splits'].joinpath(f'{db_name}_splits.json')
-            if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').exists():
-                Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').mkdir()
-            split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{db_name}').joinpath('processed').joinpath(f'{db_name}_splits.json')
+        if self.experiment_configuration['paths']['splits'].joinpath(f'{self.db_name}_splits.json').exists():
+            split_file_path = self.experiment_configuration['paths']['splits'].joinpath(f'{self.db_name}_splits.json')
+            if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').exists():
+                Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').mkdir()
+            split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_splits.json')
             # copy the content of the split file to the target path
             split_target_path.write_text(split_file_path.read_text())
-
-        # generate the labels and properties automatically from the config file
-        if with_labels_and_properties:
-            self.preprocessing_from_config()
 
 
 

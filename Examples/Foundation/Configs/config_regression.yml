@@ -1,9 +1,9 @@
 networks:
   - - { layer_type: convolution ,
         bias: False,
-        heads: [1],
+        heads: [4],
         labels: [
-          { label_type: [wl_labeled], depth: [3] },
+          { label_type: [wl_labeled], depth: [2] },
         ],
         properties: [
           { name: distances, values: [ 0,1,2,3,4,5,6 ] },
@@ -11,8 +11,16 @@ networks:
   }
     - { layer_type: aggregation,
         bias: True,
-        heads: [1],
+        out_dim: 2,
+        heads: [4],
         labels: [
-          { label_type: [wl_labeled], depth: [3] },
+          { label_type: [wl_labeled], depth: [2] },
         ]
     }
+
+# output_activation: activation function for the output layer
+output_activation: 'None'
+
+# loss: loss function for the network
+loss:
+  - MAE

@@ -7,8 +7,9 @@ import torch
 import yaml
 
 from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
-from src.Preprocessing.Preprocessing import Preprocessing
+from src.Preprocessing.DatasetPreprocessing import DatasetPreprocessing
 import src.utils.SyntheticGraphs as synthetic_graphs
+import src.Preprocessing.split_functions as split_functions
 from src.Architectures.RuleGNN import RuleGNN
 from src.Methods.ModelEvaluation import ModelEvaluation
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
@@ -39,24 +40,10 @@ class ExperimentMain:
         except:
             raise ValueError(f"Config file {main_config_path} could not be loaded")
         self.experiment_configurations = {}
-        self.dataset_configs = {}
         for dataset in self.main_config['datasets']:
-            experiment_configuration = self.update_experiment_configuration(dataset)
-            experiment_configuration['format'] = 'RuleGNNDataset'
-            if isinstance(dataset['name'], list):
-                str_concatenation = ''
-                for i, name in enumerate(dataset['name']):
-                    str_concatenation += name
-                    if i < len(dataset['name']) - 1:
-                        str_concatenation += '_'
-                self.experiment_configurations[str_concatenation] = experiment_configuration.copy()
-                self.experiment_configurations[str_concatenation]['single_datasets'] = dataset['name']
-                self.dataset_configs[str_concatenation] = dataset.copy()
-                self.dataset_configs[str_concatenation]['single_datasets'] = dataset['name']
-            else:
-                self.experiment_configurations[dataset['name']] = experiment_configuration.copy()
-                self.dataset_configs[dataset['name']] = dataset.copy()
-        self.check_config_consistency()
+            self.update_experiment_configuration(dataset)
+        self.config_consistency_and_preprocessing()
+
 
 
     def GridSearch(self, num_threads=-1):
@@ -65,46 +52,43 @@ class ExperimentMain:
         """
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
-        # iterate over the databases
-        for dataset in self.main_config['datasets']:
-            self.create_folders(dataset['name'])
-            print(f"Running experiment for dataset {dataset['name']}")
-            experiment_configuration = self.experiment_configurations[dataset['name']]
+        for dataset in self.experiment_configurations.keys():
+            for i, configuration in enumerate(self.experiment_configurations[dataset]):
+                print(f"Running experiment configuration {i+1}/{len(self.experiment_configurations[dataset])} for dataset {dataset}")
+                # determine the number of parallel jobs
+                max_threads = os.cpu_count()
+                num_threads = min(configuration.get('num_workers', num_threads), num_threads)
+                if num_threads == -1:
+                    num_threads = max_threads
 
-            # determine the number of parallel jobs
-            max_threads = os.cpu_count()
-            num_threads = min(experiment_configuration.get('num_workers', num_threads), num_threads)
-            if num_threads == -1:
-                num_threads = max_threads
+                graph_data = preprocess_graph_data(configuration)
+                # copy config file to the results directory if it is not already there
+                absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+                absolute_path = Path(absolute_path)
+                copy_experiment_config(absolute_path, configuration,
+                                       configuration.get('experiment_config_file', ''),
+                                       dataset)
 
-            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
-            # copy config file to the results directory if it is not already there
-            absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            absolute_path = Path(absolute_path)
-            copy_experiment_config(absolute_path, experiment_configuration,
-                                   dataset.get('experiment_config_file', ''),
-                                   dataset['name'])
 
-            run_configs = get_run_configs(experiment_configuration)
-            config_id_names = {}
-            for idx, run_config in enumerate(run_configs):
-                config_id = idx + experiment_configuration.get('config_id', 0)
-                # config_id to string with leading zeros
-                config_id_names[idx] = f'Configuration_{str(config_id).zfill(6)}'
-            # print the number of run configurations to be tested
-            print(f"Number of hyperparameter configurations: {len(run_configs)}")
+                run_configs = get_run_configs(configuration)
+                config_id_names = {}
+                for idx, run_config in enumerate(run_configs):
+                    config_id = idx + configuration.get('config_id', 0)
+                    # config_id to string with leading zeros
+                    config_id_names[idx] = f'Configuration_{str(config_id).zfill(6)}'
+                # print the number of run configurations to be tested
+                print(f"Number of hyperparameter configurations: {len(run_configs)}")
 
-            # zip validation_id,  config_id and run_id to parallelize over them
-            run_loops = [(validation_id, run_id, c_idx) for validation_id in range(dataset.get('validation_folds', 10)) for run_id in range(dataset.get('num_runs', 1)) for c_idx in range(len(run_configs))]
-            num_threads = min(num_threads, len(run_loops))
-            print(f"Run the grid search for dataset {dataset['name']} using {dataset.get('validation_folds', 10)}-fold cross-validation and {num_threads} number of parallel jobs")
-            joblib.Parallel(n_jobs=num_threads)(
-                joblib.delayed(self.run_models)(dataset=dataset,
-                                                graph_data=graph_data,
-                                                run_config=run_configs[run_loops[i][2]],
-                                                validation_id=run_loops[i][0],
-                                                run_id=run_loops[i][1],
-                                                config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
+                # zip validation_id,  config_id and run_id to parallelize over them
+                run_loops = [(validation_id, run_id, c_idx) for validation_id in range(configuration.get('validation_folds', 10)) for run_id in range(configuration.get('num_runs', 1)) for c_idx in range(len(run_configs))]
+                num_threads = min(num_threads, len(run_loops))
+                print(f"Run the grid search for dataset {dataset} using {configuration.get('validation_folds', 10)}-fold cross-validation and {num_threads} number of parallel jobs")
+                joblib.Parallel(n_jobs=num_threads)(
+                    joblib.delayed(self.run_models)(graph_data=graph_data,
+                                                    run_config=run_configs[run_loops[i][2]],
+                                                    validation_id=run_loops[i][0],
+                                                    run_id=run_loops[i][1],
+                                                    config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
 
     def EvaluateResults(self, evaluate_best_model=False, evaluate_validation_only=False):
         """
@@ -118,17 +102,17 @@ class ExperimentMain:
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
-        for dataset in self.main_config['datasets']:
-            if evaluate_best_model:
-                print(f"Evaluate the best model of the experiment for dataset {dataset['name']}")
-            else:
-                print(f"Evaluate the results of the experiment for dataset {dataset['name']}")
+        # iterate over the databases
+        for dataset in self.experiment_configurations.keys():
+            for i, configuration in enumerate(self.experiment_configurations[dataset]):
+                if evaluate_best_model:
+                    print(f"Evaluate the best model of the experiment for dataset {dataset}")
+                else:
+                    print(f"Evaluate the results of the experiment for dataset {dataset}")
 
-            experiment_configuration = self.update_experiment_configuration(dataset)
-
-            model_selection_evaluation(db_name = dataset['name'],
-                                       evaluate_best_model=evaluate_best_model,
-                                       experiment_config=experiment_configuration,
+                model_selection_evaluation(db_name = dataset,
+                                           evaluate_best_model=evaluate_best_model,
+                                           experiment_config=configuration,
                                        evaluate_validation_only=evaluate_validation_only)
 
     def RunBestModel(self, num_threads=-1):
@@ -138,41 +122,41 @@ class ExperimentMain:
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
-        for dataset in self.main_config['datasets']:
-            print(f"Running experiment for dataset {dataset['name']}")
-            validation_folds = dataset['validation_folds']
+        for dataset in self.experiment_configurations.keys():
+            for i, configuration in enumerate(self.experiment_configurations[dataset]):
+                print(f"Running experiment for dataset {dataset}")
+                validation_folds = configuration['validation_folds']
 
-            # load the config file
-            # run the best models
-            # parallelize over (run_id, validation_id) pairs
-            evaluation_run_number = self.main_config.get('evaluation_run_number', 3)
-            experiment_configuration = self.update_experiment_configuration(dataset)
+                # load the config file
+                # run the best models
+                # parallelize over (run_id, validation_id) pairs
+                evaluation_run_number = configuration.get('evaluation_run_number', 3)
 
-            # determine the number of parallel jobs
-            max_threads = os.cpu_count()
-            num_threads = min(experiment_configuration.get('num_workers', num_threads), num_threads)
-            if num_threads == -1:
-                num_threads = max_threads
+                # determine the number of parallel jobs
+                max_threads = os.cpu_count()
+                num_threads = min(configuration.get('num_workers', num_threads), num_threads)
+                if num_threads == -1:
+                    num_threads = max_threads
 
-            parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
-            num_threads = min(num_threads, len(parallelization_pairs))
-            graph_data = preprocess_graph_data(dataset['name'], experiment_configuration)
-            best_config_id = None
-            experiment_configuration['best_model'] = True
-            # get the best configuration and run it
-            best_config_id = model_selection_evaluation(db_name=dataset['name'],
-                                                        get_best_model=True,
-                                                        experiment_config=experiment_configuration)
-            run_configs = get_run_configs(experiment_configuration)
-            config_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'
-            print(f"Run the best model of dataset {dataset['name']} using {evaluation_run_number} different runs. The number of parallel jobs is {num_threads}")
-            joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.run_models)(dataset=dataset,
-                                                        graph_data=graph_data,
-                                                        run_config=run_configs[best_config_id],
-                                                        validation_id=validation_id,
-                                                        run_id=run_id,
-                                                        config_id=config_id)
-                                             for run_id, validation_id in parallelization_pairs)
+                parallelization_pairs = [(run_id, validation_id) for run_id in range(evaluation_run_number) for validation_id in range(validation_folds)]
+                num_threads = min(num_threads, len(parallelization_pairs))
+                graph_data = preprocess_graph_data(configuration)
+                best_config_id = None
+                configuration['best_model'] = True
+                # get the best configuration and run it
+                best_config_id = model_selection_evaluation(db_name=dataset,
+                                                            get_best_model=True,
+                                                            experiment_config=configuration)
+                run_configs = get_run_configs(configuration)
+                config_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'
+                print(f"Run the best model of dataset {dataset} using {evaluation_run_number} different runs. The number of parallel jobs is {num_threads}")
+                joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.run_models)(
+                                                            graph_data=graph_data,
+                                                            run_config=run_configs[best_config_id],
+                                                            validation_id=validation_id,
+                                                            run_id=run_id,
+                                                            config_id=config_id)
+                                                 for run_id, validation_id in parallelization_pairs)
 
     def update_experiment_configuration(self, dataset):
         experiment_configuration_path = dataset.get('experiment_config_file', '')
@@ -184,120 +168,192 @@ class ExperimentMain:
         # paths to Path objects
         config_paths_to_absolute(experiment_configuration,
                                  Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
-        # update the experiment configuration with the global keys
+        # update the global configuration with the experiment configuration
         for key in self.main_config:
-            experiment_configuration[key] = self.main_config[key]
-        return experiment_configuration
+            if key == 'datasets':
+                for k in dataset:
+                    experiment_configuration[k] = dataset[k]
+            else:
+                if key not in experiment_configuration:
+                    experiment_configuration[key] = self.main_config[key]
 
-    def Preprocess(self, num_threads=-1):
+        experiment_configuration['format'] = 'RuleGNNDataset'
+        dataset_string_name = None
+        if isinstance(dataset['name'], list):
+            str_concatenation = ''
+            for i, name in enumerate(dataset['name']):
+                str_concatenation += name
+                if i < len(dataset['name']) - 1:
+                    str_concatenation += '_'
+            if str_concatenation not in self.experiment_configurations:
+                self.experiment_configurations[str_concatenation] = [experiment_configuration.copy()]
+            else:
+                self.experiment_configurations[str_concatenation].append(experiment_configuration.copy())
+            self.experiment_configurations[str_concatenation][-1]['single_datasets'] = dataset['name']
+
+        else:
+            dataset_string_name = dataset['name']
+            if dataset_string_name not in self.experiment_configurations:
+                self.experiment_configurations[dataset_string_name] = [experiment_configuration.copy()]
+            else:
+                self.experiment_configurations[dataset_string_name].append(experiment_configuration.copy())
+
+    def get_configuration_list(self):
+        all_configurations = []
+        for key in self.experiment_configurations:
+            for configuration in self.experiment_configurations[key]:
+                all_configurations.append(configuration)
+        return all_configurations
+
+    def ExperimentPreprocessing(self, num_threads=-1):
+        num_datasets = len(self.experiment_configurations)
         # parallelize over the datasets
         if num_threads == -1:
-            num_threads = min(len(self.main_config['datasets']), os.cpu_count())
+            num_threads = min(num_datasets, os.cpu_count())
             num_threads = self.main_config.get('num_workers', num_threads)
-            num_threads = min(num_threads, len(self.main_config['datasets']))
-        joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.PreprocessParallel)(dataset_configuration) for dataset_configuration in self.main_config['datasets'])
+            num_threads = min(num_threads, num_datasets)
+        joblib.Parallel(n_jobs=num_threads)(joblib.delayed(DatasetPreprocessing)(self.experiment_configurations[key]) for key in self.experiment_configurations.keys())
 
-    def PreprocessParallel(self, dataset_configuration):
-        db_name = dataset_configuration['name']
-        if isinstance(db_name, list):
-            # concatenate the names of the datasets
-            str_concatenation = ''
-            for i, name in enumerate(db_name):
-                str_concatenation += name
-                if i < len(db_name) - 1:
-                    str_concatenation += '_'
-        experiment_configuration = self.experiment_configurations[db_name]
-        data_generation = None
-        data_generation_args = None
-        if 'type' in dataset_configuration:
-            if dataset_configuration['type'] == 'generate_from_function':
-                if 'generate_function' in dataset_configuration:
-                    data_generation = getattr(synthetic_graphs, dataset_configuration['generate_function'])
-                    if 'generate_function_args' in dataset_configuration:
-                        data_generation_args = dataset_configuration['generate_function_args']
-                    else:
-                        data_generation_args = None
+
+    def config_consistency_and_preprocessing(self):
+        for key in self.experiment_configurations:
+            for configuration in self.experiment_configurations[key]:
+                # check the name
+                if 'name' not in configuration:
+                    raise ValueError(f'Please specify the name of the dataset in the main configuration file.')
+
+                ### check the paths
+                if 'paths' not in configuration:
+                    raise ValueError(f'Please specify the paths in the main configuration file.')
+                if 'data' not in configuration['paths']:
+                    raise ValueError(f'Please specify the data path in the main configuration file.')
+                if 'labels' not in configuration['paths']:
+                    raise ValueError(f'Please specify the labels path in the main configuration file.')
+                if 'properties' not in configuration['paths']:
+                    raise ValueError(f'Please specify the properties path in the main configuration file.')
+                if 'splits' not in configuration['paths']:
+                    raise ValueError(f'Please specify the splits path in the main configuration file.')
+                if 'results' not in configuration['paths']:
+                    raise ValueError(f'Please specify the results path in the main configuration file.')
+
+
+                ### check the task
+                if 'task' not in configuration:
+                    raise ValueError(f'Please specify the task in the main configuration file.'
+                                     'Choose between "graph_classification", "graph_regression", "node_classification" and "link_prediction".')
+
+                if 'type' not in configuration:
+                    raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
+                                     'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
                 else:
-                    data_generation = None
-                    data_generation_args = None
-            elif dataset_configuration['type'] == 'TUDataset':
-                data_generation = 'TUDataset'
-                data_generation_args = None
-            elif dataset_configuration['type'] == 'gnn_benchmark':
-                data_generation = 'gnn_benchmark'
-                data_generation_args = None
-            elif dataset_configuration['type'] == 'ZINC':
-                data_generation = 'ZINC'
-                data_generation_args = None
-            else:
-                print(
-                    f"The type {dataset_configuration['type']} is not supported. Please use 'generate_from_function' or 'TUDataset'")
-        else:
-            print(f"The type of the dataset is not defined. Please define the type of the dataset.")
+                    if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC']:
+                        raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
-        # generate new splits for the dataset
-        generate_new_splits = dataset_configuration.get('with_splits', True)
+                ###
+                if 'validation_folds' not in configuration:
+                    raise ValueError(f'Please specify the number of validation folds in the main configuration file.')
 
-        paths = collect_paths(main_configuration=self.main_config, dataset_configuration=dataset_configuration, experiment_configuration=experiment_configuration)
-        experiment_configuration['paths'] = paths
-        # paths to Path objects
-        config_paths_to_absolute(experiment_configuration, Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
-        # preprocess the data
-        Preprocessing(db_name=db_name,
-                      dataset_configuration=dataset_configuration,
-                      experiment_configuration=experiment_configuration,
-                      generate_new_splits=generate_new_splits,
-                      data_generation=data_generation,
-                      data_generation_args=data_generation_args)
+                ### check the input features
+                if 'input_features' not in configuration:
+                    raise ValueError(f'Please specify the input features in the main configuration file.')
+                ### check weight initialization
+                if 'weight_initialization' not in configuration:
+                    raise ValueError(f'Please specify the weight initialization in the main configuration file.')
 
-    def check_config_consistency(self):
-        pass
+                if 'networks' not in configuration:
+                    raise ValueError(f'Please specify the networks in the experiment configuration file.')
 
-    def create_folders(self, graph_db_name):
-        experiment_configuration = self.experiment_configurations[graph_db_name]
-        r_path = experiment_configuration['paths']['results']
-        # if not exists create the results directory
-        if not os.path.exists(r_path):
-            try:
-                os.makedirs(r_path)
-            except:
-                raise FileNotFoundError(f"Results directory {r_path} not found")
-        # if not exists create the directory for db under Results
-        if not os.path.exists(r_path.joinpath(graph_db_name)):
-            try:
-                os.makedirs(r_path.joinpath(graph_db_name))
-            except:
-                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name)} not found")
-        # if not exists create the directory Results, Plots, Weights and Models under db
-        if not os.path.exists(r_path.joinpath(graph_db_name + "/Results")):
-            try:
-                os.makedirs(r_path.joinpath(graph_db_name + "/Results"))
-            except:
-                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Results')} not found")
-        if not os.path.exists(r_path.joinpath(graph_db_name + "/Plots")):
-            try:
-                os.makedirs(r_path.joinpath(graph_db_name + "/Plots"))
-            except:
-                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Plots')} not found")
-        if not os.path.exists(r_path.joinpath(graph_db_name + "/Weights")):
-            try:
-                os.makedirs(r_path.joinpath(graph_db_name + "/Weights"))
-            except:
-                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Weights')} not found")
-        if not os.path.exists(r_path.joinpath(graph_db_name + "/Models")):
-            try:
-                os.makedirs(r_path.joinpath(graph_db_name + "/Models"))
-            except:
-                raise FileNotFoundError(f"Results directory {r_path.joinpath(graph_db_name + '/Models')} not found")
+                if 'batch_size' not in configuration:
+                    raise ValueError(f'Please specify the batch size in the experiment configuration file using the key "batch_size".')
+                if 'epochs' not in configuration:
+                    raise ValueError(f'Please specify the number of epochs in the experiment configuration file using the key "epochs".')
+                if 'learning_rate' not in configuration:
+                    raise ValueError(f'Please specify the learning rate in the experiment configuration file using the key "learning_rate".')
+                if 'optimizer' not in configuration:
+                    raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
+                if 'activation' not in configuration:
+                    raise ValueError(f'Please specify the activation function in the experiment configuration file using the key "activation".')
+                if 'output_activation' not in configuration:
+                    raise ValueError(f'Please specify the output activation function in the experiment configuration file using the key "output_activation".')
+                if 'loss' not in configuration:
+                    raise ValueError(f'Please specify the loss function in the experiment configuration file using the key "loss".')
 
-    def run_models(self, dataset, graph_data, run_config, validation_id=0, run_id=0, config_id=None):
+
+
+                # optional keys (print a message that the value was set to the default value)
+                if 'with_splits' not in configuration:
+                    print('To use own splits, please set the key "with_splits" to True in the main configuration file. The default value is True.'
+                          'In addition specify a path to the splits using the key "splits_path".')
+                    configuration['with_splits'] = True
+                else:
+                    if not configuration['with_splits']:
+                        if 'split_function' in configuration:
+                            # check if the split function exists
+                            if not hasattr(split_functions, configuration['split_function']):
+                                raise ValueError(f"Split function {configuration['split_function']} not found")
+                            else:
+                                split_function = getattr(split_functions, configuration['split_function'])
+                                if not callable(split_function):
+                                    raise ValueError(f"Split function {configuration['split_function']} is not callable")
+                                else:
+                                    configuration['split_function'] = split_function
+                        elif 'splits_path' in configuration:
+                            # check if the splits path exists
+                            if not os.path.exists(configuration['splits_path']):
+                                raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
+                        else:
+                            raise ValueError(
+                                f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
+
+                if 'type' in configuration:
+                    data_generation_args = configuration.get('data_generation_args', None)
+                    if configuration['type'] == 'generate_from_function':
+                        if not hasattr(synthetic_graphs, configuration['generate_function']):
+                            raise ValueError(f"Generate function {configuration['generate_function']} not found")
+                        else:
+                            data_generation = getattr(synthetic_graphs, configuration['generate_function'])
+                            if not callable(data_generation):
+                                raise ValueError(f"Generate function {configuration['generate_function']} is not callable")
+                            else:
+                                configuration['data_generation'] = data_generation
+                    else:
+                        configuration['data_generation'] = configuration['type']
+                    configuration['data_generation_args'] = data_generation_args
+
+
+
+
+
+                if 'device' not in configuration:
+                    print('To use the GPU, please specify the key "device" in the main configuration file. The default value is "cpu".')
+                    configuration['device'] = 'cpu'
+
+                if 'precision' not in configuration:
+                    print('To use float or double precision, please specify the key "precision" in the main configuration file. The default value is "double".')
+                    configuration['precision'] = 'double'
+
+                if 'mode' not in configuration:
+                    print('To use the mode, please specify the key "mode" in the main configuration file. The default value is "experiments".'
+                          'For debugging purposes, set the mode to "debug".')
+                    configuration['mode'] = 'experiments'
+
+                if 'early_stopping' not in configuration:
+                    print('To use early stopping, please specify the key "early_stopping" in the main configuration file. The default value is False.')
+                    configuration['early_stopping'] = {'enabled': False, 'patience': 25}
+
+                if 'rule_occurrence_threshold' not in configuration:
+                    print('To use the rule occurrence threshold, please specify the key "rule_occurrence_threshold" in the main configuration file. The default value is 1.')
+                    configuration['rule_occurrence_threshold'] = 1
+
+
+    def run_models(self, graph_data, run_config, validation_id=0, run_id=0, config_id=None):
         # print the current configuration
-        print(f"Run the model for dataset {dataset['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
+        print(f"Run the model for dataset {run_config.config['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
         para = Parameters()
         load_preprocessed_data_and_parameters(config_id=config_id,
                                               run_id=run_id,
                                               validation_id=validation_id,
-                                              validation_folds=dataset.get('validation_folds', 10),
+                                              validation_folds=run_config.config.get('validation_folds', 10),
                                               graph_data=graph_data, run_config=run_config, para=para)
         """
         Split the data in training validation and test set
@@ -440,11 +496,11 @@ def copy_experiment_config(absolute_path, experiment_configuration, experiment_c
             os.system(f"copy {source_path} {destination_path}")
 
 
-def preprocess_graph_data(db_name, experiment_configuration):
+def preprocess_graph_data(experiment_configuration):
     """
             Create Input data, information and labels from the graphs for training and testing
             """
-    graph_data = get_graph_data(db_name=db_name, data_path=experiment_configuration['paths']['data'],
+    graph_data = get_graph_data(db_name=experiment_configuration['name'], data_path=experiment_configuration['paths']['data'],
                                 task=experiment_configuration.get('task', 'graph_classification'),
                                 input_features=experiment_configuration.get('input_features', None),
                                 output_features=experiment_configuration.get('output_features', None),
