@@ -65,7 +65,7 @@ class RuleGNN(nn.Module):
 
         if 'final_linear_layers' in para.run_config.config and len(para.run_config.config['final_linear_layers']) > 0:
             for layer in para.run_config.config['final_linear_layers']:
-                input_dimension = layer.get('input_dimension', max(self.aggregation_out_dim,1) * self.graph_data.num_node_features)
+                input_dimension = layer.get('input_dimension', max(self.aggregation_out_dim,1) * self.net_layers[-1].output_feature_dimensions)
                 output_dimension = layer.get('output_dimension', self.out_dim)
                 bias = layer.get('bias', True)
                 self.net_layers.append(RuleGNNLayers.RuleGNNLinear(input_dimension, output_dimension, bias=bias).type(self.module_precision).requires_grad_(True))

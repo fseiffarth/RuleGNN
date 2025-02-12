@@ -18,12 +18,14 @@ networks:
 #        ]
 #    }
 
-use_feature_transformation: {out_dimension: 64, bias: True, activation: 'ReLU'}
+#use_feature_transformation: {out_dimension: 7, bias: True}
 
 batch_size:
   - 64
 learning_rate:
   - 0.01
+weight_decay:
+  - 0.0005
 epochs:
   - 200
 
@@ -56,6 +58,6 @@ weight_initialization: { convolution: {  type: 'lower_upper', mean: 0.1, std: 0.
                          aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 #input_features: {name: constant, value: 1.0}
-input_features: {name: node_features}
+#input_features: {name: node_features}
 #input_features: {one_hot_train_labels: True}
-#input_features: {name: node_features, one_hot_train_labels: True}
+input_features: {name: node_features, one_hot_train_labels: True}

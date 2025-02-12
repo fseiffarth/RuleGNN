@@ -11,6 +11,30 @@ datasets:
     split_function_args: {dataset_name: "Cora"},
     type: "Planetoid",
   }
+  #- {
+  #  name: "PubMed",
+  #  task: "node_classification",
+  #  validation_folds: 1,
+  #  experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
+  #  use_node_attr: True,
+  #  final_layer: False,
+  #  with_splits: False,
+  #  split_function: planetoid_splits,
+  #  split_function_args: { dataset_name: "Pubmed" },
+  #  type: "Planetoid",
+  #}
+  - {
+    name: "Citeseer",
+    task: "node_classification",
+    validation_folds: 1,
+    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
+    use_node_attr: True,
+    final_layer: False,
+    with_splits: False,
+    split_function: planetoid_splits,
+    split_function_args: { dataset_name: "Citeseer" },
+    type: "Planetoid",
+  }
 #  - {
 #    name: "MUTAG",
 #    task: "node_classification",

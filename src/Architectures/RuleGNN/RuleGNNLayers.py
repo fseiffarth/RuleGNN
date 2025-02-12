@@ -205,11 +205,15 @@ class RuleConvolutionLayer(nn.Module):
         self.layer_id = layer_id
         # layer information
         self.layer = layer
+        self.para = parameters  # get the all the parameters of the experiment
         self.name = f"Rule Convolution Layer"
         # get the graph data
         self.graph_data = graph_data
         # get the input features, i.e. the dimension of the input vector
         self.input_feature_dimensions = self.graph_data.num_node_features
+        self.output_feature_dimensions = self.graph_data.num_node_features
+        if self.para.run_config.config.get('use_feature_transformation', None) is not None:
+            self.output_feature_dimensions = self.para.run_config.config['use_feature_transformation'].get('out_dimension', self.input_feature_dimensions)
         # set the node labels
         self.n_head_labels = []
         self.n_tail_labels = []
@@ -235,7 +239,6 @@ class RuleConvolutionLayer(nn.Module):
         self.weight_num = []
         self.bias_num = []
 
-        self.para = parameters  # get the all the parameters of the experiment
         self.bias_list = [head.bias for head in layer.layer_heads]
         self.bias = any(self.bias_list)  # check if bias is used
         self.device = device  # set the device
@@ -251,7 +254,7 @@ class RuleConvolutionLayer(nn.Module):
             feature_out_dimension = parameters.run_config.config['use_feature_transformation'].get('out_dimension', self.input_feature_dimensions)
             self.feature_W = nn.Parameter(torch.randn((self.input_feature_dimensions, feature_out_dimension), dtype=self.precision))
             if parameters.run_config.config['use_feature_transformation'].get('bias', False):
-                self.feature_B = nn.Parameter(torch.randn((feature_out_dimension), dtype=self.precision))
+                self.feature_B = nn.Parameter(torch.zeros((feature_out_dimension), dtype=self.precision))
 
         # Determine the number of weights and biases
         # There are two cases assymetric and symmetric, assymetric is the default
@@ -767,6 +770,7 @@ class RuleAggregationLayer(nn.Module):
         if parameters.run_config.config.get('precision', 'float') == 'double':
             self.precision = torch.double
         self.output_dimension = out_dim
+        self.output_feature_dimension = out_dim
         self.out_heads = len(layer.layer_heads)
         # device
         self.device = device
