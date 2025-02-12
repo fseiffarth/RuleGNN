@@ -76,7 +76,8 @@ class RuleGNNDataset(InMemoryDataset):
                     data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].float()
                 else:
                     data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].double()
-                self.sizes['num_node_labels'] = data['x'].shape[1]
+                if self.task == 'graph_classification' or self.task == 'graph_regression':
+                    self.sizes['num_node_labels'] = data['x'].shape[1]
         else:
             if data.get('num_nodes', None) is None:
                 data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
@@ -92,7 +93,10 @@ class RuleGNNDataset(InMemoryDataset):
         if data['x'].shape[1] == 1:
             self.node_labels['primary'] = data['x'].clone().detach().long()
         else:
-            self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
+            if self.task == 'graph_classification' or self.task == 'graph_regression':
+                self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
+            if self.task == 'node_classification':
+                self.node_labels['primary'] = data['y']
         self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
         if not use_node_attr:
             num_node_attributes = self.num_node_attributes
@@ -112,9 +116,12 @@ class RuleGNNDataset(InMemoryDataset):
                 num_edge_attrs = self.num_edge_attributes
                 data['edge_attr'] = data['edge_attr'][:, num_edge_attrs:]
 
-        data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
-        for i in range(len(self)):
-            data['num_nodes'][i] = data['x'][self.slices['x'][i]:self.slices['x'][i+1]].shape[0]
+        if len(self) == 1:
+            data['num_nodes'] = torch.tensor([data['x'].shape[0]], dtype=torch.long)
+        else:
+            data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
+            for i in range(len(self)):
+                data['num_nodes'][i] = data['x'][self.slices['x'][i]:self.slices['x'][i+1]].shape[0]
 
 
         self.preprocess_rule_gnn_data(data, input_features, output_features, task=task)
@@ -201,6 +208,18 @@ class RuleGNNDataset(InMemoryDataset):
                          'num_edge_labels': len(torch.unique(self.data.edge_attr)),
                          'num_node_attributes': 0,
                          'num_node_labels': 0
+                }
+            elif self.from_existing_data in ['planetoid', 'cora', 'citeseer', 'pubmed', 'Planetoid']:
+                dataset = torch_geometric.datasets.Planetoid(root='tmp/', name=self.name)
+                self.data = dataset[0]
+                self.slices = dict()
+                for key, value in dataset.data:
+                    self.slices[key] = torch.tensor([0, value.shape[0]], dtype=torch.long)
+                sizes = {
+                    'num_node_labels': len(torch.unique(self.data.y)),
+                    'num_node_attributes': self.data.x.shape[1],
+                    'num_edge_labels': 0,
+                    'num_edge_attributes': 0
                 }
             elif self.from_existing_data == 'TUDataset':
                 tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
@@ -474,6 +493,8 @@ class RuleGNNDataset(InMemoryDataset):
             transformation = input_features.get('transformation', None)
             use_features_as_channels = input_features.get('features_as_channels', False)
 
+            use_train_node_labels = (task == 'node_classification') and input_features.get('one_hot_train_labels', False)
+
             ### Determine the input data
             if use_labels:
                 data['x'] = data['x'][:, self.num_node_attributes:]
@@ -485,6 +506,13 @@ class RuleGNNDataset(InMemoryDataset):
                 data['x'] = torch.full(size=(data['x'].shape[0], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0), dtype=self.precision)
             elif use_features:
                 data['x'] = data['x'][:, :self.num_node_attributes]
+                if use_train_node_labels:
+                    # get data y one hot
+                    y_one_hot = torch.nn.functional.one_hot(data['y']).type(self.precision)
+                    # set all rows of y_one_hot to 1/row_num if row is not in train mask
+                    non_train_indices = (data['train_mask'] == 0).nonzero().squeeze()
+                    y_one_hot[non_train_indices] = 1.0 / y_one_hot.shape[1]
+                    data['x'] = torch.cat((y_one_hot, data['x']), dim=1)
             elif use_labels_and_features:
                 # get first self.num_node_attributes columns and on the rest apply argmax
                 data['x'] = torch.cat((data['x'][:, :self.num_node_attributes], torch.argmax(data['x'][:,self.num_node_attributes:], dim=1).unsqueeze(0)), dim=1)
@@ -586,9 +614,14 @@ class RuleGNNDataset(InMemoryDataset):
             #
             # one hot encode y
 
-            if task == 'regression':
+
+
+            if task == 'graph_regression':
                 if output_features.get('transformation', None) is not None:
                     data['y'] = transform_data(data['y'], output_features)
+            elif task == 'node_classification':
+                pass
+                #data['y'] = torch.nn.functional.one_hot(data['y'], num_classes=self.num_classes).float()
             return None
 
     def __repr__(self) -> str:

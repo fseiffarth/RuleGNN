@@ -58,68 +58,20 @@ class ModelEvaluation:
         net: RuleGNN -> if not None use a pretrained network
         """
 
-        print(f'Initializing network with seed {run_seed}')
-        if pretrained_network is not None:
-            self.net = torch.load(pretrained_network)
-        else:
-            self.net = RuleGNN.RuleGNN(graph_data=self.graph_data,
-                                       para=self.para,
-                                       seed=self.seed, device=self.device)
-        # set the network to device
-        self.net.to(self.device)
-        print(f'Network initialized with seed {run_seed}')
-
+        # Initialize the GNN
+        self.initialize_model(pretrained_network=pretrained_network, run_seed=run_seed)
+        # start the timer
         timer = TimeClass()
-
-        """
-        Set up the loss function
-        """
-        if self.para.run_config.loss == 'CrossEntropyLoss':
-            self.criterion = nn.CrossEntropyLoss()
-        elif self.para.run_config.loss in ['MeanSquaredError', 'MSELoss', 'mse', 'MSE']:
-            self.criterion = nn.MSELoss()
-        elif self.para.run_config.loss in ['L1Loss', 'l1', 'L1', 'mean_absolute_error', 'mae', 'MAE', 'MeanAbsoluteError']:
-            self.criterion = nn.L1Loss()
-        elif self.para.run_config.loss in ['BCELoss', 'bce', 'BCE']:
-            self.criterion = nn.BCELoss()
-        elif self.para.run_config.loss in ['BCEWithLogitsLoss', 'bce_with_logits', 'BCEWithLogits']:
-            self.criterion = nn.BCEWithLogitsLoss()
-        elif self.para.run_config.loss in ['NLLLoss', 'nll', 'NLL']:
-            self.criterion = nn.NLLLoss()
-        else:
-            raise ValueError(f"Loss function {self.para.run_config.loss} not implemented")
-
-        """
-        Set up the optimizer
-        """
-        if self.para.run_config.optimizer == 'Adam':
-            opt = optim.Adam
-        elif self.para.run_config.optimizer == 'AdamW':
-            opt = optim.AdamW
-        elif self.para.run_config.optimizer == 'SGD':
-            opt = optim.SGD
-        elif self.para.run_config.optimizer == 'RMSprop':
-            opt = optim.RMSprop
-        elif self.para.run_config.optimizer == 'Adadelta':
-            opt = optim.Adadelta
-        elif self.para.run_config.optimizer == 'Adagrad':
-            opt = optim.Adagrad
-        else:
-            opt = optim.Adam
-
-        self.optimizer = opt(self.net.parameters(), lr=self.para.learning_rate, weight_decay=self.para.run_config.weight_decay)
-
+        # Set up the loss function
+        self.set_loss_function()
+        # Set up the optimizer
+        self.set_optimizer()
+        # Preprocess the results writer
         self.preprocess_writer()
+        # set the scheduler
+        self.set_scheduler()
 
-        """
-        Variable learning rate
-        """
-        if self.para.run_config.config.get('scheduler', False):
-            self.scheduler = StepLR(self.optimizer, step_size=10, gamma=0.5)
-
-        """
-        Store the best epoch
-        """
+        # Store the best epoch
         self.best_epoch = {"epoch": 0, "acc": 0.0, "loss": 1000000.0, "val_acc": 0.0, "val_loss": 1000000.0, "val_mae": 1000000.0}
 
         """
@@ -127,13 +79,15 @@ class ModelEvaluation:
         """
         seeds = np.arange(self.para.n_epochs*self.para.n_val_runs)
         seeds = np.reshape(seeds, (self.para.n_epochs, self.para.n_val_runs))
+
+        # set data to device
+        self.graph_data.to(self.device)
+
+        # Run through the epochs
         for epoch in range(self.para.n_epochs):
-            # Test stopping criterion
-            if self.para.run_config.config.get('early_stopping', {'enabled' : False})['enabled']:
-                if epoch - self.best_epoch["epoch"] > self.para.run_config.config['early_stopping']['patience']:
-                    if self.para.print_results:
-                        print(f"Early stopping at epoch {epoch}")
-                    break
+            # Test early stopping criterion
+            if self.early_stopping(epoch):
+                break
 
             timer.measure("epoch")
             self.net.epoch = epoch
@@ -141,95 +95,22 @@ class ModelEvaluation:
             validation_values = EvaluationValues()
             test_values = EvaluationValues()
 
-            """
-            Random Train batches for each epoch, run_id and k_val
-            """
+
+            # Random Train batches for each epoch, run_id and k_val
             shuffling_seed = seeds[epoch][self.k_val] * self.run_id + run_seed
             np.random.seed(shuffling_seed)
             np.random.shuffle(self.training_data)
             self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
             train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
             random_variation_bool = self.para.run_config.config.get('input_features', None).get('random_variation', None)
-            for batch_counter, batch in enumerate(train_batches, 0):
-                timer.measure("forward")
-                self.optimizer.zero_grad()
-                if self.graph_data.num_classes == 1:
-                    outputs = torch.zeros((len(batch)), dtype=self.dtype).to(self.device)
-                else:
-                    outputs = torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
-
-                # TODO batch in one matrix ?
-                self.net.train(True)
-                for j, graph_id in enumerate(batch, 0):
-                    timer.measure("forward_step")
-                    if random_variation_bool:
-                        mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
-                        std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
-                        if self.para.run_config.config.get('precision', 'double') == 'float':
-                            random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(), dtype=torch.float)
-                        else:
-                            random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(), dtype=torch.double)
-                        outputs[j] = self.net(self.graph_data[graph_id].x + random_variation, graph_id)
-                    else:
-                        outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
-                    timer.measure("forward_step")
+            self.net.train(True)
+            if self.para.run_config.config['task'] in ['graph_regression', 'graph_classification']:
+                self.train_graph_task(epoch=epoch, values=(epoch_values, validation_values, test_values), train_batches=train_batches, random_variation_bool=random_variation_bool, timer=timer)
+            elif self.para.run_config.config['task'] == 'node_classification':
+                self.train_node_task(epoch=epoch, values=(epoch_values, validation_values, test_values), train_batches=train_batches, random_variation_bool=random_variation_bool, timer=timer)
 
 
-                loss = self.criterion(outputs, self.graph_data.y[batch])
-                timer.measure("forward")
-
-                weights = []
-                if self.para.save_weights:
-                    for i, layer in enumerate(self.net.net_layers):
-                        weights.append([x.item() for x in layer.Param_W])
-                        w = np.array(weights[-1]).reshape(1, -1)
-                        #df = pd.DataFrame(w)
-                        #df.to_csv(f"Results/Parameter/layer_{i}_weights.csv", header=False, index=False, mode='a')
-
-                timer.measure("backward")
-                # change learning rate with high loss
-                #for g in optimizer.param_groups:
-                #    loss_value = loss.item()
-                #    min_val = 50 - epoch ** (1. / 6.) * (49 / self.para.n_epochs ** (1. / 6.))
-                #    loss_val = 100 * loss_value ** 2
-                #learning_rate_mul = min(min_val, loss_val)
-                #g['lr'] = self.para.learning_rate * learning_rate_mul
-                # print min_val, loss_val, learning_rate_mul, g['lr']
-                #    if self.para.print_results:
-                #        print(f'Min: {min_val}, Loss: {loss_val}, Learning rate: {g["lr"]}')
-
-                loss.backward()
-                self.optimizer.step()
-                timer.measure("backward")
-                timer.reset()
-
-                if self.para.save_weights:
-                    weight_changes = []
-                    for i, layer in enumerate(self.net.net_layers):
-                        change = np.array(
-                            [weights[i][j] - x.item() for j, x in enumerate(layer.Param_W)]).flatten().reshape(1, -1)
-                        weight_changes.append(change)
-                        # save to three differen csv files using pandas
-                        #df = pd.DataFrame(change)
-                        #df.to_csv(f'Results/Parameter/layer_{i}_change.csv', header=False, index=False, mode='a')
-                        # if there is some change print that the layer trains
-                        if np.count_nonzero(change) > 0:
-                            print(f'Layer {i} has updated')
-                        else:
-                            print(f'Layer {i} has not updated')
-
-                epoch_values.loss += loss.item()
-
-                '''
-                Evaluate the training accuracy
-                '''
-                epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch,train_values=epoch_values, validation_values=validation_values, test_values=test_values, evaluation_type='training', outputs=outputs, labels=self.graph_data.y[batch],  batch_idx=batch_counter, batch_length=len(batch), num_batches=len(train_batches))
-
-
-            '''
-            Pruning
-            '''
-
+            # Pruning
             if valid_pruning_configuration(self.para, epoch):
                 self.model_pruning(epoch)
 
@@ -247,6 +128,83 @@ class ModelEvaluation:
                 # check if learning rate is > 0.0001
                 if self.optimizer.param_groups[0]['lr'] > 0.0001:
                     self.scheduler.step()
+
+    def initialize_model(self, pretrained_network, run_seed):
+        print(f'Initializing network with seed {run_seed}')
+        if pretrained_network is not None:
+            self.net = torch.load(pretrained_network)
+        else:
+            self.net = RuleGNN.RuleGNN(graph_data=self.graph_data,
+                                       para=self.para,
+                                       seed=self.seed, device=self.device)
+        # set the network to device
+        self.net.to(self.device)
+        print(f'Network initialized with seed {run_seed}')
+
+    def set_loss_function(self):
+        if self.para.run_config.loss == 'CrossEntropyLoss':
+            self.criterion = nn.CrossEntropyLoss()
+        elif self.para.run_config.loss in ['MeanSquaredError', 'MSELoss', 'mse', 'MSE']:
+            self.criterion = nn.MSELoss()
+        elif self.para.run_config.loss in ['L1Loss', 'l1', 'L1', 'mean_absolute_error', 'mae', 'MAE', 'MeanAbsoluteError']:
+            self.criterion = nn.L1Loss()
+        elif self.para.run_config.loss in ['BCELoss', 'bce', 'BCE']:
+            self.criterion = nn.BCELoss()
+        elif self.para.run_config.loss in ['BCEWithLogitsLoss', 'bce_with_logits', 'BCEWithLogits']:
+            self.criterion = nn.BCEWithLogitsLoss()
+        elif self.para.run_config.loss in ['NLLLoss', 'nll', 'NLL']:
+            self.criterion = nn.NLLLoss()
+        else:
+            raise ValueError(f"Loss function {self.para.run_config.loss} not implemented")
+
+    def set_optimizer(self):
+        if self.para.run_config.optimizer == 'Adam':
+            opt = optim.Adam
+        elif self.para.run_config.optimizer == 'AdamW':
+            opt = optim.AdamW
+        elif self.para.run_config.optimizer == 'SGD':
+            opt = optim.SGD
+        elif self.para.run_config.optimizer == 'RMSprop':
+            opt = optim.RMSprop
+        elif self.para.run_config.optimizer == 'Adadelta':
+            opt = optim.Adadelta
+        elif self.para.run_config.optimizer == 'Adagrad':
+            opt = optim.Adagrad
+        else:
+            opt = optim.Adam
+
+        self.optimizer = opt(self.net.parameters(), lr=self.para.learning_rate, weight_decay=self.para.run_config.weight_decay)
+
+    def set_scheduler(self):
+        """
+        Variable learning rate
+        """
+        if self.para.run_config.config.get('scheduler', False):
+            self.scheduler = StepLR(self.optimizer, step_size=10, gamma=0.5)
+
+
+    def early_stopping(self, epoch):
+        if self.para.run_config.config.get('early_stopping', {'enabled': False})['enabled']:
+            if epoch - self.best_epoch["epoch"] > self.para.run_config.config['early_stopping']['patience']:
+                if self.para.print_results:
+                    print(f"Early stopping at epoch {epoch}")
+                return True
+        return False
+
+    def test_weight_update(self, weights):
+        weight_changes = []
+        for i, layer in enumerate(self.net.net_layers):
+            change = np.array(
+                [weights[i][j] - x.item() for j, x in enumerate(layer.Param_W)]).flatten().reshape(1, -1)
+            weight_changes.append(change)
+            # save to three differen csv files using pandas
+            # df = pd.DataFrame(change)
+            # df.to_csv(f'Results/Parameter/layer_{i}_change.csv', header=False, index=False, mode='a')
+            # if there is some change print that the layer trains
+            if np.count_nonzero(change) > 0:
+                print(f'Layer {i} has updated')
+            else:
+                print(f'Layer {i} has not updated')
 
     def model_pruning(self, epoch):
         # prune each five epochs
@@ -401,11 +359,9 @@ class ModelEvaluation:
     def evaluate_results(self, epoch: int, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues, evaluation_type, outputs=None, labels=None, batch_idx=0, batch_length=0, num_batches=0):
         if evaluation_type == 'training':
             batch_acc = 0
-            if self.para.run_config.task == 'graph_classification':
-                batch_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
-                train_values.accuracy += batch_acc * (batch_length / len(self.training_data))
+
             # if num classes is one calculate the mae and mae_std or if the task is regression
-            elif self.para.run_config.task == 'graph_regression':
+            if self.para.run_config.task == 'graph_regression':
                 # flatten the labels and outputs
                 flatten_labels = labels.detach().clone().flatten()
                 flatten_outputs = outputs.detach().clone().flatten()
@@ -416,6 +372,9 @@ class ModelEvaluation:
                 batch_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
                 train_values.mae += batch_mae * (batch_length / len(self.training_data))
                 train_values.mae_std += batch_mae_std * (batch_length / len(self.training_data))
+            else:
+                batch_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
+                train_values.accuracy += batch_acc * (batch_length / len(self.training_data))
 
             if self.para.print_results:
                 if self.graph_data.num_classes == 1 or self.para.run_config.task == 'graph_regression':
@@ -454,18 +413,12 @@ class ModelEvaluation:
             Evaluate the validation accuracy for each epoch
             '''
             if self.validate_data.size != 0:
-                if self.graph_data.num_classes == 1:
-                    outputs = torch.zeros((len(self.validate_data)), dtype=self.dtype).to(self.device)
+                if self.para.run_config.task in ['graph_classification', 'graph_regression']:
+                    labels, outputs = self.evaluate_graph_task(self.validate_data)
+                elif self.para.run_config.task == 'node_classification':
+                    labels, outputs = self.evaluate_node_task(self.validate_data)
                 else:
-                    outputs = torch.zeros((len(self.validate_data), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
-                labels = self.graph_data.y[self.validate_data]
-
-                # use torch no grad to save memory
-                with torch.no_grad():
-                    for j, data_pos in enumerate(self.validate_data):
-                        self.net.train(False)
-                        outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
-
+                    raise ValueError(f"Task {self.para.run_config.task} not implemented")
                 # get validation loss
                 validation_loss = self.criterion(outputs, labels).item()
                 validation_values.loss = validation_loss
@@ -541,18 +494,12 @@ class ModelEvaluation:
             # Test accuracy
             # print only if run best model is used
             if self.para.run_config.config.get('best_model', False):
-                # Test accuracy
-                if self.graph_data.num_classes == 1:
-                    outputs = torch.zeros((len(self.test_data)), dtype=self.dtype).to(self.device)
+                if self.para.run_config.task in ['graph_classification', 'graph_regression']:
+                    labels, outputs = self.evaluate_graph_task(self.test_data)
+                elif self.para.run_config.task == 'node_classification':
+                    labels, outputs = self.evaluate_node_task(self.test_data)
                 else:
-                    outputs = torch.zeros((len(self.test_data), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
-                labels = self.graph_data.y[self.test_data]
-
-                with torch.no_grad():
-                    for j, data_pos in enumerate(self.test_data, 0):
-                        self.net.train(False)
-                        outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
-
+                    raise ValueError(f"Task {self.para.run_config.task} not implemented")
 
                 test_loss = self.criterion(outputs, labels).item()
                 test_values.loss = test_loss
@@ -638,5 +585,151 @@ class ModelEvaluation:
             self.para.draw_data = ttd.plot_learning_data(epoch + 1,
                                                          [train_values.accuracy, validation_values.accuracy, test_values.accuracy, train_values.loss],
                                                          self.para.draw_data, self.para.n_epochs)
+
+
+
+    def train_graph_task(self, epoch, values, train_batches, random_variation_bool, timer):
+        for batch_counter, batch in enumerate(train_batches, 0):
+            timer.measure("forward")
+            self.optimizer.zero_grad()
+            if self.graph_data.num_classes == 1:
+                outputs = torch.zeros((len(batch)), dtype=self.dtype).to(self.device)
+            else:
+                outputs = torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
+
+            # TODO batch in one matrix ?
+            for j, graph_id in enumerate(batch, 0):
+                timer.measure("forward_step")
+                if random_variation_bool:
+                    mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
+                    std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
+                    if self.para.run_config.config.get('precision', 'double') == 'float':
+                        random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(),
+                                                        dtype=torch.float)
+                    else:
+                        random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(),
+                                                        dtype=torch.double)
+                    outputs[j] = self.net(self.graph_data[graph_id].x + random_variation, graph_id)
+                else:
+                    outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
+                timer.measure("forward_step")
+
+            # calculate the loss
+            loss = self.criterion(outputs, self.graph_data.y[batch])
+            timer.measure("forward")
+
+            weights = []
+            # save the weights to test if they are updated (only in debug mode)
+            if self.para.save_weights:
+                for i, layer in enumerate(self.net.net_layers):
+                    weights.append([x.item() for x in layer.Param_W])
+
+            timer.measure("backward")
+            loss.backward()
+            self.optimizer.step()
+            timer.measure("backward")
+            timer.reset()
+
+            # test if the weights are updated (only in debug mode)
+            if self.para.save_weights:
+                self.test_weight_update(weights)
+
+            epoch_values, validation_values, test_values = values
+            epoch_values.loss += loss.item()
+
+            # Get the training accuracy
+            epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch, train_values=epoch_values,
+                                                                                 validation_values=validation_values,
+                                                                                 test_values=test_values,
+                                                                                 evaluation_type='training',
+                                                                                 outputs=outputs,
+                                                                                 labels=self.graph_data.y[batch],
+                                                                                 batch_idx=batch_counter,
+                                                                                 batch_length=len(batch),
+                                                                                 num_batches=len(train_batches))
+
+    def evaluate_graph_task(self, data):
+        labels = self.graph_data.y[data]
+        if self.graph_data.num_classes == 1:
+            outputs = torch.zeros((len(data)), dtype=self.dtype).to(self.device)
+        else:
+            outputs = torch.zeros((len(data), self.graph_data.num_classes), dtype=self.dtype).to(
+                self.device)
+
+        # use torch no grad to save memory
+        with torch.no_grad():
+            for j, data_pos in enumerate(data):
+                self.net.train(False)
+                outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
+        return labels, outputs
+
+    def train_node_task(self, epoch, values, train_batches, random_variation_bool, timer):
+        for batch_counter, batch in enumerate(train_batches, 0):
+            timer.measure("forward")
+            self.optimizer.zero_grad()
+            timer.measure("forward_step")
+            if random_variation_bool:
+                mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
+                std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
+                if self.para.run_config.config.get('precision', 'double') == 'float':
+                    random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[0].x.size(),
+                                                    dtype=torch.float)
+                else:
+                    random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[0].x.size(),
+                                                    dtype=torch.double)
+                outputs = self.net(self.graph_data[0].x + random_variation, 0)
+            else:
+                outputs = self.net(self.graph_data[0].x, 0)
+                timer.measure("forward_step")
+
+            # calculate the loss
+            # squeeze second dimension if it is one
+            if outputs.shape[1] == 1:
+                outputs = outputs.squeeze(1)
+            loss = self.criterion(outputs[batch], self.graph_data.y[batch])
+            timer.measure("forward")
+
+            weights = []
+            # save the weights to test if they are updated (only in debug mode)
+            if self.para.save_weights:
+                for i, layer in enumerate(self.net.net_layers):
+                    weights.append([x.item() for x in layer.Param_W])
+
+            timer.measure("backward")
+            loss.backward()
+            self.optimizer.step()
+            timer.measure("backward")
+            timer.reset()
+
+            # test if the weights are updated (only in debug mode)
+            if self.para.save_weights:
+                self.test_weight_update(weights)
+
+            epoch_values, validation_values, test_values = values
+            epoch_values.loss += loss.item()
+
+            # Get the training accuracy
+            epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch, train_values=epoch_values,
+                                                                                 validation_values=validation_values,
+                                                                                 test_values=test_values,
+                                                                                 evaluation_type='training',
+                                                                                 outputs=outputs[batch],
+                                                                                 labels=self.graph_data.y[batch],
+                                                                                 batch_idx=batch_counter,
+                                                                                 batch_length=len(batch),
+                                                                                 num_batches=len(train_batches))
+
+    def evaluate_node_task(self, data):
+        labels = self.graph_data.y[data]
+
+        # use torch no grad to save memory
+        with torch.no_grad():
+            self.net.train(False)
+            outputs = self.net(self.graph_data[0].x, 0)
+            # squeeze second dimension if it is one
+            if outputs.shape[1] == 1:
+                outputs = outputs.squeeze(1)
+        return labels, outputs[data]
+
 
 

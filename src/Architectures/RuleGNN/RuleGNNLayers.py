@@ -247,9 +247,11 @@ class RuleConvolutionLayer(nn.Module):
         self.current_W = torch.Tensor()
         self.current_B = torch.Tensor()
         self.feature_W = torch.Tensor()
-        if parameters.run_config.config.get('use_feature_weights', False):
-            self.feature_W = nn.Parameter(torch.randn((self.input_feature_dimensions, self.input_feature_dimensions), dtype=self.precision))
-
+        if parameters.run_config.config.get('use_feature_transformation', None) is not None:
+            feature_out_dimension = parameters.run_config.config['use_feature_transformation'].get('out_dimension', self.input_feature_dimensions)
+            self.feature_W = nn.Parameter(torch.randn((self.input_feature_dimensions, feature_out_dimension), dtype=self.precision))
+            if parameters.run_config.config['use_feature_transformation'].get('bias', False):
+                self.feature_B = nn.Parameter(torch.randn((feature_out_dimension), dtype=self.precision))
 
         # Determine the number of weights and biases
         # There are two cases assymetric and symmetric, assymetric is the default
@@ -343,17 +345,17 @@ class RuleConvolutionLayer(nn.Module):
 
         # Merge the weight distribution of all graphs (creating additionally slicing information)
         self.weight_distribution_slices = torch.tensor([0] + [len(w) for w in self.weight_distribution], dtype=torch.int64).cumsum(dim=0)
-        self.weight_distribution = torch.cat([self.weight_distribution[i] for i in range(len(graph_data))], dim=0)
+        self.weight_distribution = torch.cat([self.weight_distribution[i] for i in range(len(graph_data))], dim=0).to(self.device)
         if self.bias:
             # Merge the bias distribution of all graphs (creating additionally slicing information)
             self.bias_distribution_slices = torch.tensor([0] + [len(b) for b in self.bias_distribution], dtype=torch.int64).cumsum(dim=0)
-            self.bias_distribution = torch.cat([self.bias_distribution[i] for i in range(len(graph_data))], dim=0)
+            self.bias_distribution = torch.cat([self.bias_distribution[i] for i in range(len(graph_data))], dim=0).to(self.device)
 
 
         if self.bias:
             #self.bias_map = np.arange(total_bias_num, dtype=np.int64).reshape((self.n_bias_labels, self.input_feature_dimension))
-            self.Param_b = self.init_weights(np.sum(self.bias_num), init_type='convolution_bias')
-        self.Param_W = self.init_weights(np.sum(self.weight_num), init_type='convolution')
+            self.Param_b = self.init_weights(np.sum(self.bias_num), init_type='convolution_bias').to(self.device)
+        self.Param_W = self.init_weights(np.sum(self.weight_num), init_type='convolution').to(self.device)
 
 
         # TODO add pruning
@@ -463,6 +465,11 @@ class RuleConvolutionLayer(nn.Module):
         begin = time.time()
         # set the weights
         self.set_weights(pos)
+        if self.para.run_config.config.get('use_feature_transformation', False):
+            x = x @ self.feature_W
+            # apply row-wise bias
+            if self.para.run_config.config['use_feature_transformation'].get('bias', False):
+                x = x + self.feature_B
         if self.bias:
             self.set_bias(pos)
             self.forward_step_time += time.time() - begin

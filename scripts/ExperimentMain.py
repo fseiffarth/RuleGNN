@@ -246,7 +246,7 @@ class ExperimentMain:
                     raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
                                      'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
                 else:
-                    if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC']:
+                    if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid']:
                         raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                 ###
@@ -288,6 +288,8 @@ class ExperimentMain:
                 else:
                     if not configuration['with_splits']:
                         if 'split_function' in configuration:
+                            if not 'split_function_args' in configuration:
+                                configuration['split_function_args'] = {}
                             # check if the split function exists
                             if not hasattr(split_functions, configuration['split_function']):
                                 raise ValueError(f"Split function {configuration['split_function']} not found")
@@ -301,6 +303,8 @@ class ExperimentMain:
                             # check if the splits path exists
                             if not os.path.exists(configuration['splits_path']):
                                 raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
+                            else:
+                                configuration['splits'] = Load_Splits(configuration['splits_path'], configuration['name'])
                         else:
                             raise ValueError(
                                 f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')

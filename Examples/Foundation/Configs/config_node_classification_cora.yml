@@ -1,0 +1,61 @@
+networks:
+  - - { layer_type: convolution ,
+        bias: False,
+        heads: [1],
+        #concatenate_heads: False,
+        labels: [
+          { label_type: [degree], max_cycle_length: [3] },
+        ],
+        properties: [
+          { name: distances, values: [ 0,1,2 ] },
+        ]
+  }
+#    - { layer_type: aggregation,
+#        bias: True,
+#        heads: [1],
+#        labels: [
+#          { label_type: [degree], depth: [3] },
+#        ]
+#    }
+
+use_feature_transformation: {out_dimension: 64, bias: True, activation: 'ReLU'}
+
+batch_size:
+  - 64
+learning_rate:
+  - 0.01
+epochs:
+  - 200
+
+device: cpu
+
+dropout:
+  - 0.5
+
+final_linear_layers:
+  - {
+    output_dimension: 7,
+      bias: True,
+    }
+
+# weight initialization: weight initialization for the network (TODO)
+# - convolution: weight initialization for the convolutional layers
+# - convolution_bias: weight initialization for the convolutional bias
+# - aggregation: weight initialization for the aggregation layer
+# - aggregation_bias: weight initialization for the aggregation bias
+# keys:
+#     - type: [uniform, normal, constant, lower_upper], uniform: uniform distribution, normal: normal distribution, constant: constant value, lower_upper: uniform distribution with lower and upper bound from the number of weights
+#     - min: minimum value for the uniform distribution
+#     - max: maximum value for the uniform distribution
+#     - value: constant value for the constant distribution
+#     - mean for the normal distribution
+#     - std: variance for the normal distribution
+weight_initialization: { convolution: {  type: 'lower_upper', mean: 0.1, std: 0.01 },
+                         convolution_bias: { type: 'lower_upper', value: 0.0},
+                         aggregation: {  type: 'lower_upper', value: 0.1, std: 0.01 },
+                         aggregation_bias: { type: 'lower_upper', value: 0.0 }}
+
+#input_features: {name: constant, value: 1.0}
+input_features: {name: node_features}
+#input_features: {one_hot_train_labels: True}
+#input_features: {name: node_features, one_hot_train_labels: True}

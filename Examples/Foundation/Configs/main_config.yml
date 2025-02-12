@@ -1,11 +1,30 @@
 datasets:
   - {
-        name: "MUTAG",
-        task: "graph_classification",
-        validation_folds: 10,
-        experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
-        type: "TUDataset"
-    }
+    name: "Cora",
+    task: "node_classification",
+    validation_folds: 1,
+    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
+    use_node_attr: True,
+    final_layer: False,
+    with_splits: False,
+    split_function: planetoid_splits,
+    split_function_args: {dataset_name: "Cora"},
+    type: "Planetoid",
+  }
+#  - {
+#    name: "MUTAG",
+#    task: "node_classification",
+#    validation_folds: 10,
+#    experiment_config_file: "Examples/Foundation/Configs/config_molecule_node_classification.yml",
+#    type: "TUDataset"
+#  }
+#  - {
+#        name: "MUTAG",
+#        task: "graph_classification",
+#        validation_folds: 10,
+#        experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
+#        type: "TUDataset"
+#    }
 
 #  - {
 #      name: "ZINC",
@@ -29,7 +48,7 @@ datasets:
 #      name: "NodeClassificationTest",
 #      task: "node_classification",
 #      validation_folds: 10,
-#      experiment_config_file: "Examples/Foundation/Configs/config_node_classification.yml",
+#      experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
 #      type: "generate_from_function",
 #      generate_function: node_classification,
 #      generate_function_args: {},
@@ -119,7 +138,7 @@ epochs:
 
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 

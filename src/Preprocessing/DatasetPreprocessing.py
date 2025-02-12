@@ -169,7 +169,7 @@ class DatasetPreprocessing:
         else:
             if self.experiment_configuration.get('split_function', None) is not None:
                 # generate splits
-                self.experiment_configuration['split_function'](self.experiment_configuration['paths']['splits'])
+                self.experiment_configuration['split_function'](self.experiment_configuration['paths']['splits'], **self.experiment_configuration['split_function_args'], graph_data=self.graph_data)
             else:
                 raise ValueError(f'Please specify a split function in the main config file for the dataset {self.db_name} using the key "split_function".')
 
