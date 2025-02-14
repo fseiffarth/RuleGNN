@@ -1,6 +1,6 @@
 import os
 
-from src.Architectures.RuleGNN.RuleGNNLayers import Layer, get_label_string
+from src.Architectures.RuleGNN.RuleGNNLayers import get_label_string
 from src.utils.GraphData import GraphData, RuleGNNDataset
 from src.utils.GraphLabels import combine_node_labels, Properties
 from src.utils.Parameters.Parameters import Parameters
@@ -38,8 +38,9 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
         property_dicts = l.get_unique_property_dicts()
         if property_dicts:
             for x in property_dicts:
-                if x["name"] not in unique_properties:
-                    unique_properties.append(x["name"])
+                property_dict_name = x.get_property_string()
+                if property_dict_name not in unique_properties:
+                    unique_properties.append(property_dict_name)
 
     for label_dict in unique_label_dicts:
         label_path = experiment_configuration['paths']['labels'].joinpath(f'{graph_data.name}').joinpath(f"{graph_data.name}_labels_{get_label_string(label_dict)}.pt")
@@ -55,8 +56,8 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
         for i, l in enumerate(run_config.layers):
             for j, c in enumerate(l.layer_heads):
                 if c.property_dict is not None:
-                    if c.property_dict.get('name', None) == prop_name:
-                        valid_values[(i,j)] = c.property_dict.get('values', None)
+                    if c.property_dict.get_property_string() == prop_name:
+                        valid_values[(i,j)] = c.property_dict.get_values()
 
         graph_data.properties[prop_name] = Properties(path=experiment_configuration['paths']['properties'], db_name=graph_data.name,
                                                       property_name=prop_name,

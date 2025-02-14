@@ -246,7 +246,7 @@ class ExperimentMain:
                     raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
                                      'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
                 else:
-                    if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid']:
+                    if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
                         raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                 ###

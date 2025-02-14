@@ -15,7 +15,7 @@ from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
 from torch_geometric.io import fs
 from torch_geometric.utils.convert import to_networkx
-
+from ogb.nodeproppred import PygNodePropPredDataset
 
 
 
@@ -70,7 +70,7 @@ class RuleGNNDataset(InMemoryDataset):
 
         # split node labels and attributes as well as edge labels and attributes
         if data.get('x', None) is not None:
-            if delete_zero_columns:
+            if delete_zero_columns and data['x'].layout != torch.sparse_csr:
                 # remove columns with only zeros
                 if self.precision == torch.float:
                     data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].float()
@@ -221,6 +221,41 @@ class RuleGNNDataset(InMemoryDataset):
                     'num_edge_labels': 0,
                     'num_edge_attributes': 0
                 }
+            elif self.from_existing_data in ['Nell', 'nell', 'NELL']:
+                dataset = torch_geometric.datasets.NELL(root='tmp/')
+                self.data = dataset[0]
+                self.slices = dict()
+                for key, value in dataset.data:
+                    self.slices[key] = torch.tensor([0, value.shape[0]], dtype=torch.long)
+                sizes = {
+                    'num_node_labels': len(torch.unique(self.data.y)),
+                    'num_node_attributes': self.data.x.shape[1],
+                    'num_edge_labels': 0,
+                    'num_edge_attributes': 0
+                }
+            elif self.from_existing_data in ['ogbn', 'ogbn-arxiv', 'ogbn-products', 'ogbn-proteins', 'ogbn-papers100M', 'ogbn-mag']:
+                dataset = PygNodePropPredDataset(name=self.name, root='tmp/')
+                split_idx = dataset.get_idx_split()
+                train_idx, valid_idx, test_idx = split_idx["train"], split_idx["valid"], split_idx["test"]
+                self.data = dataset[0]  # pyg graph object
+                self.data.train_mask = self.data.val_mask = self.data.test_mask = None
+                self.data.train_mask = torch.zeros(self.data.num_nodes, dtype=torch.bool)
+                self.data.train_mask[train_idx] = 1
+                self.data.val_mask = torch.zeros(self.data.num_nodes, dtype=torch.bool)
+                self.data.val_mask[valid_idx] = 1
+                self.data.test_mask = torch.zeros(self.data.num_nodes, dtype=torch.bool)
+                self.data.test_mask[test_idx] = 1
+                self.slices = dict()
+                for key, value in self.data:
+                    if isinstance(value, torch.Tensor):
+                        self.slices[key] = torch.tensor([0, value.shape[0]], dtype=torch.long)
+                sizes = {
+                    'num_node_labels': len(torch.unique(self.data.y)),
+                    'num_node_attributes': self.data.x.shape[1],
+                    'num_edge_labels': 0,
+                    'num_edge_attributes': 0
+                }
+
             elif self.from_existing_data == 'TUDataset':
                 tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
                 self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
@@ -468,15 +503,18 @@ class RuleGNNDataset(InMemoryDataset):
         for g_id, graph in enumerate(self):
             if g_id % 1000 == 0:
                 print(f'Processing graph {g_id+1}/{len(self)}')
+
             self.nx_graphs.append(to_networkx(
                 data=graph,
-                node_attrs=['x'],
+                node_attrs=['x'] if self.task != 'node_classification' else None,
                 edge_attrs=['edge_attr'] if graph.edge_attr is not None else None,
                 to_undirected=not directed))
+
             # change node label 'x' to 'primary_label'
             for node in self.nx_graphs[-1].nodes(data=True):
                 self.nx_graphs[-1].nodes[node[0]]['primary_label'] = self.node_labels['primary'][counter].item()
-                del self.nx_graphs[-1].nodes[node[0]]['x']
+                if self.task != 'node_classification':
+                    del self.nx_graphs[-1].nodes[node[0]]['x']
                 counter += 1
             if graph.edge_attr is not None:
                 for edge in self.nx_graphs[-1].edges(data=True):

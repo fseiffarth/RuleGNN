@@ -315,13 +315,13 @@ class DatasetPreprocessing:
         if properties['name'] == 'distances':
             if 'cutoff' not in properties:
                 properties['cutoff'] = None
-            print(f'Generating distance properties with cutoff {properties["cutoff"]}')
+            print(f'Generating distance properties for {self.graph_data.name} with cutoff {properties["cutoff"]}')
             write_distance_properties(self.graph_data, out_path=properties_path, cutoff=properties['cutoff'],  save_times=self.generation_times_properties_path)
         # TODO: change the edge_label_distances to the new torch format
         elif properties['name'] == 'edge_label_distances':
             if 'cutoff' not in properties:
                 properties['cutoff'] = None
-            print(f'Generating edge label distance properties with cutoff {properties["cutoff"]}')
+            print(f'Generating edge label distance properties for {self.graph_data.name} with cutoff {properties["cutoff"]}')
             write_distance_edge_properties(self.graph_data, out_path=properties_path, cutoff=properties['cutoff'],  save_times=self.generation_times_properties_path)
 
     # generate preprocessing by scanning the config file
@@ -335,7 +335,7 @@ class DatasetPreprocessing:
         for run_config in run_configs:
             for layer in run_config.layers:
                 for property_dict in layer.get_unique_property_dicts():
-                    p_dict = property_dict.copy()
+                    p_dict = property_dict.property_dict.copy()
                     p_dict.pop('values')
                     json_property = json.dumps(p_dict, sort_keys=True)
                     preprocessed_properties.add(json_property)

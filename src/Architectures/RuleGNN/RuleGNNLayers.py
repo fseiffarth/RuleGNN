@@ -18,7 +18,7 @@ from src.utils import GraphData, GraphDrawing
 from src.utils.GraphLabels import NodeLabels
 
 
-def get_label_string(label_dict: dict)->str:
+def get_label_string(label_dict: dict) -> str:
     """
     Method to get the label string. This is used to load the node labels
     """
@@ -108,25 +108,57 @@ def get_label_string(label_dict: dict)->str:
     return l_string
 
 
+class LabelDict:
+    def __init__(self, label_dict: dict):
+        self.label_dict = label_dict
+        self.source_labels = label_dict.get('head', None)
+        self.target_labels = label_dict.get('tail', None)
+        self.bias_labels = label_dict.get('bias', None)
+
+
+
+
+    def get_head_string(self)->str:
+        return self.get_label_string(self.source_labels)
+    def get_tail_string(self)->str:
+        return self.get_label_string(self.target_labels)
+    def get_bias_string(self)->str:
+        return self.get_label_string(self.bias_labels)
+
+class PropertyDict:
+    def __init__(self, property_dict: dict):
+        self.property_dict = property_dict
+
+    def get_values(self)-> Optional[list]:
+        return self.property_dict.get('values', None)
+
+    def get_property_string(self)->str:
+        string_name = self.property_dict['name']
+        if 'cutoff' in self.property_dict:
+            string_name += f"_cutoff_{self.property_dict['cutoff']}"
+        return string_name
+
+
+
 class LayerHead:
     def __init__(self, info_dict: dict, head_id):
         self.head_id = head_id
-        self.label_dict = info_dict.get('labels', None)
-        self.property_dict = info_dict.get('properties', None)
+        self.label_dict = LabelDict(info_dict.get('labels', None))
+        self.property_dict = PropertyDict(info_dict.get('properties', None))
         # if head, tail, bias is not specified, set head tail bias to the same value
-        self.head_labels = self.label_dict.get('head', None)
+        self.source_labels = self.label_dict.source_labels
         self.head_node_labels = -1
-        self.tail_labels = self.label_dict.get('tail', None)
-        self.tail_node_labels = -1
-        self.bias_labels = self.label_dict.get('bias', None)
+        self.target_labels = self.label_dict.target_labels
+        self.target_node_labels = -1
+        self.bias_labels = self.label_dict.bias_labels
         self.bias_node_labels = -1
         self.bias = info_dict.get('bias', False)
-        if self.head_labels is None:
-            self.head_labels = self.label_dict
-        if self.tail_labels is None:
-            self.tail_labels = self.head_labels
+        if self.source_labels is None:
+            self.source_labels = self.label_dict
+        if self.target_labels is None:
+            self.target_labels = self.source_labels
         if self.bias_labels is None:
-            self.bias_labels = self.head_labels
+            self.bias_labels = self.source_labels
 
 
 class Layer:
@@ -149,10 +181,10 @@ class Layer:
     def get_unique_layer_dicts(self):
         unique_dicts = []
         for head in self.layer_heads:
-            if head.head_labels not in unique_dicts:
-                unique_dicts.append(head.head_labels)
-            if head.tail_labels not in unique_dicts:
-                unique_dicts.append(head.tail_labels)
+            if head.source_labels not in unique_dicts:
+                unique_dicts.append(head.source_labels)
+            if head.target_labels not in unique_dicts:
+                unique_dicts.append(head.target_labels)
             if head.bias_labels not in unique_dicts:
                 unique_dicts.append(head.bias_labels)
         return unique_dicts
@@ -165,17 +197,17 @@ class Layer:
         return unique_dicts
 
     def get_head_string(self, head_id=0):
-        return get_label_string(self.layer_heads[head_id].head_labels)
+        return get_label_string(self.layer_heads[head_id].source_labels)
     def get_tail_string(self, head_id=0):
-        return get_label_string(self.layer_heads[head_id].tail_labels)
+        return get_label_string(self.layer_heads[head_id].target_labels)
     def get_bias_string(self, head_id=0):
         return get_label_string(self.layer_heads[head_id].bias_labels)
 
     def get_layer_label_strings(self)->list[str]:
         label_string_list = set()
         for head in range(len(self.layer_heads)):
-            label_string_list.add(get_label_string(self.layer_heads[head].head_labels))
-            label_string_list.add(get_label_string(self.layer_heads[head].tail_labels))
+            label_string_list.add(get_label_string(self.layer_heads[head].source_labels))
+            label_string_list.add(get_label_string(self.layer_heads[head].target_labels))
             label_string_list.add(get_label_string(self.layer_heads[head].bias_labels))
         return list(label_string_list)
 
@@ -188,7 +220,7 @@ class RuleConvolutionLayer(nn.Module):
     classdocs for the GraphConvLayer: This class represents a convolutional layer for a RuleGNN
     """
 
-    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.RuleGNNDataset, device='cpu'):
+    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.RuleGNNDataset, device='cpu', input_feature_dimensions=None):
         """
         Constructor of the GraphConvLayer
         :param layer_id: the id of the layer
@@ -211,6 +243,8 @@ class RuleConvolutionLayer(nn.Module):
         self.graph_data = graph_data
         # get the input features, i.e. the dimension of the input vector
         self.input_feature_dimensions = self.graph_data.num_node_features
+        if input_feature_dimensions is not None:
+            self.input_feature_dimensions = input_feature_dimensions
         self.output_feature_dimensions = self.graph_data.num_node_features
         if self.para.run_config.config.get('use_feature_transformation', None) is not None:
             self.output_feature_dimensions = self.para.run_config.config['use_feature_transformation'].get('out_dimension', self.input_feature_dimensions)
@@ -231,7 +265,7 @@ class RuleConvolutionLayer(nn.Module):
             self.n_tail_labels.append(graph_data.node_labels[self.tail_strings[h_id]].num_unique_node_labels)
             self.bias_strings.append(layer.get_bias_string(h_id))
             self.n_bias_labels.append(graph_data.node_labels[self.bias_strings[h_id]].num_unique_node_labels)
-            self.property_names.append(head.property_dict["name"])
+            self.property_names.append(head.property_dict.get_property_string())
             self.n_properties.append(graph_data.properties[self.property_names[h_id]].num_properties[(layer_id,h_id)])
 
 
@@ -252,7 +286,7 @@ class RuleConvolutionLayer(nn.Module):
         self.feature_W = torch.Tensor()
         if parameters.run_config.config.get('use_feature_transformation', None) is not None:
             feature_out_dimension = parameters.run_config.config['use_feature_transformation'].get('out_dimension', self.input_feature_dimensions)
-            self.feature_W = nn.Parameter(torch.randn((self.input_feature_dimensions, feature_out_dimension), dtype=self.precision))
+            self.feature_W = nn.Parameter(torch.nn.init.xavier_normal_(torch.zeros((self.input_feature_dimensions, feature_out_dimension), dtype=self.precision)))
             if parameters.run_config.config['use_feature_transformation'].get('bias', False):
                 self.feature_B = nn.Parameter(torch.zeros((feature_out_dimension), dtype=self.precision))
 
@@ -1075,9 +1109,10 @@ class RuleGNNConcatenate(nn.Module):
     """
     Wrapper class for a linear layer that ignores the pos argument
     """
-    def __init__(self, in_features, bias=True):
+    def __init__(self, in_features, bias=True, output_feature_dimensions=None):
         super(RuleGNNConcatenate, self).__init__()
         self.linear = nn.Linear(in_features, 1, bias=bias)
+        self.output_feature_dimensions = output_feature_dimensions
 
     def forward(self, x, pos):
         x = self.linear(x)

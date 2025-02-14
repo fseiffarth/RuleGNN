@@ -35,16 +35,20 @@ class RuleGNN(nn.Module):
         self.net_layers = nn.ModuleList()
         for i, layer in enumerate(para.layers):
             if layer.layer_type == 'convolution':
+                input_features = self.graph_data.num_node_features
+                if i != 0 and self.para.run_config.config.get('use_feature_transformation', None) is not None:
+                    input_features = self.para.run_config.config['use_feature_transformation'].get('out_dimension', 16)
                 self.net_layers.append(
                     RuleGNNLayers.RuleConvolutionLayer(layer_id=i,
                                                        seed=seed + i,
                                                        layer=layer,
                                                        parameters=para,
                                                        graph_data=self.graph_data,
-                                                       device=device).type(self.module_precision).requires_grad_(self.convolution_grad))
+                                                       device=device,
+                                                       input_feature_dimensions=input_features).type(self.module_precision).requires_grad_(self.convolution_grad))
                 # Concatenate multiple heads using a linear layer
                 if layer.num_heads() > 1 and layer.layer_dict.get('concatenate_heads', True):
-                    self.net_layers.append(RuleGNNLayers.RuleGNNConcatenate(layer.num_heads(), bias=True).type(
+                    self.net_layers.append(RuleGNNLayers.RuleGNNConcatenate(layer.num_heads(), bias=True, output_feature_dimensions=self.net_layers[-1].output_feature_dimensions).type(
                         self.module_precision).requires_grad_(True))
 
             elif layer.layer_type == 'aggregation':

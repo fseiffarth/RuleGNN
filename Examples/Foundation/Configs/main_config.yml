@@ -1,9 +1,33 @@
 datasets:
   - {
+    name: "ogbn-arxiv",
+    task: "node_classification",
+    validation_folds: 1,
+    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+    use_node_attr: True,
+    final_layer: False,
+    with_splits: False,
+    split_function: planetoid_splits,
+    split_function_args: { dataset_name: "ogbn-arxiv" },
+    type: "ogbn",
+  }
+  - {
+    name: "Nell",
+    task: "node_classification",
+    validation_folds: 1,
+    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+    use_node_attr: True,
+    final_layer: False,
+    with_splits: False,
+    split_function: planetoid_splits,
+    split_function_args: { dataset_name: "Nell" },
+    type: "Nell",
+  }
+  - {
     name: "Cora",
     task: "node_classification",
     validation_folds: 1,
-    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
+    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
     use_node_attr: True,
     final_layer: False,
     with_splits: False,
@@ -11,23 +35,11 @@ datasets:
     split_function_args: {dataset_name: "Cora"},
     type: "Planetoid",
   }
-  #- {
-  #  name: "PubMed",
-  #  task: "node_classification",
-  #  validation_folds: 1,
-  #  experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
-  #  use_node_attr: True,
-  #  final_layer: False,
-  #  with_splits: False,
-  #  split_function: planetoid_splits,
-  #  split_function_args: { dataset_name: "Pubmed" },
-  #  type: "Planetoid",
-  #}
   - {
     name: "Citeseer",
     task: "node_classification",
     validation_folds: 1,
-    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
+    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
     use_node_attr: True,
     final_layer: False,
     with_splits: False,
@@ -35,6 +47,19 @@ datasets:
     split_function_args: { dataset_name: "Citeseer" },
     type: "Planetoid",
   }
+  - {
+    name: "PubMed",
+    task: "node_classification",
+    validation_folds: 1,
+    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+    use_node_attr: True,
+    final_layer: False,
+    with_splits: False,
+    split_function: planetoid_splits,
+    split_function_args: { dataset_name: "Pubmed" },
+    type: "Planetoid",
+  }
+
 #  - {
 #    name: "MUTAG",
 #    task: "node_classification",
@@ -68,15 +93,7 @@ datasets:
 #      type: "TUDataset"
 #  }
 
-#  - {
-#      name: "NodeClassificationTest",
-#      task: "node_classification",
-#      validation_folds: 10,
-#      experiment_config_file: "Examples/Foundation/Configs/config_node_classification_cora.yml",
-#      type: "generate_from_function",
-#      generate_function: node_classification,
-#      generate_function_args: {},
-#  }
+
 #  - {
 #    name: "LinkPredictionTest",
 #    task: "link_prediction",
@@ -162,7 +179,7 @@ epochs:
 
 early_stopping:
   enabled:
-    False
+    True
   patience:
     25
 

@@ -181,6 +181,8 @@ def preprocess_network_architectures(network_architectures_dict):
                                             channel_dict['properties'] = {}
                                             channel_dict['properties']['name'] = layer['properties'][property_id]['name']
                                             channel_dict['properties']['values'] = layer['properties'][property_id]['values']
+                                            if layer['properties'][property_id].get('cutoff', None) is not None:
+                                                channel_dict['properties']['cutoff'] = layer['properties'][property_id]['cutoff']
                                             option_dict['heads'].append(channel_dict)
                                         option_dicts.append(option_dict)
                                 else:
