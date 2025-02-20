@@ -42,7 +42,10 @@ class DatasetPreprocessing:
             self.create_folders_and_files()
             # generate the data only if it does not exist (i.e. the processed folder is empty)
             if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'data.pt').is_file():
-                self.generate_data()
+                dataset = self.db_name
+                data_generation = self.experiment_configuration['data_generation']
+                data_generation_args = self.experiment_configuration.get('generate_function_args', None)
+                self.generate_data(dataset, data_generation, data_generation_args)
             self.load_data()
             # generate the split files
             self.generate_splits()
@@ -76,78 +79,105 @@ class DatasetPreprocessing:
         self.generation_times_labels_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_labels.txt')
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
-    def generate_data(self):
-            data_generation = self.experiment_configuration['data_generation']
-            data_generation_args = self.experiment_configuration['data_generation_args']
-            if isinstance(self.experiment_configuration['data_generation'], str):
-                if data_generation != 'generate_from_function':
-                    try:
-                        path = Path(self.experiment_configuration['paths']['data'])
-                        if Path(Path(self.experiment_configuration['paths']['data']) / self.db_name / 'processed').exists() and len(
-                                list(Path(Path(self.experiment_configuration['paths']['data']) / self.db_name / 'processed').iterdir())) > 0:
-                            print(f"Dataset {self.db_name} already exists in {Path(self.experiment_configuration['paths']['data'])} . Skip the data generation.")
-                            return
-                        # download the dataset
-                        # create a tmp folder to store the dataset
-                        if not Path('tmp').exists():
-                            Path('tmp').mkdir()
-                        self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                         name=self.db_name,
-                                                         from_existing_data=data_generation,
-                                                         )
-                        if not os.path.exists(path.joinpath(Path(self.db_name))):
-                            os.makedirs(path.joinpath(Path(self.db_name)))
-                        # create processed and raw folders in path+self.db_name
-                        if not os.path.exists(path.joinpath(Path(self.db_name + "/processed"))):
-                            os.makedirs(path.joinpath(Path(self.db_name + "/processed")))
-                        if not os.path.exists(path.joinpath(Path(self.db_name + "/raw"))):
-                            os.makedirs(path.joinpath(Path(self.db_name + "/raw")))
-                        #tu_to_nel(self.db_name=self.db_name, out_path=Path(self.experiment_configuration['paths']['data']))
-                    except:
-                        print(f'Could not generate {self.db_name} from TUDataset')
-                else:
-                    print(f'Do not know how to handle data from {data_generation}. Do you mean "TUDataset"?')
-                pass
-            else:
-                # TODO generate the pt data
-                if data_generation is not None:
-                    if data_generation_args is None:
-                        data_generation_args = {}
-                    try:
-                        # generate data
-                        graphs, labels =  data_generation(**data_generation_args, split_path=Path(self.experiment_configuration['paths']['splits']))
-                        # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
-                        save_graphs(Path(self.experiment_configuration['paths']['data']), self.db_name, graphs, labels, with_degree=False, graph_format='NEL')
-                        self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                         name=self.db_name,
-                                                         use_node_attr=self.experiment_configuration.get(
-                                                             'use_node_attr', False),
-                                                         use_edge_attr=self.experiment_configuration.get(
-                                                             'use_edge_attr', False),
-                                                         delete_zero_columns=self.experiment_configuration.get(
-                                                             'delete_zero_columns', True),
-                                                        from_existing_data='NEL',
-                                                         task=self.experiment_configuration.get('task', 'graph')
-                                                         )
-                    except:
-                        # raise the error that has occurred
-                        print(f'Could not generate {self.db_name} from function {data_generation} with arguments {data_generation_args}')
+    def generate_data(self, dataset, data_generation_type, data_generation_args):
+        # generate the data
+        if isinstance(data_generation_type, list):
+            if not isinstance(data_generation_args, list):
+                data_generation_args = [data_generation_args] * len(data_generation_type)
+            zip_list = list(zip(data_generation_type, data_generation_args, self.experiment_configuration['single_datasets']))
+            for data_gen, data_gen_args, d in zip_list:
+                self.generate_data(d, data_gen, data_gen_args)
+            # merge the generated datasets
+            graphs = []
+            for data_generation_type, data_generation_args, dataset in zip_list:
+                graphs.append(RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                               name=dataset,
+                               use_node_attr=self.experiment_configuration.get('use_node_attr', False),
+                               use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
+                               delete_zero_columns=False,
+                               task=self.experiment_configuration.get('task', None)
+                               ))
+                # merge the graphs
+            RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                           name=self.experiment_configuration['name'],
+                           from_existing_data=graphs,
+                           use_node_attr=self.experiment_configuration.get('use_node_attr', False),
+                           use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
+                           delete_zero_columns=False,
+                           task=self.experiment_configuration.get('task', None),
+                           )
+            return
+        path = Path(self.experiment_configuration['paths']['data'])
+        if Path(Path(self.experiment_configuration['paths']['data']) / dataset / 'processed').exists() and len(
+                list(Path(Path(self.experiment_configuration['paths']['data']) / dataset / 'processed').iterdir())) > 0:
+            print(
+                f"Dataset {dataset} already exists in {Path(self.experiment_configuration['paths']['data'])} . Skip the data generation.")
+            return
+        if isinstance(data_generation_type, str):
+            if data_generation_type != 'generate_from_function':
+                try:
 
-                else:
-                    try:
-                        self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                         name=self.db_name,
-                                                         use_node_attr=self.experiment_configuration.get(
-                                                             'use_node_attr', False),
-                                                         use_edge_attr=self.experiment_configuration.get(
-                                                             'use_edge_attr', False),
-                                                         delete_zero_columns=self.experiment_configuration.get(
-                                                             'delete_zero_columns', True),
-                                                        from_existing_data='NEL',
-                                                         task=self.dataset_configuration.get('task', None)
-                                                         )
-                    except:
-                        print(f'Could not process the data from {self.db_name} with the given configuration.')
+                    # download the dataset
+                    # create a tmp folder to store the dataset
+                    if not Path('tmp').exists():
+                        Path('tmp').mkdir()
+                    self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                     name=dataset,
+                                                     from_existing_data=data_generation_type,
+                                                     )
+                    if not os.path.exists(path.joinpath(Path(dataset))):
+                        os.makedirs(path.joinpath(Path(dataset)))
+                    # create processed and raw folders in path+dataset
+                    if not os.path.exists(path.joinpath(Path(dataset + "/processed"))):
+                        os.makedirs(path.joinpath(Path(dataset + "/processed")))
+                    if not os.path.exists(path.joinpath(Path(dataset + "/raw"))):
+                        os.makedirs(path.joinpath(Path(dataset + "/raw")))
+                    #tu_to_nel(dataset=dataset, out_path=Path(self.experiment_configuration['paths']['data']))
+                except:
+                    print(f'Could not generate {dataset} from TUDataset')
+            else:
+                print(f'Do not know how to handle data from {data_generation_type}. Do you mean "TUDataset"?')
+            pass
+        else:
+            # TODO generate the pt data
+            if data_generation_type is not None:
+                if data_generation_args is None:
+                    data_generation_args = {}
+                try:
+                    # generate data
+                    graphs, labels =  data_generation_type(**data_generation_args, split_path=Path(self.experiment_configuration['paths']['splits']))
+                    # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
+                    save_graphs(Path(self.experiment_configuration['paths']['data']), dataset, graphs, labels, with_degree=False, graph_format='NEL')
+                    self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                     name=dataset,
+                                                     use_node_attr=self.experiment_configuration.get(
+                                                         'use_node_attr', False),
+                                                     use_edge_attr=self.experiment_configuration.get(
+                                                         'use_edge_attr', False),
+                                                     delete_zero_columns=self.experiment_configuration.get(
+                                                         'delete_zero_columns', True),
+                                                    from_existing_data='NEL',
+                                                     task=self.experiment_configuration.get('task', 'graph')
+                                                     )
+                except:
+                    # raise the error that has occurred
+                    print(f'Could not generate {dataset} from function {data_generation_type} with arguments {data_generation_args}')
+
+            else:
+                try:
+                    self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                     name=dataset,
+                                                     use_node_attr=self.experiment_configuration.get(
+                                                         'use_node_attr', False),
+                                                     use_edge_attr=self.experiment_configuration.get(
+                                                         'use_edge_attr', False),
+                                                     delete_zero_columns=self.experiment_configuration.get(
+                                                         'delete_zero_columns', True),
+                                                    from_existing_data='NEL',
+                                                     task=self.dataset_configuration.get('task', None)
+                                                     )
+                except:
+                    print(f'Could not process the data from {dataset} with the given configuration.')
 
 
     def load_data(self):

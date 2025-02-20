@@ -185,6 +185,7 @@ class ExperimentMain:
                 str_concatenation += name
                 if i < len(dataset['name']) - 1:
                     str_concatenation += '_'
+            experiment_configuration['name'] = str_concatenation
             if str_concatenation not in self.experiment_configurations:
                 self.experiment_configurations[str_concatenation] = [experiment_configuration.copy()]
             else:
@@ -246,8 +247,18 @@ class ExperimentMain:
                     raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
                                      'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
                 else:
-                    if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
-                        raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+                    if isinstance(configuration['type'], list):
+                        if len(configuration['type']) != len(configuration.get('single_datasets',0)):
+                            raise ValueError(f'The number of types and datasets do not match.')
+                        if configuration.get('data_generation_args', None) is not None:
+                            if len(configuration['type']) != len(configuration['data_generation_args']):
+                                raise ValueError(f'The number of types and data generation arguments do not match.')
+                        for t in configuration['type']:
+                            if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
+                                raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+                    else:
+                        if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
+                            raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                 ###
                 if 'validation_folds' not in configuration:
