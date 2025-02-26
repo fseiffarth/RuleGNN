@@ -151,7 +151,7 @@ class LayerHead:
         self.bias_node_labels = -1
         self.bias = info_dict.get('bias', False)
         if self.source_labels is None:
-            self.source_labels = self.label_dict
+            self.source_labels = self.label_dict.label_dict
         if self.target_labels is None:
             self.target_labels = self.source_labels
         if self.bias_labels is None:
@@ -178,6 +178,8 @@ class Layer:
     def get_unique_layer_dicts(self):
         unique_dicts = []
         for head in self.layer_heads:
+            if not isinstance(head.source_labels, dict):
+                raise ValueError("Source labels must be a dict")
             if head.source_labels not in unique_dicts:
                 unique_dicts.append(head.source_labels)
             if head.target_labels not in unique_dicts:
@@ -189,7 +191,7 @@ class Layer:
     def get_unique_property_dicts(self):
         unique_dicts = []
         for head in self.layer_heads:
-            if head.property_dict not in unique_dicts and head.property_dict is not None:
+            if head.property_dict.property_dict not in unique_dicts and head.property_dict.property_dict is not None:
                 unique_dicts.append(head.property_dict)
         return unique_dicts
 

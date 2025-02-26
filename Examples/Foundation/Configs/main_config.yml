@@ -1,64 +1,64 @@
 datasets:
-  - {
-    name: "ogbn-arxiv",
-    task: "node_classification",
-    validation_folds: 1,
-    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
-    use_node_attr: True,
-    final_layer: False,
-    with_splits: False,
-    split_function: planetoid_splits,
-    split_function_args: { dataset_name: "ogbn-arxiv" },
-    type: "ogbn",
-  }
-  - {
-    name: "Nell",
-    task: "node_classification",
-    validation_folds: 1,
-    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
-    use_node_attr: True,
-    final_layer: False,
-    with_splits: False,
-    split_function: planetoid_splits,
-    split_function_args: { dataset_name: "Nell" },
-    type: "Nell",
-  }
-  - {
-    name: "Cora",
-    task: "node_classification",
-    validation_folds: 1,
-    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
-    use_node_attr: True,
-    final_layer: False,
-    with_splits: False,
-    split_function: planetoid_splits,
-    split_function_args: {dataset_name: "Cora"},
-    type: "Planetoid",
-  }
-  - {
-    name: "Citeseer",
-    task: "node_classification",
-    validation_folds: 1,
-    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
-    use_node_attr: True,
-    final_layer: False,
-    with_splits: False,
-    split_function: planetoid_splits,
-    split_function_args: { dataset_name: "Citeseer" },
-    type: "Planetoid",
-  }
-  - {
-    name: "PubMed",
-    task: "node_classification",
-    validation_folds: 1,
-    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
-    use_node_attr: True,
-    final_layer: False,
-    with_splits: False,
-    split_function: planetoid_splits,
-    split_function_args: { dataset_name: "Pubmed" },
-    type: "Planetoid",
-  }
+#  - {
+#    name: "ogbn-arxiv",
+#    task: "node_classification",
+#    validation_folds: 1,
+#    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+#    use_node_attr: True,
+#    final_layer: False,
+#    with_splits: False,
+#    split_function: planetoid_splits,
+#    split_function_args: { dataset_name: "ogbn-arxiv" },
+#    type: "ogbn",
+#  }
+#  - {
+#    name: "Nell",
+#    task: "node_classification",
+#    validation_folds: 1,
+#    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+#    use_node_attr: True,
+#    final_layer: False,
+#    with_splits: False,
+#    split_function: planetoid_splits,
+#    split_function_args: { dataset_name: "Nell" },
+#    type: "Nell",
+#  }
+#  - {
+#    name: "Cora",
+#    task: "node_classification",
+#    validation_folds: 1,
+#    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+#    use_node_attr: True,
+#    final_layer: False,
+#    with_splits: False,
+#    split_function: planetoid_splits,
+#    split_function_args: {dataset_name: "Cora"},
+#    type: "Planetoid",
+#  }
+#  - {
+#    name: "Citeseer",
+#    task: "node_classification",
+#    validation_folds: 1,
+#    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+#    use_node_attr: True,
+#    final_layer: False,
+#    with_splits: False,
+#    split_function: planetoid_splits,
+#    split_function_args: { dataset_name: "Citeseer" },
+#    type: "Planetoid",
+#  }
+#  - {
+#    name: "PubMed",
+#    task: "node_classification",
+#    validation_folds: 1,
+#    experiment_config_file: "Examples/Foundation/Configs/config_node_classification_planetoid.yml",
+#    use_node_attr: True,
+#    final_layer: False,
+#    with_splits: False,
+#    split_function: planetoid_splits,
+#    split_function_args: { dataset_name: "Pubmed" },
+#    type: "Planetoid",
+#  }
 
 #  - {
 #    name: "MUTAG",
@@ -84,15 +84,30 @@ datasets:
 #      experiment_config_file: "Examples/Foundation/Configs/config_regression.yml",
 #      type: 'ZINC',
 #  }
+#  - {name: "Snowflakes",
+#     task: "graph_classification",
+#     validation_folds: 10,
+#     experiment_config_file: "Reproduce/Configs/config_Snowflakes.yml",
+#     type: "generate_from_function",
+#     generate_function: snowflakes,
+#     generate_function_args: {smallest_snowflake: 3, largest_snowflake: 12, flakes_per_size: 100, seed: 764, generation_type: 'binary'}}
 
 #  - {
-#      name: ["PTC_FM", "PTC_MM", "PTC_MR", "PTC_FR"],
+#      name: "PTC_FM",
 #      task: "graph_classification",
 #      validation_folds: 10,
 #      experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
-#      type: "TUDataset"
+#      type: "TUDataset",
 #  }
 
+
+  - {
+      name: ["NCI1", "NCI109", "Mutagenicity"],
+      task: "graph_classification",
+      validation_folds: 10,
+      experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
+      type: ["TUDataset", "TUDataset", "TUDataset"],
+  }
 
 #  - {
 #    name: "LinkPredictionTest",
@@ -183,4 +198,6 @@ early_stopping:
   patience:
     25
 
-input_features: {name: constant, value: 1.0}
+input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
+
+best_model: True

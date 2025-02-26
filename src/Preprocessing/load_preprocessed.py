@@ -55,7 +55,7 @@ def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, vali
         valid_values = {}
         for i, l in enumerate(run_config.layers):
             for j, c in enumerate(l.layer_heads):
-                if c.property_dict is not None:
+                if c.property_dict.property_dict is not None:
                     if c.property_dict.get_property_string() == prop_name:
                         valid_values[(i,j)] = c.property_dict.get_values()
 

@@ -1,7 +1,7 @@
 import os
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Optional, Callable, List
+from typing import Dict, Optional, Callable, List, Union
 
 import networkx as nx
 import numpy as np
@@ -27,7 +27,7 @@ class RuleGNNDataset(InMemoryDataset):
             transform: Optional[Callable] = None,
             pre_transform: Optional[Callable] = None,
             pre_filter: Optional[Callable] = None,
-            from_existing_data: Optional[str] = None,
+            from_existing_data: Union[str, list, None] = None,
             force_reload: bool = False,
             use_node_attr: bool = True,
             use_edge_attr: bool = True,
@@ -35,7 +35,8 @@ class RuleGNNDataset(InMemoryDataset):
             precision: str = 'float',
             input_features = None,
             output_features = None,
-            task = None
+            task = None,
+            merge_graphs = None
     ) -> None:
         self.name = name # name of the dataset
         self.from_existing_data = from_existing_data # create the dataset from existing data
@@ -189,7 +190,100 @@ class RuleGNNDataset(InMemoryDataset):
     def process(self):
         sizes = None
         if self.from_existing_data is not None:
-            if self.from_existing_data == 'ZINC':
+            # merge the graphs
+            if isinstance(self.from_existing_data, list):
+                all_x = None
+                all_edge_indices = None
+                all_edge_atr = None
+                all_y = None
+                all_num_nodes = None
+                self.slices = {
+                    'x': [0],
+                    'edge_index': [0],
+                    'edge_attr': [0],
+                    'y': [0]
+                }
+                sizes = {
+                    'num_node_labels': 0,
+                    'num_node_attributes': 0,
+                    'num_edge_labels': 0,
+                    'num_edge_attributes': 0
+                }
+                for i, dataset in enumerate(self.from_existing_data):
+                    current_x = dataset.data.x
+                    current_edge_indices = dataset.data.edge_index
+                    current_edge_atr = dataset.data.edge_attr
+                    current_y = dataset.data.y
+                    current_num_nodes = dataset.data.num_nodes
+                    if i == 0:
+                        all_x = current_x
+                        all_edge_indices = current_edge_indices
+                        all_edge_atr = current_edge_atr
+                        all_y = current_y
+                        all_num_nodes = current_num_nodes
+                        self.slices = {
+                            'x': dataset.slices['x'],
+                            'edge_index': dataset.slices['edge_index'],
+                            'y': dataset.slices['y'],
+                            'names': [dataset.name] * len(dataset)
+                        }
+                        if 'edge_attr' in dataset.slices:
+                            self.slices['edge_attr'] = dataset.slices['edge_attr']
+                        sizes = {
+                            'num_node_labels': dataset.num_node_labels,
+                            'num_node_attributes': dataset.num_node_attributes,
+                            'num_edge_labels': dataset.num_edge_labels,
+                            'num_edge_attributes': dataset.num_edge_attributes,
+                        }
+                    else:
+                        max_node_labels = max(sizes['num_node_labels'], dataset.num_node_labels)
+                        max_node_attrs = max(sizes['num_node_attributes'], dataset.num_node_attributes)
+                        max_edge_labels = max(sizes['num_edge_labels'], dataset.num_edge_labels)
+                        max_edge_attrs = max(sizes['num_edge_attributes'], dataset.num_edge_attributes)
+
+                        self.slices['x'] =  torch.cat((self.slices['x'], dataset.slices['x'][1:] + all_x.shape[0]), dim=0)
+                        self.slices['edge_index'] = torch.cat((self.slices['edge_index'], dataset.slices['edge_index'][1:] + all_edge_indices.shape[1]), dim=0)
+                        if 'edge_attr' in self.slices:
+                            self.slices['edge_attr'] = torch.cat((self.slices['edge_attr'], dataset.slices['edge_attr'][1:] + all_edge_atr.shape[0]), dim=0)
+                        self.slices['y'] = torch.cat((self.slices['y'], dataset.slices['y'][1:] + all_y.shape[0]), dim=0)
+
+                        # bring all tensors to the same size
+                        if sizes['num_node_labels'] < max_node_labels:
+                            # add zeros from sizes['num_node_labels'] to max_node_labels
+                            all_x = torch.cat((all_x[:, :sizes['num_node_labels']], torch.zeros(all_x.shape[0], max_node_labels - sizes['num_node_labels']), all_x[:, sizes['num_node_labels']:]), dim=1)
+                        if dataset.num_node_labels < max_node_labels:
+                            current_x = torch.cat((current_x[:, :dataset.num_node_labels], torch.zeros(current_x.shape[0], max_node_labels - dataset.num_node_labels), current_x[:, dataset.num_node_labels:]), dim=1)
+                        if sizes['num_node_attributes'] < max_node_attrs:
+                            all_x = torch.cat((all_x, torch.zeros(all_x.shape[0], max_node_attrs - sizes['num_node_attributes'])), dim=1)
+                        if dataset.num_node_features < max_node_attrs:
+                            current_x = torch.cat((current_x, torch.zeros(current_x.shape[0], max_node_attrs - dataset.num_node_features)), dim=1)
+                        all_x = torch.cat((all_x, current_x), dim=0)
+                        if sizes['num_edge_labels'] < max_edge_labels and all_edge_atr is not None:
+                            all_edge_atr = torch.cat((all_edge_atr[:, :sizes['num_edge_labels']], torch.zeros(all_edge_atr.shape[0], max_edge_labels - sizes['num_edge_labels']), all_edge_atr[:, sizes['num_edge_labels']:]), dim=1)
+                        if dataset.num_edge_labels < max_edge_labels:
+                            current_edge_atr = torch.cat((current_edge_atr[:, :dataset.num_edge_labels], torch.zeros(current_edge_atr.shape[0], max_edge_labels - dataset.num_edge_labels), current_edge_atr[:, dataset.num_edge_labels:]), dim=1)
+                        if sizes['num_edge_attributes'] < max_edge_attrs:
+                            all_edge_atr = torch.cat((all_edge_atr, torch.zeros(all_edge_atr.shape[0], max_edge_attrs - sizes['num_edge_attributes'])), dim=1)
+                        if dataset.num_edge_attributes < max_edge_attrs:
+                            current_edge_atr = torch.cat((current_edge_atr, torch.zeros(current_edge_atr.shape[0], max_edge_attrs - dataset.num_edge_attributes)), dim=1)
+                        if 'edge_attr' in self.slices:
+                            all_edge_atr = torch.cat((all_edge_atr, current_edge_atr), dim=0)
+                            all_edge_atr = torch.cat((all_edge_atr, current_edge_atr), dim=0)
+                        all_edge_indices = torch.cat((all_edge_indices, current_edge_indices), dim=1)
+                        all_y = torch.cat((all_y, current_y), dim=0)
+                        all_num_nodes = torch.cat((all_num_nodes, current_num_nodes), dim=0)
+
+                        sizes['num_node_labels'] = max_node_labels
+                        sizes['num_node_attributes'] = max_node_attrs
+                        sizes['num_edge_labels'] = max_edge_labels
+                        sizes['num_edge_attributes'] = max_edge_attrs
+                        # make self data from all_x, all_edge_indices, all_edge_atr, all_y
+                        self.data = Data(x=all_x, edge_index=all_edge_indices, edge_attr=all_edge_atr, y=all_y, num_nodes=all_num_nodes)
+
+
+
+
+            elif self.from_existing_data == 'ZINC':
                 train_data = ZINC(root='tmp/', subset=True, split='train')
                 validation_data = ZINC(root='tmp/', subset=True, split='val')
                 test_data = ZINC(root='tmp/', subset=True, split='test')
@@ -451,7 +545,9 @@ class RuleGNNDataset(InMemoryDataset):
             edge_attr = None
             if line_length > 4:
                 edge_attr = torch_lines[:, 4:]
-            edge_data = torch.cat((edge_attr, edge_labels), dim=1)
+                edge_data = torch.cat((edge_attr, edge_labels), dim=1)
+            else:
+                edge_data = edge_labels
 
         y = None
         with open(load_path.joinpath(self.name + "_Labels.txt"), "r") as f:

@@ -81,7 +81,7 @@ class ModelEvaluation:
         seeds = np.reshape(seeds, (self.para.n_epochs, self.para.n_val_runs))
 
         # set data to device
-        self.graph_data.to(self.device)
+        #self.graph_data.to(self.device)
 
         # Run through the epochs
         for epoch in range(self.para.n_epochs):
