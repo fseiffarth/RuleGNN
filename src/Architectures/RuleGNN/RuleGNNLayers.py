@@ -115,15 +115,12 @@ class LabelDict:
         self.target_labels = label_dict.get('tail', None)
         self.bias_labels = label_dict.get('bias', None)
 
-
-
-
-    def get_head_string(self)->str:
-        return self.get_label_string(self.source_labels)
-    def get_tail_string(self)->str:
-        return self.get_label_string(self.target_labels)
+    def get_source_string(self)->str:
+        return get_label_string(self.source_labels)
+    def get_target_string(self)->str:
+        return get_label_string(self.target_labels)
     def get_bias_string(self)->str:
-        return self.get_label_string(self.bias_labels)
+        return get_label_string(self.bias_labels)
 
 class PropertyDict:
     def __init__(self, property_dict: dict):
@@ -206,9 +203,9 @@ class Layer:
     def get_layer_label_strings(self)->list[str]:
         label_string_list = set()
         for head in range(len(self.layer_heads)):
-            label_string_list.add(get_label_string(self.layer_heads[head].source_labels))
-            label_string_list.add(get_label_string(self.layer_heads[head].target_labels))
-            label_string_list.add(get_label_string(self.layer_heads[head].bias_labels))
+            label_string_list.add(get_label_string(self.layer_heads[head].get_source_string()))
+            label_string_list.add(get_label_string(self.layer_heads[head].get_target_string()))
+            label_string_list.add(get_label_string(self.layer_heads[head].get_bias_string()))
         return list(label_string_list)
 
     def num_heads(self):
