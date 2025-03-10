@@ -9,7 +9,7 @@ from find_best_models import config_paths_to_absolute, load_preprocessed_data_an
 from src.Architectures.RuleGNN import RuleGNN
 from src.utils.GraphData import get_graph_data
 from src.utils.Parameters.Parameters import Parameters
-from src.utils.RunConfiguration import get_run_configs
+from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
 
 
@@ -73,9 +73,9 @@ class RunSavedModel:
                         Get the first index in the results directory that is not used
                     """
                     para.set_file_index(size=6)
-                    net = RuleGNN.RuleGNN(graph_data=self.graph_data,
-                                          para=para,
-                                          seed=seed, device=run_config.config.get('device', 'cpu'))
+                    net = RuleGNN.ShareGNN(graph_data=self.graph_data,
+                                           para=para,
+                                           seed=seed, device=run_config.config.get('device', 'cpu'))
 
                     net.load_state_dict(torch.load(model_path, weights_only=True))
 

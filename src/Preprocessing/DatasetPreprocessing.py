@@ -1,6 +1,5 @@
 import json
 import os
-import networkx as nx # do not remove this import, it is used in the preprocessing functions
 from pathlib import Path
 
 from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels, save_primary_labels, \
@@ -8,10 +7,9 @@ from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels,
     save_labeled_degree_labels, save_wl_labeled_labels, save_labels_to_file
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
-import src.Preprocessing.split_functions as split_functions
-from src.utils.GraphData import RuleGNNDataset
+from src.utils.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import combine_node_labels
-from src.utils.RunConfiguration import get_run_configs
+from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_labels import load_labels
 from src.utils.utils import save_graphs
 
@@ -90,22 +88,22 @@ class DatasetPreprocessing:
             # merge the generated datasets
             graphs = []
             for data_generation_type, data_generation_args, dataset in zip_list:
-                graphs.append(RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                               name=dataset,
-                               use_node_attr=self.experiment_configuration.get('use_node_attr', False),
-                               use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
-                               delete_zero_columns=False,
-                               task=self.experiment_configuration.get('task', None)
-                               ))
+                graphs.append(ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                              name=dataset,
+                                              use_node_attr=self.experiment_configuration.get('use_node_attr', False),
+                                              use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
+                                              delete_zero_columns=False,
+                                              task=self.experiment_configuration.get('task', None)
+                                              ))
                 # merge the graphs
-            RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                           name=self.experiment_configuration['name'],
-                           from_existing_data=graphs,
-                           use_node_attr=self.experiment_configuration.get('use_node_attr', False),
-                           use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
-                           delete_zero_columns=False,
-                           task=self.experiment_configuration.get('task', None),
-                           )
+            ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                            name=self.experiment_configuration['name'],
+                            from_existing_data=graphs,
+                            use_node_attr=self.experiment_configuration.get('use_node_attr', False),
+                            use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
+                            delete_zero_columns=False,
+                            task=self.experiment_configuration.get('task', None),
+                            )
             return
         path = Path(self.experiment_configuration['paths']['data'])
         if Path(Path(self.experiment_configuration['paths']['data']) / dataset / 'processed').exists() and len(
@@ -121,10 +119,10 @@ class DatasetPreprocessing:
                     # create a tmp folder to store the dataset
                     if not Path('tmp').exists():
                         Path('tmp').mkdir()
-                    self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                     name=dataset,
-                                                     from_existing_data=data_generation_type,
-                                                     )
+                    self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                      name=dataset,
+                                                      from_existing_data=data_generation_type,
+                                                      )
                     if not os.path.exists(path.joinpath(Path(dataset))):
                         os.makedirs(path.joinpath(Path(dataset)))
                     # create processed and raw folders in path+dataset
@@ -148,34 +146,34 @@ class DatasetPreprocessing:
                     graphs, labels =  data_generation_type(**data_generation_args, split_path=Path(self.experiment_configuration['paths']['splits']))
                     # save lists of graphs and labels in the correct graph_format NEL -> Nodes, Edges, Labels
                     save_graphs(Path(self.experiment_configuration['paths']['data']), dataset, graphs, labels, with_degree=False, graph_format='NEL')
-                    self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                     name=dataset,
-                                                     use_node_attr=self.experiment_configuration.get(
+                    self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                      name=dataset,
+                                                      use_node_attr=self.experiment_configuration.get(
                                                          'use_node_attr', False),
-                                                     use_edge_attr=self.experiment_configuration.get(
+                                                      use_edge_attr=self.experiment_configuration.get(
                                                          'use_edge_attr', False),
-                                                     delete_zero_columns=self.experiment_configuration.get(
+                                                      delete_zero_columns=self.experiment_configuration.get(
                                                          'delete_zero_columns', True),
-                                                    from_existing_data='NEL',
-                                                     task=self.experiment_configuration.get('task', 'graph')
-                                                     )
+                                                      from_existing_data='NEL',
+                                                      task=self.experiment_configuration.get('task', 'graph')
+                                                      )
                 except:
                     # raise the error that has occurred
                     print(f'Could not generate {dataset} from function {data_generation_type} with arguments {data_generation_args}')
 
             else:
                 try:
-                    self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                                     name=dataset,
-                                                     use_node_attr=self.experiment_configuration.get(
+                    self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                                      name=dataset,
+                                                      use_node_attr=self.experiment_configuration.get(
                                                          'use_node_attr', False),
-                                                     use_edge_attr=self.experiment_configuration.get(
+                                                      use_edge_attr=self.experiment_configuration.get(
                                                          'use_edge_attr', False),
-                                                     delete_zero_columns=self.experiment_configuration.get(
+                                                      delete_zero_columns=self.experiment_configuration.get(
                                                          'delete_zero_columns', True),
-                                                    from_existing_data='NEL',
-                                                     task=self.dataset_configuration.get('task', None)
-                                                     )
+                                                      from_existing_data='NEL',
+                                                      task=self.dataset_configuration.get('task', None)
+                                                      )
                 except:
                     print(f'Could not process the data from {dataset} with the given configuration.')
 
@@ -183,13 +181,13 @@ class DatasetPreprocessing:
     def load_data(self):
         # load graph data from pt files if it exists in the processed folder
         if self.graph_data is None and self.experiment_configuration['paths']['data'].joinpath(f'{self.db_name}').joinpath('processed').exists():
-            self.graph_data = RuleGNNDataset(root=str(self.experiment_configuration['paths']['data']),
-                                             name=self.db_name,
-                                             use_node_attr=self.experiment_configuration.get('use_node_attr', False),
-                                                use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
-                                             delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
-                                             task=self.experiment_configuration.get('task', None)
-                                             )
+            self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
+                                              name=self.db_name,
+                                              use_node_attr=self.experiment_configuration.get('use_node_attr', False),
+                                              use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
+                                              delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
+                                              task=self.experiment_configuration.get('task', None)
+                                              )
 
     def generate_splits(self):
         # generate the splits

@@ -1,16 +1,12 @@
 ### evaluate the distribution of rules in the datasets
 from pathlib import Path
 
-from matplotlib import pyplot as plt
-from scripts.Evaluation.Drawing.plotting import rules_vs_occurences, rules_vs_weights
-from scripts.ExperimentMain import ExperimentMain
+from src.Experiment.ExperimentMain import ExperimentMain
 from scripts.WeightVisualization import GraphDrawing
-from src.utils.GraphDrawing import CustomColorMap, TabColorMap
+from src.utils.GraphDrawing import CustomColorMap
 
 
 def plot_all_graphs_from_db(db_name, experiment):
-    import matplotlib as mpl
-
     #mpl.use("pgf")
     import matplotlib.pyplot as plt
 

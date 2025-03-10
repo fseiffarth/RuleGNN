@@ -8,7 +8,7 @@ import torch
 from networkx.algorithms.isomorphism import GraphMatcher
 from torch_geometric.io import fs
 
-from src.utils.GraphData import RuleGNNDataset
+from src.utils.GraphData import ShareGNNDataset
 from src.utils.NodeLabeling import weisfeiler_lehman_node_labeling
 
 def save_labels_to_file(file:Path, dataset_name:str, label_name:str, graph_node_labels:Optional[Union[List[List[int]], torch.Tensor]], max_labels:None):
@@ -32,7 +32,7 @@ def save_labels_to_file(file:Path, dataset_name:str, label_name:str, graph_node_
         (dataset_name, label_name, relabel_node_labels(graph_node_labels, max_labels)), str(file)
     )
 
-def save_primary_labels(graph_data:RuleGNNDataset, label_path=None, max_labels=None, save_times=None) -> str:
+def save_primary_labels(graph_data:ShareGNNDataset, label_path=None, max_labels=None, save_times=None) -> str:
     l = f'primary'
     if max_labels is not None:
         l = f'{l}_{max_labels}'
@@ -57,7 +57,7 @@ def save_primary_labels(graph_data:RuleGNNDataset, label_path=None, max_labels=N
 
 
 
-def save_degree_labels(graph_data:RuleGNNDataset, label_path=None, max_labels=None, save_times=None)->str:
+def save_degree_labels(graph_data:ShareGNNDataset, label_path=None, max_labels=None, save_times=None)->str:
     #save the node labels to a file
     l = 'wl_0'
     if max_labels is not None:
@@ -89,7 +89,7 @@ def save_degree_labels(graph_data:RuleGNNDataset, label_path=None, max_labels=No
         print(f"File {file} already exists. Skipping.")
     return file
 
-def save_labeled_degree_labels(graph_data:RuleGNNDataset, label_path=None, max_labels=None, save_times=None)->str:
+def save_labeled_degree_labels(graph_data:ShareGNNDataset, label_path=None, max_labels=None, save_times=None)->str:
     # save the node labels to a file
     l = 'wl_labeled_0'
     if max_labels is not None:
@@ -133,7 +133,7 @@ def save_labeled_degree_labels(graph_data:RuleGNNDataset, label_path=None, max_l
     return file
 
 
-def save_trivial_labels(graph_data:RuleGNNDataset, label_path=None,save_times=None)->str:
+def save_trivial_labels(graph_data:ShareGNNDataset, label_path=None, save_times=None)->str:
     # save the node labels to a file
     l = 'trivial'
     if label_path is None:
@@ -156,7 +156,7 @@ def save_trivial_labels(graph_data:RuleGNNDataset, label_path=None,save_times=No
         print(f"File {file} already exists. Skipping.")
     return file
 
-def save_index_labels(graph_data:RuleGNNDataset, max_labels=None, label_path=None, save_times=None)->str:
+def save_index_labels(graph_data:ShareGNNDataset, max_labels=None, label_path=None, save_times=None)->str:
     l = 'index'
     if max_labels is not None:
         l = f'{l}_{max_labels}'
@@ -185,7 +185,7 @@ def save_index_labels(graph_data:RuleGNNDataset, max_labels=None, label_path=Non
     return file
 
 
-def save_wl_labels(graph_data:RuleGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:
+def save_wl_labels(graph_data:ShareGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:
     # save the node labels to a file
     l = f'wl_{depth}'
     if max_labels is not None:
@@ -211,7 +211,7 @@ def save_wl_labels(graph_data:RuleGNNDataset, depth, max_labels=None, label_path
         print(f"File {file} already exists. Skipping.")
     return file
 
-def save_wl_labeled_labels(graph_data:RuleGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:
+def save_wl_labeled_labels(graph_data:ShareGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:
     # save the node labels to a file
     l = f'wl_labeled_{depth}'
     if max_labels is not None:
@@ -238,7 +238,7 @@ def save_wl_labeled_labels(graph_data:RuleGNNDataset, depth, max_labels=None, la
     return file
 
 
-def save_cycle_labels(graph_data:RuleGNNDataset, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
+def save_cycle_labels(graph_data:ShareGNNDataset, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
     if cycle_type not in ['simple', 'induced']:
         raise ValueError("Cycle type must be either 'simple' or 'induced'")
     l = 'simple_cycles'
@@ -308,7 +308,7 @@ def save_cycle_labels(graph_data:RuleGNNDataset, length_bound=6, max_labels=None
     return file
 
 
-def save_in_circle_labels(graph_data:RuleGNNDataset, length_bound=6, max_labels=None, label_path=None, save_times=None)->str:
+def save_in_circle_labels(graph_data:ShareGNNDataset, length_bound=6, max_labels=None, label_path=None, save_times=None)->str:
     l = f'in_cycle_{length_bound}'
     if max_labels is not None:
         l = f"{l}_{max_labels}"
@@ -353,7 +353,7 @@ def save_in_circle_labels(graph_data:RuleGNNDataset, length_bound=6, max_labels=
 
 
 
-def save_subgraph_labels(graph_data:RuleGNNDataset, subgraphs=List[nx.Graph], name='subgraph', subgraph_id=0, max_labels=None, label_path=None, save_times=None)->str:
+def save_subgraph_labels(graph_data:ShareGNNDataset, subgraphs=List[nx.Graph], name='subgraph', subgraph_id=0, max_labels=None, label_path=None, save_times=None)->str:
     l = f'{name}_{subgraph_id}'
     if max_labels is not None:
         l = f"{l}_{max_labels}"
@@ -418,7 +418,7 @@ def save_subgraph_labels(graph_data:RuleGNNDataset, subgraphs=List[nx.Graph], na
     return file
 
 
-def save_clique_labels(graph_data:RuleGNNDataset, max_clique=6, max_labels=None, label_path=None, save_times=None)->str:
+def save_clique_labels(graph_data:ShareGNNDataset, max_clique=6, max_labels=None, label_path=None, save_times=None)->str:
     l = f'cliques_{max_clique}'
     if max_labels is not None:
         l = f"{l}_{max_labels}"

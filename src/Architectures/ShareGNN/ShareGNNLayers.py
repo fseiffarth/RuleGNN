@@ -20,7 +20,9 @@ from src.utils.GraphLabels import NodeLabels
 
 def get_label_string(label_dict: dict) -> str:
     """
-    Method to get the label string. This is used to load the node labels
+    converts a label dictionary to a unique string representation
+    :param label_dict: the dictionary that contains the information of the labels
+    :return: the unique string representation of the corresponding label dictionary
     """
     label_type = label_dict.get('label_type', None)
     if label_type is None:
@@ -109,6 +111,10 @@ def get_label_string(label_dict: dict) -> str:
 
 
 class LabelDict:
+    """
+    LabelDict is a class that holds the information of the labels (coming from an invariant) of a head in a ShareGNN
+    param: label_dict: the dictionary that contains the information of the labels
+    """
     def __init__(self, label_dict: dict):
         self.label_dict = label_dict
         self.source_labels = label_dict.get('head', None)
@@ -116,20 +122,45 @@ class LabelDict:
         self.bias_labels = label_dict.get('bias', None)
 
     def get_source_string(self)->str:
+        """
+        outputs the string representation of the source labels, i.e., the source regarding the message passing direction
+        :return: the string representation of the source labels
+        """
         return get_label_string(self.source_labels)
     def get_target_string(self)->str:
+        """
+        outputs the string representation of the target labels, i.e., the target regarding the message passing direction
+        :return: the string representation of the target labels
+        """
         return get_label_string(self.target_labels)
     def get_bias_string(self)->str:
+        """
+        outputs the string representation of the bias labels
+        :return: the string representation of the bias labels
+        """
         return get_label_string(self.bias_labels)
 
 class PropertyDict:
+    """
+    PropertyDict is a class that holds the information of the pairwise properties of a head in a ShareGNN
+    parameters:
+    property_dict: the dictionary that contains the information of the properties
+    """
     def __init__(self, property_dict: dict):
         self.property_dict = property_dict
 
     def get_values(self)-> Optional[list]:
+        """
+        outputs all possible values of the property (e.g., the distances between two nodes which are considered for message passing)
+        :return: a list of all possible values
+        """
         return self.property_dict.get('values', None)
 
     def get_property_string(self)->str:
+        """
+        outputs the string representation of the property
+        :return: the string representation of the property
+        """
         string_name = self.property_dict['name']
         if 'cutoff' in self.property_dict:
             string_name += f"_cutoff_{self.property_dict['cutoff']}"
@@ -138,6 +169,11 @@ class PropertyDict:
 
 
 class LayerHead:
+    """
+    LayerHead defines one head (regarding multi-heads) of a layer in a ShareGNN, i.e., the type of the labels e.t.c.
+    :param info_dict: the dictionary that contains the information of the head
+    :param head_id: the id of the head in the layer (from 0 to n-1) where n is the total number of heads
+    """
     def __init__(self, info_dict: dict, head_id):
         self.head_id = head_id
         self.label_dict = LabelDict(info_dict.get('labels', None))
@@ -160,9 +196,10 @@ class LayerHead:
 
 class Layer:
     """
-    classdocs for the Layer: This class represents a layer in a RuleGNN
+    This class holds the information of a layer of a ShareGNN
+    :param: layer_dict: the dictionary that contains the layer information
+    :param: layer_id: the id of the layer in the ShareGNN (from 0 to n-1) where n is the total number of layers
     """
-
     def __init__(self, layer_dict, layer_id):
         """
         Constructor of the Layer
@@ -175,7 +212,10 @@ class Layer:
         for c_id, head_entry in enumerate(layer_dict.get('heads', [])):
             self.layer_heads.append(LayerHead(head_entry, c_id))
 
-    def get_unique_layer_dicts(self):
+    def get_unique_layer_dicts(self) -> list[dict]:
+        """
+        :return: the unique label dictionaries of the layer. This is used for preprocessing and loading of the label information.
+        """
         unique_dicts = []
         for head in self.layer_heads:
             if not isinstance(head.source_labels, dict):
@@ -188,7 +228,10 @@ class Layer:
                 unique_dicts.append(head.bias_labels)
         return unique_dicts
 
-    def get_unique_property_dicts(self):
+    def get_unique_property_dicts(self) -> list[dict]:
+        """
+        :returns: the unique property dictionaries of the layer. This is used for preprocessing and loading of the property information.
+        """
         unique_dicts = []
         for head in self.layer_heads:
             if head.property_dict.property_dict not in unique_dicts and head.property_dict.property_dict is not None:
@@ -196,10 +239,19 @@ class Layer:
         return unique_dicts
 
     def get_head_string(self, head_id=0):
+        """
+        :return: the string representation of the source labels of the head
+        """
         return get_label_string(self.layer_heads[head_id].source_labels)
     def get_tail_string(self, head_id=0):
+        """
+        :return: the string representation of the target labels of the head
+        """
         return get_label_string(self.layer_heads[head_id].target_labels)
     def get_bias_string(self, head_id=0):
+        """
+        :return: the string representation of the bias labels of the head
+        """
         return get_label_string(self.layer_heads[head_id].bias_labels)
 
     def get_layer_label_strings(self)->list[str]:
@@ -211,25 +263,34 @@ class Layer:
         return list(label_string_list)
 
     def num_heads(self):
+        """
+        :return: the number of heads of the layer
+        """
         return len(self.layer_heads)
 
 
-class RuleConvolutionLayer(nn.Module):
+class InvariantBasedMessagePassingLayer(nn.Module):
     """
-    classdocs for the GraphConvLayer: This class represents a convolutional layer for a RuleGNN
+    This class represents a message passing layer of the encoder of an ShareGNN
+    :param layer_id: the id of the layer
+    :param seed: the seed for the random number generator
+    :param parameters: the parameters of the experiment
+    :param graph_data: the data of the graph dataset
+    :param device: use 'cpu' or 'cuda' as device ('cpu' is recommended)
+    :param input_feature_dimensions: the number of input features
     """
 
-    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.RuleGNNDataset, device='cpu', input_feature_dimensions=None):
+    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, device='cpu', input_feature_dimensions:Optional[int]=None):
         """
         Constructor of the GraphConvLayer
         :param layer_id: the id of the layer
         :param seed: the seed for the random number generator
         :param parameters: the parameters of the experiment
         :param graph_data: the data of the graph dataset
-        :param bias: if bias is used in the layer
-        :param precision: the precision of the weights, can be torch.float or torch.double
+        :param device: use 'cpu' or 'cuda' as device ('cpu' is recommended)
+        :param input_feature_dimensions: the number of input features
         """
-        super(RuleConvolutionLayer, self).__init__()
+        super(InvariantBasedMessagePassingLayer, self).__init__()
         # set seed for reproducibility
         torch.manual_seed(seed)
         # id and name of the layer
@@ -404,7 +465,13 @@ class RuleConvolutionLayer(nn.Module):
 
         self.forward_step_time = 0
 
-    def init_weights(self, num_weights, init_type=None):
+    def init_weights(self, num_weights:np.float64, init_type:Optional[str]=None) -> nn.Parameter:
+        """
+        Initializes the weights, i.e., learnable parameters of the module
+        :param num_weights: number of weights
+        :param init_type: type of the weight initialization determined in the config file (convolution, or convolution bias)
+        :return: the initialized weights
+        """
         weights = nn.Parameter(torch.zeros(num_weights, dtype=self.precision), requires_grad=True)
         weight_init = self.para.run_config.config.get('weight_initialization', None)
         if weight_init is not None:
@@ -440,29 +507,44 @@ class RuleConvolutionLayer(nn.Module):
             torch.nn.init.constant_(weights, 0.01)
         return weights
 
-    def set_weights(self, pos):
+    def set_weights(self, pos:int) -> None:
+        """
+        Sets the precomputed weights for the graph at position pos in the graph dataset to the matrix
+        :param pos:
+        :return:
+        """
         input_size = self.graph_data.num_nodes[pos].item()
         # reshape self.current_W to the size of the weight matrix and fill it with minus infinity
         #self.current_W = torch.fill(torch.zeros((self.out_heads, input_size, input_size), dtype=self.precision).to(self.device), float('-inf'))
         self.current_W = torch.zeros((self.out_heads, input_size, input_size), dtype=self.precision).to(self.device)
-        weight_distr = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
-        if len(weight_distr) != 0:
+        graph_weight_distribution = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
+        if len(graph_weight_distribution) != 0:
             # get third column of the weight_distribution: the index of self.Param_W
-            param_weights = weight_distr[:, 3]
-            matrix_indices = weight_distr[:, 0:3].T
+            param_weights = graph_weight_distribution[:, 3]
+            matrix_indices = graph_weight_distribution[:, 0:3].T
             # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
             self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_weights)
-        pass
+        return
 
-    def set_bias(self, pos):
+    def set_bias(self, pos) -> None:
+        """
+        Sets the precomputed bias term for the graph at position pos in the graph dataset
+        :param pos:
+        :return:
+        """
         input_size = self.graph_data.num_nodes[pos].item()
         self.current_B = torch.zeros((self.out_heads, input_size, self.input_feature_dimensions), dtype=self.precision).to(self.device)
-        bias_distr = self.bias_distribution[self.bias_distribution_slices[pos]:self.bias_distribution_slices[pos+1]]
-        param_indices = bias_distr[:, 3]
-        matrix_indices = bias_distr[:, 0:3].T
+        graph_bias_distribution = self.bias_distribution[self.bias_distribution_slices[pos]:self.bias_distribution_slices[pos+1]]
+        param_indices = graph_bias_distribution[:, 3]
+        matrix_indices = graph_bias_distribution[:, 0:3].T
         self.current_B[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_b, param_indices)
+        return
 
-    def print_layer_info(self):
+    def print_layer_info(self)->None:
+        """
+        Print the layer information
+        :return:
+        """
         print("Layer" + self.__class__.__name__)
 
     def print_weights(self):
@@ -780,16 +862,18 @@ class RuleConvolutionLayer(nn.Module):
 
 
 
-class RuleAggregationLayer(nn.Module):
-    '''
-    The RuleAggregationLayer class represents the aggregation layer of the RuleGNN
-    It gets as input a matrix of size (nodes x graph_data.input_feature_dimension) and returns a matrix of size (output_dimension x graph_data.input_feature_dimension)
-    '''
-    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.RuleGNNDataset,
+class InvariantBasedAggregationLayer(nn.Module):
+    """
+    This class represents an invariant based decoder layer of a ShareGNN
+    :param
+    layer_id: int -> the id of the layer in the network
+    seed: int -> the seed for reproducibility
+    :param Parameters -> the parameters of the network
+    """
+    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset,
                  out_dim, device='cpu'):
 
-        super(RuleAggregationLayer, self).__init__()
-        # set seed for reproducibility
+        super(InvariantBasedAggregationLayer, self).__init__()
         torch.manual_seed(seed)
         self.name = f"Rule Aggregation Layer"
         self.para = parameters
@@ -1104,29 +1188,55 @@ class RuleAggregationLayer(nn.Module):
         nx.draw_networkx_nodes(digraph, pos=pos, ax=ax, node_color=node_colors, node_size=node_sizes)
 
 
-class RuleGNNConcatenate(nn.Module):
+class ShareGNNConcatenate(nn.Module):
     """
-    Wrapper class for a linear layer that ignores the pos argument
+    Wrapper class for a multi-head linear layer that concatenates the output of the heads (ignores the pos argument)
+
+    :param in_features: int -> the number of input features
+    :param output_feature_dimensions: int -> the number of output features
+    :param bias: bool -> whether to use bias
     """
-    def __init__(self, in_features, bias=True, output_feature_dimensions=None):
-        super(RuleGNNConcatenate, self).__init__()
+    def __init__(self, in_features, output_feature_dimensions=None, bias=True):
+        """
+        :param in_features: int -> the number of input features
+        :param output_feature_dimensions: int -> the number of output features
+        :param bias: bool -> whether to use bias
+        """
+        super(ShareGNNConcatenate, self).__init__()
         self.linear = nn.Linear(in_features, 1, bias=bias)
         self.output_feature_dimensions = output_feature_dimensions
 
-    def forward(self, x, pos):
+    def forward(self, x:torch.Tensor, pos:int=None) -> torch.Tensor:
+        """
+        Forward pass of the layer
+        :param x: torch.Tensor -> the input tensor
+        :param pos: int -> the pos argument (ignored)
+        :return: torch.Tensor -> the output tensor
+        """
         x = self.linear(x)
-        # remove last dimension
         return x.squeeze(-1)
 
 
-class RuleGNNLinear(nn.Module):
+class ShareGNNLinear(nn.Module):
     """
     Wrapper class for a linear layer that ignores the pos argument
+    :param in_features: int -> the number of input features
+    :param out_features: int -> the number of output features
+    :param bias: bool -> whether to use bias
     """
-
     def __init__(self, in_features, out_features, bias=True):
-        super(RuleGNNLinear, self).__init__()
+        """
+        :param in_features: int -> the number of input features
+        :param out_features: int -> the number of output features
+        :param bias: bool -> whether to use bias
+        """
+        super(ShareGNNLinear, self).__init__()
         self.linear = nn.Linear(in_features, out_features, bias=bias)
 
-    def forward(self, x, pos):
+    def forward(self, x: torch.Tensor, pos:int=None):
+        """
+        Forward pass of the layer
+        param: x: torch.Tensor -> the input tensor
+        param: pos: int -> the pos argument (ignored)
+        """
         return self.linear(x)

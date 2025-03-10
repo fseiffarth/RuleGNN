@@ -19,7 +19,7 @@ from ogb.nodeproppred import PygNodePropPredDataset
 
 
 
-class RuleGNNDataset(InMemoryDataset):
+class ShareGNNDataset(InMemoryDataset):
     def __init__(
             self,
             root: str,
@@ -49,7 +49,7 @@ class RuleGNNDataset(InMemoryDataset):
         self.task = task
         if precision == 'double':
             self.precision = torch.double
-        super(RuleGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
+        super(ShareGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
         out = fs.torch_load(self.processed_paths[0])
         if not isinstance(out, tuple) or len(out) < 3:
             raise RuntimeError(
@@ -1112,7 +1112,7 @@ def get_graph_data(db_name: str, data_path : Path, task='graph_classification', 
         graph_data = GraphData()
         graph_data.load_nel_graphs(db_name=db_name, path=data_path, input_features=input_features, output_features=output_features, task=task, only_graphs=only_graphs)
     elif graph_format == 'RuleGNNDataset':
-        graph_data = RuleGNNDataset(root=str(data_path), name=db_name, precision=precision, input_features=input_features, output_features=output_features, task=task)
+        graph_data = ShareGNNDataset(root=str(data_path), name=db_name, precision=precision, input_features=input_features, output_features=output_features, task=task)
         pass
     else:
         raise ValueError(f'Graph format {graph_format} not supported')

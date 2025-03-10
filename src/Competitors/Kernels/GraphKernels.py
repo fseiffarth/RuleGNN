@@ -10,7 +10,7 @@ from sklearn.multioutput import MultiOutputRegressor
 from sklearn.svm import SVC, SVR
 from sklearn.metrics import accuracy_score, mean_absolute_error
 
-from src.utils.GraphData import RuleGNNDataset
+from src.utils.GraphData import ShareGNNDataset
 
 
 def nx_to_grakel(nx_graphs: List[nx.Graph]):
@@ -55,7 +55,7 @@ def nx_to_grakel(nx_graphs: List[nx.Graph]):
 
 
 class WLKernel:
-    def __init__(self, out_path:Path, graph_data:RuleGNNDataset, run_num: int, validation_num: int, training_data: List[int],
+    def __init__(self, out_path:Path, graph_data:ShareGNNDataset, run_num: int, validation_num: int, training_data: List[int],
                  validate_data: List[int], test_data: List[int],
                  seed: int):
         self.out_path = out_path

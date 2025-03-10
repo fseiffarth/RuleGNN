@@ -10,12 +10,12 @@ from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
 from src.Preprocessing.DatasetPreprocessing import DatasetPreprocessing
 import src.utils.SyntheticGraphs as synthetic_graphs
 import src.Preprocessing.split_functions as split_functions
-from src.Architectures.RuleGNN import RuleGNN
-from src.Methods.ModelEvaluation import ModelEvaluation
+from src.Architectures.ShareGNN import ShareGNN
+from src.Experiment.ModelConfiguration import ModelConfiguration
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
-from src.utils.GraphData import get_graph_data
+from src.utils.GraphData import get_graph_data, ShareGNNDataset
 from src.utils.Parameters.Parameters import Parameters
-from src.utils.RunConfiguration import get_run_configs
+from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
 from src.utils.path_conversions import config_paths_to_absolute
 
@@ -24,11 +24,11 @@ from src.utils.path_conversions import config_paths_to_absolute
 
 class ExperimentMain:
     """
-    This is the main class to run RuleGNN experiments.
+    This is the main class to run the all the ShareGNN experiments.
     All experiment parameters are defined in the main config file and the experiment config file.
     parameters:
-    - main_config_path: path to the main config file
-    - net: neural network model to run the experiments. Default is None. Otherwise use the given model as starting point.
+    - main_config_path: path to the main config file (contains the path to the experiment config file)
+    - net: neural network model to run the experiments. Default is None. Otherwise, use the given model as starting point.
     """
     def __init__(self, main_config_path: os.path, pretrained_network=None):
         self.main_config_path = main_config_path
@@ -36,30 +36,32 @@ class ExperimentMain:
         if not os.path.exists(main_config_path):
             raise FileNotFoundError(f"Config file {main_config_path} not found")
         try:
-            self.main_config = yaml.safe_load(open(main_config_path))
+            self.main_config = yaml.safe_load(open(main_config_path)) # load the main config file
         except:
             raise ValueError(f"Config file {main_config_path} could not be loaded")
         self.experiment_configurations = {}
         for dataset in self.main_config['datasets']:
-            self.update_experiment_configuration(dataset)
-        self.config_consistency_and_preprocessing()
+            self.update_experiment_configuration(dataset) # merge all information from the main config file and the experiment config file
+        self.config_consistency_and_preprocessing() # check the consistency of the configuration files, raise an error if the configuration is not consistent
 
 
 
     def GridSearch(self, num_threads=-1):
         """
-        Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
+        This function performs a grid search over all datasets and hyperparameters defined in the main config file.
+        parameters:
+        - num_threads: number of threads to use for the grid search. Default is -1. If -1, use all available threads.
         """
-        # set omp_num_threads to 1 to avoid conflicts with OpenMP
-        os.environ['OMP_NUM_THREADS'] = '1'
+        os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP
+        # iterate over the databases
         for dataset in self.experiment_configurations.keys():
             for i, configuration in enumerate(self.experiment_configurations[dataset]):
                 print(f"Running experiment configuration {i+1}/{len(self.experiment_configurations[dataset])} for dataset {dataset}")
-                # determine the number of parallel jobs
-                max_threads = os.cpu_count()
+                max_threads = os.cpu_count()                 # determine the number of parallel jobs
                 num_threads = min(configuration.get('num_workers', num_threads), num_threads)
                 if num_threads == -1:
                     num_threads = max_threads
+
 
                 graph_data = preprocess_graph_data(configuration)
                 # copy config file to the results directory if it is not already there
@@ -69,26 +71,24 @@ class ExperimentMain:
                                        configuration.get('experiment_config_file', ''),
                                        dataset)
 
-
+                # get all possible hyperparameter configurations from the config files
                 run_configs = get_run_configs(configuration)
                 config_id_names = {}
                 for idx, run_config in enumerate(run_configs):
                     config_id = idx + configuration.get('config_id', 0)
-                    # config_id to string with leading zeros
                     config_id_names[idx] = f'Configuration_{str(config_id).zfill(6)}'
-                # print the number of run configurations to be tested
-                print(f"Number of hyperparameter configurations: {len(run_configs)}")
+                print(f"Total number of hyperparameter configurations: {len(run_configs)}")
 
-                # zip validation_id,  config_id and run_id to parallelize over them
+                # zip all configurations for parallelization and run the grid search
                 run_loops = [(validation_id, run_id, c_idx) for validation_id in range(configuration.get('validation_folds', 10)) for run_id in range(configuration.get('num_runs', 1)) for c_idx in range(len(run_configs))]
                 num_threads = min(num_threads, len(run_loops))
                 print(f"Run the grid search for dataset {dataset} using {configuration.get('validation_folds', 10)}-fold cross-validation and {num_threads} number of parallel jobs")
                 joblib.Parallel(n_jobs=num_threads)(
-                    joblib.delayed(self.run_models)(graph_data=graph_data,
-                                                    run_config=run_configs[run_loops[i][2]],
-                                                    validation_id=run_loops[i][0],
-                                                    run_id=run_loops[i][1],
-                                                    config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
+                    joblib.delayed(self.run_configuration)(graph_data=graph_data,
+                                                           run_config=run_configs[run_loops[i][2]],
+                                                           validation_id=run_loops[i][0],
+                                                           run_id=run_loops[i][1],
+                                                           config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
 
     def EvaluateResults(self, evaluate_best_model=False, evaluate_validation_only=False):
         """
@@ -150,7 +150,7 @@ class ExperimentMain:
                 run_configs = get_run_configs(configuration)
                 config_id = f'Best_Configuration_{str(best_config_id).zfill(6)}'
                 print(f"Run the best model of dataset {dataset} using {evaluation_run_number} different runs. The number of parallel jobs is {num_threads}")
-                joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.run_models)(
+                joblib.Parallel(n_jobs=num_threads)(joblib.delayed(self.run_configuration)(
                                                             graph_data=graph_data,
                                                             run_config=run_configs[best_config_id],
                                                             validation_id=validation_id,
@@ -167,7 +167,7 @@ class ExperimentMain:
         experiment_configuration['paths'] = paths
         # paths to Path objects
         config_paths_to_absolute(experiment_configuration,
-                                 Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))))
+                                 Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))))
         # update the global configuration with the experiment configuration
         for key in self.main_config:
             if key == 'datasets':
@@ -361,8 +361,16 @@ class ExperimentMain:
                     configuration['rule_occurrence_threshold'] = 1
 
 
-    def run_models(self, graph_data, run_config, validation_id=0, run_id=0, config_id=None):
-        # print the current configuration
+    def run_configuration(self, graph_data: ShareGNNDataset, run_config, validation_id:int=0, run_id:int=0, config_id:int=None):
+        """
+        Run the experiment for a given configuration
+        parameters:
+        - graph_data: graph data object containing all the information about the graph(s)
+        - run_config: run configuration object containing all the information about the hyperparameters
+        - validation_id: integer with the validation id, i.e., which validation split to use
+        - run_id: integer with the run id, i.e., which run to use. The id determines the seed for the random number generator
+        """
+
         print(f"Run the model for dataset {run_config.config['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
         para = Parameters()
         load_preprocessed_data_and_parameters(config_id=config_id,
@@ -370,21 +378,20 @@ class ExperimentMain:
                                               validation_id=validation_id,
                                               validation_folds=run_config.config.get('validation_folds', 10),
                                               graph_data=graph_data, run_config=run_config, para=para)
-        """
-        Split the data in training validation and test set
-        """
+
+        # split the data into training, validation and test data
         seed = 42 + validation_id + para.n_val_runs * run_id
         data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('transfer', False))
         test_data = data[0][validation_id]
         train_data = data[1][validation_id]
         validation_data = data[2][validation_id]
         model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
-        method = ModelEvaluation(run_id, validation_id, graph_data, model_data, seed, para)
 
-        """
-        Run the method
-        """
-        method.Run(pretrained_network=self.pretrained_network)
+        # create the main method object
+        configuration = ModelConfiguration(run_id, validation_id, graph_data, model_data, seed, para)
+
+        # run the model, if a pretrained network is given, use it
+        configuration.Run(pretrained_network=self.pretrained_network)
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True):
         experiment_configuration = self.experiment_configurations[db_name]
@@ -430,9 +437,9 @@ class ExperimentMain:
                     Get the first index in the results directory that is not used
                 """
                 para.set_file_index(size=6)
-                net = RuleGNN.RuleGNN(graph_data=graph_data,
-                                      para=para,
-                                      seed=0, device=run_config.config.get('device', 'cpu'))
+                net = ShareGNN.ShareGNN(graph_data=graph_data,
+                                       para=para,
+                                       seed=0, device=run_config.config.get('device', 'cpu'))
 
                 net.load_state_dict(torch.load(model_path, weights_only=True))
             return net

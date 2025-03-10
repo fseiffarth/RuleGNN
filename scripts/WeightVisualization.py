@@ -1,5 +1,3 @@
-
-import os
 from pathlib import Path
 from typing import Tuple
 
@@ -7,15 +5,14 @@ import matplotlib
 import networkx as nx
 import numpy as np
 import torch
-import yaml
 from matplotlib import pyplot as plt
 
-from scripts.ExperimentMain import ExperimentMain
+from src.Experiment.ExperimentMain import ExperimentMain
 from src.Architectures.RuleGNN import RuleGNN
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
-from src.utils.GraphData import GraphData, get_graph_data
+from src.utils.GraphData import get_graph_data
 from src.utils.Parameters.Parameters import Parameters
-from src.utils.RunConfiguration import get_run_configs
+from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
 
 
@@ -297,9 +294,9 @@ class WeightVisualization:
                         Get the first index in the results directory that is not used
                     """
                     para.set_file_index(size=6)
-                    net = RuleGNN.RuleGNN(graph_data=self.graph_data,
-                                          para=para,
-                                          seed=0, device=run_config.config.get('device', 'cpu'))
+                    net = RuleGNN.ShareGNN(graph_data=self.graph_data,
+                                           para=para,
+                                           seed=0, device=run_config.config.get('device', 'cpu'))
 
                     net.load_state_dict(torch.load(model_path, weights_only=True))
                     # evaluate the performance of the model on the test data

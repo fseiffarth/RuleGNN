@@ -9,14 +9,14 @@ import torch
 import yaml
 from torch_geometric.io import fs
 
-from src.utils.GraphData import get_graph_data, GraphData, RuleGNNDataset
+from src.utils.GraphData import get_graph_data, GraphData, ShareGNNDataset
 from src.utils.load_labels import load_labels
 import copy
 
 from src.utils.utils import convert_to_list
 
 
-def write_distance_properties(graph_data:RuleGNNDataset, cutoff=None, out_path: Path = Path(), save_times=None) -> None:
+def write_distance_properties(graph_data:ShareGNNDataset, cutoff=None, out_path: Path = Path(), save_times=None) -> None:
     l = 'distances'
     if cutoff is not None:
         l += f"_cutoff_{cutoff}"
@@ -147,7 +147,7 @@ def write_distance_circle_properties(graph_data:GraphData, label_path, db_name, 
 
 
 
-def write_distance_edge_properties(graph_data:RuleGNNDataset, out_path:Path = Path(), cutoff=None,save_times=None) -> None:
+def write_distance_edge_properties(graph_data:ShareGNNDataset, out_path:Path = Path(), cutoff=None, save_times=None) -> None:
     l = 'edge_label_distances'
     out = out_path.joinpath(f"{graph_data.name}_properties_{l}.pt")
     out_yml = out_path.joinpath(f"{graph_data.name}_properties_{l}.yml")

@@ -7,9 +7,10 @@ import pandas as pd
 import torch
 from torch import optim, nn
 from torch.optim.lr_scheduler import StepLR
-from src.Architectures.RuleGNN import RuleGNN
+from src.Architectures.ShareGNN import ShareGNN
+from src.Experiment.data_sampling import curriculum_sampling_graph_size
 from src.utils import GraphData
-from src.utils.GraphData import RuleGNNDataset
+from src.utils.GraphData import ShareGNNDataset
 from src.utils.Parameters import Parameters
 from src.Time.TimeClass import TimeClass
 from src.TrainTestData import TrainTestData as ttd
@@ -25,8 +26,18 @@ class EvaluationValues:
         self.mae_std = 0.0
 
 
-class ModelEvaluation:
-    def __init__(self, run_id: int, k_val: int, graph_data: RuleGNNDataset, model_data: Tuple[np.ndarray, np.ndarray, np.ndarray], seed: int, para: Parameters.Parameters):
+class ModelConfiguration:
+    """
+    This class defines a specific configuration of a model and a specific dataset for a specific run
+    parameters:
+    run_id: int -> id of the run
+    k_val: int -> id of the k-fold validation
+    graph_data: RuleGNNDataset -> the dataset including input features, labels and output features
+    model_data: Tuple[np.ndarray, np.ndarray, np.ndarray] -> the training, validation and test data given as numpy arrays
+    seed: int -> seed for the run, it is used to initialize the network's weights
+    para: Parameters -> the parameters for the run
+    """
+    def __init__(self, run_id: int, k_val: int, graph_data: ShareGNNDataset, model_data: Tuple[np.ndarray, np.ndarray, np.ndarray], seed: int, para: Parameters.Parameters):
         self.best_epoch = None
         self.device = None
         self.dtype = None
@@ -50,16 +61,16 @@ class ModelEvaluation:
         if self.para.run_config.config.get('precision', 'float') == 'double':
             self.dtype = torch.double
 
-    def Run(self, run_seed: int = 42, pretrained_network=None):
+    def Run(self, pretrained_network=None):
         """
-        Set up the network
+        Sets up the model and runs the training
         parameters:
         run_seed: int -> seed for the run
-        net: RuleGNN -> if not None use a pretrained network
+        net: -> optional pretrained network, if None a new network is created based on the given parameters
         """
 
-        # Initialize the GNN
-        self.initialize_model(pretrained_network=pretrained_network, run_seed=run_seed)
+        # Initialize the graph neural network
+        self.initialize_model(pretrained_network=pretrained_network)
         # start the timer
         timer = TimeClass()
         # Set up the loss function
@@ -97,11 +108,19 @@ class ModelEvaluation:
 
 
             # Random Train batches for each epoch, run_id and k_val
-            shuffling_seed = seeds[epoch][self.k_val] * self.run_id + run_seed
-            np.random.seed(shuffling_seed)
-            np.random.shuffle(self.training_data)
-            self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
-            train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
+            if self.para.run_config.config.get('training_data_sampling', None) is None or self.para.run_config.config['training_data_sampling'].get('type', None) == 'default':
+                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+                np.random.seed(shuffling_seed)
+                np.random.shuffle(self.training_data)
+                self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
+                train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
+            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum':
+                train_batches = curriculum_sampling_graph_size(graph_data=self.graph_data, training_data=self.training_data, num_batches=self.para.run_config.config['training_data_sampling'].get('num_batches', (len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
+                                                               batch_size=self.para.run_config.batch_size,
+                                                               bucket_num=self.para.run_config.config['training_data_sampling']['bucket_num'], total_epochs=self.para.n_epochs, epoch=epoch, anti=self.para.run_config.config['training_data_sampling'].get('anti', False))
+
+
+
             random_variation_bool = self.para.run_config.config.get('input_features', None).get('random_variation', None)
             self.net.train(True)
             if self.para.run_config.config['task'] in ['graph_regression', 'graph_classification']:
@@ -129,17 +148,20 @@ class ModelEvaluation:
                 if self.optimizer.param_groups[0]['lr'] > 0.0001:
                     self.scheduler.step()
 
-    def initialize_model(self, pretrained_network, run_seed):
-        print(f'Initializing network with seed {run_seed}')
+    def initialize_model(self, pretrained_network):
+        """
+        Initialize the network, i.e., if pretrained_network is given load the network from the file, else create a new network
+        """
+        print(f'Initializing network with seed {self.seed}')
         if pretrained_network is not None:
             self.net = torch.load(pretrained_network)
         else:
-            self.net = RuleGNN.RuleGNN(graph_data=self.graph_data,
-                                       para=self.para,
-                                       seed=self.seed, device=self.device)
+            self.net = ShareGNN.ShareGNN(graph_data=self.graph_data,
+                                         para=self.para,
+                                         seed=self.seed, device=self.device)
         # set the network to device
         self.net.to(self.device)
-        print(f'Network initialized with seed {run_seed}')
+        print(f'Network initialized with seed {self.seed}')
 
     def set_loss_function(self):
         if self.para.run_config.loss == 'CrossEntropyLoss':

@@ -1,14 +1,14 @@
 import os
 
-from src.Architectures.RuleGNN.RuleGNNLayers import get_label_string
-from src.utils.GraphData import GraphData, RuleGNNDataset
+from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
+from src.utils.GraphData import GraphData, ShareGNNDataset
 from src.utils.GraphLabels import combine_node_labels, Properties
 from src.utils.Parameters.Parameters import Parameters
 from src.utils.load_labels import load_labels
 from src.utils import ReadWriteGraphs as gdtgl
 
 
-def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, validation_folds, graph_data:RuleGNNDataset, run_config, para: Parameters):
+def load_preprocessed_data_and_parameters(run_id, validation_id, config_id, validation_folds, graph_data:ShareGNNDataset, run_config, para: Parameters):
     experiment_configuration = run_config.config
     # path do db and db
     draw = False

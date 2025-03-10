@@ -1,16 +1,14 @@
-import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import torch
 
 from Reproduce.latex import share_gnn_results
-from scripts.ExperimentMain import ExperimentMain
-from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer, RuleAggregationLayer
+from src.Experiment.ExperimentMain import ExperimentMain
+from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer
 from src.utils.GraphDrawing import GraphDrawing, CustomColorMap, RandomColorMap
-from src.utils.RunConfiguration import get_run_configs
+
 
 def ablation_threshold(dataset, threshold_type):
     if not Path(f'Reproduce/Results/Latex/Plots/ablation_threshold_{dataset}_{threshold_type}.pdf').exists():
@@ -368,7 +366,6 @@ def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_
     if not Path(f'Reproduce/Results/Latex/Plots/{db_name}_{"_".join(map(str, graph_ids))}.pdf').exists():
         # make dir f'scripts/Evaluation/Drawing/Graphs/{db_name}/' if it does not exist
         Path(f'Reproduce/Results/Latex/Plots/').mkdir(exist_ok=True, parents=True)
-        import matplotlib as mpl
 
         #mpl.use("pgf")
         import matplotlib.pyplot as plt

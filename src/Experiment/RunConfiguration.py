@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.utils.extmath import cartesian
 from torch import cartesian_prod
 
-from src.Architectures.RuleGNN.RuleGNNLayers import Layer
+from src.Architectures.ShareGNN.ShareGNNLayers import Layer
 class RunConfiguration:
     def __init__(self, config, network_architecture, layers, batch_size, lr, epochs, dropout, optimizer, weight_decay, loss, task="classification"):
         self.config = config

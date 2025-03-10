@@ -3,7 +3,7 @@ from pathlib import Path
 
 import click
 
-from scripts.ExperimentMain import ExperimentMain
+from src.Experiment.ExperimentMain import ExperimentMain
 
 def main_foundation(num_threads=-1):
     experiment = ExperimentMain(Path('Examples/Foundation/Configs/main_config.yml'))

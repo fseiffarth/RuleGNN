@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from scripts.ExperimentMain import ExperimentMain
+from src.Experiment.ExperimentMain import ExperimentMain
 
 
 def get_existing_splits():

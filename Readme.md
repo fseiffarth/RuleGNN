@@ -140,7 +140,7 @@ To run an experiment you only need the following code:
    ```python
    from pathlib import Path
 
-from scripts.ExperimentMain import ExperimentMain
+from src.Experiment.ExperimentMain import ExperimentMain
 
 
 def main():

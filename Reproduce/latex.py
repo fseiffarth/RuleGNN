@@ -1,14 +1,12 @@
 import json
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import torch
 
-from scripts.ExperimentMain import ExperimentMain
+from src.Experiment.ExperimentMain import ExperimentMain
 from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer, RuleAggregationLayer
-from src.utils.RunConfiguration import get_run_configs
+from src.Experiment.RunConfiguration import get_run_configs
 
 
 def baseline_results(algorithm: str, datasets:list[str], path:str, sota:bool=False, first_column:str=''):

@@ -67,13 +67,13 @@ datasets:
 #    experiment_config_file: "Examples/Foundation/Configs/config_molecule_node_classification.yml",
 #    type: "TUDataset"
 #  }
-#  - {
-#        name: "MUTAG",
-#        task: "graph_classification",
-#        validation_folds: 10,
-#        experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
-#        type: "TUDataset"
-#    }
+  - {
+        name: "MUTAG",
+        task: "graph_classification",
+        validation_folds: 10,
+        experiment_config_file: "Examples/Foundation/Configs/config_molecule_edge_labels.yml",
+        type: "TUDataset"
+    }
 
 #  - {
 #      name: "ZINC",
@@ -101,13 +101,13 @@ datasets:
 #  }
 
 
-  - {
-      name: ["NCI1", "NCI109", "Mutagenicity"],
-      task: "graph_classification",
-      validation_folds: 10,
-      experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
-      type: ["TUDataset", "TUDataset", "TUDataset"],
-  }
+#  - {
+#      name: ["NCI1", "NCI109", "Mutagenicity"],
+#      task: "graph_classification",
+#      validation_folds: 10,
+#      experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
+#      type: ["TUDataset", "TUDataset", "TUDataset"],
+#  }
 
 #  - {
 #    name: "LinkPredictionTest",
@@ -186,7 +186,7 @@ weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 64
+  - 16
 learning_rate:
   - 0.01
 epochs:
@@ -194,10 +194,15 @@ epochs:
 
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 
-input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
+# how to sample the training data
+training_data_sampling: { type: 'default', bucket_num: 10 }
+
+#input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
+input_features: {name: constant, value: 1.0}
 
 best_model: True
+

@@ -1,18 +1,18 @@
 from torch.cuda import graph
 
-from src.Architectures.RuleGNN import RuleGNNLayers
+from src.Architectures.ShareGNN import ShareGNNLayers
 import torch
 import torch.nn as nn
 from src.utils import GraphData
 
 from src.Time.TimeClass import TimeClass
-from src.utils.GraphData import RuleGNNDataset
+from src.utils.GraphData import ShareGNNDataset
 from src.utils.Parameters.Parameters import Parameters
 
 
-class RuleGNN(nn.Module):
-    def __init__(self, graph_data: RuleGNNDataset, para: Parameters, seed, device):
-        super(RuleGNN, self).__init__()
+class ShareGNN(nn.Module):
+    def __init__(self, graph_data: ShareGNNDataset, para: Parameters, seed, device):
+        super(ShareGNN, self).__init__()
         self.graph_data = graph_data
         self.para = para
         self.print_weights = self.para.net_print_weights
@@ -39,32 +39,32 @@ class RuleGNN(nn.Module):
                 if i != 0 and self.para.run_config.config.get('use_feature_transformation', None) is not None:
                     input_features = self.para.run_config.config['use_feature_transformation'].get('out_dimension', 16)
                 self.net_layers.append(
-                    RuleGNNLayers.RuleConvolutionLayer(layer_id=i,
-                                                       seed=seed + i,
-                                                       layer=layer,
-                                                       parameters=para,
-                                                       graph_data=self.graph_data,
-                                                       device=device,
-                                                       input_feature_dimensions=input_features).type(self.module_precision).requires_grad_(self.convolution_grad))
+                    ShareGNNLayers.InvariantBasedMessagePassingLayer(layer_id=i,
+                                                                    seed=seed + i,
+                                                                    layer=layer,
+                                                                    parameters=para,
+                                                                    graph_data=self.graph_data,
+                                                                    device=device,
+                                                                    input_feature_dimensions=input_features).type(self.module_precision).requires_grad_(self.convolution_grad))
                 # Concatenate multiple heads using a linear layer
                 if layer.num_heads() > 1 and layer.layer_dict.get('concatenate_heads', True):
-                    self.net_layers.append(RuleGNNLayers.RuleGNNConcatenate(layer.num_heads(), bias=True, output_feature_dimensions=self.net_layers[-1].output_feature_dimensions).type(
+                    self.net_layers.append(ShareGNNLayers.ShareGNNConcatenate(layer.num_heads(), bias=True, output_feature_dimensions=self.net_layers[-1].output_feature_dimensions).type(
                         self.module_precision).requires_grad_(True))
 
             elif layer.layer_type == 'aggregation':
                 self.aggregation_out_dim = layer.layer_dict.get('out_dim', self.out_dim)
                 self.net_layers.append(
-                    RuleGNNLayers.RuleAggregationLayer(layer_id=i,
-                                                       seed=seed + i,
-                                                       layer=layer,
-                                                       parameters=para,
-                                                       out_dim=self.aggregation_out_dim,
-                                                       graph_data=self.graph_data,
-                                                       device=device).type(self.module_precision).requires_grad_(self.aggregation_grad))
+                    ShareGNNLayers.InvariantBasedAggregationLayer(layer_id=i,
+                                                                 seed=seed + i,
+                                                                 layer=layer,
+                                                                 parameters=para,
+                                                                 out_dim=self.aggregation_out_dim,
+                                                                 graph_data=self.graph_data,
+                                                                 device=device).type(self.module_precision).requires_grad_(self.aggregation_grad))
             if i == len(para.layers) - 1 and self.para.run_config.config.get('final_layer', True):
                 # Add a final linear layer to get the output dimension
                 if layer.num_heads() * self.aggregation_out_dim * self.graph_data.num_node_features != self.out_dim:
-                    self.net_layers.append(RuleGNNLayers.RuleGNNLinear(layer.num_heads() * self.aggregation_out_dim * self.graph_data.num_node_features, self.out_dim, bias=True).type(self.module_precision).requires_grad_(True))
+                    self.net_layers.append(ShareGNNLayers.ShareGNNLinear(layer.num_heads() * self.aggregation_out_dim * self.graph_data.num_node_features, self.out_dim, bias=True).type(self.module_precision).requires_grad_(True))
 
 
         if 'final_linear_layers' in para.run_config.config and len(para.run_config.config['final_linear_layers']) > 0:
@@ -72,14 +72,14 @@ class RuleGNN(nn.Module):
                 input_dimension = layer.get('input_dimension', max(self.aggregation_out_dim,1) * self.net_layers[-1].output_feature_dimensions)
                 output_dimension = layer.get('output_dimension', self.out_dim)
                 bias = layer.get('bias', True)
-                self.net_layers.append(RuleGNNLayers.RuleGNNLinear(input_dimension, output_dimension, bias=bias).type(self.module_precision).requires_grad_(True))
+                self.net_layers.append(ShareGNNLayers.ShareGNNLinear(input_dimension, output_dimension, bias=bias).type(self.module_precision).requires_grad_(True))
 
         if 'linear_layers' in para.run_config.config and para.run_config.config['linear_layers'] > 0:
             for i in range(para.run_config.config['linear_layers']):
                 if i < para.run_config.config['linear_layers'] - 1:
-                    self.net_layers.append(RuleGNNLayers.RuleGNNLinear(self.aggregation_out_dim * self.graph_data.num_node_features, self.aggregation_out_dim * self.graph_data.num_node_features, bias=True).type(self.module_precision).requires_grad_(True))
+                    self.net_layers.append(ShareGNNLayers.ShareGNNLinear(self.aggregation_out_dim * self.graph_data.num_node_features, self.aggregation_out_dim * self.graph_data.num_node_features, bias=True).type(self.module_precision).requires_grad_(True))
                 else:
-                    self.net_layers.append(RuleGNNLayers.RuleGNNLinear(self.aggregation_out_dim * self.graph_data.num_node_features, self.out_dim, bias=True).type(self.module_precision).requires_grad_(True))
+                    self.net_layers.append(ShareGNNLayers.ShareGNNLinear(self.aggregation_out_dim * self.graph_data.num_node_features, self.out_dim, bias=True).type(self.module_precision).requires_grad_(True))
 
 
         self.dropout = nn.Dropout(dropout)
