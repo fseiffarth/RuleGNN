@@ -6,7 +6,7 @@ import torch
 from src.utils.GraphData import ShareGNNDataset
 
 
-def curriculum_sampling_graph_size(graph_data: ShareGNNDataset,
+def curriculum_sampling(graph_data: ShareGNNDataset,
                                    training_data:np.ndarray,
                                    bucket_num:int,
                                    num_batches:int,
@@ -61,26 +61,6 @@ def curriculum_sampling_graph_size(graph_data: ShareGNNDataset,
     for i in range(num_batches):
         training_samples[i] = np.random.choice(current_bucket, batch_size, replace=True)
     return training_samples
-
-def curriculum_sampling_edge_num(graph_data: ShareGNNDataset,
-                                    training_data:np.ndarray,
-                                    bucket_num:int,
-                                    num_batches:int,
-                                    batch_size:int,
-                                    total_epochs:int,
-                                    epoch:int,
-                                    anti:bool=False,
-                                    exclusive=True)->np.ndarray:
-    return curriculum_sampling_graph_size(graph_data=graph_data,
-                                          training_data=training_data,
-                                           bucket_num=bucket_num,
-                                           num_batches=num_batches,
-                                           batch_size=batch_size,
-                                           total_epochs=total_epochs,
-                                           epoch=epoch,
-                                           anti=anti,
-                                           exclusive=exclusive,
-                                           use_edges=True)
 
 
 def no_curriculum_sampling(training_data:np.ndarray, num_batches:int, batch_size:int)->np.ndarray:
