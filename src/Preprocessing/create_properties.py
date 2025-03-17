@@ -149,6 +149,8 @@ def write_distance_circle_properties(graph_data:GraphData, label_path, db_name, 
 
 def write_distance_edge_properties(graph_data:ShareGNNDataset, out_path:Path = Path(), cutoff=None, save_times=None) -> None:
     l = 'edge_label_distances'
+    if cutoff is not None:
+        l += f"_cutoff_{cutoff}"
     out = out_path.joinpath(f"{graph_data.name}_properties_{l}.pt")
     out_yml = out_path.joinpath(f"{graph_data.name}_properties_{l}.yml")
     # check if the file already exists and if not create it

@@ -8,7 +8,7 @@ import torch
 from torch import optim, nn
 from torch.optim.lr_scheduler import StepLR
 from src.Architectures.ShareGNN import ShareGNN
-from src.Experiment.data_sampling import curriculum_sampling_graph_size
+from src.Experiment.data_sampling import curriculum_sampling_graph_size, curriculum_sampling_edge_num
 from src.utils import GraphData
 from src.utils.GraphData import ShareGNNDataset
 from src.utils.Parameters import Parameters
@@ -114,10 +114,34 @@ class ModelConfiguration:
                 np.random.shuffle(self.training_data)
                 self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
                 train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
+            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'random':
+                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+                np.random.seed(shuffling_seed)
+                np.random.shuffle(self.training_data)
+                self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
+                # get random indices from the training data
+                random_indices = np.random.choice(len(self.training_data), len(self.training_data), replace=True)
+                train_batches = np.array_split(self.training_data[random_indices], self.training_data.size // self.para.run_config.batch_size)
             elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum':
-                train_batches = curriculum_sampling_graph_size(graph_data=self.graph_data, training_data=self.training_data, num_batches=self.para.run_config.config['training_data_sampling'].get('num_batches', (len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
+                train_batches = curriculum_sampling_graph_size(graph_data=self.graph_data,
+                                                               training_data=self.training_data,
+                                                               num_batches=self.para.run_config.config['training_data_sampling'].get('num_batches', (len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
                                                                batch_size=self.para.run_config.batch_size,
-                                                               bucket_num=self.para.run_config.config['training_data_sampling']['bucket_num'], total_epochs=self.para.n_epochs, epoch=epoch, anti=self.para.run_config.config['training_data_sampling'].get('anti', False))
+                                                               bucket_num=self.para.run_config.config['training_data_sampling']['bucket_num'],
+                                                               total_epochs=self.para.n_epochs,
+                                                               epoch=epoch,
+                                                               anti=self.para.run_config.config['training_data_sampling'].get('anti', False),
+                                                               exclusive=self.para.run_config.config['training_data_sampling'].get('exclusive', True))
+            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum_edges':
+                train_batches = curriculum_sampling_edge_num(graph_data=self.graph_data,
+                                                             training_data=self.training_data,
+                                                             num_batches=self.para.run_config.config['training_data_sampling'].get('num_batches', (len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
+                                                             batch_size=self.para.run_config.batch_size,
+                                                                bucket_num=self.para.run_config.config['training_data_sampling']['bucket_num'],
+                                                                total_epochs=self.para.n_epochs,
+                                                                epoch=epoch,
+                                                                anti=self.para.run_config.config['training_data_sampling'].get('anti', False),
+                                                                exclusive=self.para.run_config.config['training_data_sampling'].get('exclusive', True))
 
 
 

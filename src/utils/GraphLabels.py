@@ -99,7 +99,7 @@ class Properties:
         self.valid_values[(layer_id, channel_id)] = []
         self.valid_property_map[(layer_id, channel_id)] = {}
         # if property name is edge_label_distance, and the valid values is a list of values interpret them as the distances and take all the values from self.all_values with first entry equal to the distance
-        if self.name == 'edge_label_distances':
+        if 'edge_label_distances' in self.name:
             # check if valid_values is a list of ints
             if type(valid_values[0]) == int:
                 tmp_valid_values = []
@@ -109,7 +109,7 @@ class Properties:
                 self.valid_values[(layer_id, channel_id)] = tmp_valid_values
             else:
                 self.valid_values[(layer_id, channel_id)] = valid_values
-        elif self.name == 'circle_distances':
+        elif 'circle_distances' in self.name:
             if type(valid_values[0]) == str:
                 for v in valid_values:
                     if v == 'no_circles':

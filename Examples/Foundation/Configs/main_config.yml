@@ -199,7 +199,10 @@ early_stopping:
     25
 
 # how to sample the training data
-training_data_sampling: { type: 'default', bucket_num: 10 }
+#training_data_sampling: { type: 'default'}
+training_data_sampling: { type: 'curriculum_edges', bucket_num: 5 , exclusive: False}
+#training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True }
+#training_data_sampling: { type: 'random' }
 
 #input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
 input_features: {name: constant, value: 1.0}
