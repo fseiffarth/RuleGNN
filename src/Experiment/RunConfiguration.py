@@ -342,7 +342,7 @@ def get_run_configs(experiment_configuration):
     # get networks from the config file and preprocess them
     # bring the config file network architecture into the correct format
     if not experiment_configuration.get('model', 'ShareGNN') == 'ShareGNN':
-        network_architectures = preprocess_network_architectures(experiment_configuration)
+        network_architectures = preprocess_network_architectures_ordinary(experiment_configuration)
     else:
         network_architectures = preprocess_network_architectures(experiment_configuration['networks'])
         if not check_network_architectures(network_architectures, print_errors=True):
