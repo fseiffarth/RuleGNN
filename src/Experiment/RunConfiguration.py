@@ -336,14 +336,17 @@ def check_network_architectures(network_architectures, print_errors=False):
 def get_run_configs(experiment_configuration):
     # define the network type from the config file
     run_configs = []
-    task = "classification"
+    task = "graph_classification" #default task is graph classification
     if 'task' in experiment_configuration:
         task = experiment_configuration['task']
     # get networks from the config file and preprocess them
     # bring the config file network architecture into the correct format
-    network_architectures = preprocess_network_architectures(experiment_configuration['networks'])
-    if not check_network_architectures(network_architectures, print_errors=True):
-        raise ValueError('Network architecture not correctly defined')
+    if not experiment_configuration.get('model', 'ShareGNN') == 'ShareGNN':
+        network_architectures = preprocess_network_architectures(experiment_configuration)
+    else:
+        network_architectures = preprocess_network_architectures(experiment_configuration['networks'])
+        if not check_network_architectures(network_architectures, print_errors=True):
+            raise ValueError('Network architecture not correctly defined')
     # iterate over all network architectures
     for network_architecture in network_architectures:
         layers = []

@@ -219,146 +219,150 @@ class ExperimentMain:
     def config_consistency_and_preprocessing(self):
         for key in self.experiment_configurations:
             for configuration in self.experiment_configurations[key]:
-                # check the name
-                if 'name' not in configuration:
-                    raise ValueError(f'Please specify the name of the dataset in the main configuration file.')
-
-                ### check the paths
-                if 'paths' not in configuration:
-                    raise ValueError(f'Please specify the paths in the main configuration file.')
-                if 'data' not in configuration['paths']:
-                    raise ValueError(f'Please specify the data path in the main configuration file.')
-                if 'labels' not in configuration['paths']:
-                    raise ValueError(f'Please specify the labels path in the main configuration file.')
-                if 'properties' not in configuration['paths']:
-                    raise ValueError(f'Please specify the properties path in the main configuration file.')
-                if 'splits' not in configuration['paths']:
-                    raise ValueError(f'Please specify the splits path in the main configuration file.')
-                if 'results' not in configuration['paths']:
-                    raise ValueError(f'Please specify the results path in the main configuration file.')
-
-
-                ### check the task
-                if 'task' not in configuration:
-                    raise ValueError(f'Please specify the task in the main configuration file.'
-                                     'Choose between "graph_classification", "graph_regression", "node_classification" and "link_prediction".')
-
-                if 'type' not in configuration:
-                    raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
-                                     'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
+                if 'model' in configuration and configuration['model'] == 'GCN':
+                    #TODO: implement check for GCN
+                    pass
                 else:
-                    if isinstance(configuration['type'], list):
-                        if len(configuration['type']) != len(configuration.get('single_datasets',0)):
-                            raise ValueError(f'The number of types and datasets do not match.')
-                        if configuration.get('data_generation_args', None) is not None:
-                            if len(configuration['type']) != len(configuration['data_generation_args']):
-                                raise ValueError(f'The number of types and data generation arguments do not match.')
-                        for t in configuration['type']:
-                            if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
-                                raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+                    # check the name
+                    if 'name' not in configuration:
+                        raise ValueError(f'Please specify the name of the dataset in the main configuration file.')
+
+                    ### check the paths
+                    if 'paths' not in configuration:
+                        raise ValueError(f'Please specify the paths in the main configuration file.')
+                    if 'data' not in configuration['paths']:
+                        raise ValueError(f'Please specify the data path in the main configuration file.')
+                    if 'labels' not in configuration['paths']:
+                        raise ValueError(f'Please specify the labels path in the main configuration file.')
+                    if 'properties' not in configuration['paths']:
+                        raise ValueError(f'Please specify the properties path in the main configuration file.')
+                    if 'splits' not in configuration['paths']:
+                        raise ValueError(f'Please specify the splits path in the main configuration file.')
+                    if 'results' not in configuration['paths']:
+                        raise ValueError(f'Please specify the results path in the main configuration file.')
+
+
+                    ### check the task
+                    if 'task' not in configuration:
+                        raise ValueError(f'Please specify the task in the main configuration file.'
+                                         'Choose between "graph_classification", "graph_regression", "node_classification" and "link_prediction".')
+
+                    if 'type' not in configuration:
+                        raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
+                                         'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
                     else:
-                        if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
-                            raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+                        if isinstance(configuration['type'], list):
+                            if len(configuration['type']) != len(configuration.get('single_datasets',0)):
+                                raise ValueError(f'The number of types and datasets do not match.')
+                            if configuration.get('data_generation_args', None) is not None:
+                                if len(configuration['type']) != len(configuration['data_generation_args']):
+                                    raise ValueError(f'The number of types and data generation arguments do not match.')
+                            for t in configuration['type']:
+                                if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
+                                    raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+                        else:
+                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
+                                raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
-                ###
-                if 'validation_folds' not in configuration:
-                    raise ValueError(f'Please specify the number of validation folds in the main configuration file.')
+                    ###
+                    if 'validation_folds' not in configuration:
+                        raise ValueError(f'Please specify the number of validation folds in the main configuration file.')
 
-                ### check the input features
-                if 'input_features' not in configuration:
-                    raise ValueError(f'Please specify the input features in the main configuration file.')
-                ### check weight initialization
-                if 'weight_initialization' not in configuration:
-                    raise ValueError(f'Please specify the weight initialization in the main configuration file.')
+                    ### check the input features
+                    if 'input_features' not in configuration:
+                        raise ValueError(f'Please specify the input features in the main configuration file.')
+                    ### check weight initialization
+                    if 'weight_initialization' not in configuration:
+                        raise ValueError(f'Please specify the weight initialization in the main configuration file.')
 
-                if 'networks' not in configuration:
-                    raise ValueError(f'Please specify the networks in the experiment configuration file.')
+                    if 'networks' not in configuration:
+                        raise ValueError(f'Please specify the networks in the experiment configuration file.')
 
-                if 'batch_size' not in configuration:
-                    raise ValueError(f'Please specify the batch size in the experiment configuration file using the key "batch_size".')
-                if 'epochs' not in configuration:
-                    raise ValueError(f'Please specify the number of epochs in the experiment configuration file using the key "epochs".')
-                if 'learning_rate' not in configuration:
-                    raise ValueError(f'Please specify the learning rate in the experiment configuration file using the key "learning_rate".')
-                if 'optimizer' not in configuration:
-                    raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
-                if 'activation' not in configuration:
-                    raise ValueError(f'Please specify the activation function in the experiment configuration file using the key "activation".')
-                if 'output_activation' not in configuration:
-                    raise ValueError(f'Please specify the output activation function in the experiment configuration file using the key "output_activation".')
-                if 'loss' not in configuration:
-                    raise ValueError(f'Please specify the loss function in the experiment configuration file using the key "loss".')
+                    if 'batch_size' not in configuration:
+                        raise ValueError(f'Please specify the batch size in the experiment configuration file using the key "batch_size".')
+                    if 'epochs' not in configuration:
+                        raise ValueError(f'Please specify the number of epochs in the experiment configuration file using the key "epochs".')
+                    if 'learning_rate' not in configuration:
+                        raise ValueError(f'Please specify the learning rate in the experiment configuration file using the key "learning_rate".')
+                    if 'optimizer' not in configuration:
+                        raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
+                    if 'activation' not in configuration:
+                        raise ValueError(f'Please specify the activation function in the experiment configuration file using the key "activation".')
+                    if 'output_activation' not in configuration:
+                        raise ValueError(f'Please specify the output activation function in the experiment configuration file using the key "output_activation".')
+                    if 'loss' not in configuration:
+                        raise ValueError(f'Please specify the loss function in the experiment configuration file using the key "loss".')
 
 
 
-                # optional keys (print a message that the value was set to the default value)
-                if 'with_splits' not in configuration:
-                    print('To use own splits, please set the key "with_splits" to True in the main configuration file. The default value is True.'
-                          'In addition specify a path to the splits using the key "splits_path".')
-                    configuration['with_splits'] = True
-                else:
-                    if not configuration['with_splits']:
-                        if 'split_function' in configuration:
-                            if not 'split_function_args' in configuration:
-                                configuration['split_function_args'] = {}
-                            # check if the split function exists
-                            if not hasattr(split_functions, configuration['split_function']):
-                                raise ValueError(f"Split function {configuration['split_function']} not found")
-                            else:
-                                split_function = getattr(split_functions, configuration['split_function'])
-                                if not callable(split_function):
-                                    raise ValueError(f"Split function {configuration['split_function']} is not callable")
+                    # optional keys (print a message that the value was set to the default value)
+                    if 'with_splits' not in configuration:
+                        print('To use own splits, please set the key "with_splits" to True in the main configuration file. The default value is True.'
+                              'In addition specify a path to the splits using the key "splits_path".')
+                        configuration['with_splits'] = True
+                    else:
+                        if not configuration['with_splits']:
+                            if 'split_function' in configuration:
+                                if not 'split_function_args' in configuration:
+                                    configuration['split_function_args'] = {}
+                                # check if the split function exists
+                                if not hasattr(split_functions, configuration['split_function']):
+                                    raise ValueError(f"Split function {configuration['split_function']} not found")
                                 else:
-                                    configuration['split_function'] = split_function
-                        elif 'splits_path' in configuration:
-                            # check if the splits path exists
-                            if not os.path.exists(configuration['splits_path']):
-                                raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
+                                    split_function = getattr(split_functions, configuration['split_function'])
+                                    if not callable(split_function):
+                                        raise ValueError(f"Split function {configuration['split_function']} is not callable")
+                                    else:
+                                        configuration['split_function'] = split_function
+                            elif 'splits_path' in configuration:
+                                # check if the splits path exists
+                                if not os.path.exists(configuration['splits_path']):
+                                    raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
+                                else:
+                                    configuration['splits'] = Load_Splits(configuration['splits_path'], configuration['name'])
                             else:
-                                configuration['splits'] = Load_Splits(configuration['splits_path'], configuration['name'])
-                        else:
-                            raise ValueError(
-                                f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
+                                raise ValueError(
+                                    f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
 
-                if 'type' in configuration:
-                    data_generation_args = configuration.get('data_generation_args', None)
-                    if configuration['type'] == 'generate_from_function':
-                        if not hasattr(synthetic_graphs, configuration['generate_function']):
-                            raise ValueError(f"Generate function {configuration['generate_function']} not found")
-                        else:
-                            data_generation = getattr(synthetic_graphs, configuration['generate_function'])
-                            if not callable(data_generation):
-                                raise ValueError(f"Generate function {configuration['generate_function']} is not callable")
+                    if 'type' in configuration:
+                        data_generation_args = configuration.get('data_generation_args', None)
+                        if configuration['type'] == 'generate_from_function':
+                            if not hasattr(synthetic_graphs, configuration['generate_function']):
+                                raise ValueError(f"Generate function {configuration['generate_function']} not found")
                             else:
-                                configuration['data_generation'] = data_generation
-                    else:
-                        configuration['data_generation'] = configuration['type']
-                    configuration['data_generation_args'] = data_generation_args
+                                data_generation = getattr(synthetic_graphs, configuration['generate_function'])
+                                if not callable(data_generation):
+                                    raise ValueError(f"Generate function {configuration['generate_function']} is not callable")
+                                else:
+                                    configuration['data_generation'] = data_generation
+                        else:
+                            configuration['data_generation'] = configuration['type']
+                        configuration['data_generation_args'] = data_generation_args
 
 
 
 
 
-                if 'device' not in configuration:
-                    print('To use the GPU, please specify the key "device" in the main configuration file. The default value is "cpu".')
-                    configuration['device'] = 'cpu'
+                    if 'device' not in configuration:
+                        print('To use the GPU, please specify the key "device" in the main configuration file. The default value is "cpu".')
+                        configuration['device'] = 'cpu'
 
-                if 'precision' not in configuration:
-                    print('To use float or double precision, please specify the key "precision" in the main configuration file. The default value is "double".')
-                    configuration['precision'] = 'double'
+                    if 'precision' not in configuration:
+                        print('To use float or double precision, please specify the key "precision" in the main configuration file. The default value is "double".')
+                        configuration['precision'] = 'double'
 
-                if 'mode' not in configuration:
-                    print('To use the mode, please specify the key "mode" in the main configuration file. The default value is "experiments".'
-                          'For debugging purposes, set the mode to "debug".')
-                    configuration['mode'] = 'experiments'
+                    if 'mode' not in configuration:
+                        print('To use the mode, please specify the key "mode" in the main configuration file. The default value is "experiments".'
+                              'For debugging purposes, set the mode to "debug".')
+                        configuration['mode'] = 'experiments'
 
-                if 'early_stopping' not in configuration:
-                    print('To use early stopping, please specify the key "early_stopping" in the main configuration file. The default value is False.')
-                    configuration['early_stopping'] = {'enabled': False, 'patience': 25}
+                    if 'early_stopping' not in configuration:
+                        print('To use early stopping, please specify the key "early_stopping" in the main configuration file. The default value is False.')
+                        configuration['early_stopping'] = {'enabled': False, 'patience': 25}
 
-                if 'rule_occurrence_threshold' not in configuration:
-                    print('To use the rule occurrence threshold, please specify the key "rule_occurrence_threshold" in the main configuration file. The default value is 1.')
-                    configuration['rule_occurrence_threshold'] = 1
+                    if 'rule_occurrence_threshold' not in configuration:
+                        print('To use the rule occurrence threshold, please specify the key "rule_occurrence_threshold" in the main configuration file. The default value is 1.')
+                        configuration['rule_occurrence_threshold'] = 1
 
 
     def run_configuration(self, graph_data: ShareGNNDataset, run_config, validation_id:int=0, run_id:int=0, config_id:int=None):

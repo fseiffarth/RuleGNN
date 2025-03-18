@@ -1,53 +1,24 @@
 datasets:
-  # real-world datasets
-  - {name: "NCI1",
-     validation_folds: 10,
-     experiment_config_file: "Experiments/Curriculum/configs/config_molecule.yml",
-     type: "TUDataset",
-     task: "graph_classification",
-  }
-  - {name: "NCI109",
-     validation_folds: 10,
-     experiment_config_file: "Experiments/Curriculum/configs/config_molecule.yml",
-     type: "TUDataset",
-     task: "graph_classification",
-  }
-  - {name: "Mutagenicity",
-     validation_folds: 10,
-     experiment_config_file: "Experiments/Curriculum/configs/config_molecule.yml",
-     type: "TUDataset",
-      task: "graph_classification",}
-  - { name: "DHFR",
-      validation_folds: 10,
-      experiment_config_file: "Experiments/Curriculum/configs/config_molecule.yml",
-      type: "TUDataset",
+  - {
+        name: "MUTAG",
         task: "graph_classification",
-    }
-  - { name: "IMDB-BINARY",
-      validation_folds: 10,
-      experiment_config_file: "Experiments/Curriculum/configs/config_social.yml",
-      type: "TUDataset",
-        task: "graph_classification",
-    }
-  - { name: "IMDB-MULTI",
-      validation_folds: 10,
-      experiment_config_file: "Experiments/Curriculum/configs/config_social.yml",
-      type: "TUDataset" ,
-        task: "graph_classification",
+        validation_folds: 10,
+        experiment_config_file: "Examples/GCN/Configs/config_GCN.yml",
+        type: "TUDataset"
     }
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
   data:
-    "Reproduce_RuleGNN/Data/TUDatasets/"
+    "Examples/Data/TestGraphs/"
   properties:
-    "Reproduce_RuleGNN/Data/Properties/" # Precomputed properties will be loaded from this folder
+    "Examples/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "Reproduce_RuleGNN/Data/Labels/" # Path to the folder containing the labels
+    "Examples/Data/Labels/" # Path to the folder containing the labels
   splits:
-    "Reproduce_RuleGNN/Data/Splits/" # Path to the folder containing the data splits
+    "Examples/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "Experiments/Curriculum/Results/Curr/" # Results will be saved in this folder
+    "Examples/GCN/Results/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
@@ -103,7 +74,7 @@ weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 64
+  - 16
 learning_rate:
   - 0.01
 epochs:
@@ -111,10 +82,20 @@ epochs:
 
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 
+# how to sample the training data
+#training_data_sampling: { type: 'default'}
+training_data_sampling: { type: 'curriculum_edges', bucket_num: 5 , exclusive: False}
+#training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True }
+#training_data_sampling: { type: 'random' }
+
+#input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
 input_features: {name: constant, value: 1.0}
 
-training_data_sampling: { type: 'curriculum', bucket_num: 10 }
+best_model: True
+
+use_model: GCN
+

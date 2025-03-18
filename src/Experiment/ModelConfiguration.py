@@ -7,6 +7,8 @@ import pandas as pd
 import torch
 from torch import optim, nn
 from torch.optim.lr_scheduler import StepLR
+
+from src.Architectures.Ordinary.GCNGraph import GCNGraph
 from src.Architectures.ShareGNN import ShareGNN
 from src.Experiment.data_sampling import curriculum_sampling
 from src.utils import GraphData
@@ -70,7 +72,7 @@ class ModelConfiguration:
         """
 
         # Initialize the graph neural network
-        self.initialize_model(pretrained_network=pretrained_network)
+        self.initialize_model(pretrained_network=pretrained_network, use_model=self.para.run_config.config.get('use_model', 'ShareGNN'))
         # start the timer
         timer = TimeClass()
         # Set up the loss function
@@ -173,13 +175,15 @@ class ModelConfiguration:
                 if self.optimizer.param_groups[0]['lr'] > 0.0001:
                     self.scheduler.step()
 
-    def initialize_model(self, pretrained_network):
+    def initialize_model(self, pretrained_network,  use_model='ShareGNN'):
         """
         Initialize the network, i.e., if pretrained_network is given load the network from the file, else create a new network
         """
         print(f'Initializing network with seed {self.seed}')
         if pretrained_network is not None:
             self.net = torch.load(pretrained_network)
+        elif use_model == 'GCN':
+            self.net = GCNGraph(graph_data=self.graph_data, para=self.para, seed=self.seed, device=self.device)
         else:
             self.net = ShareGNN.ShareGNN(graph_data=self.graph_data,
                                          para=self.para,

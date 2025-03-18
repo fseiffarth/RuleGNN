@@ -12,6 +12,7 @@ from src.utils.GraphLabels import combine_node_labels
 from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_labels import load_labels
 from src.utils.utils import save_graphs
+import networkx as nx
 
 
 
@@ -191,7 +192,7 @@ class DatasetPreprocessing:
 
     def generate_splits(self):
         # generate the splits
-        if self.experiment_configuration['with_splits']:
+        if self.experiment_configuration.get('with_splits', True):
             # generate splits
             create_splits(self.db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.experiment_configuration['validation_folds'], graph_data=self.graph_data)
         else:
