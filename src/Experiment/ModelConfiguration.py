@@ -40,6 +40,7 @@ class ModelConfiguration:
     para: Parameters -> the parameters for the run
     """
     def __init__(self, run_id: int, k_val: int, graph_data: ShareGNNDataset, model_data: Tuple[np.ndarray, np.ndarray, np.ndarray], seed: int, para: Parameters.Parameters):
+        self.num_epoch_samples = None
         self.best_epoch = None
         self.device = None
         self.dtype = None
@@ -145,9 +146,16 @@ class ModelConfiguration:
                                                                 anti=self.para.run_config.config['training_data_sampling'].get('anti', False),
                                                                 exclusive=self.para.run_config.config['training_data_sampling'].get('exclusive', True),
                                                                 use_edges=True)
+            else:
+                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+                np.random.seed(shuffling_seed)
+                np.random.shuffle(self.training_data)
+                self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
+                train_batches = np.array_split(self.training_data,
+                                               self.training_data.size // self.para.run_config.batch_size)
 
 
-
+            self.num_epoch_samples = sum([batch.size for batch in train_batches])
             random_variation_bool = self.para.run_config.config.get('input_features', None).get('random_variation', None)
             self.net.train(True)
             if self.para.run_config.config['task'] in ['graph_regression', 'graph_classification']:
@@ -697,7 +705,8 @@ class ModelConfiguration:
                                                                                  labels=self.graph_data.y[batch],
                                                                                  batch_idx=batch_counter,
                                                                                  batch_length=len(batch),
-                                                                                 num_batches=len(train_batches))
+                                                                                 num_batches=len(train_batches),
+                                                                                 batches=train_batches)
 
     def evaluate_graph_task(self, data):
         labels = self.graph_data.y[data]

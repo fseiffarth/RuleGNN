@@ -751,8 +751,9 @@ class ShareGNNDataset(InMemoryDataset):
 
 
             if task == 'graph_regression':
-                if output_features.get('transformation', None) is not None:
-                    data['y'] = transform_data(data['y'], output_features)
+                if isinstance(output_features, dict):
+                    if output_features.get('transformation', None) is not None:
+                        data['y'] = transform_data(data['y'], output_features)
             elif task == 'node_classification':
                 pass
                 #data['y'] = torch.nn.functional.one_hot(data['y'], num_classes=self.num_classes).float()
