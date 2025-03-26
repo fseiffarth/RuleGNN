@@ -70,13 +70,16 @@ class ShareGNNDataset(InMemoryDataset):
         num_edge_attributes = self.num_edge_attributes
 
         # split node labels and attributes as well as edge labels and attributes
+        num_zero_columns = 0
         if data.get('x', None) is not None:
             if delete_zero_columns and data['x'].layout != torch.sparse_csr:
+                columns = data['x'].shape[1]
                 # remove columns with only zeros
                 if self.precision == torch.float:
                     data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].float()
                 else:
                     data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].double()
+                num_zero_columns = columns - data['x'].shape[1]
                 if self.task == 'graph_classification' or self.task == 'graph_regression':
                     self.sizes['num_node_labels'] = data['x'].shape[1]
         else:
@@ -95,13 +98,16 @@ class ShareGNNDataset(InMemoryDataset):
             self.node_labels['primary'] = data['x'].clone().detach().long()
         else:
             if self.task == 'graph_classification' or self.task == 'graph_regression':
-                self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
+                if data['x'].shape[1] - (num_node_attributes - num_zero_columns) == 1:
+                    self.node_labels['primary'] = data['x'][:, -1].clone().detach().long()
+                else:
+                    self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
             if self.task == 'node_classification':
                 self.node_labels['primary'] = data['y']
         self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
         if not use_node_attr:
             num_node_attributes = self.num_node_attributes
-            data['x'] = data['x'][:, num_node_attributes:]
+            data['x'] = data['x'][:, num_node_attributes-num_zero_columns:]
 
 
 
@@ -112,7 +118,10 @@ class ShareGNNDataset(InMemoryDataset):
             if data['edge_attr'].shape[1] == 1:
                 self.edge_labels['primary'] = data['edge_attr'].clone().detach().long()
             else:
-                self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
+                if data['edge_attr'].shape[1] - num_edge_attributes == 1:
+                    self.edge_labels['primary'] = data['edge_attr'][:, -1].clone().detach().long()
+                else:
+                    self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
             if not use_edge_attr:
                 num_edge_attrs = self.num_edge_attributes
                 data['edge_attr'] = data['edge_attr'][:, num_edge_attrs:]
@@ -125,7 +134,7 @@ class ShareGNNDataset(InMemoryDataset):
                 data['num_nodes'][i] = data['x'][self.slices['x'][i]:self.slices['x'][i+1]].shape[0]
 
 
-        self.preprocess_rule_gnn_data(data, input_features, output_features, task=task)
+        self.preprocess_share_gnn_data(data, input_features, output_features, task=task)
 
 
         if not isinstance(data, dict):  # Backward compatibility.
@@ -303,6 +312,27 @@ class ShareGNNDataset(InMemoryDataset):
                          'num_node_attributes': 0,
                          'num_node_labels': 0
                 }
+            elif self.from_existing_data == 'MoleculeNet':
+                dataset = torch_geometric.datasets.MoleculeNet(root='tmp/', name=self.name)
+                self.data = dataset.data
+                # put column 0 of x and edge_attr to the end
+                self.data.x = torch.cat((self.data.x[:, 1:], self.data.x[:, 0].unsqueeze(1)), dim=1)
+                unique_node_labels = torch.unique(self.data.x[:, -1])
+                # map unique node labels to integers 0, 1, 2, ...
+                self.data.x[:, -1] = torch.tensor([torch.where(unique_node_labels == x)[0] for x in self.data.x[:, -1]], dtype=torch.long)
+                self.data.edge_attr = torch.cat((self.data.edge_attr[:, 1:], self.data.edge_attr[:, 0].unsqueeze(1)), dim=1)
+                unique_edge_labels = torch.unique(self.data.edge_attr[:, -1])
+                # map unique edge labels to integers 0, 1, 2, ...
+                self.data.edge_attr[:, -1] = torch.tensor([torch.where(unique_edge_labels == x)[0] for x in self.data.edge_attr[:, -1]], dtype=torch.long)
+                self.slices = dataset.slices
+                sizes = {
+                    'num_node_labels': torch.unique(dataset.data.x[:,0]),
+                    'num_node_attributes': 8,
+                    'num_edge_labels': len(torch.unique(dataset.data.edge_attr[:, 0])),
+                    'num_edge_attributes': 2,
+                }
+                pass
+
             elif self.from_existing_data in ['planetoid', 'cora', 'citeseer', 'pubmed', 'Planetoid']:
                 dataset = torch_geometric.datasets.Planetoid(root='tmp/', name=self.name)
                 self.data = dataset[0]
@@ -618,7 +648,7 @@ class ShareGNNDataset(InMemoryDataset):
                     edge[2]['label'] = np.argmax(edge_label_one_hot)
         pass
 
-    def preprocess_rule_gnn_data(self, data, input_features=None, output_features=None, task=None) -> None:
+    def preprocess_share_gnn_data(self, data, input_features=None, output_features=None, task=None) -> None:
         if input_features is not None and task is not None:
             use_labels = input_features.get('name', 'node_labels') == 'node_labels'
             use_constant = input_features.get('name', 'node_labels') == 'constant'
@@ -633,7 +663,10 @@ class ShareGNNDataset(InMemoryDataset):
             if use_labels:
                 data['x'] = data['x'][:, self.num_node_attributes:]
                 if transformation in ['one_hot', 'one_hot_encoding']:
-                    pass
+                    if data['x'].shape[1] == 1:
+                        # convert to long tensor
+                        data['x'] = data['x'].long()
+                        data['x'] = torch.nn.functional.one_hot(data['x'].squeeze(1)).type(self.precision)
                 else:
                     data['x'] = torch.argmax(data['x'], dim=1).unsqueeze(1)
             elif use_constant:

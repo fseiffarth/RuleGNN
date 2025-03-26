@@ -5,7 +5,7 @@ datasets:
       validation_folds: 1,
       with_splits: False,
       split_function: zinc_splits,
-      experiment_config_file: "ReproduceExtended/configs/config_regression.yml",
+      experiment_config_file: "ReproduceExtended/configs/config_regression_test.yml",
       type: 'ZINC',
   }
 
@@ -43,7 +43,13 @@ convolution_grad: True
 aggregation_grad: True
 
 # activation: activation function for the convolutional layers
-activation: 'LeakyReLU'
+convolution_activation: 'LeakyReLU'
+
+# aggregation_activation: activation function for the aggregation layer
+aggregation_activation: 'LeakyReLU'
+
+# linear_activation: activation function for the linear layer
+linear_activation: 'None'
 
 # output_activation: activation function for the output layer
 output_activation: 'None'
@@ -71,25 +77,26 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
+weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
                          convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'constant', value: 0.001 },
+                         aggregation: {  type: 'lower_upper', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 64
+  - 128
 learning_rate:
-  - 0.01
+  - 0.001
 epochs:
-  - 200
+  - 1000
 
 early_stopping:
   enabled:
-    True
+    False
   patience:
     25
 
-input_features: {name: constant, value: 1.0}
+
+scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.00001 }
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}
@@ -98,7 +105,8 @@ training_data_sampling: { type: 'default'}
 #training_data_sampling: { type: 'random' }
 
 #input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
-input_features: {name: constant, value: 1.0}
-
-#best_model: True
+#input_features: {name: constant, value: 1.0}
+input_features: {name: node_labels, transformation: 'one_hot'}
+use_feature_transformation: {out_dimension: 21, bias: True}
+best_model: True
 

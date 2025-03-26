@@ -52,7 +52,9 @@ class ExperimentMain:
         parameters:
         - num_threads: number of threads to use for the grid search. Default is -1. If -1, use all available threads.
         """
-        os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP
+        # set omp num threads to 1 to avoid conflicts with OpenMP if num_threads is unequal to 1
+        if num_threads != 1:
+            os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         # iterate over the databases
         for dataset in self.experiment_configurations.keys():
             for i, configuration in enumerate(self.experiment_configurations[dataset]):
@@ -261,7 +263,7 @@ class ExperimentMain:
                                 if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
                                     raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
                         else:
-                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
+                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet']:
                                 raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                     ###
@@ -286,8 +288,12 @@ class ExperimentMain:
                         raise ValueError(f'Please specify the learning rate in the experiment configuration file using the key "learning_rate".')
                     if 'optimizer' not in configuration:
                         raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
-                    if 'activation' not in configuration:
+                    if 'convolution_activation' not in configuration:
                         raise ValueError(f'Please specify the activation function in the experiment configuration file using the key "activation".')
+                    if 'aggregation_activation' not in configuration:
+                        raise ValueError(f'Please specify the aggregation activation function in the experiment configuration file using the key "aggregation_activation".')
+                    if 'linear_activation' not in configuration:
+                        raise ValueError(f'Please specify the linear activation function in the experiment configuration file using the key "linear_activation".')
                     if 'output_activation' not in configuration:
                         raise ValueError(f'Please specify the output activation function in the experiment configuration file using the key "output_activation".')
                     if 'loss' not in configuration:
@@ -532,6 +538,8 @@ def preprocess_graph_data(experiment_configuration):
                                 output_features=experiment_configuration.get('output_features', None),
                                 graph_format=experiment_configuration.get('format', 'RuleGNNDataset'),
                                 precision=experiment_configuration.get('precision', 'double'))
+    # move the dataset to the device
+    graph_data.to(experiment_configuration.get('device', 'cpu'))
     return graph_data
 
 

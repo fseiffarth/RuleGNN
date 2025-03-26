@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch import optim, nn
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 from src.Architectures.Ordinary.GCNGraph import GCNGraph
 from src.Architectures.ShareGNN import ShareGNN
@@ -178,9 +178,11 @@ class ModelConfiguration:
             self.postprocess_writer(epoch, epoch_time, epoch_values, validation_values, test_values)
 
 
-            if self.para.run_config.config.get('scheduler', False):
-                # check if learning rate is > 0.0001
-                if self.optimizer.param_groups[0]['lr'] > 0.0001:
+            # apply scheduler
+            if self.para.run_config.config.get('scheduler', None) is not None:
+                if self.para.run_config.config['scheduler']['type'] == 'ReduceLROnPlateau':
+                    self.scheduler.step(validation_values.loss)
+                else:
                     self.scheduler.step()
 
     def initialize_model(self, pretrained_network,  use_model='ShareGNN'):
@@ -238,8 +240,13 @@ class ModelConfiguration:
         """
         Variable learning rate
         """
-        if self.para.run_config.config.get('scheduler', False):
-            self.scheduler = StepLR(self.optimizer, step_size=10, gamma=0.5)
+        if self.para.run_config.config.get('scheduler', None) is not None:
+            scheduler = self.para.run_config.config.get('scheduler')
+            scheduler_type = scheduler.get('type', None)
+            if scheduler_type == 'StepLR':
+                self.scheduler = StepLR(self.optimizer, step_size=scheduler.get('step_size', None), gamma=scheduler.get('gamma', None))
+            elif scheduler_type == 'ReduceLROnPlateau':
+                self.scheduler = ReduceLROnPlateau(self.optimizer, mode='min', patience=scheduler.get('patience', 10), min_lr=scheduler.get('min_lr', 0), factor=scheduler.get('factor', 0.1))
 
 
     def early_stopping(self, epoch):
@@ -415,7 +422,17 @@ class ModelConfiguration:
             if os.stat(final_path).st_size == 0:
                 file_obj.write(header)
 
-    def evaluate_results(self, epoch: int, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues, evaluation_type, outputs=None, labels=None, batch_idx=0, batch_length=0, num_batches=0):
+    def evaluate_results(self, epoch: int,
+                         train_values: EvaluationValues,
+                         validation_values: EvaluationValues,
+                         test_values: EvaluationValues,
+                         evaluation_type,
+                         outputs=None,
+                         labels=None,
+                         batch_idx=0,
+                         batch_length=0,
+                         num_batches=0,
+                         batches=None):
         if evaluation_type == 'training':
             batch_acc = 0
 

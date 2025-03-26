@@ -6,7 +6,7 @@ import click
 from src.Experiment.ExperimentMain import ExperimentMain
 
 def main_ZINC(num_threads=-1):
-    experiment = ExperimentMain(Path('ReproduceExtended/configs/main_config_ZINC.yml'))
+    experiment = ExperimentMain(Path('ReproduceExtended/configs/main_config_OGB.yml'))
     experiment.ExperimentPreprocessing(num_threads=num_threads)
     ## run real world experiment
     experiment.GridSearch(num_threads=num_threads)

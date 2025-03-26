@@ -887,7 +887,7 @@ class InvariantBasedAggregationLayer(nn.Module):
         if parameters.run_config.config.get('precision', 'float') == 'double':
             self.precision = torch.double
         self.output_dimension = out_dim
-        self.output_feature_dimension = out_dim
+        self.output_feature_dimensions = out_dim
         self.out_heads = len(layer.layer_heads)
         # device
         self.device = device
@@ -928,13 +928,13 @@ class InvariantBasedAggregationLayer(nn.Module):
 
         # merge the bias distribution of all graphs (creating additionally slicing information)
         self.weight_distribution_slices = torch.tensor([0] + [len(w) for w in self.weight_distribution], dtype=torch.int64).cumsum(dim=0)
-        self.weight_distribution = torch.cat([self.weight_distribution[i] for i in range(len(graph_data))], dim=0)
+        self.weight_distribution = torch.cat([self.weight_distribution[i] for i in range(len(graph_data))], dim=0).to(self.device)
 
         self.Param_W = self.init_weights(self.weight_num, init_type='aggregation')
 
 
         if self.bias:
-            self.Param_b = self.init_weights(shape=(self.out_heads, out_dim, self.input_feature_dimension), init_type='aggregation_bias')
+            self.Param_b = self.init_weights(shape=(self.out_heads, out_dim, self.input_feature_dimension), init_type='aggregation_bias').to(self.device)
         self.forward_step_time = 0
 
 
@@ -973,7 +973,10 @@ class InvariantBasedAggregationLayer(nn.Module):
                 elif weight_initialization.get('type', None) == 'lower_upper':
                     # calculate the range for the weights
                     lower, upper = -(1.0 / np.sqrt(num_weights)), (1.0 / np.sqrt(num_weights))
-                    weights = nn.Parameter(lower + torch.randn(self.weight_num, dtype=self.precision) * (upper - lower))
+                    weights = nn.Parameter(lower + torch.randn(shape, dtype=self.precision) * (upper - lower))
+                elif weight_initialization.get('type', None) == 'he':
+                    std = np.sqrt(2.0 / num_weights)
+                    weights = nn.Parameter(torch.randn(num_weights, dtype=self.precision) * std)
             else:
                 torch.nn.init.constant_(weights, 0.01)
         else:
@@ -981,7 +984,7 @@ class InvariantBasedAggregationLayer(nn.Module):
         return weights
 
     def set_weights(self, pos):
-        input_size = self.graph_data.num_nodes[pos].item()
+        input_size = self.graph_data.num_nodes[pos]
         self.current_W = torch.zeros((self.out_heads, self.output_dimension, input_size), dtype=self.precision).to(self.device)
         weight_distr = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
         param_indices = weight_distr[:, 3]
@@ -1240,3 +1243,81 @@ class ShareGNNLinear(nn.Module):
         param: pos: int -> the pos argument (ignored)
         """
         return self.linear(x)
+
+
+class ShareGNNReLU(nn.Module):
+    """
+    Wrapper class for a ReLU activation function
+    """
+    def __init__(self):
+        super(ShareGNNReLU, self).__init__()
+        self.relu = nn.ReLU()
+
+    def forward(self, x: torch.Tensor, pos:int=None):
+        """
+        Forward pass of the layer
+        :param x: torch.Tensor -> the input tensor
+        :param pos: int -> the pos argument (ignored)
+        """
+        return self.relu(x)
+
+class ShareGNNLeakyReLU(nn.Module):
+    """
+    Wrapper class for a LeakyReLU activation function
+    :param negative_slope: float -> the slope of the negative part of the function
+    """
+    def __init__(self, negative_slope=0.01):
+        """
+        :param negative_slope: float -> the slope of the negative part of the function
+        """
+        super(ShareGNNLeakyReLU, self).__init__()
+        self.leaky_relu = nn.LeakyReLU(negative_slope)
+
+    def forward(self, x: torch.Tensor, pos:int=None):
+        """
+        Forward pass of the layer
+        :param x: torch.Tensor -> the input tensor
+        :param pos: int -> the pos argument (ignored)
+        """
+        return self.leaky_relu(x)
+
+class ShareGNNTanh(nn.Module):
+    """
+    Wrapper class for a Tanh activation function
+    """
+    def __init__(self):
+        super(ShareGNNTanh, self).__init__()
+        self.tanh = nn.Tanh()
+
+    def forward(self, x: torch.Tensor, pos:int=None):
+        """
+        Forward pass of the layer
+        :param x: torch.Tensor -> the input tensor
+        :param pos: int -> the pos argument (ignored)
+        """
+        return self.tanh(x)
+
+class ShareGNNActivation(nn.Module):
+    def __init__(self, activation_function):
+        super(ShareGNNActivation, self).__init__()
+        self.activation_function = activation_function
+
+    def forward(self, x: torch.Tensor, pos:int=None):
+        return self.activation_function(x)
+
+class ShareGNNIdentity(nn.Module):
+    """
+    Wrapper class for an identity activation function
+    """
+    def __init__(self):
+        super(ShareGNNIdentity, self).__init__()
+
+    def forward(self, x: torch.Tensor, pos:int=None):
+        """
+        Forward pass of the layer
+        :param x: torch.Tensor -> the input tensor
+        :param pos: int -> the pos argument (ignored)
+        """
+        return x
+
+
