@@ -117,7 +117,7 @@ def transfer_IMDB():
     for cycle_type in ['induced']:
         for cycle_length in [3, 4, 5, 6, 10, 20, 50]:
             save_cycle_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], cycle_type=cycle_type,
-                              length_bound=cycle_length, label_path="Data/Labels/", format='NEL')
+                              max_cycle_length=cycle_length, label_path="Data/Labels/", format='NEL')
     for clique_size in [3, 4, 5, 6, 10, 20, 50]:
         save_clique_labels(data_path="Data/NEL_Format/", db_names=['IMDB-BINARY_IMDB-MULTI'], max_clique=clique_size,
                            label_path="Data/Labels/", format='NEL')

@@ -1,14 +1,65 @@
 datasets:
   - {
-      name: "ZINC",
-      task: "graph_regression",
-      validation_folds: 1,
-      with_splits: False,
-      split_function: zinc_splits,
-      experiment_config_file: "ReproduceExtended/configs/network_zinc.yml",
-      type: 'ZINC',
+    name: "cycle6",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "cycle6" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
+  }
+  - {
+    name: "tri_tail",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "tri_tail" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
+  }
+  - {
+    name: "triangle",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "triangle" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
+  }
+  - {
+    name: "cycle4",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "cycle4" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
+  }
+  - {
+    name: "cycle5",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "cycle5" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
   }
 
+  - {
+    name: "star",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "star" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
+  }
 
 
 paths:
@@ -26,7 +77,7 @@ paths:
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
-precision: double
+precision: float
 
 # network options
 
@@ -50,10 +101,10 @@ convolution_activation: 'LeakyReLU'
 aggregation_activation: 'LeakyReLU'
 
 # linear_activation: activation function for the linear layer
-linear_activation: 'None'
+linear_activation: 'LeakyReLU'
 
 # output_activation: activation function for the output layer
-output_activation: 'None'
+output_activation: 'LeakyReLU'
 
 # loss: loss function for the network
 loss:
@@ -84,7 +135,7 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 512
+  - 64
 learning_rate:
   - 0.01
 epochs:
@@ -97,7 +148,7 @@ early_stopping:
     25
 
 
-scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 10, min_lr: 0.0001 }
+#scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.0001 }
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}

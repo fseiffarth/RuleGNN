@@ -8,7 +8,7 @@ import torch
 from matplotlib import pyplot as plt
 
 from src.Experiment.ExperimentMain import ExperimentMain
-from src.Architectures.RuleGNN import RuleGNN
+from src.Architectures.ShareGNN import ShareGNN
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
 from src.utils.GraphData import get_graph_data
 from src.utils.Parameters.Parameters import Parameters
@@ -294,7 +294,7 @@ class WeightVisualization:
                         Get the first index in the results directory that is not used
                     """
                     para.set_file_index(size=6)
-                    net = RuleGNN.ShareGNN(graph_data=self.graph_data,
+                    net = ShareGNN.ShareGNN(graph_data=self.graph_data,
                                            para=para,
                                            seed=0, device=run_config.config.get('device', 'cpu'))
 

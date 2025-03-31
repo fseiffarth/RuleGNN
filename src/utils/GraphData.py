@@ -7,6 +7,7 @@ import networkx as nx
 import numpy as np
 import torch
 import torch_geometric.data
+from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset
 
@@ -17,6 +18,7 @@ from torch_geometric.io import fs
 from torch_geometric.utils.convert import to_networkx
 from ogb.nodeproppred import PygNodePropPredDataset
 
+from test_scripts.counting_from_paper import GraphCount
 
 
 class ShareGNNDataset(InMemoryDataset):
@@ -106,8 +108,8 @@ class ShareGNNDataset(InMemoryDataset):
                 self.node_labels['primary'] = data['y']
         self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
         if not use_node_attr:
-            num_node_attributes = self.num_node_attributes
-            data['x'] = data['x'][:, num_node_attributes-num_zero_columns:]
+            data['x'] = data['x'][:, self.num_node_attributes-num_zero_columns:]
+            self.sizes['num_node_attributes'] = 0
 
 
 
@@ -123,8 +125,16 @@ class ShareGNNDataset(InMemoryDataset):
                 else:
                     self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
             if not use_edge_attr:
-                num_edge_attrs = self.num_edge_attributes
-                data['edge_attr'] = data['edge_attr'][:, num_edge_attrs:]
+                data['edge_attr'] = data['edge_attr'][:, self.num_edge_attributes:]
+                self.sizes['num_edge_attributes'] = 0
+
+        if data.get('y', None) is not None:
+            if self.task == 'graph_classification':
+                # convert y to long
+                data['y'] = data['y'].long()
+                # flatten y
+                data['y'] = data['y'].view(-1)
+
 
         if len(self) == 1:
             data['num_nodes'] = torch.tensor([data['x'].shape[0]], dtype=torch.long)
@@ -292,10 +302,13 @@ class ShareGNNDataset(InMemoryDataset):
 
 
 
-            elif self.from_existing_data == 'ZINC':
-                train_data = ZINC(root='tmp/', subset=True, split='train')
-                validation_data = ZINC(root='tmp/', subset=True, split='val')
-                test_data = ZINC(root='tmp/', subset=True, split='test')
+            elif self.from_existing_data in ['ZINC', 'ZINC-full', 'ZINC-Full', 'ZINCFull']:
+                subset = True
+                if self.name in ['ZINC-full', 'ZINC-Full', 'ZINCFull']:
+                    subset = False
+                train_data = ZINC(root='tmp/', subset=subset, split='train')
+                validation_data = ZINC(root='tmp/', subset=subset, split='val')
+                test_data = ZINC(root='tmp/', subset=subset, split='test')
                 # merge train_data._data, validation_data._data and test_data._data
                 all_data = torch_geometric.data.InMemoryDataset.collate([train_data._data, validation_data._data, test_data._data])
 
@@ -312,6 +325,29 @@ class ShareGNNDataset(InMemoryDataset):
                          'num_node_attributes': 0,
                          'num_node_labels': 0
                 }
+            elif self.from_existing_data == 'OGB_GraphProp':
+                dataset_ogb = PygGraphPropPredDataset(name=self.name, root='tmp/')
+                dataset_torch = torch_geometric.datasets.MoleculeNet(root='tmp/', name='HIV')
+                split_idx = dataset_ogb.get_idx_split()
+                train_idx, valid_idx, test_idx = split_idx["train"], split_idx["valid"], split_idx["test"]
+                self.data = dataset_ogb.data
+                # put column 0 of x and edge_attr to the end
+                self.data.x = torch.cat((self.data.x[:, 1:], self.data.x[:, 0].unsqueeze(1)), dim=1)
+                unique_node_labels = torch.unique(self.data.x[:, -1])
+                # map unique node labels to integers 0, 1, 2, ...
+                self.data.x[:, -1] = torch.tensor([torch.where(unique_node_labels == x)[0] for x in self.data.x[:, -1]], dtype=torch.long)
+                self.data.edge_attr = torch.cat((self.data.edge_attr[:, 1:], self.data.edge_attr[:, 0].unsqueeze(1)), dim=1)
+                unique_edge_labels = torch.unique(self.data.edge_attr[:, -1])
+                # map unique edge labels to integers 0, 1, 2, ...
+                self.data.edge_attr[:, -1] = torch.tensor([torch.where(unique_edge_labels == x)[0] for x in self.data.edge_attr[:, -1]], dtype=torch.long)
+                self.slices = dataset_ogb.slices
+                sizes = {
+                    'num_node_labels': len(unique_node_labels),
+                    'num_node_attributes': 8,
+                    'num_edge_labels': len(unique_edge_labels),
+                    'num_edge_attributes': 2,
+                }
+                pass
             elif self.from_existing_data == 'MoleculeNet':
                 dataset = torch_geometric.datasets.MoleculeNet(root='tmp/', name=self.name)
                 self.data = dataset.data
@@ -332,7 +368,31 @@ class ShareGNNDataset(InMemoryDataset):
                     'num_edge_attributes': 2,
                 }
                 pass
+            elif self.from_existing_data == 'SubstructureBenchmark':
+                # relative path to project root
+                root = Path(__file__).resolve().parent.parent.parent
+                train_data = GraphCount(root=str(root.joinpath('tmp')) + '/', split="train", task=self.name)
+                validation_data = GraphCount(root=str(root.joinpath('tmp')) + '/', split="val", task=self.name)
+                test_data = GraphCount(root=str(root.joinpath('tmp')) + '/', split="test", task=self.name)
+                all_data = torch_geometric.data.InMemoryDataset.collate([train_data._data, validation_data._data, test_data._data])
+                self.data = all_data[0]
+                # flatten y
+                self.data.y = self.data.y.view(-1)
+                # merge the slices
+                self.slices = dict()
+                for key in train_data.slices.keys():
+                    validation_data.slices[key] += train_data.slices[key][-1]
+                    test_data.slices[key] += validation_data.slices[key][-1]
+                    self.slices[key] = torch.cat((train_data.slices[key], validation_data.slices[key][1:], test_data.slices[key][1:]))
 
+                sizes = {'num_edge_attributes': 0,
+                         'num_edge_labels': 0,
+                         'num_node_attributes': 0,
+                         'num_node_labels': 0
+                }
+
+
+                pass
             elif self.from_existing_data in ['planetoid', 'cora', 'citeseer', 'pubmed', 'Planetoid']:
                 dataset = torch_geometric.datasets.Planetoid(root='tmp/', name=self.name)
                 self.data = dataset[0]
@@ -643,9 +703,14 @@ class ShareGNNDataset(InMemoryDataset):
                     del self.nx_graphs[-1].nodes[node[0]]['x']
                 counter += 1
             if graph.edge_attr is not None:
+                unique_edge_labels = torch.unique(self.data['edge_attr'])
                 for edge in self.nx_graphs[-1].edges(data=True):
                     edge_label_one_hot = np.array(edge[2]['edge_attr'])[self.num_edge_attributes:]
-                    edge[2]['label'] = np.argmax(edge_label_one_hot)
+                    if edge_label_one_hot.size == 1 :
+                        # get one hot vector from edge_label_one_hot value
+                        edge[2]['label'] = edge_label_one_hot
+                    else:
+                        edge[2]['label'] = np.argmax(edge_label_one_hot)
         pass
 
     def preprocess_share_gnn_data(self, data, input_features=None, output_features=None, task=None) -> None:
@@ -794,6 +859,7 @@ class ShareGNNDataset(InMemoryDataset):
 
     def __repr__(self) -> str:
         return f'{self.name}({len(self)})'
+
 
 def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):
     if num_max_labels is None:

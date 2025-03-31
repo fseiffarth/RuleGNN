@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from src.Experiment.ExperimentMain import ExperimentMain
-from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer, RuleAggregationLayer
+from src.Architectures.ShareGNN.ShareGNNLayers import InvariantBasedMessagePassingLayer, InvariantBasedAggregationLayer
 from src.Experiment.RunConfiguration import get_run_configs
 
 

@@ -15,6 +15,10 @@ def load_label_files(path: Path):
 
 def main():
     base_path = Path('/home/florian/Documents/Code/GNNs/RuleGNN/ReproduceExtended/Data/Labels/ZINC/')
+    base_path_ring = Path('/home/florian/Documents/Code/GNNs/RuleGNN/ReproduceExtended/Data/Labels/RingCounting3/')
+    labels = load_label_files(base_path_ring.joinpath('RingCounting3_labels_subgraph_0.pt'))
+    labels2 = load_label_files(base_path_ring.joinpath('RingCounting3_labels_induced_cycles_3.pt'))
+
     path_20 = base_path.joinpath('ZINC_labels_simple_cycles_20_primary.pt')
     path_10 = base_path.joinpath('ZINC_labels_simple_cycles_10_primary.pt')
     path_50 = base_path.joinpath('ZINC_labels_simple_cycles_50_primary.pt')

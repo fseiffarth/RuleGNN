@@ -1,12 +1,18 @@
 networks:
   - - { layer_type: convolution ,
       bias: False,
-      heads: [ 1 ],
-      labels: [
-          { label_type: [ wl_labeled ], depth: [ 1 ] },
+      heads: [
+        {
+          bias: False,
+          labels: {
+            head: { label_type: wl_labeled, depth: 1 },
+            tail: { label_type: wl_labeled, depth: 1 },
+            bias: { label_type: wl_labeled, depth: 1 }
+          },
+        }
       ],
       properties: [
-        { name: distances, values: [ 0,1, 2, 3, 4] },
+        { name: distances, values: [ 0,1, 2, 3,4,5,6] },
         #{ name: edge_label_distances, values: [ 0,1, 2, 3, 4] },
         #{ name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 ] },
       ]
@@ -14,18 +20,20 @@ networks:
     - { layer_type: aggregation,
         bias: True,
         heads: [1],
-        out_dim: 100,
+        out_dim: 10,
         labels: [
-            #label_type: [ induced_cycles, primary ], max_cycle_length: [ 20 ] },
+          {label_type: [ induced_cycles, primary ], max_cycle_length: [ 18 ] },
             #{ label_type: [ induced_cycles ], max_cycle_length: [ 50 ] },
-            { label_type: [ subgraph, primary ], id: [ 0 ] },
+            #{ label_type: [ subgraph, primary ], id: [ 0 ] },
 
         ],
     }
 
 
+
 final_linear_layers:
-  - { input_dimension: 100, output_dimension: 1, bias: True }
+  - { input_dimension: 10, output_dimension: 10, bias: True }
+  - { input_dimension: 10, output_dimension: 1, bias: True }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:
 subgraphs:

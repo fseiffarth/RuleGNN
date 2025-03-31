@@ -9,7 +9,7 @@ import torch
 import yaml
 from torch_geometric.io import fs
 
-from src.utils.GraphData import get_graph_data, GraphData, ShareGNNDataset
+from src.utils.GraphData import get_graph_data, ShareGNNDataset
 from src.utils.load_labels import load_labels
 import copy
 
@@ -74,7 +74,7 @@ def write_distance_properties(graph_data:ShareGNNDataset, cutoff=None, out_path:
         print(f"File {out} already exists. Skipping.")
 
 
-def write_distance_circle_properties(graph_data:GraphData, label_path, db_name, cutoff, out_path:Path = Path(), save_times=None) -> None:
+def write_distance_circle_properties(graph_data:ShareGNNDataset, label_path, db_name, cutoff, out_path:Path = Path(), save_times=None) -> None:
     out = out_path.joinpath(f"{db_name}_circle_distances.prop")
     out_yml = out_path.joinpath(f"{db_name}_circle_distances.yml")
     # check if the file already exists and if not create it

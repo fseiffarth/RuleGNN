@@ -6,7 +6,7 @@ import pandas as pd
 
 from Reproduce.latex import share_gnn_results
 from src.Experiment.ExperimentMain import ExperimentMain
-from src.Architectures.RuleGNN.RuleGNNLayers import RuleConvolutionLayer
+from src.Architectures.ShareGNN.ShareGNNLayers import InvariantBasedMessagePassingLayer
 from src.utils.GraphDrawing import GraphDrawing, CustomColorMap, RandomColorMap
 
 
@@ -251,7 +251,7 @@ def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_label
         net = experiment.load_model(db_name=db_name, run_id=0, validation_id=0, best=True)
         num_convolution_layers = 0
         for layers in net.net_layers:
-            if isinstance(layers, RuleConvolutionLayer):
+            if isinstance(layers, InvariantBasedMessagePassingLayer):
                 num_convolution_layers += 1
         #sort_indices, steps = rules_vs_occurences(convolution_layer, db_name, channel)
         #rules_vs_occurences_properties(convolution_layer)
@@ -362,10 +362,14 @@ def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_label
         plt.rcParams['axes.spines.bottom'] = True
 
 
-def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_size=200):
-    if not Path(f'Reproduce/Results/Latex/Plots/{db_name}_{"_".join(map(str, graph_ids))}.pdf').exists():
+def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_size=200, output_path=None):
+    if output_path is None:
+        output_path = Path(f'Reproduce/Results/Latex/Plots/')
+    else:
+        output_path = Path(output_path)
+    if not output_path.joinpath(f'{db_name}_{"_".join(map(str, graph_ids))}.pdf').exists():
         # make dir f'scripts/Evaluation/Drawing/Graphs/{db_name}/' if it does not exist
-        Path(f'Reproduce/Results/Latex/Plots/').mkdir(exist_ok=True, parents=True)
+        output_path.mkdir(exist_ok=True, parents=True)
 
         #mpl.use("pgf")
         import matplotlib.pyplot as plt
@@ -410,7 +414,7 @@ def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_
 
 
 
-        plt.savefig(f'Reproduce/Results/Latex/Plots/{db_name}_{"_".join(map(str, graph_ids))}.pdf', bbox_inches='tight', backend='pgf')
+        plt.savefig(output_path.joinpath(f'{db_name}_{"_".join(map(str, graph_ids))}.pdf', bbox_inches='tight', backend='pgf'))
 
         # remove matplotlib frame
         # remove frame from each side of plot
@@ -419,7 +423,7 @@ def plot_specific_graphs_from_db(path, db_name, graph_ids, draw_type=None, node_
         plt.rcParams['axes.spines.top'] = True
         plt.rcParams['axes.spines.bottom'] = True
 
-def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0, appendix='') -> np.ndarray:
+def rules_vs_occurences(layer: InvariantBasedMessagePassingLayer, db_name, channel=0, appendix='') -> np.ndarray:
     if not Path(f'Reproduce/Results/Latex/Plots/occurrences_per_rule_{db_name}{appendix}.png').exists():
 
         plt.rcParams.update({
@@ -492,7 +496,7 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0, appendi
         return sort_indices, steps
     return None
 
-def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray, steps,db_name, channel=0, appendix=''):
+def rules_vs_weights(layer:InvariantBasedMessagePassingLayer, sort_indices:np.ndarray, steps,db_name, channel=0, appendix=''):
     if not Path(f'Reproduce/Results/Latex/Plots/weights_per_rule_{db_name}{appendix}.png').exists():
         weights = layer.Param_W.detach().cpu().numpy()
         weights = weights[sort_indices]

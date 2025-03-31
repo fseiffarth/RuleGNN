@@ -26,7 +26,7 @@ def plot_all_graphs_from_db(db_name, experiment):
 
 
 
-    net = experiment.load_model(db_name=db_name, config_id=41, run_id=0, validation_id=0)
+    net = experiment.load_model(db_name=db_name, config_id=41, run_id=0, validation_id=0, best=False)
 
     # make dir f'scripts/Evaluation/Drawing/Graphs/{db_name}/' if it does not exist
     Path(f'scripts/Evaluation/Drawing/Graphs/{db_name}').mkdir(exist_ok=True, parents=True)
@@ -68,12 +68,14 @@ def plot_all_graphs_from_db(db_name, experiment):
 
 
 if __name__ == '__main__':
-    experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
-    experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic.yml'))
-    plot_all_graphs_from_db(db_name='CSL', experiment=experiment)
+    #experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_real_world.yml'))
+    #experiment = ExperimentMain(Path('Reproduce/Configs/main_config_fair_synthetic.yml'))
+    #plot_all_graphs_from_db(db_name='CSL', experiment=experiment)
+    experiment = ExperimentMain(Path('ReproduceExtended/configs/main_config_counting.yml'))
+    plot_all_graphs_from_db(db_name='RingCount3', experiment=experiment)
     #plot_all_graphs_from_db(db_name='EvenOddRingsCount16', experiment=experiment)
     #plot_all_graphs_from_db(db_name='EvenOddRings2_16', experiment=experiment)
     #plot_all_graphs_from_db(db_name='Snowflakes', experiment=experiment)
-    plot_specific_graphs_from_db(db_name='EvenOddRings2_16', experiment=experiment, graph_ids=[3,2,1,4])
-    plot_specific_graphs_from_db(db_name='EvenOddRingsCount16', experiment=experiment, graph_ids=[0,5])
-    plot_specific_graphs_from_db(db_name='LongRings100', experiment=experiment, graph_ids=[1,3,5])
+    #plot_specific_graphs_from_db(db_name='EvenOddRings2_16', experiment=experiment, graph_ids=[3,2,1,4])
+    #plot_specific_graphs_from_db(db_name='EvenOddRingsCount16', experiment=experiment, graph_ids=[0,5])
+    #plot_specific_graphs_from_db(db_name='LongRings100', experiment=experiment, graph_ids=[1,3,5])

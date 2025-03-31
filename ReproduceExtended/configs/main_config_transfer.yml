@@ -1,14 +1,11 @@
 datasets:
   - {
-      name: "ZINC",
-      task: "graph_regression",
-      validation_folds: 1,
-      with_splits: False,
-      split_function: zinc_splits,
-      experiment_config_file: "ReproduceExtended/configs/network_zinc.yml",
-      type: 'ZINC',
+      name: ["NCI1", "NCI109", "Mutagenicity"],
+      task: "graph_classification",
+      validation_folds: 10,
+      experiment_config_file: "Examples/Foundation/Configs/config_molecule.yml",
+      type: ["TUDataset", "TUDataset", "TUDataset"],
   }
-
 
 
 paths:
@@ -26,7 +23,7 @@ paths:
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
-precision: double
+precision: float
 
 # network options
 
@@ -78,13 +75,13 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
+weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
                          convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'lower_upper', value: 0.001 },
+                         aggregation: {  type: 'constant', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 512
+  - 128
 learning_rate:
   - 0.01
 epochs:
@@ -97,7 +94,7 @@ early_stopping:
     25
 
 
-scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 10, min_lr: 0.0001 }
+scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.0001 }
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}

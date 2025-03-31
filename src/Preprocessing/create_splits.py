@@ -3,6 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+from ogb.graphproppred import PygGraphPropPredDataset
 
 from src.utils.GraphData import get_graph_data, GraphData
 from src.TrainTestData import TrainTestData as ttd
@@ -31,6 +32,8 @@ def zinc_splits():
     # save splits to json as one line use json.dumps
     with open(f"{db_name}_splits.json", "w") as f:
         f.write(json.dumps(splits))
+
+
 
 def create_transfer_splits(db_name, path:Path, output_path:Path, data_format=None, split_type='random'):
     '''

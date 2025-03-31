@@ -4,8 +4,7 @@ from src.Architectures.ShareGNN import ShareGNNLayers
 import torch
 import torch.nn as nn
 
-from src.Architectures.ShareGNN.ShareGNNLayers import ShareGNNIdentity, ShareGNNReLU, ShareGNNLeakyReLU, \
-    ShareGNNActivation
+from src.Architectures.ShareGNN.ShareGNNLayers import ShareGNNActivation
 from src.utils import GraphData
 
 from src.Time.TimeClass import TimeClass

@@ -69,18 +69,26 @@ def get_label_string(label_dict: dict) -> str:
         if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
     elif label_type == "simple_cycles":
+        l_string = "simple_cycles"
+        if 'min_cycle_length' in label_dict:
+            min_cycle_length = label_dict['min_cycle_length']
+            l_string = f"{l_string}_{min_cycle_length}"
         if 'max_cycle_length' in label_dict:
             max_cycle_length = label_dict['max_cycle_length']
-            l_string = f"simple_cycles_{max_cycle_length}"
+            l_string = f"{l_string}_{max_cycle_length}"
         else:
             l_string = "simple_cycles_max"
         max_labels = label_dict.get('max_labels', None)
         if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
     elif label_type == "induced_cycles":
+        l_string = "induced_cycles"
+        if 'min_cycle_length' in label_dict:
+            min_cycle_length = label_dict['min_cycle_length']
+            l_string = f"{l_string}_{min_cycle_length}"
         if 'max_cycle_length' in label_dict:
             max_cycle_length = label_dict['max_cycle_length']
-            l_string = f"induced_cycles_{max_cycle_length}"
+            l_string = f"{l_string}_{max_cycle_length}"
         else:
             l_string = "induced_cycles_max"
         max_labels = label_dict.get('max_labels', None)
@@ -991,7 +999,7 @@ class InvariantBasedAggregationLayer(nn.Module):
         matrix_indices = weight_distr[:, 0:3].T
         self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_indices)
         # divide the weights by the number of nodes in the graph
-        self.current_W = self.current_W / input_size
+        #self.current_W = self.current_W / input_size
         pass
 
     def print_weights(self):
@@ -1035,10 +1043,6 @@ class InvariantBasedAggregationLayer(nn.Module):
             x = torch.einsum('cij,jk->cik', self.current_W, x)
         # flatten the output
         return x.flatten()
-        # if self.bias:
-        #     return torch.mv(self.weight_matrices[pos], x) + self.Param_b.to("cpu")
-        # else:
-        #     return torch.mv(self.weight_matrices[pos], x)
 
     def get_weights(self):
         return [x.item() for x in self.Param_W]
@@ -1208,6 +1212,7 @@ class ShareGNNConcatenate(nn.Module):
         super(ShareGNNConcatenate, self).__init__()
         self.linear = nn.Linear(in_features, 1, bias=bias)
         self.output_feature_dimensions = output_feature_dimensions
+        self.name = "Multi-Head Concatenation Layer"
 
     def forward(self, x:torch.Tensor, pos:int=None) -> torch.Tensor:
         """
@@ -1235,6 +1240,7 @@ class ShareGNNLinear(nn.Module):
         """
         super(ShareGNNLinear, self).__init__()
         self.linear = nn.Linear(in_features, out_features, bias=bias)
+        self.name = "Linear Layer"
 
     def forward(self, x: torch.Tensor, pos:int=None):
         """
@@ -1245,79 +1251,15 @@ class ShareGNNLinear(nn.Module):
         return self.linear(x)
 
 
-class ShareGNNReLU(nn.Module):
-    """
-    Wrapper class for a ReLU activation function
-    """
-    def __init__(self):
-        super(ShareGNNReLU, self).__init__()
-        self.relu = nn.ReLU()
 
-    def forward(self, x: torch.Tensor, pos:int=None):
-        """
-        Forward pass of the layer
-        :param x: torch.Tensor -> the input tensor
-        :param pos: int -> the pos argument (ignored)
-        """
-        return self.relu(x)
 
-class ShareGNNLeakyReLU(nn.Module):
-    """
-    Wrapper class for a LeakyReLU activation function
-    :param negative_slope: float -> the slope of the negative part of the function
-    """
-    def __init__(self, negative_slope=0.01):
-        """
-        :param negative_slope: float -> the slope of the negative part of the function
-        """
-        super(ShareGNNLeakyReLU, self).__init__()
-        self.leaky_relu = nn.LeakyReLU(negative_slope)
-
-    def forward(self, x: torch.Tensor, pos:int=None):
-        """
-        Forward pass of the layer
-        :param x: torch.Tensor -> the input tensor
-        :param pos: int -> the pos argument (ignored)
-        """
-        return self.leaky_relu(x)
-
-class ShareGNNTanh(nn.Module):
-    """
-    Wrapper class for a Tanh activation function
-    """
-    def __init__(self):
-        super(ShareGNNTanh, self).__init__()
-        self.tanh = nn.Tanh()
-
-    def forward(self, x: torch.Tensor, pos:int=None):
-        """
-        Forward pass of the layer
-        :param x: torch.Tensor -> the input tensor
-        :param pos: int -> the pos argument (ignored)
-        """
-        return self.tanh(x)
 
 class ShareGNNActivation(nn.Module):
     def __init__(self, activation_function):
         super(ShareGNNActivation, self).__init__()
         self.activation_function = activation_function
+        self.name = "Activation Function"
 
     def forward(self, x: torch.Tensor, pos:int=None):
         return self.activation_function(x)
-
-class ShareGNNIdentity(nn.Module):
-    """
-    Wrapper class for an identity activation function
-    """
-    def __init__(self):
-        super(ShareGNNIdentity, self).__init__()
-
-    def forward(self, x: torch.Tensor, pos:int=None):
-        """
-        Forward pass of the layer
-        :param x: torch.Tensor -> the input tensor
-        :param pos: int -> the pos argument (ignored)
-        """
-        return x
-
 

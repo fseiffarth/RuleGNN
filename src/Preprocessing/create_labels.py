@@ -238,13 +238,15 @@ def save_wl_labeled_labels(graph_data:ShareGNNDataset, depth, max_labels=None, l
     return file
 
 
-def save_cycle_labels(graph_data:ShareGNNDataset, length_bound=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
+def save_cycle_labels(graph_data:ShareGNNDataset, min_cycle_length=None, max_cycle_length=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
     if cycle_type not in ['simple', 'induced']:
         raise ValueError("Cycle type must be either 'simple' or 'induced'")
     l = 'simple_cycles'
     if cycle_type == 'induced':
         l = 'induced_cycles'
-    l = f'{l}_{length_bound}'
+    if min_cycle_length is not None:
+        l = f'{l}_{min_cycle_length}'
+    l = f'{l}_{max_cycle_length}'
     if max_labels is not None:
         l = f"{l}_{max_labels}"
     if label_path is None:
@@ -260,9 +262,13 @@ def save_cycle_labels(graph_data:ShareGNNDataset, length_bound=6, max_labels=Non
         for graph in graph_data.nx_graphs:
             cycle_dict.append({})
             if cycle_type == 'simple':
-                cycles = nx.simple_cycles(graph, length_bound)
+                cycles = nx.simple_cycles(graph, max_cycle_length)
+                if min_cycle_length is not None:
+                    cycles = [cycle for cycle in cycles if len(cycle) >= min_cycle_length]
             elif cycle_type == 'induced':
-                cycles = nx.chordless_cycles(graph, length_bound)
+                cycles = nx.chordless_cycles(graph, max_cycle_length)
+                if min_cycle_length is not None:
+                    cycles = [cycle for cycle in cycles if len(cycle) >= min_cycle_length]
             for cycle in cycles:
                 for node in cycle:
                     if node in cycle_dict[-1]:
@@ -300,7 +306,7 @@ def save_cycle_labels(graph_data:ShareGNNDataset, length_bound=6, max_labels=Non
         if save_times is not None:
             try:
                 with open(save_times, 'a') as f:
-                    f.write(f"{graph_data.name}, {cycle_type}_cycles_{length_bound}{l}, {time.time() - start_time}\n")
+                    f.write(f"{graph_data.name}, {cycle_type}_cycles_{max_cycle_length}{l}, {time.time() - start_time}\n")
             except:
                 raise ValueError("No save time path given")
     else:

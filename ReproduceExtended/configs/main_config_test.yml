@@ -1,13 +1,11 @@
 datasets:
   - {
-      name: "ZINC",
-      task: "graph_regression",
-      validation_folds: 1,
-      with_splits: False,
-      split_function: zinc_splits,
-      experiment_config_file: "ReproduceExtended/configs/network_zinc.yml",
-      type: 'ZINC',
-  }
+        name: "MUTAG",
+        task: "graph_classification",
+        validation_folds: 10,
+        experiment_config_file: "Examples/Foundation/Configs/network_test.yml",
+        type: "TUDataset"
+    }
 
 
 
@@ -44,20 +42,20 @@ convolution_grad: True
 aggregation_grad: True
 
 # activation: activation function for the convolutional layers
-convolution_activation: 'LeakyReLU'
+convolution_activation: 'tanh'
 
 # aggregation_activation: activation function for the aggregation layer
-aggregation_activation: 'LeakyReLU'
+aggregation_activation: 'tanh'
 
 # linear_activation: activation function for the linear layer
-linear_activation: 'None'
+linear_activation: 'tanh'
 
 # output_activation: activation function for the output layer
-output_activation: 'None'
+output_activation: 'tanh'
 
 # loss: loss function for the network
 loss:
-  - MAE
+  - CrossEntropyLoss
 
 
 
@@ -84,9 +82,9 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 512
+  - 128
 learning_rate:
-  - 0.01
+  - 0.001
 epochs:
   - 1000
 

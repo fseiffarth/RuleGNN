@@ -299,8 +299,11 @@ class DatasetPreprocessing:
                     layer['max_labels'] = None
                 if 'max_cycle_length' not in layer:
                     layer['max_cycle_length'] = None
+                if 'min_cycle_length' not in layer:
+                    layer['min_cycle_length'] = None
                 file_path = save_cycle_labels(graph_data=self.graph_data,
-                                              length_bound=layer['max_cycle_length'],
+                                                min_cycle_length=layer['min_cycle_length'],
+                                              max_cycle_length=layer['max_cycle_length'],
                                               max_labels=layer["max_labels"],
                                               cycle_type=cycle_type,
                                               label_path=label_path,

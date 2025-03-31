@@ -263,7 +263,7 @@ class ExperimentMain:
                                 if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
                                     raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
                         else:
-                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet']:
+                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark']:
                                 raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                     ###
@@ -403,9 +403,9 @@ class ExperimentMain:
         # run the model, if a pretrained network is given, use it
         configuration.Run(pretrained_network=self.pretrained_network)
 
-    def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True):
-        experiment_configuration = self.experiment_configurations[db_name]
-        graph_data = preprocess_graph_data(db_name, experiment_configuration)
+    def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True, experiment_db_id=0):
+        experiment_configuration = self.experiment_configurations[db_name][experiment_db_id]
+        graph_data = preprocess_graph_data(experiment_configuration)
         run_configs = get_run_configs(experiment_configuration)
         model_path = experiment_configuration['paths']['results'].joinpath(db_name).joinpath('Models')
         if best:
@@ -528,7 +528,7 @@ def copy_experiment_config(absolute_path, experiment_configuration, experiment_c
             os.system(f"copy {source_path} {destination_path}")
 
 
-def preprocess_graph_data(experiment_configuration):
+def preprocess_graph_data(experiment_configuration:dict):
     """
             Create Input data, information and labels from the graphs for training and testing
             """

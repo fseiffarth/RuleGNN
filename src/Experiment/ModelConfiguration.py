@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
+import sklearn
 import torch
 from torch import optim, nn
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
@@ -22,10 +23,12 @@ class EvaluationValues:
     def __init__(self):
         self.accuracy = 0.0
         self.accuracy_std = 0.0
+        self.accuracy_roc_auc = 0.0
         self.loss = 0.0
         self.loss_std = 0.0
         self.mae = 0.0
         self.mae_std = 0.0
+
 
 
 class ModelConfiguration:
@@ -86,7 +89,7 @@ class ModelConfiguration:
         self.set_scheduler()
 
         # Store the best epoch
-        self.best_epoch = {"epoch": 0, "acc": 0.0, "loss": 1000000.0, "val_acc": 0.0, "val_loss": 1000000.0, "val_mae": 1000000.0}
+        self.best_epoch = {"epoch": 0, "acc": 0.0, "roc_auc": 0.0, "loss": 1000000.0, "val_acc": 0.0,  "val_roc_auc": 0.0, "val_loss": 1000000.0, "val_mae": 1000000.0}
 
         """
         Run through the defined number of epochs
@@ -110,13 +113,15 @@ class ModelConfiguration:
             test_values = EvaluationValues()
 
 
-            # Random Train batches for each epoch, run_id and k_val
+            # divide the whole training data into batches
             if self.para.run_config.config.get('training_data_sampling', None) is None or self.para.run_config.config['training_data_sampling'].get('type', None) == 'default':
                 shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
                 np.random.seed(shuffling_seed)
                 np.random.shuffle(self.training_data)
                 self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
                 train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
+
+            # sample the batches from the training data uniformly
             elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'random':
                 shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
                 np.random.seed(shuffling_seed)
@@ -125,6 +130,30 @@ class ModelConfiguration:
                 # get random indices from the training data
                 random_indices = np.random.choice(len(self.training_data), len(self.training_data), replace=True)
                 train_batches = np.array_split(self.training_data[random_indices], self.training_data.size // self.para.run_config.batch_size)
+
+            # sample the batches from the training data respecting the output class distribution
+            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'balanced':
+                balancing_factor = self.para.run_config.config['training_data_sampling'].get('factor', 0.5)
+                total_samples_per_epoch = self.para.run_config.config['training_data_sampling'].get('total_samples_per_epoch', 1)
+                # get the class distribution of the training data
+                unique_classes, class_indices, class_counts = torch.unique(self.graph_data.y[self.training_data], return_counts=True, return_inverse=True)
+                indices_per_class = []
+                for i in unique_classes:
+                    indices_per_class.append(np.where(class_indices == i)[0])
+                random_indices_per_class = []
+                balancing = [1-balancing_factor, balancing_factor]
+                for i in range(len(indices_per_class)):
+                    random_indices_per_class.append(np.random.choice(self.training_data[indices_per_class[i]], int(total_samples_per_epoch*self.training_data.size * balancing[i]), replace=True))
+                # concatenate the random indices
+                random_indices = np.concatenate(random_indices_per_class)
+                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+                np.random.seed(shuffling_seed)
+                np.random.shuffle(random_indices)
+                train_batches = np.array_split(random_indices, self.training_data.size // self.para.run_config.batch_size)
+
+
+
+            # sort the graphs by the number of nodes
             elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum':
                 train_batches = curriculum_sampling(graph_data=self.graph_data,
                                                                training_data=self.training_data,
@@ -135,6 +164,8 @@ class ModelConfiguration:
                                                                epoch=epoch,
                                                                anti=self.para.run_config.config['training_data_sampling'].get('anti', False),
                                                                exclusive=self.para.run_config.config['training_data_sampling'].get('exclusive', True))
+
+            # sort the graphs by the number of edges
             elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum_edges':
                 train_batches = curriculum_sampling(graph_data=self.graph_data,
                                                              training_data=self.training_data,
@@ -322,105 +353,6 @@ class ModelConfiguration:
                 # multiply the Param_W with the mask
                 layer.Param_W.data = layer.Param_W.data * layer.mask
 
-    def preprocess_writer(self):
-        if self.run_id == 0 and self.k_val == 0:
-            # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
-            file_name = f'{self.para.db}_{self.para.config_id}_Network.txt'
-            final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
-            with open(final_path, "a") as file_obj:
-                file_obj.write(f"Network architecture: {self.para.run_config.network_architecture}\n"
-                               f"Optimizer: {self.optimizer}\n"
-                               f"Loss function: {self.criterion}\n"
-                               f"Batch size: {self.para.batch_size}\n"
-                               f"Balanced data: {self.para.balance_data}\n"
-                               f"Number of epochs: {self.para.n_epochs}\n")
-                # iterate over the layers of the neural net
-                total_trainable_parameters = 0
-                for layer in self.net.net_layers:
-                    file_obj.write(f"\n")
-                    try:
-                        file_obj.write(f"Layer: {layer.name}\n")
-                    except:
-                        file_obj.write(f"Linear Layer\n")
-                    file_obj.write(f"\n")
-                    # get number of trainable parameters
-                    layer_params = sum(p.numel() for p in layer.parameters() if p.requires_grad)
-                    file_obj.write(f"Trainable Parameters: {layer_params}\n")
-                    try:
-                        file_obj.write(f"Node labels: {layer.node_labels.num_unique_node_labels}\n")
-                    except:
-                        pass
-                    try:
-                        for i, n in enumerate(layer.n_properties):
-                            file_obj.write(f"Number of pairwise properties in channel {i}: {n}\n")
-                    except:
-                        pass
-                    weight_learnable_parameters = 0
-                    bias_learnable_parameters = 0
-                    try:
-                        if layer.Param_W.requires_grad:
-                            total_trainable_parameters += layer.Param_W.numel()
-                            weight_learnable_parameters += layer.Param_W.numel()
-                    except:
-                        pass
-                    try:
-                        if layer.Param_b.requires_grad:
-                            total_trainable_parameters += layer.Param_b.numel()
-                            bias_learnable_parameters += layer.Param_b.numel()
-                    except:
-                        pass
-
-                    file_obj.write("Weight matrix learnable parameters: {}\n".format(weight_learnable_parameters))
-                    file_obj.write("Bias learnable parameters: {}\n".format(bias_learnable_parameters))
-                    try:
-                        file_obj.write(f"Edge labels: {layer.edge_labels.num_unique_edge_labels}\n")
-                    except:
-                        pass
-                for name, param in self.net.named_parameters():
-                    file_obj.write(f"Layer: {name} -> {param.requires_grad}\n")
-
-                file_obj.write(f"\n")
-                file_obj.write(f"Total trainable parameters: {total_trainable_parameters}\n")
-
-        file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
-
-        does_run_exist = False
-        # check if the file already exists
-        if Path(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')).exists():
-            # load the file with pandas and get the last epoch completed
-            df = pd.read_csv(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), delimiter=';')
-            if df['Epoch'].size <= 1:
-                last_epoch = 0
-            else:
-                last_epoch = df['Epoch'].iloc[-1]
-            # if the last_epoch equals the number of epochs the run is already completed
-            if last_epoch != self.para.run_config.epochs - 1:
-                does_run_exist = False
-                print(f'The file {file_name} already exists but the run was not completed, or new parameters are used')
-            else:
-                does_run_exist = True
-                print(f'The file {file_name} already exists and recomputation is skipped')
-
-        if does_run_exist:
-            return
-        else:
-            # if the file does not exist create a new file
-            with open(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), "w") as file_obj:
-                file_obj.write("")
-
-        # header use semicolon as delimiter
-        if self.para.run_config.task == 'graph_regression':
-            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
-                     "EpochAccuracy;EpochTime;EpochMAE;EpochMAEStd;ValidationLoss;ValidationAccuracy;ValidationMAE;ValidationMAEStd;TestLoss;TestAccuracy;TestMAE;TestMAEStd\n"
-        else:
-            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
-                     "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
-
-        # Save file for results and add header if the file is new
-        final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
-        with open(final_path, "a") as file_obj:
-            if os.stat(final_path).st_size == 0:
-                file_obj.write(header)
 
     def evaluate_results(self, epoch: int,
                          train_values: EvaluationValues,
@@ -449,8 +381,12 @@ class ModelConfiguration:
                 train_values.mae += batch_mae * (batch_length / len(self.training_data))
                 train_values.mae_std += batch_mae_std * (batch_length / len(self.training_data))
             else:
-                batch_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
+                prediction = torch.argmax(outputs, dim=1)
+                batch_acc = 100 * torch.sum(prediction == labels).item() / len(labels)
                 train_values.accuracy += batch_acc * (batch_length / len(self.training_data))
+                # roc_auc
+                #batch_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
+                #train_values.accuracy_roc_auc += batch_roc_auc * (batch_length / len(self.training_data))
 
             if self.para.print_results:
                 if self.graph_data.num_classes == 1 or self.para.run_config.task == 'graph_regression':
@@ -511,16 +447,22 @@ class ModelConfiguration:
                     validation_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
                     validation_values.mae_std = validation_mae_std
                 else:
-                    validation_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
+                    prediction = torch.argmax(outputs, dim=1)
+                    validation_acc = 100 * torch.sum(prediction==labels).item() / len(labels)
                     validation_values.accuracy = validation_acc
+                    # roc_auc
+                    validation_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
+                    validation_values.accuracy_roc_auc = validation_roc_auc
 
                 # update best epoch
                 if self.para.run_config.task == 'graph_regression':
                     if validation_values.mae <= self.best_epoch["val_mae"] or valid_pruning_configuration(self.para, epoch):
                         self.best_epoch["epoch"] = epoch
                         self.best_epoch["acc"] = train_values.accuracy
+                        self.best_epoch["roc_auc"] = train_values.accuracy_roc_auc
                         self.best_epoch["loss"] = train_values.loss
                         self.best_epoch["val_acc"] = validation_values.accuracy
+                        self.best_epoch["val_roc_auc"] = validation_values.accuracy_roc_auc
                         self.best_epoch["val_loss"] = validation_values.loss
                         self.best_epoch["val_mae"] = validation_values.mae
                         self.best_epoch["val_mae_std"] = validation_values.mae_std
@@ -535,13 +477,26 @@ class ModelConfiguration:
 
 
                 else:
+                    acc_condition = (validation_values.accuracy > self.best_epoch["val_acc"] or validation_values.accuracy == self.best_epoch[
+                        "val_acc"] and validation_loss < self.best_epoch["val_loss"])
+                    roc_condition = (validation_values.accuracy_roc_auc > self.best_epoch["val_roc_auc"] or validation_values.accuracy_roc_auc == self.best_epoch[
+                        "val_roc_auc"] and validation_loss < self.best_epoch["val_loss"])
+                    loss_condition = (validation_loss < self.best_epoch["val_loss"])
+                    condition = False
+                    if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'accuracy':
+                        condition = acc_condition
+                    elif self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
+                        condition = roc_condition
+                    elif self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'loss':
+                        condition = loss_condition
                     # check if pruning is on, then save the best model in the last pruning epoch
-                    if (validation_values.accuracy > self.best_epoch["val_acc"] or validation_values.accuracy == self.best_epoch[
-                        "val_acc"] and validation_loss < self.best_epoch["val_loss"]) or valid_pruning_configuration(self.para, epoch):
+                    if condition or valid_pruning_configuration(self.para, epoch):
                         self.best_epoch["epoch"] = epoch
                         self.best_epoch["acc"] = train_values.accuracy
+                        self.best_epoch["roc_auc"] = train_values.accuracy_roc_auc
                         self.best_epoch["loss"] = train_values.loss
                         self.best_epoch["val_acc"] = validation_values.accuracy
+                        self.best_epoch["val_roc_auc"] = validation_values.accuracy_roc_auc
                         self.best_epoch["val_loss"] = validation_values.loss
                         # save the best model
                         best_model_path = self.results_path.joinpath(f'{self.para.db}/Models/')
@@ -592,8 +547,12 @@ class ModelConfiguration:
                     test_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
                     test_values.mae_std = test_mae_std
                 else:
-                    test_acc = 100 * torch.sum(torch.argmax(outputs, dim=1) == labels).item() / len(labels)
+                    prediction = torch.argmax(outputs, dim=1)
+                    test_acc = 100 * torch.sum(prediction == labels).item() / len(labels)
                     test_values.accuracy = test_acc
+                    # roc_auc
+                    test_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
+                    test_values.accuracy_roc_auc = test_roc_auc
 
                 if self.para.print_results:
                     np_labels = labels.detach().numpy()
@@ -626,6 +585,110 @@ class ModelConfiguration:
 
         return train_values, validation_values, test_values
 
+    def preprocess_writer(self):
+        if self.run_id == 0 and self.k_val == 0:
+            # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
+            file_name = f'{self.para.db}_{self.para.config_id}_Network.txt'
+            final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
+            with open(final_path, "a") as file_obj:
+                file_obj.write(f"Network architecture: {self.para.run_config.network_architecture}\n"
+                               f"Optimizer: {self.optimizer}\n"
+                               f"Loss function: {self.criterion}\n"
+                               f"Batch size: {self.para.batch_size}\n"
+                               f"Balanced data: {self.para.balance_data}\n"
+                               f"Number of epochs: {self.para.n_epochs}\n")
+                # iterate over the layers of the neural net
+                total_trainable_parameters = 0
+                for layer in self.net.net_layers:
+                    file_obj.write(f"\n")
+                    try:
+                        file_obj.write(f"Layer: {layer.name}\n")
+                    except:
+                        file_obj.write(f"Linear Layer\n")
+                    file_obj.write(f"\n")
+                    # get number of trainable parameters
+                    layer_params = sum(p.numel() for p in layer.parameters() if p.requires_grad)
+                    total_trainable_parameters += layer_params
+                    file_obj.write(f"Trainable Parameters: {layer_params}\n")
+                    try:
+                        file_obj.write(f"Node labels: {layer.node_labels.num_unique_node_labels}\n")
+                    except:
+                        pass
+                    try:
+                        for i, n in enumerate(layer.n_properties):
+                            file_obj.write(f"Number of pairwise properties in channel {i}: {n}\n")
+                    except:
+                        pass
+                    weight_learnable_parameters = 0
+                    bias_learnable_parameters = 0
+                    try:
+                        if layer.Param_W.requires_grad:
+                            weight_learnable_parameters += layer.Param_W.numel()
+                    except:
+                        pass
+                    try:
+                        if layer.Param_b.requires_grad:
+                            bias_learnable_parameters += layer.Param_b.numel()
+                    except:
+                        pass
+
+                    file_obj.write("Weight matrix learnable parameters: {}\n".format(weight_learnable_parameters))
+                    file_obj.write("Bias learnable parameters: {}\n".format(bias_learnable_parameters))
+                    try:
+                        file_obj.write(f"Edge labels: {layer.edge_labels.num_unique_edge_labels}\n")
+                    except:
+                        pass
+                for name, param in self.net.named_parameters():
+                    file_obj.write(f"Layer: {name} -> {param.requires_grad}\n")
+
+                file_obj.write(f"\n")
+                file_obj.write(f"Total trainable parameters: {total_trainable_parameters}\n")
+
+        file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
+
+        does_run_exist = False
+        # check if the file already exists
+        if Path(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')).exists():
+            # load the file with pandas and get the last epoch completed
+            df = pd.read_csv(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), delimiter=';')
+            if df['Epoch'].size <= 1:
+                last_epoch = 0
+            else:
+                last_epoch = df['Epoch'].iloc[-1]
+            # if the last_epoch equals the number of epochs the run is already completed
+            if last_epoch != self.para.run_config.epochs - 1:
+                does_run_exist = False
+                print(f'The file {file_name} already exists but the run was not completed, or new parameters are used')
+            else:
+                does_run_exist = True
+                print(f'The file {file_name} already exists and recomputation is skipped')
+
+        if does_run_exist:
+            return
+        else:
+            # if the file does not exist create a new file
+            with open(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), "w") as file_obj:
+                file_obj.write("")
+
+        # header use semicolon as delimiter
+        if self.para.run_config.task == 'graph_regression':
+            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
+                     "EpochAccuracy;EpochTime;EpochMAE;EpochMAEStd;ValidationLoss;ValidationAccuracy;ValidationMAE;ValidationMAEStd;TestLoss;TestAccuracy;TestMAE;TestMAEStd\n"
+        else:
+            if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
+                header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
+                         "EpochAccuracy;EpochAUC;EpochTime;ValidationAccuracy;ValidationLoss;ValidationAUC;TestAccuracy;TestLoss;TestAUC\n"
+            else:
+                header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
+                         "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
+
+        # Save file for results and add header if the file is new
+        final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
+        with open(final_path, "a") as file_obj:
+            if os.stat(final_path).st_size == 0:
+                file_obj.write(header)
+
+
     def postprocess_writer(self, epoch, epoch_time, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues):
         if self.para.print_results:
             # if class num is one print the mae and mse
@@ -643,13 +706,21 @@ class ModelConfiguration:
                     f'time: {epoch_time}')
 
         if self.para.run_config.task == 'graph_regression':
-            res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
-                      f"{train_values.loss};{train_values.accuracy};{epoch_time};{train_values.mae};{train_values.mae_std};" \
+            res_str =   f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+                        f"{train_values.loss};{train_values.accuracy};{epoch_time};{train_values.mae};{train_values.mae_std};" \
                         f"{validation_values.loss};{validation_values.accuracy};{validation_values.mae};{validation_values.mae_std};" \
                         f"{test_values.loss};{test_values.accuracy};{test_values.mae};{test_values.mae_std}\n"
         else:
-            res_str = f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
-                      f"{train_values.loss};{train_values.accuracy};{epoch_time};{validation_values.accuracy};{validation_values.loss};{test_values.accuracy};{test_values.loss}\n"
+            if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
+                res_str =   f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+                            f"{train_values.loss};{train_values.accuracy};{train_values.accuracy_roc_auc};{epoch_time};" \
+                            f"{validation_values.accuracy};{validation_values.loss};{validation_values.accuracy_roc_auc};" \
+                            f"{test_values.accuracy};{test_values.loss};{test_values.accuracy_roc_auc}\n"
+            else:
+                res_str =   f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+                            f"{train_values.loss};{train_values.accuracy};{epoch_time};" \
+                            f"{validation_values.accuracy};{validation_values.loss};" \
+                            f"{test_values.accuracy};{test_values.loss}\n"
 
         # Save file for results
         file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
