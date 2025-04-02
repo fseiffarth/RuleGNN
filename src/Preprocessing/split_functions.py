@@ -13,7 +13,7 @@ def zinc_splits_full(output_path, *args, **kwargs):
     training_indices = [list(range(0, 220011))]
     validation_indices = [list(range(220011, 220011 + 24445))]
     test_indices = [list(range(220011 + 24445, 220011 + 24445 + 5000))]
-    return splits_from_index_lists(training_indices, validation_indices, test_indices, 'ZINC', output_path)
+    return splits_from_index_lists(training_indices, validation_indices, test_indices, 'ZINC-full', output_path)
 
 
 def planetoid_splits(output_path, graph_data, *args, **kwargs):

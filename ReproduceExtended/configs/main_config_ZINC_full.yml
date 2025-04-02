@@ -77,15 +77,15 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
-                         convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'constant', value: 0.001 },
-                         aggregation_bias: { type: 'constant', value: 0.0 }}
+weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
+                         convolution_bias: { type: 'lower_upper', value: 0.0},
+                         aggregation: {  type: 'lower_upper', value: 0.001 },
+                         aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
   - 128
 learning_rate:
-  - 0.01
+  - 0.001
 epochs:
   - 1000
 
