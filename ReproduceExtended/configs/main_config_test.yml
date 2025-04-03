@@ -78,26 +78,26 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
+weight_initialization: { convolution: {  type: 'uniform', min: 0.0009, max: 0.0011 },
                          convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'lower_upper', value: 0.001 },
+                         aggregation: {  type: 'uniform', min: 0.0009, max: 0.0011 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 128
+  - 32
 learning_rate:
-  - 0.001
+  - 0.01
 epochs:
-  - 1000
+  - 200
 
 early_stopping:
   enabled:
-    False
+    True
   patience:
     25
 
 
-scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 10, min_lr: 0.0001 }
+scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.001 }
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}

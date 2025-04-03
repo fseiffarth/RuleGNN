@@ -647,37 +647,37 @@ def training_and_preprocessing_time(share_gnn_type=''):
                     for i, layer in enumerate(net.net_layers):
                         if isinstance(layer, RuleConvolutionLayer):
                             if 'heads' in results[dataset]:
-                                results[dataset]['heads'].append(len(layer.n_head_labels))
+                                results[dataset]['heads'].append(len(layer.n_source_labels))
                             else:
-                                results[dataset]['heads'] = [len(layer.n_head_labels)]
+                                results[dataset]['heads'] = [len(layer.n_source_labels)]
                             if 'property_names' in results[dataset]:
-                                results[dataset]['property_names'].append(layer.property_names)
+                                results[dataset]['property_names'].append(layer.property_descriptions)
                             else:
-                                results[dataset]['property_names'] = [layer.property_names]
+                                results[dataset]['property_names'] = [layer.property_descriptions]
                             if 'property_dicts' in results[dataset]:
                                 results[dataset]['property_dicts'].append([x.property_dict for x in net.para.layers[i].layer_heads])
                             else:
                                 results[dataset]['property_dicts'] = [[x.property_dict for x in net.para.layers[i].layer_heads]]
-                            for x in layer.head_strings:
+                            for x in layer.source_label_descriptions:
                                 label_strings.add(x)
                                 if 'layer_labels_head' in results[dataset]:
                                     results[dataset]['layer_labels_head'].append(x)
                                 else:
                                     results[dataset]['layer_labels_head'] = [x]
-                            for x in layer.tail_strings:
+                            for x in layer.target_label_descriptions:
                                 label_strings.add(x)
                                 if 'layer_labels_tail' in results[dataset]:
                                     results[dataset]['layer_labels_tail'].append(x)
                                 else:
                                     results[dataset]['layer_labels_tail'] = [x]
-                            for x in layer.bias_strings:
+                            for x in layer.bias_label_descriptions:
                                 label_strings.add(x)
                                 if 'layer_labels_bias' in results[dataset]:
                                     results[dataset]['layer_labels_bias'].append(x)
                                 else:
                                     results[dataset]['layer_labels_bias'] = [x]
                         elif isinstance(layer, RuleAggregationLayer):
-                            for x in layer.head_strings:
+                            for x in layer.source_label_descriptions:
                                 label_strings.add(x)
                                 if 'layer_labels_aggregation' in results[dataset]:
                                     results[dataset]['layer_labels_aggregation'].append(x)

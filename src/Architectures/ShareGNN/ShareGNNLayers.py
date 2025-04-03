@@ -277,16 +277,28 @@ class Layer:
         return len(self.layer_heads)
 
 
+# define a base class for InvariantBased Layers including MessagePassing, Pooling and Positional Encodings
+class InvariantBasedLayer(nn.Module):
+    pass
+
+
 class InvariantBasedMessagePassingLayer(nn.Module):
     """
-    This class represents a message passing layer of the encoder of an ShareGNN
+    This class represents a message passing layer of the encoder of an ShareGNN.
     :param layer_id: the id of the layer
     :param seed: the seed for the random number generator
     :param parameters: the parameters of the experiment
     :param graph_data: the data of the graph dataset
     :param device: use 'cpu' or 'cuda' as device ('cpu' is recommended)
     :param input_feature_dimensions: the number of input features
+
+    **forward(x: torch.Tensor, pos:int) -> out: torch.Tensor**
+        - **x** is the input matrix of shape (N, F) where N is the number of nodes and F is the number of node features.
+        - **pos** is the index of the graph in the graph_data
+        - **out** is the output matrix of shape (N, F, H) where N is the number of nodes, F is the number of node features and H is the number of heads.
     """
+
+
 
     def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, device='cpu', input_feature_dimensions:Optional[int]=None):
         """
@@ -306,7 +318,7 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         # layer information
         self.layer = layer
         self.para = parameters  # get the all the parameters of the experiment
-        self.name = f"Rule Convolution Layer"
+        self.name = f"Invariant Based Message Passing"
         # get the graph data
         self.graph_data = graph_data
         # get the input features, i.e. the dimension of the input vector
@@ -316,25 +328,29 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         self.output_feature_dimensions = self.graph_data.num_node_features
         if self.para.run_config.config.get('use_feature_transformation', None) is not None:
             self.output_feature_dimensions = self.para.run_config.config['use_feature_transformation'].get('out_dimension', self.input_feature_dimensions)
-        # set the node labels
-        self.n_head_labels = []
-        self.n_tail_labels = []
-        self.n_bias_labels = []
-        self.n_properties = []
+        # number of node labels for message passing (per head)
+        self.n_source_labels = [] # count of the different labels occuring for the first entry in the triple (each list entry stands for one head)
+        self.source_label_descriptions = [] # graph invariant description (each list entry corresponds to one head)
+        self.n_target_labels = [] # count of the different labels occuring for the second entry in the triple (each list entry stands for one head)
+        self.target_label_descriptions = [] # graph invariant description (each list entry corresponds to one head)
+        self.n_properties = [] # counts of the different properties occuring in the third entry in the triple (each list entry corresponds to one head)
+        self.property_descriptions = []
+        # number of node labels for bias (per head)
+        self.n_bias_labels = [] # count of the different labels occuring in the bias term (each list entry stands for one head)
+        self.bias_label_descriptions = []
+
+        # number of heads
         self.out_heads = len(layer.layer_heads)
-        self.head_strings = []
-        self.tail_strings = []
-        self.bias_strings = []
-        self.property_names = []
+
         for h_id, head in enumerate(layer.layer_heads):
-            self.head_strings.append(layer.get_head_string(h_id))
-            self.n_head_labels.append(graph_data.node_labels[self.head_strings[h_id]].num_unique_node_labels)
-            self.tail_strings.append(layer.get_tail_string(h_id))
-            self.n_tail_labels.append(graph_data.node_labels[self.tail_strings[h_id]].num_unique_node_labels)
-            self.bias_strings.append(layer.get_bias_string(h_id))
-            self.n_bias_labels.append(graph_data.node_labels[self.bias_strings[h_id]].num_unique_node_labels)
-            self.property_names.append(head.property_dict.get_property_string())
-            self.n_properties.append(graph_data.properties[self.property_names[h_id]].num_properties[(layer_id,h_id)])
+            self.source_label_descriptions.append(layer.get_head_string(h_id))
+            self.n_source_labels.append(graph_data.node_labels[self.source_label_descriptions[h_id]].num_unique_node_labels)
+            self.target_label_descriptions.append(layer.get_tail_string(h_id))
+            self.n_target_labels.append(graph_data.node_labels[self.target_label_descriptions[h_id]].num_unique_node_labels)
+            self.bias_label_descriptions.append(layer.get_bias_string(h_id))
+            self.n_bias_labels.append(graph_data.node_labels[self.bias_label_descriptions[h_id]].num_unique_node_labels)
+            self.property_descriptions.append(head.property_dict.get_property_string())
+            self.n_properties.append(graph_data.properties[self.property_descriptions[h_id]].num_properties[(layer_id, h_id)])
 
 
         # head-wise weight num
@@ -366,15 +382,15 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         self.weight_distribution = [None] * len(graph_data)
         self.bias_distribution = [None] * len(graph_data)
         for i, head in enumerate(layer.layer_heads):
-            valid_property_values = self.graph_data.properties[self.property_names[i]].valid_values[(layer_id, i)]
+            valid_property_values = self.graph_data.properties[self.property_descriptions[i]].valid_values[(layer_id, i)]
             # get subdict of valid properties
             # apply the head and tail labels to the subdict
-            head_labels = self.graph_data.node_labels[self.head_strings[i]].node_labels
-            tail_labels = self.graph_data.node_labels[self.tail_strings[i]].node_labels
-            bias_labels = self.graph_data.node_labels[self.bias_strings[i]].node_labels
+            head_labels = self.graph_data.node_labels[self.source_label_descriptions[i]].node_labels
+            tail_labels = self.graph_data.node_labels[self.target_label_descriptions[i]].node_labels
+            bias_labels = self.graph_data.node_labels[self.bias_label_descriptions[i]].node_labels
             for key in valid_property_values:
-                property_subdict = self.graph_data.properties[self.property_names[i]].properties[key]
-                property_subdict_slices = self.graph_data.properties[self.property_names[i]].properties_slices[key]
+                property_subdict = self.graph_data.properties[self.property_descriptions[i]].properties[key]
+                property_subdict_slices = self.graph_data.properties[self.property_descriptions[i]].properties_slices[key]
                 labeled_subdict = property_subdict.detach().clone()
                 labeled_subdict[:, 0] = head_labels[property_subdict[:, 0]]
                 labeled_subdict[:, 1] = tail_labels[property_subdict[:, 1]]
@@ -589,36 +605,32 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         #x = x.view(-1)
         # print(x.size()[0])
         begin = time.time()
-        # set the weights
+        # set the weights, i.e., sets self.current_W to (C, N, N) where C is the number of channels and N is the number of nodes in graph at position pos of the dataset
         self.set_weights(pos)
+
+        # if feature transformation is used, apply it to the input features
         if self.para.run_config.config.get('use_feature_transformation', False):
             x = x @ self.feature_W
             # apply row-wise bias
             if self.para.run_config.config['use_feature_transformation'].get('bias', False):
                 x = x + self.feature_B
+
+        self.forward_step_time += time.time() - begin
+        if self.para.run_config.config.get('degree_matrix', False):
+            x = self.in_edges[pos]*torch.einsum('cij,jk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x)
+        elif self.para.run_config.config.get('use_in_degrees', False):
+            x = self.in_edges[pos]*torch.einsum('cij,jk->cik', self.current_W, x)
+        else:
+            x = torch.einsum('cij,jk->cik', self.current_W, x)
         if self.bias:
             self.set_bias(pos)
-            self.forward_step_time += time.time() - begin
-            if self.para.run_config.config.get('degree_matrix', False):
-                torch.einsum('cij,jk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x) + self.current_B
-            elif self.para.run_config.config.get('use_in_degrees', False):
-                self.in_edges[pos] * torch.einsum('cij,jk->cik', self.current_W, x) + self.current_B
-            else:
-                x = torch.einsum('cij,jk->cik', self.current_W, x) + self.current_B
-        else:
-            self.forward_step_time += time.time() - begin
-            if self.para.run_config.config.get('degree_matrix', False):
-                x = self.in_edges[pos]*torch.einsum('cij,jk->cik', torch.diag(self.D[pos]) @ self.current_W @ torch.diag(self.D[pos]), x)
-            elif self.para.run_config.config.get('use_in_degrees', False):
-                x = self.in_edges[pos]*torch.einsum('cij,jk->cik', self.current_W, x)
-            else:
-                x = torch.einsum('cij,jk->cik', self.current_W, x)
-                # use row-wise softmax to normalize the weights
-                #x = torch.einsum('cij,jk->cik', torch.nn.functional.softmax(self.current_W, dim=2), x)
+            x = x + self.current_B
+            # use row-wise softmax to normalize the weights
+            #x = torch.einsum('cij,jk->cik', torch.nn.functional.softmax(self.current_W, dim=2), x)
 
                 # print torch type of current_W and x
         x = x.permute(1, 2, 0)
-        # if last dimension is 1, remove it
+        # if last dimension is 1, remove it TODO needed ?
         if x.size(2) == 1:
             x = x.squeeze(2)
         return x
@@ -721,8 +733,8 @@ class InvariantBasedMessagePassingLayer(nn.Module):
 
                 graph_node_labels = None
                 if draw_bias_labels:
-                    graph_node_labels = self.graph_data.node_labels[self.bias_strings[head]].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
-                    num_unique_node_labels = self.graph_data.node_labels[self.bias_strings[head]].num_unique_node_labels
+                    graph_node_labels = self.graph_data.node_labels[self.bias_label_descriptions[head]].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id + 1]]
+                    num_unique_node_labels = self.graph_data.node_labels[self.bias_label_descriptions[head]].num_unique_node_labels
                 else:
                     if isinstance(self.graph_data.node_labels['primary'], NodeLabels):
                         graph_node_labels = self.graph_data.node_labels['primary'].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]]
@@ -841,7 +853,7 @@ class InvariantBasedMessagePassingLayer(nn.Module):
             node_colors = []
             node_sizes = []
             for node in digraph.nodes():
-                node_label = self.graph_data.node_labels[self.bias_strings[head]].node_labels[graph_id][node]
+                node_label = self.graph_data.node_labels[self.bias_label_descriptions[head]].node_labels[graph_id][node]
                 node_colors.append(bias_colors[node_label])
                 node_sizes.append(graph_drawing[1].node_size * abs(bias[node_label]) / bias_max_abs)
 
@@ -877,6 +889,11 @@ class InvariantBasedAggregationLayer(nn.Module):
     layer_id: int -> the id of the layer in the network
     seed: int -> the seed for reproducibility
     :param Parameters -> the parameters of the network
+
+    **forward(x: torch.Tensor, pos:int) -> out: torch.Tensor**
+        - **x** is the input matrix of shape (N, F) where N is the number of nodes and F is the number of node features.
+        - **pos** is the index of the graph in the graph_data
+        - **out** is the output matrix of shape (N, F, H) where N is the number of nodes, F is the number of node features and H is the number of heads.
     """
     def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset,
                  out_dim, device='cpu'):
@@ -1034,13 +1051,10 @@ class InvariantBasedAggregationLayer(nn.Module):
         #x = x.view(-1)
         begin = time.time()
         self.set_weights(pos)
-
-        self.forward_step_time += time.time() - begin
-
+        x = torch.einsum('cij,jk->cik', self.current_W, x)
         if self.bias:
-            x = torch.einsum('cij,jk->cik', self.current_W, x) + self.Param_b
-        else:
-            x = torch.einsum('cij,jk->cik', self.current_W, x)
+            x = x + self.Param_b
+        self.forward_step_time += time.time() - begin
         # flatten the output
         return x.flatten()
 
@@ -1208,6 +1222,11 @@ class ShareGNNConcatenate(nn.Module):
         :param in_features: int -> the number of input features
         :param output_feature_dimensions: int -> the number of output features
         :param bias: bool -> whether to use bias
+
+        **forward(x: torch.Tensor, pos:int) -> out: torch.Tensor**
+            - **x** is the input matrix of shape (N, F, H) where N is the number of nodes and F is the number of node features and H is the number of heads.
+            - **pos** is the index of the graph in the graph_data
+            - **out** is the output matrix of shape (N, F) where N is the number of nodes, F is the number of node features
         """
         super(ShareGNNConcatenate, self).__init__()
         self.linear = nn.Linear(in_features, 1, bias=bias)

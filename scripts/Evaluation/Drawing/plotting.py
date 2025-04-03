@@ -30,7 +30,7 @@ def rules_vs_occurences(layer: RuleConvolutionLayer, db_name, channel=0) -> np.n
                 break
 
     property_colors = plt.get_cmap('tab20').colors
-    property_legend = [f'{layer.property_names[channel]} {i}' for i in range(layer.n_properties[channel])]
+    property_legend = [f'{layer.property_descriptions[channel]} {i}' for i in range(layer.n_properties[channel])]
     f = lambda x : np.max(np.where(x >= np.array(layer.skips)))
     f_vectorized = np.vectorize(f)
     # get property id from sort indices using the skips
@@ -63,7 +63,7 @@ def rules_vs_weights(layer:RuleConvolutionLayer, sort_indices:np.ndarray, steps,
     weights = weights[sort_indices]
     # colors from tab20
     property_colors = plt.get_cmap('tab20').colors
-    property_legend = [f'{layer.property_names[channel]} {i}' for i in range(layer.n_properties[channel])]
+    property_legend = [f'{layer.property_descriptions[channel]} {i}' for i in range(layer.n_properties[channel])]
     f = lambda x : np.max(np.where(x >= np.array(layer.skips)))
     f_vectorized = np.vectorize(f)
     # get property id from sort indices using the skips

@@ -463,10 +463,10 @@ def rules_vs_occurences(layer: InvariantBasedMessagePassingLayer, db_name, chann
                     break
 
         property_colors = plt.get_cmap('tab20').colors
-        if layer.property_names[channel] == 'distances':
+        if layer.property_descriptions[channel] == 'distances':
             property_legend = [f'Distance {i}' for i in range(layer.n_properties[channel])]
         else:
-            property_legend = [f'{layer.property_names[channel]} {i}' for i in range(layer.n_properties[channel])]
+            property_legend = [f'{layer.property_descriptions[channel]} {i}' for i in range(layer.n_properties[channel])]
         f = lambda x : np.max(np.where(x >= np.array(layer.skips)))
         f_vectorized = np.vectorize(f)
         # get property id from sort indices using the skips
@@ -502,10 +502,10 @@ def rules_vs_weights(layer:InvariantBasedMessagePassingLayer, sort_indices:np.nd
         weights = weights[sort_indices]
         # colors from tab20
         property_colors = plt.get_cmap('tab20').colors
-        if layer.property_names[channel] == 'distances':
+        if layer.property_descriptions[channel] == 'distances':
             property_legend = [f'Distance {i}' for i in range(layer.n_properties[channel])]
         else:
-            property_legend = [f'{layer.property_names[channel]} {i}' for i in range(layer.n_properties[channel])]
+            property_legend = [f'{layer.property_descriptions[channel]} {i}' for i in range(layer.n_properties[channel])]
         f = lambda x : np.max(np.where(x >= np.array(layer.skips)))
         f_vectorized = np.vectorize(f)
         # get property id from sort indices using the skips
