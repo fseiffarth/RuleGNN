@@ -58,6 +58,7 @@ class ModelConfiguration:
         self.optimizer = None
         self.scheduler = None
         self.net = None
+        self.class_weights = None
         # get gpu or cpu: (cpu is recommended at the moment)
         if self.para.run_config.config.get('device', None) is not None:
             self.device = torch.device(self.para.run_config.config['device'] if torch.cuda.is_available() else "cpu")
@@ -184,6 +185,13 @@ class ModelConfiguration:
                 self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
                 train_batches = np.array_split(self.training_data,
                                                self.training_data.size // self.para.run_config.batch_size)
+
+            # if weighted_loss is set to true, get the class weights
+            if self.para.run_config.config.get('weighted_loss', False):
+                # get class counts per batch
+                class_counts = []
+                for i in range(len(train_batches)):
+                    class_counts.append(np.unique(self.graph_data.y[train_batches[i]], return_counts=True)[1])
 
 
             self.num_epoch_samples = sum([batch.size for batch in train_batches])
@@ -762,7 +770,10 @@ class ModelConfiguration:
                 timer.measure("forward_step")
 
             # calculate the loss
-            loss = self.criterion(outputs, self.graph_data.y[batch])
+            if self.para.run_config.config.get('weighted_loss', False):
+                loss = self.criterion(outputs, self.graph_data.y[batch], weights=self.class_weights)
+            else:
+                loss = self.criterion(outputs, self.graph_data.y[batch])
             timer.measure("forward")
 
             weights = []

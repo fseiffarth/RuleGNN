@@ -19,7 +19,7 @@ networks:
     - { layer_type: aggregation,
         bias: True,
         heads: [1],
-        out_dim: 4,
+        out_dim: 2,
         labels: [
                     { label_type: [simple_cycles, primary], max_cycle_length: [6] },
           #{ label_type: [simple_cycles, primary], max_cycle_length: [6] },
@@ -31,7 +31,7 @@ networks:
 
 
 final_linear_layers:
-  - { input_dimension: 4, output_dimension: 2, bias: True }
+  - { input_dimension: 16, output_dimension: 2, bias: True }
   #- { input_dimension: 10, output_dimension: 2, bias: True }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:

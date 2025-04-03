@@ -1,12 +1,27 @@
 datasets:
   - {
-        name: "MUTAG",
-        task: "graph_classification",
-        validation_folds: 10,
-        experiment_config_file: "ReproduceExtended/configs/network_multihead.yml",
-        type: "TUDataset"
-    }
-
+      name: "ogbg-molhiv",
+      task: "graph_classification",
+      validation_folds: 1,
+      with_splits: False,
+      split_function: ogb_molhiv_splits,
+      experiment_config_file: "ReproduceExtended/configs/network_molhiv.yml",
+      type: 'OGB_GraphProp',
+  }
+#  - {
+#    name: "HIV",
+#    task: "graph_classification",
+#    validation_folds: 10,
+#    experiment_config_file: "ReproduceExtended/configs/config_OGB_test.yml",
+#    type: 'MoleculeNet',
+#  }
+#  - {
+#    name: "MUTAG",
+#    task: "graph_classification",
+#    validation_folds: 10,
+#    experiment_config_file: "ReproduceExtended/configs/config_OGB_test.yml",
+#    type: 'TUDataset',
+#  }
 
 
 paths:
@@ -55,9 +70,7 @@ output_activation: 'tanh'
 
 # loss: loss function for the network
 loss:
-  - BCEWithLogitsLoss
-
-weighted_loss: True
+  - CrossEntropyLoss
 
 
 
@@ -78,17 +91,17 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
-                         convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'lower_upper', value: 0.001 },
-                         aggregation_bias: { type: 'constant', value: 0.0 }}
+weight_initialization: { convolution: {  type: 'lower_upper', value: 0.1 },
+                         convolution_bias: { type: 'lower_upper', value: 0.0},
+                         aggregation: {  type: 'lower_upper', value: 0.1 },
+                         aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
   - 128
 learning_rate:
-  - 0.001
+  - 0.0001
 epochs:
-  - 1000
+  - 500
 
 early_stopping:
   enabled:
@@ -97,17 +110,21 @@ early_stopping:
     25
 
 
-scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 10, min_lr: 0.0001 }
+#scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.0001 }
 
 # how to sample the training data
-training_data_sampling: { type: 'default'}
+#training_data_sampling: { type: 'default'}
+training_data_sampling: { type: 'balanced', factor: 0.3, total_samples_per_epoch: 1}
 #training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True, exclusive: True}
 #training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True }
 #training_data_sampling: { type: 'random' }
 
 #input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
-input_features: {name: constant, value: 1.0}
+#input_features: {name: constant, value: 1.0}
 #input_features: {name: node_labels, transformation: 'one_hot'}
+input_features: {name: node_features}
 #use_feature_transformation: {out_dimension: 21, bias: True}
 best_model: True
+
+evaluation_metric: roc_auc
 
