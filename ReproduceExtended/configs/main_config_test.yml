@@ -44,6 +44,9 @@ aggregation_grad: True
 # activation: activation function for the convolutional layers
 convolution_activation: 'tanh'
 
+# activation: activation function after the linear concatenation of multiple convolutional heads
+concatenation_activation: 'tanh'
+
 # aggregation_activation: activation function for the aggregation layer
 aggregation_activation: 'tanh'
 

@@ -24,6 +24,12 @@ networks:
         }
       ],
   }
+    - { layer_type: linear,
+        in_dim: 2,
+        out_dim: 2,
+        bias: True,
+        activation: 'tanh'
+    }
     - { layer_type: aggregation,
         bias: True,
         out_dim: 2,

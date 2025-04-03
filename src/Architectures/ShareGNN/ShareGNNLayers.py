@@ -375,7 +375,7 @@ class InvariantBasedMessagePassingLayer(nn.Module):
                 self.feature_B = nn.Parameter(torch.zeros((feature_out_dimension), dtype=self.precision))
 
         # Determine the number of weights and biases
-        # There are two cases assymetric and symmetric, assymetric is the default
+        # There are two cases asymetric and symmetric, asymetric is the default
         self.skips = [0]
         self.skips_description = [None]
         self.skips_description_text = [None]
@@ -1217,7 +1217,7 @@ class ShareGNNConcatenate(nn.Module):
     :param output_feature_dimensions: int -> the number of output features
     :param bias: bool -> whether to use bias
     """
-    def __init__(self, in_features, output_feature_dimensions=None, bias=True):
+    def __init__(self, in_features:int, out_features:int, output_feature_dimensions=None, bias=True):
         """
         :param in_features: int -> the number of input features
         :param output_feature_dimensions: int -> the number of output features
@@ -1229,7 +1229,7 @@ class ShareGNNConcatenate(nn.Module):
             - **out** is the output matrix of shape (N, F) where N is the number of nodes, F is the number of node features
         """
         super(ShareGNNConcatenate, self).__init__()
-        self.linear = nn.Linear(in_features, 1, bias=bias)
+        self.linear = nn.Linear(in_features, out_features, bias=bias)
         self.output_feature_dimensions = output_feature_dimensions
         self.name = "Multi-Head Concatenation Layer"
 

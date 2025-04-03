@@ -49,12 +49,14 @@ class ShareGNN(nn.Module):
                                                                     device=device,
                                                                     input_feature_dimensions=input_features).type(self.module_precision).requires_grad_(self.convolution_grad))
 
+                self.net_layers.append(self.get_activation_function('convolution_activation'))
                 # Concatenate multiple heads using a linear layer
                 if layer.num_heads() > 1 and layer.layer_dict.get('concatenate_heads', True):
-                    self.net_layers.append(ShareGNNLayers.ShareGNNConcatenate(layer.num_heads(), bias=True, output_feature_dimensions=self.net_layers[-1].output_feature_dimensions).type(
+                    concatenation_out_dim = layer.layer_dict.get('concatenate_heads_out_dim', 1)
+                    self.net_layers.append(ShareGNNLayers.ShareGNNConcatenate(in_features=layer.num_heads(), out_features=concatenation_out_dim, output_feature_dimensions=self.net_layers[-2].output_feature_dimensions, bias=True).type(
                         self.module_precision).requires_grad_(True))
-                # add convolution activation function
-                self.net_layers.append(self.get_activation_function('convolution_activation'))
+                    # add convolution activation function
+                    self.net_layers.append(self.get_activation_function('concatenation_activation'))
 
             elif layer.layer_type == 'aggregation':
                 self.aggregation_out_dim = layer.layer_dict.get('out_dim', self.out_dim)
@@ -106,6 +108,27 @@ class ShareGNN(nn.Module):
         self.epoch = 0
         self.timer = TimeClass()
 
+
+    def activation_function(self, function_name:str):
+        if function_name in ['None', 'Identity', 'identity', 'Id']:
+            return ShareGNNActivation(nn.Identity())
+        elif function_name in ['Relu', 'ReLU']:
+            return ShareGNNActivation(nn.ReLU())
+        elif function_name in ['LeakyRelu', 'LeakyReLU']:
+            return ShareGNNActivation(nn.LeakyReLU())
+        elif function_name in ['Tanh', 'tanh']:
+            return ShareGNNActivation(nn.Tanh())
+        elif function_name in ['Sigmoid', 'sigmoid']:
+            return ShareGNNActivation(nn.Sigmoid())
+        elif function_name in ['Softmax', 'softmax']:
+            return ShareGNNActivation(nn.Softmax(dim=0))
+        elif function_name in ['LogSoftmax', 'logsoftmax', 'log_softmax']:
+            return ShareGNNActivation(nn.LogSoftmax(dim=0))
+        else:
+            # default is Identity but print a warning
+            print(f'Activation function {function_name} not found. Using Identity activation function.')
+            return ShareGNNActivation(nn.Identity())
+
     def get_activation_function(self, key):
         if key in self.para.run_config.config and self.para.run_config.config[key] in ['None', 'Identity', 'identity', 'Id']:
             return ShareGNNActivation(nn.Identity())
@@ -122,7 +145,9 @@ class ShareGNN(nn.Module):
         elif key in self.para.run_config.config and self.para.run_config.config[key] in ['LogSoftmax', 'logsoftmax', 'log_softmax']:
             return ShareGNNActivation(nn.LogSoftmax(dim=0))
         else:
-            raise ValueError(f'Activation function {key} not recognized')
+            # default is Identity but print a warning
+            print(f'Activation function {key} not found. Using Identity activation function.')
+            return ShareGNNActivation(nn.Identity())
 
     def forward(self, x, pos):
         for i, layer in enumerate(self.net_layers):

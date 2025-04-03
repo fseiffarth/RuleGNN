@@ -221,49 +221,57 @@ def preprocess_network_architectures(network_architectures_dict):
 def check_layer(i:int, layer: dict)->(bool, str):
     if 'layer_type' not in layer:
         return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
-    if 'heads' not in layer:
-        return False, f'Channels not defined in layer {i}'
+    if layer['layer_type'] == 'linear':
+        if layer.get('in_dim', None) is None:
+            return False, f'Input dimension not defined in layer {i}. Use key in_dim: i, and i must be an int'
+        if layer.get('out_dim', None) is None:
+            return False, f'Output dimension not defined in layer {i}. Use key out_dim: i, and i must be an int'
+        if layer.get('bias', None) is None:
+            return False, f'Bias not defined in layer {i}, it must be True or False'
     else:
-        if not isinstance(layer['heads'], list):
-            return False, f'Channels must be a list in layer {i}'
+        if 'heads' not in layer:
+            return False, f'Channels not defined in layer {i}'
         else:
-            for channel in layer['heads']:
-                if not isinstance(channel, dict):
-                    return False, f'Channel must be a dictionary in layer {i}'
-                if 'bias' not in channel:
-                    return False, f'Bias not defined in layer {i}, it must be True or False'
-                if 'labels' not in channel:
-                    return False, f'Labels not defined in channel {i}'
-                else:
-                    if layer['layer_type'] == 'convolution':
-                        if 'head' not in channel['labels']:
-                            return False, f'Head not defined in channel {i}'
-                        else:
-                            if 'label_type' not in channel['labels']['head']:
-                                return False, f'Label type not defined in channel {i} for head'
-                        if 'tail' not in channel['labels']:
-                            return False, f'Tail not defined in channel {i}'
-                        else:
-                            if 'label_type' not in channel['labels']['tail']:
-                                return False, f'Label type not defined in channel {i} for tail'
-                        if 'bias' not in channel['labels']:
-                            return False, f'Bias not defined in channel {i}'
-                        else:
-                            if 'label_type' not in channel['labels']['bias']:
-                                return False, f'Label type not defined in channel {i} for bias'
-                        if 'properties' not in channel:
-                            return False, f'Properties not defined in channel {i}'
-                        else:
-                            if 'name' not in channel['properties']:
-                                return False, f'Property name not defined in channel {i}'
-                            if 'values' not in channel['properties']:
-                                return False, f'Property values not defined in channel {i}'
+            if not isinstance(layer['heads'], list):
+                return False, f'Channels must be a list in layer {i}'
+            else:
+                for channel in layer['heads']:
+                    if not isinstance(channel, dict):
+                        return False, f'Channel must be a dictionary in layer {i}'
+                    if 'bias' not in channel:
+                        return False, f'Bias not defined in layer {i}, it must be True or False'
+                    if 'labels' not in channel:
+                        return False, f'Labels not defined in channel {i}'
+                    else:
+                        if layer['layer_type'] == 'convolution':
+                            if 'head' not in channel['labels']:
+                                return False, f'Head not defined in channel {i}'
                             else:
-                                if not isinstance(channel['properties']['values'], list):
-                                    return False, f'Property values must be a list in channel {i}'
-                    elif layer['layer_type'] == 'aggregation':
-                        if 'label_type' not in channel['labels']:
-                            return False, f'Label type not defined in channel {i}'
+                                if 'label_type' not in channel['labels']['head']:
+                                    return False, f'Label type not defined in channel {i} for head'
+                            if 'tail' not in channel['labels']:
+                                return False, f'Tail not defined in channel {i}'
+                            else:
+                                if 'label_type' not in channel['labels']['tail']:
+                                    return False, f'Label type not defined in channel {i} for tail'
+                            if 'bias' not in channel['labels']:
+                                return False, f'Bias not defined in channel {i}'
+                            else:
+                                if 'label_type' not in channel['labels']['bias']:
+                                    return False, f'Label type not defined in channel {i} for bias'
+                            if 'properties' not in channel:
+                                return False, f'Properties not defined in channel {i}'
+                            else:
+                                if 'name' not in channel['properties']:
+                                    return False, f'Property name not defined in channel {i}'
+                                if 'values' not in channel['properties']:
+                                    return False, f'Property values not defined in channel {i}'
+                                else:
+                                    if not isinstance(channel['properties']['values'], list):
+                                        return False, f'Property values must be a list in channel {i}'
+                        elif layer['layer_type'] == 'aggregation':
+                            if 'label_type' not in channel['labels']:
+                                return False, f'Label type not defined in channel {i}'
 
     return True, ''
 
