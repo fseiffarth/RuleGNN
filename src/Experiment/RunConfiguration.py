@@ -222,12 +222,9 @@ def check_layer(i:int, layer: dict)->(bool, str):
     if 'layer_type' not in layer:
         return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
     if layer['layer_type'] == 'linear':
-        if layer.get('in_dim', None) is None:
-            return False, f'Input dimension not defined in layer {i}. Use key in_dim: i, and i must be an int'
-        if layer.get('out_dim', None) is None:
-            return False, f'Output dimension not defined in layer {i}. Use key out_dim: i, and i must be an int'
-        if layer.get('bias', None) is None:
-            return False, f'Bias not defined in layer {i}, it must be True or False'
+        pass
+    elif layer['layer_type'] == 'reshape':
+        pass
     else:
         if 'heads' not in layer:
             return False, f'Channels not defined in layer {i}'

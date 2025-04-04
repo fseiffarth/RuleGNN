@@ -146,6 +146,21 @@ class ShareGNNDataset(InMemoryDataset):
 
         self.preprocess_share_gnn_data(data, input_features, output_features, task=task)
 
+        self.number_of_output_classes = 0
+        # use the task to determine the number of classes
+        if self.task == 'graph_classification':
+            self.number_of_output_classes = torch.unique(data['y']).shape[0]
+        elif self.task == 'graph_regression':
+            self.number_of_output_classes = 1
+        elif self.task == 'node_classification':
+            self.number_of_output_classes = self.num_node_labels
+        elif self.task == 'edge_classification':
+            self.number_of_output_classes = self.num_edge_labels
+        elif self.task == 'link_prediction':
+            self.number_of_output_classes = 2
+        else:
+            raise ValueError('Task not supported')
+
 
         if not isinstance(data, dict):  # Backward compatibility.
             self.data = data
@@ -193,18 +208,8 @@ class ShareGNNDataset(InMemoryDataset):
 
     @property
     def num_classes(self) -> int:
-        # use the task to determine the number of classes
-        if self.task == 'graph_classification':
-            return len(torch.unique(self.data.y))
-        if self.task == 'graph_regression':
-            return 1
-        if self.task == 'node_classification':
-            return self.num_node_labels
-        if self.task == 'edge_classification':
-            return self.num_edge_labels
-        if self.task == 'link_prediction':
-            return 2
-        raise ValueError('Task not supported')
+        return self.number_of_output_classes
+
 
     def process(self):
         sizes = None

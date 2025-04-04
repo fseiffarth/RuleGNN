@@ -19,7 +19,8 @@ from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
 from src.utils.path_conversions import config_paths_to_absolute
 
-
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 class ExperimentMain:
@@ -52,6 +53,7 @@ class ExperimentMain:
         parameters:
         - num_threads: number of threads to use for the grid search. Default is -1. If -1, use all available threads.
         """
+        torch.set_warn_always(False)
         # set omp num threads to 1 to avoid conflicts with OpenMP if num_threads is unequal to 1
         if num_threads != 1:
             os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP

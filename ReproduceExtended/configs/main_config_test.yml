@@ -58,7 +58,7 @@ output_activation: 'tanh'
 
 # loss: loss function for the network
 loss:
-  - BCEWithLogitsLoss
+  - CrossEntropyLoss
 
 weighted_loss: True
 

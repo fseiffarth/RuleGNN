@@ -186,12 +186,15 @@ class ModelConfiguration:
                 train_batches = np.array_split(self.training_data,
                                                self.training_data.size // self.para.run_config.batch_size)
 
+
             # if weighted_loss is set to true, get the class weights
             if self.para.run_config.config.get('weighted_loss', False):
                 # get class counts per batch
-                class_counts = []
+                self.class_weights = torch.zeros((len(train_batches), self.graph_data.num_classes), dtype=self.dtype)
                 for i in range(len(train_batches)):
-                    class_counts.append(np.unique(self.graph_data.y[train_batches[i]], return_counts=True)[1])
+                    self.class_weights[i] = torch.unique(self.graph_data.y[train_batches[i]], return_counts=True)[1]
+                self.class_weights = 1.0 - torch.einsum('ij,i->ij', self.class_weights, 1.0/self.class_weights.sum(dim=1))
+
 
 
             self.num_epoch_samples = sum([batch.size for batch in train_batches])
@@ -241,19 +244,19 @@ class ModelConfiguration:
         self.net.to(self.device)
         print(f'Network initialized with seed {self.seed}')
 
-    def set_loss_function(self):
+    def set_loss_function(self, *args, **kwargs):
         if self.para.run_config.loss == 'CrossEntropyLoss':
-            self.criterion = nn.CrossEntropyLoss()
+            self.criterion = nn.CrossEntropyLoss(*args, **kwargs)
         elif self.para.run_config.loss in ['MeanSquaredError', 'MSELoss', 'mse', 'MSE']:
-            self.criterion = nn.MSELoss()
+            self.criterion = nn.MSELoss(*args, **kwargs)
         elif self.para.run_config.loss in ['L1Loss', 'l1', 'L1', 'mean_absolute_error', 'mae', 'MAE', 'MeanAbsoluteError']:
-            self.criterion = nn.L1Loss()
+            self.criterion = nn.L1Loss(*args, **kwargs)
         elif self.para.run_config.loss in ['BCELoss', 'bce', 'BCE']:
-            self.criterion = nn.BCELoss()
+            self.criterion = nn.BCELoss(*args, **kwargs)
         elif self.para.run_config.loss in ['BCEWithLogitsLoss', 'bce_with_logits', 'BCEWithLogits']:
-            self.criterion = nn.BCEWithLogitsLoss()
+            self.criterion = nn.BCEWithLogitsLoss(*args, **kwargs)
         elif self.para.run_config.loss in ['NLLLoss', 'nll', 'NLL']:
-            self.criterion = nn.NLLLoss()
+            self.criterion = nn.NLLLoss(*args, **kwargs)
         else:
             raise ValueError(f"Loss function {self.para.run_config.loss} not implemented")
 
@@ -771,9 +774,9 @@ class ModelConfiguration:
 
             # calculate the loss
             if self.para.run_config.config.get('weighted_loss', False):
-                loss = self.criterion(outputs, self.graph_data.y[batch], weights=self.class_weights)
-            else:
-                loss = self.criterion(outputs, self.graph_data.y[batch])
+                self.set_loss_function(weight =self.class_weights[batch_counter])
+
+            loss = self.criterion(outputs, self.graph_data.y[batch])
             timer.measure("forward")
 
             weights = []
