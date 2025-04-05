@@ -271,7 +271,7 @@ class Layer:
                 unique_dicts.append(head.property_dict)
         return unique_dicts
 
-    def get_head_string(self, head_id=0):
+    def get_source_string(self, head_id=0):
         """
         :return: the string representation of the source labels of the head
         """
@@ -329,7 +329,7 @@ class InvariantBasedMessagePassingLayer(nn.Module):
 
 
 
-    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, device='cpu', prev_layer=None, input_features=None, output_features=None):
+    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, device='cpu', input_features=None, output_features=None):
         """
         Constructor of the GraphConvLayer
         :param layer_id: the id of the layer
@@ -346,7 +346,6 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         self.layer_id = layer_id
         # layer information
         self.layer = layer
-        self.prev_layer = prev_layer # previous layers in the network
         self.para = parameters  # get the all the parameters of the experiment
         self.name = f"Invariant Based Message Passing"
         # get the graph data
@@ -354,13 +353,9 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         self.activation_function = activation_function(self.para.run_config.config['convolution_activation'])
         # get the input features, i.e. the dimension of the input vector and output_features
         self.input_features = self.graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.input_features = self.prev_layer.output_features
         if input_features is not None:
             self.input_features = input_features
         self.output_features = self.graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.output_features = self.prev_layer.output_features
         if output_features is not None:
             self.output_features = output_features
         # number of node labels for message passing (per head)
@@ -378,7 +373,7 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         self.num_heads = len(layer.layer_heads)
 
         for h_id, head in enumerate(layer.layer_heads):
-            self.source_label_descriptions.append(layer.get_head_string(h_id))
+            self.source_label_descriptions.append(layer.get_source_string(h_id))
             self.n_source_labels.append(graph_data.node_labels[self.source_label_descriptions[h_id]].num_unique_node_labels)
             self.target_label_descriptions.append(layer.get_tail_string(h_id))
             self.n_target_labels.append(graph_data.node_labels[self.target_label_descriptions[h_id]].num_unique_node_labels)
@@ -914,7 +909,7 @@ class InvariantBasedAggregationLayer(nn.Module):
         - **pos** is the index of the graph in the graph_data
         - **out** is the output matrix of shape (H, N, F) where H is the number of heads and N is the number of nodes and F is the number of node features.
     """
-    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, out_dim, device='cpu', prev_layer=None, input_features=None, output_features=None):
+    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, out_dim, device='cpu', input_features=None, output_features=None):
 
         super(InvariantBasedAggregationLayer, self).__init__()
         torch.manual_seed(seed)
@@ -924,7 +919,6 @@ class InvariantBasedAggregationLayer(nn.Module):
         self.layer_id = layer_id
         # all the layer parameters
         self.layer = layer
-        self.prev_layer = prev_layer # previous layers in the network
         # get the graph data
         self.graph_data = graph_data
         self.activation_function = activation_function(self.para.run_config.config['aggregation_activation'])
@@ -935,13 +929,9 @@ class InvariantBasedAggregationLayer(nn.Module):
 
         # get the input features, i.e. the dimension of the input vector and output_features
         self.input_features = self.graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.input_features = self.prev_layer.output_features
         if input_features is not None:
             self.input_features = input_features
         self.output_features = self.graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.output_features = self.prev_layer.output_features
         if output_features is not None:
             self.output_features = output_features
         # fixed output dimension of the layer
@@ -951,14 +941,14 @@ class InvariantBasedAggregationLayer(nn.Module):
         # device
         self.device = device
         self.n_node_labels = []
-        self.head_strings = []
+        self.node_label_descriptions = []
         # bias per head
         self.bias_list = [head.bias for head in layer.layer_heads]
         # is there any bias
         self.bias = any(self.bias_list)
         for i, head in enumerate(layer.layer_heads):
-            self.head_strings.append(layer.get_head_string(i))
-            self.n_node_labels.append(graph_data.node_labels[self.head_strings[i]].num_unique_node_labels)
+            self.node_label_descriptions.append(layer.get_source_string(i))
+            self.n_node_labels.append(graph_data.node_labels[self.node_label_descriptions[i]].num_unique_node_labels)
 
 
 
@@ -969,7 +959,7 @@ class InvariantBasedAggregationLayer(nn.Module):
 
         self.weight_distribution = [None] * len(graph_data)
         for i, head in enumerate(layer.layer_heads):
-            node_labels = self.graph_data.node_labels[self.head_strings[i]].node_labels
+            node_labels = self.graph_data.node_labels[self.node_label_descriptions[i]].node_labels
             # Set the bias weights
             _, indices, counts = torch.unique(node_labels, dim=0, return_inverse=True, return_counts=True, sorted=False)
             for idx in range(len(graph_data)):
@@ -1249,28 +1239,27 @@ class ShareGNNLinear(nn.Module):
     """
     Wrapper class for a linear layer that ignores the pos argument
     """
-    def __init__(self, layer:Layer, parameters, graph_data:ShareGNNDataset, prev_layer=None):
+    def __init__(self, layer:Layer, parameters, graph_data:ShareGNNDataset, num_heads=None, input_features=None, output_features=None):
         """
         """
         super(ShareGNNLinear, self).__init__()
         self.layer = layer
-        self.prev_layer = prev_layer # previous layers in the network
 
         # get the input features, i.e. the dimension of the input vector and output_features
         self.input_features = graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.input_features = self.prev_layer.output_features
+        if input_features is not None:
+            self.input_features = input_features
         self.input_features = layer.layer_dict.get('input_features', self.input_features)
 
         self.output_features = graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.output_features = self.prev_layer.output_features
+        if output_features is not None:
+            self.output_features = output_features
         self.output_features = layer.layer_dict.get('output_features', self.input_features)
 
         # determine the number of heads
         self.num_heads = 1
-        if prev_layer is not None:
-            self.num_heads = prev_layer.num_heads
+        if num_heads is not None:
+            self.num_heads = num_heads
         self.num_heads = layer.layer_dict.get('num_heads', self.num_heads)
 
 
@@ -1284,11 +1273,11 @@ class ShareGNNLinear(nn.Module):
         if self.mode == 'aggr_heads':
             k = math.sqrt(1.0 / (self.num_heads * self.input_features))
             self.Param_W = nn.Parameter(torch.nn.init.uniform_(torch.zeros(self.num_heads * self.input_features, self.output_features, dtype=self.precision), -k, k))
-            self.Param_B = nn.Parameter(torch.nn.init.uniform_(torch.zeros(self.output_features, dtype=self.precision), -k, k))
+            self.Param_b = nn.Parameter(torch.nn.init.uniform_(torch.zeros(self.output_features, dtype=self.precision), -k, k))
         elif self.mode == 'aggr_features':
             k = math.sqrt(1.0/self.input_features)
             self.Param_W = nn.Parameter(torch.nn.init.uniform_(torch.zeros(self.input_features, self.output_features, dtype=self.precision), -k, k))
-            self.Param_B = nn.Parameter(torch.nn.init.uniform_(torch.zeros(self.output_features, dtype=self.precision), -k, k))
+            self.Param_b = nn.Parameter(torch.nn.init.uniform_(torch.zeros(self.output_features, dtype=self.precision), -k, k))
 
 
         self.name = "Linear Layer"
@@ -1311,34 +1300,30 @@ class ShareGNNLinear(nn.Module):
             #x = x.unsqueeze(0)
 
         if self.bias:
-            x = x + self.Param_B
+            x = x + self.Param_b
         x = self.activation(x)
         return x
 
 class ShareGNNReshapeLayer(nn.Module):
-    def __init__(self, layer, parameters, graph_data:ShareGNNDataset, prev_layer=None):
+    def __init__(self, layer, parameters, graph_data:ShareGNNDataset, num_heads=None, input_features=None, output_features=None):
         super(ShareGNNReshapeLayer, self).__init__()
         self.name = "Reshape Layer"
         self.layer = layer
-        self.shape = layer.layer_dict.get('shape', (-1,))
-
-        self.prev_layer = prev_layer # previous layers in the network
-
+        self.shape = layer.layer_dict.get('shape', [-1,])
         # get the input features, i.e. the dimension of the input vector and output_features
         self.input_features = graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.input_features = self.prev_layer.output_features
+        if input_features is not None:
+            self.input_features = input_features
         self.input_features = layer.layer_dict.get('input_features', self.input_features)
-
         self.output_features = graph_data.num_node_features
-        if self.prev_layer is not None:
-            self.output_features = self.prev_layer.output_features
-        self.output_features = layer.layer_dict.get('output_features', self.input_features)
+        if output_features is not None:
+            self.output_features = output_features
+        self.output_features = layer.layer_dict.get('output_features', self.output_features)
 
         # determine the number of heads
         self.num_heads = 1
-        if prev_layer is not None:
-            self.num_heads = prev_layer.num_heads
+        if num_heads is not None:
+            self.num_heads = num_heads
         self.num_heads = layer.layer_dict.get('num_heads', self.num_heads)
 
 

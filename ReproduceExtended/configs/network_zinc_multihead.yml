@@ -1,50 +1,54 @@
 networks:
   - - { layer_type: convolution ,
       bias: False,
-      heads: [ 1 ],
-      labels: [
-         # {label_type: [ induced_cycles, primary ], max_cycle_length: [ 8 ] },
-        #{ label_type: [ simple_cycles, primary ], max_cycle_length: [ 6 ] },
-        { label_type: [ wl_labeled ], depth: [1] },
+      heads: [
+        {
+          bias: False,
+          labels: {
+            head: { label_type: wl_labeled, depth: 1 },
+            tail: { label_type: wl_labeled, depth: 1 },
+            bias: { label_type: wl_labeled, depth: 1 },
+          },
+          properties:
+            { name: distances, values: [ 0,1,2,3,4 ] },
+        },
       ],
-      properties: [
-        { name: distances, values: [ 0,1, 2, 3,4 ] },
-        #{ name: edge_label_distances, values: [ 0,1, 2, 3, 4] },
-        #{ name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 ] },
-      ]
   }
+    - { layer_type: linear,
+        mode: 'aggr_heads',
+        output_features: 10,
+        bias: True,
+        activation: 'tanh',
+    }
     - { layer_type: aggregation,
         bias: True,
         out_dim: 10,
         heads: [
           {
             bias: True,
-            labels: { label_type: simple_cycles, min_cycle_length: 6 , max_cycle_length: 6 },
+            labels: { label_type: [induced_cycles, primary], min_cycle_length: 6 , max_cycle_length: 6, depth: 0 },
           },
           {
             bias: True,
-            labels: { label_type: simple_cycles, min_cycle_length: 7, max_cycle_length: 7 },
+            labels: { label_type: [induced_cycles, primary], min_cycle_length: 7, max_cycle_length: 7, depth: 0 },
           },
           {
             bias: True,
-            labels: { label_type: simple_cycles, min_cycle_length: 8, max_cycle_length: 8 },
-          },
-          {
-            bias: True,
-            labels: { label_type: primary },
+            labels: { label_type: [induced_cycles, primary], min_cycle_length: 8, max_cycle_length: 8, depth: 0},
           }
         ],
     }
+    - { layer_type: reshape}
     - { layer_type: linear,
-          - mode: 'aggr_heads',
-          - output_features: 1,
-          - bias: True,
-          - activation: 'tanh'
-              - }
-    - { layer_type: reshape }
-
-# if subgraph labels are used the corresponding list of subgraphs should be provided here:
-subgraphs:
-  - "[nx.cycle_graph(6), nx.cycle_graph(7), nx.cycle_graph(8)]"
-  - "[nx.cycle_graph(6), nx.cycle_graph(7), nx.cycle_graph(8), nx.cycle_graph(9), nx.cycle_graph(10)]"
-  - "[nx.cycle_graph(6), nx.cycle_graph(7), nx.cycle_graph(8), nx.cycle_graph(9), nx.cycle_graph(10), nx.cycle_graph(11), nx.cycle_graph(12)]"
+        mode: 'aggr_features',
+        output_features: 10,
+        bias: True,
+        activation: 'None'
+    }
+    - { layer_type: linear,
+        mode: 'aggr_features',
+        output_features: 1,
+        bias: True,
+        activation: 'None'
+    }
+    - { layer_type: reshape}

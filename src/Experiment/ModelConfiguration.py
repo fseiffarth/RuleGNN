@@ -620,16 +620,28 @@ class ModelConfiguration:
                     # get number of trainable parameters
                     layer_params = sum(p.numel() for p in layer.parameters() if p.requires_grad)
                     total_trainable_parameters += layer_params
-                    file_obj.write(f"Trainable Parameters: {layer_params}\n")
+                    file_obj.write(f"Layer Trainable Parameters: {layer_params}\n")
                     try:
                         file_obj.write(f"Node labels: {layer.node_labels.num_unique_node_labels}\n")
                     except:
                         pass
                     try:
                         for i, n in enumerate(layer.n_properties):
+                            file_obj.write(f"Number of Source Labels (type: {layer.source_label_descriptions[i]}) in channel {i}: {layer.n_source_labels[i]}\n")
+                            file_obj.write(f"Number of Target Labels (type: {layer.target_label_descriptions[i]}) in channel {i}: {layer.n_target_labels[i]}\n")
+                            if layer.bias_list[i]:
+                                file_obj.write(f"Number of Bias Labels in channel {i}: {layer.n_bias_labels[i]}\n")
                             file_obj.write(f"Number of pairwise properties in channel {i}: {n}\n")
+                            file_obj.write("\n")
                     except:
                         pass
+                    try:
+                        for i, n in enumerate(layer.n_node_labels):
+                            file_obj.write(f"Number of Node Labels (type: {layer.node_label_descriptions[i]}) in channel {i}: {n}\n")
+                            file_obj.write("\n")
+                    except:
+                        pass
+
                     weight_learnable_parameters = 0
                     bias_learnable_parameters = 0
                     try:

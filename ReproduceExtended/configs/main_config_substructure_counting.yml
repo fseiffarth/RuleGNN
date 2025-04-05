@@ -1,21 +1,31 @@
 datasets:
   - {
-    name: "cycle6",
-    task: "graph_regression",
-    validation_folds: 1,
-    with_splits: False,
-    split_function: substructure_counting_splits,
-    split_function_args: { db_name: "cycle6" },
-    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
-    type: 'SubstructureBenchmark',
-  }
-  - {
     name: "tri_tail",
     task: "graph_regression",
     validation_folds: 1,
     with_splits: False,
     split_function: substructure_counting_splits,
     split_function_args: { db_name: "tri_tail" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
+  }
+  - {
+    name: "star",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "star" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
+    type: 'SubstructureBenchmark',
+  }
+  - {
+    name: "cycle6",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "cycle6" },
     experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
     type: 'SubstructureBenchmark',
   }
@@ -50,16 +60,7 @@ datasets:
     type: 'SubstructureBenchmark',
   }
 
-  - {
-    name: "star",
-    task: "graph_regression",
-    validation_folds: 1,
-    with_splits: False,
-    split_function: substructure_counting_splits,
-    split_function_args: { db_name: "star" },
-    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting.yml",
-    type: 'SubstructureBenchmark',
-  }
+
 
 
 paths:
@@ -100,12 +101,6 @@ convolution_activation: 'LeakyReLU'
 # aggregation_activation: activation function for the aggregation layer
 aggregation_activation: 'LeakyReLU'
 
-# linear_activation: activation function for the linear layer
-linear_activation: 'LeakyReLU'
-
-# output_activation: activation function for the output layer
-output_activation: 'LeakyReLU'
-
 # loss: loss function for the network
 loss:
   - MAE
@@ -137,7 +132,7 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
 batch_size:
   - 64
 learning_rate:
-  - 0.01
+  - 0.001
 epochs:
   - 1000
 
@@ -157,7 +152,7 @@ training_data_sampling: { type: 'default'}
 #training_data_sampling: { type: 'random' }
 
 #input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
-input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
+input_features: {name: constant, value: 1.0}
 #input_features: {name: node_labels, transformation: 'one_hot'}
 #use_feature_transformation: {out_dimension: 21, bias: True}
 best_model: True

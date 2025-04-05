@@ -35,8 +35,15 @@ class ShareGNN(nn.Module):
 
         # Define the layers
         self.net_layers = nn.ModuleList()
+        input_features = self.graph_data.num_node_features
+        output_features = input_features
+        num_heads = 0
         for i, layer in enumerate(para.layers):
             prev_layer = (None if len(self.net_layers) == 0 else self.net_layers[-1])
+            if prev_layer is not None:
+                input_features = prev_layer.output_features
+                num_heads = prev_layer.num_heads
+                output_features = prev_layer.output_features
             if layer.layer_type == 'convolution':
                 input_features = self.graph_data.num_node_features
                 if i != 0 and self.para.run_config.config.get('use_feature_transformation', None) is not None:
@@ -48,7 +55,8 @@ class ShareGNN(nn.Module):
                                                                     parameters=para,
                                                                     graph_data=self.graph_data,
                                                                     device=device,
-                                                                     prev_layer=prev_layer).type(self.module_precision).requires_grad_(self.convolution_grad))
+                                                                     input_features=output_features,
+                                                                     output_features=output_features).type(self.module_precision).requires_grad_(self.convolution_grad))
 
 
             elif layer.layer_type == 'aggregation':
@@ -61,11 +69,14 @@ class ShareGNN(nn.Module):
                                                                  out_dim=self.aggregation_out_dim,
                                                                  graph_data=self.graph_data,
                                                                  device=device,
-                                                                     prev_layer=prev_layer).requires_grad_(self.aggregation_grad))
+                                                                  input_features=output_features,
+                                                                  output_features=output_features).requires_grad_(self.aggregation_grad))
             elif layer.layer_type == 'linear':
-                self.net_layers.append(ShareGNNLayers.ShareGNNLinear(layer, para, self.graph_data, prev_layer=prev_layer).type(self.module_precision))
+                self.net_layers.append(ShareGNNLayers.ShareGNNLinear(layer, para, self.graph_data, num_heads=num_heads, input_features=input_features, output_features=output_features).type(self.module_precision))
             elif layer.layer_type == 'reshape':
-                self.net_layers.append(ShareGNNLayers.ShareGNNReshapeLayer(layer, para, self.graph_data, prev_layer=prev_layer).type(self.module_precision))
+                if isinstance(prev_layer, ShareGNNLayers.InvariantBasedAggregationLayer):
+                    output_features = prev_layer.num_heads * prev_layer.output_features * prev_layer.output_dimension
+                self.net_layers.append(ShareGNNLayers.ShareGNNReshapeLayer(layer, para, self.graph_data, num_heads=num_heads, input_features=input_features, output_features=output_features).type(self.module_precision))
 
         self.dropout = nn.Dropout(dropout)
 

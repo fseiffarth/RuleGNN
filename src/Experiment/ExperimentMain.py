@@ -294,10 +294,6 @@ class ExperimentMain:
                         raise ValueError(f'Please specify the activation function in the experiment configuration file using the key "activation".')
                     if 'aggregation_activation' not in configuration:
                         raise ValueError(f'Please specify the aggregation activation function in the experiment configuration file using the key "aggregation_activation".')
-                    if 'linear_activation' not in configuration:
-                        raise ValueError(f'Please specify the linear activation function in the experiment configuration file using the key "linear_activation".')
-                    if 'output_activation' not in configuration:
-                        raise ValueError(f'Please specify the output activation function in the experiment configuration file using the key "output_activation".')
                     if 'loss' not in configuration:
                         raise ValueError(f'Please specify the loss function in the experiment configuration file using the key "loss".')
 

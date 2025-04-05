@@ -42,13 +42,23 @@ networks:
           properties:
             { name: distances, values: [ 0 ] },
         },
+        {
+          bias: False,
+          labels: {
+            head: { label_type: wl, depth: 0 },
+            tail: { label_type: wl, depth: 0 },
+            bias: { label_type: wl, depth: 0 },
+          },
+          properties:
+            { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10 ] },
+        }
       ],
   }
     - { layer_type: linear,
         mode: 'aggr_heads',
         output_features: 10,
         bias: True,
-        activation: 'tanh'
+        activation: 'LeakyReLU'
     }
     - { layer_type: aggregation,
         bias: True,
@@ -72,14 +82,7 @@ networks:
           }
         ],
     }
-    - { layer_type: linear,
-        mode: 'aggr_heads',
-        output_features: 1,
-        bias: True,
-        activation: 'Relu'
-    }
-    - { layer_type: reshape,
-        shape: [1, -1]}
+    - { layer_type: reshape}
     - { layer_type: linear,
         mode: 'aggr_features',
         output_features: 1,
