@@ -5,7 +5,7 @@ datasets:
     validation_folds: 1,
     with_splits: False,
     split_function: zinc_splits_full,
-    experiment_config_file: "ReproduceExtended/configs/network_zinc.yml",
+    experiment_config_file: "ReproduceExtended/configs/network_zinc_multihead.yml",
     type: 'ZINC',
   }
 
@@ -47,12 +47,6 @@ convolution_activation: 'LeakyReLU'
 
 # aggregation_activation: activation function for the aggregation layer
 aggregation_activation: 'LeakyReLU'
-
-# linear_activation: activation function for the linear layer
-linear_activation: 'None'
-
-# output_activation: activation function for the output layer
-output_activation: 'None'
 
 # loss: loss function for the network
 loss:

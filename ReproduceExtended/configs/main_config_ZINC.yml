@@ -44,10 +44,10 @@ convolution_grad: True
 aggregation_grad: True
 
 # activation: activation function for the convolutional layers
-convolution_activation: 'tanh'
+convolution_activation: 'LeakyReLU'
 
 # aggregation_activation: activation function for the aggregation layer
-aggregation_activation: 'tanh'
+aggregation_activation: 'LeakyReLU'
 
 # loss: loss function for the network
 loss:
@@ -78,7 +78,7 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
                          aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
-  - 128
+  - 64
 learning_rate:
   - 0.001
 epochs:
