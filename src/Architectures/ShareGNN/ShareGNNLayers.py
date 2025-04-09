@@ -307,14 +307,46 @@ class Layer:
 
 # TODO define a base class for InvariantBased Layers including MessagePassing, Pooling and Positional Encodings
 class InvariantBasedLayer(nn.Module):
-    pass
+    def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, device='cpu', input_features=None, output_features=None):
+        super().__init__()
+        # set seed for reproducibility
+        torch.manual_seed(seed)
+        # id and name of the layer
+        self.layer_id = layer_id
+        # layer information
+        self.layer = layer
+        self.para = parameters  # get the all the parameters of the experiment
+        self.name = f"Invariant Based Layer"
+        # get the underlying graph data
+        self.graph_data = graph_data
+        # get the input features, i.e. the dimension of the input vector and output_features
+        self.input_features = self.graph_data.num_node_features
+        if input_features is not None:
+            self.input_features = input_features
+        self.output_features = self.graph_data.num_node_features
+        if output_features is not None:
+            self.output_features = output_features
+        # number of heads
+        self.num_heads = len(layer.layer_heads)
+
+        # Weights
+        self.Param_W = None
+        self.weight_distribution = None
+        self.weight_distribution_slices = None
+        self.weight_num = [] # number of weights per head
+        # Bias
+        self.Param_b = None
+        self.bias_distribution = None
+        self.bias_distribution_slices = None
+        self.bias_num = [] # number of biases per head
+
 
 # TODO define a class for invariant based positional encodings that takes a node label and outputs a vector of size k of learnable weights for each node label
 class InvariantBasedPositionalEncodingLayer(InvariantBasedLayer):
     pass
 
 
-class InvariantBasedMessagePassingLayer(nn.Module):
+class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
     """
     This class represents a message passing layer of the encoder of an ShareGNN.
     :param layer_id: the id of the layer
@@ -342,25 +374,10 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         :param device: use 'cpu' or 'cuda' as device ('cpu' is recommended)
         :param input_feature_dimensions: the number of input features
         """
-        super(InvariantBasedMessagePassingLayer, self).__init__()
-        # set seed for reproducibility
-        torch.manual_seed(seed)
-        # id and name of the layer
-        self.layer_id = layer_id
-        # layer information
-        self.layer = layer
-        self.para = parameters  # get the all the parameters of the experiment
+        super(InvariantBasedLayer, self).__init__(layer_id, seed, parameters, layer, graph_data, device, input_features, output_features)
         self.name = f"Invariant Based Message Passing"
-        # get the graph data
-        self.graph_data = graph_data
         self.activation_function = activation_function(self.para.run_config.config['convolution_activation'])
-        # get the input features, i.e. the dimension of the input vector and output_features
-        self.input_features = self.graph_data.num_node_features
-        if input_features is not None:
-            self.input_features = input_features
-        self.output_features = self.graph_data.num_node_features
-        if output_features is not None:
-            self.output_features = output_features
+
         # number of node labels for message passing (per head)
         self.n_source_labels = [] # count of the different labels occuring for the first entry in the triple (each list entry stands for one head)
         self.source_label_descriptions = [] # graph invariant description (each list entry corresponds to one head)
@@ -384,11 +401,6 @@ class InvariantBasedMessagePassingLayer(nn.Module):
             self.n_bias_labels.append(graph_data.node_labels[self.bias_label_descriptions[h_id]].num_unique_node_labels)
             self.property_descriptions.append(head.property_dict.get_property_string())
             self.n_properties.append(graph_data.properties[self.property_descriptions[h_id]].num_properties[(layer_id, h_id)])
-
-
-        # head-wise weight num
-        self.weight_num = []
-        self.bias_num = []
 
         self.bias_list = [head.bias for head in layer.layer_heads]
         self.bias = any(self.bias_list)  # check if bias is used
