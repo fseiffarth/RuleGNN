@@ -83,8 +83,11 @@ def get_label_string(label_dict: dict) -> str:
         if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
     elif label_type == "wl_labeled":
+        l_string = 'wl_labeled'
+        if 'base_labels' in label_dict:
+            l_string = f"{l_string}_{get_label_string(label_dict['base_labels'])}_base_labels"
         iterations = label_dict.get('depth', 3)
-        l_string = f"wl_labeled_{iterations}"
+        l_string = f"{l_string}_{iterations}"
         max_labels = label_dict.get('max_labels', None)
         if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
@@ -415,15 +418,15 @@ class InvariantBasedMessagePassingLayer(nn.Module):
             valid_property_values = self.graph_data.properties[self.property_descriptions[i]].valid_values[(layer_id, i)]
             # get subdict of valid properties
             # apply the head and tail labels to the subdict
-            head_labels = self.graph_data.node_labels[self.source_label_descriptions[i]].node_labels
-            tail_labels = self.graph_data.node_labels[self.target_label_descriptions[i]].node_labels
+            source_labels = self.graph_data.node_labels[self.source_label_descriptions[i]].node_labels
+            target_labels = self.graph_data.node_labels[self.target_label_descriptions[i]].node_labels
             bias_labels = self.graph_data.node_labels[self.bias_label_descriptions[i]].node_labels
             for key in valid_property_values:
                 property_subdict = self.graph_data.properties[self.property_descriptions[i]].properties[key]
                 property_subdict_slices = self.graph_data.properties[self.property_descriptions[i]].properties_slices[key]
                 labeled_subdict = property_subdict.detach().clone()
-                labeled_subdict[:, 0] = head_labels[property_subdict[:, 0]]
-                labeled_subdict[:, 1] = tail_labels[property_subdict[:, 1]]
+                labeled_subdict[:, 0] = source_labels[property_subdict[:, 0]]
+                labeled_subdict[:, 1] = target_labels[property_subdict[:, 1]]
                 # set all indices to -1 where the head or tail label is -1
                 invalid_indices = torch.where(torch.logical_or(labeled_subdict[:, 0] == -1, labeled_subdict[:, 1] == -1))[0]
                 do_invalid_indices_exist = len(invalid_indices) > 0
@@ -572,10 +575,10 @@ class InvariantBasedMessagePassingLayer(nn.Module):
         graph_weight_distribution = self.weight_distribution[self.weight_distribution_slices[pos]:self.weight_distribution_slices[pos+1]]
         if len(graph_weight_distribution) != 0:
             # get third column of the weight_distribution: the index of self.Param_W
-            param_weights = graph_weight_distribution[:, 3]
+            weight_indices = graph_weight_distribution[:, 3]
             matrix_indices = graph_weight_distribution[:, 0:3].T
             # set current_W by using the matrix_indices with the values of the Param_W at the indices of param_indices
-            self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, param_weights)
+            self.current_W[matrix_indices[0], matrix_indices[1], matrix_indices[2]] = torch.take(self.Param_W, weight_indices)
         return
 
     def set_bias(self, pos) -> None:

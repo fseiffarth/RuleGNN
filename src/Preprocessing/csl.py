@@ -2,7 +2,8 @@ import networkx as nx
 import torch
 from torch_geometric.datasets import GNNBenchmarkDataset
 
-from src.utils import NodeLabeling, EdgeLabeling
+from src.utils import EdgeLabeling
+from src.Preprocessing import NodeLabeling
 from src.utils.GraphData import GraphData
 
 

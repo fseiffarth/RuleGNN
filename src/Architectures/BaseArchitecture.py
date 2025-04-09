@@ -1,10 +1,10 @@
-from abc import abstractmethod, ABC, abstractclassmethod
+from abc import abstractmethod
 
 import torch
 from torch import nn
 
 from src.utils.GraphData import ShareGNNDataset
-from src.utils.Parameters.Parameters import Parameters
+from src.Architectures.ShareGNN.Parameters import Parameters
 
 
 class BaseGNN(nn.Module):

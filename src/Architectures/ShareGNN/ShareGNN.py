@@ -1,15 +1,12 @@
-from torch.cuda import graph
-
 from src.Architectures.ShareGNN import ShareGNNLayers
 import torch
 import torch.nn as nn
 
 from src.Architectures.ShareGNN.ShareGNNLayers import ShareGNNActivation
-from src.utils import GraphData
 
 from src.Time.TimeClass import TimeClass
 from src.utils.GraphData import ShareGNNDataset
-from src.utils.Parameters.Parameters import Parameters
+from src.Architectures.ShareGNN.Parameters import Parameters
 
 
 class ShareGNN(nn.Module):

@@ -79,6 +79,10 @@ networks:
           {
             bias: True,
             labels: { label_type: simple_cycles, min_cycle_length: 6, max_cycle_length: 6 },
+          },
+          {
+            bias: True,
+            labels: { label_type: wl, depth: 0 },
           }
         ],
     }
@@ -87,6 +91,6 @@ networks:
         mode: 'aggr_features',
         output_features: 1,
         bias: True,
-        activation: 'Relu'
+        activation: 'LeakyReLU'
     }
     - { layer_type: reshape}

@@ -5,7 +5,7 @@ networks:
         {
           bias: False,
           labels: {
-            head: { label_type: wl_labeled, depth: 1 },
+            head: { label_type: wl_labeled, depth: 1, base_labels: { label_type: [simple_cycles, primary], min_cycle_length: 6 , max_cycle_length: 6 } },
             tail: { label_type: wl_labeled, depth: 1 },
             bias: { label_type: wl_labeled, depth: 1 }
           },

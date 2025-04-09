@@ -71,7 +71,7 @@ datasets:
         name: "MUTAG",
         task: "graph_classification",
         validation_folds: 10,
-        experiment_config_file: "Examples/Foundation/Configs/config_molecule_edge_labels.yml",
+        experiment_config_file: "Examples/Foundation/Configs/config_molecule_simple.yml",
         type: "TUDataset"
     }
 
@@ -152,10 +152,10 @@ convolution_grad: True
 aggregation_grad: True
 
 # activation: activation function for the convolutional layers
-activation: 'tanh'
+convolution_activation: 'tanh'
 
-# output_activation: activation function for the output layer
-output_activation: 'tanh'
+# aggregation_activation: activation function for the aggregation layer
+aggregation_activation: 'tanh'
 
 # loss: loss function for the network
 loss:
@@ -180,13 +180,13 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
+weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
                          convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'constant', value: 0.001 },
+                         aggregation: {  type: 'lower_upper', value: 0.001 },
                          aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
-  - 16
+  - 32
 learning_rate:
   - 0.01
 epochs:
@@ -199,8 +199,8 @@ early_stopping:
     25
 
 # how to sample the training data
-#training_data_sampling: { type: 'default'}
-training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True, exclusive: True}
+training_data_sampling: { type: 'default'}
+#training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True, exclusive: True}
 #training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True }
 #training_data_sampling: { type: 'random' }
 

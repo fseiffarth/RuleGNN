@@ -1,124 +1,42 @@
 networks:
   - - { layer_type: convolution ,
-      bias: False,
+      bias: True,
       heads: [
         {
-          bias: False,
+          bias: True,
           labels: {
-            head: { label_type: [wl_labeled, induced_cycles], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-            tail: { label_type: [wl_labeled, induced_cycles], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-            bias: { label_type: [wl_labeled, induced_cycles], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
+            head: { label_type: [induced_cycles, primary], min_cycle_length: 6 , max_cycle_length: 6 },
+            tail: { label_type: [induced_cycles, primary], min_cycle_length: 6 , max_cycle_length: 6 },
+            bias: { label_type: wl_labeled, depth: 2},
           },
           properties:
-            { name: distances, values: [1] },
+            { name: distances, values: [1,2,3,4] },
         },
         {
-          bias: False,
+          bias: True,
           labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
+            head: { label_type: [induced_cycles, primary], min_cycle_length: 7 , max_cycle_length: 7 },
+            tail: { label_type: [induced_cycles, primary], min_cycle_length: 7 , max_cycle_length: 7 },
+            bias: { label_type: wl_labeled, depth: 2},
           },
           properties:
-            { name: distances, values: [ 1 ] },
+            { name: distances, values: [ 1,2,3,4] },
         },
         {
-          bias: False,
+          bias: True,
           labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
+            head: { label_type: [induced_cycles, primary], min_cycle_length: 8 , max_cycle_length: 8 },
+            tail: { label_type: [induced_cycles, primary], min_cycle_length: 8 , max_cycle_length: 8 },
+            bias: { label_type: wl_labeled, depth: 2},
           },
           properties:
-            { name: distances, values: [ 1] },
+            { name: distances, values: [ 1,2,3,4] },
         }
       ],
   }
     - { layer_type: linear,
       mode: 'aggr_heads',
-      output_features: 1,
-      bias: True,
-      activation: 'LeakyReLU',
-    }
-    - { layer_type: convolution ,
-      bias: False,
-      heads: [
-        {
-          bias: False,
-          labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-          },
-          properties:
-            { name: distances, values: [ 1 ] },
-        },
-        {
-          bias: False,
-          labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-          },
-          properties:
-            { name: distances, values: [ 1 ] },
-        },
-        {
-          bias: False,
-          labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-          },
-          properties:
-            { name: distances, values: [ 1 ] },
-        }
-      ],
-    }
-    - { layer_type: linear,
-        mode: 'aggr_heads',
-        output_features: 1,
-        bias: True,
-        activation: 'LeakyReLU',
-        }
-    - { layer_type: convolution ,
-      bias: False,
-      heads: [
-        {
-          bias: False,
-          labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 6 , max_cycle_length: 6 },
-          },
-          properties:
-            { name: distances, values: [ 1 ] },
-        },
-        {
-          bias: False,
-          labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 7 , max_cycle_length: 7 },
-          },
-          properties:
-            { name: distances, values: [ 1 ] },
-        },
-        {
-          bias: False,
-          labels: {
-            head: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-            tail: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-            bias: { label_type: [ wl_labeled, induced_cycles ], depth: 1, min_cycle_length: 8 , max_cycle_length: 8 },
-          },
-          properties:
-            { name: distances, values: [ 1 ] },
-        }
-      ],
-   }
-    - { layer_type: linear,
-      mode: 'aggr_heads',
-      output_features: 1,
+      output_features: 100,
       bias: True,
       activation: 'LeakyReLU',
     }
@@ -128,15 +46,15 @@ networks:
         heads: [
           {
             bias: True,
-            labels: { label_type: [wl_labeled, induced_cycles], min_cycle_length: 6 , max_cycle_length: 6, depth: 1 },
+            labels: { label_type: wl_labeled, depth: 1, base_labels : { label_type: [induced_cycles, primary], min_cycle_length: 6 , max_cycle_length: 6 }},
           },
           {
             bias: True,
-            labels: { label_type: [wl_labeled, induced_cycles], min_cycle_length: 7, max_cycle_length: 7, depth: 1 },
+            labels: { label_type: wl_labeled, depth: 1, base_labels : { label_type: [induced_cycles, primary], min_cycle_length: 7 , max_cycle_length: 7 }},
           },
           {
             bias: True,
-            labels: { label_type: [wl_labeled, induced_cycles], min_cycle_length: 8, max_cycle_length: 8, depth: 1},
+            labels: { label_type: wl_labeled, depth: 1, base_labels : { label_type: [induced_cycles, primary], min_cycle_length: 8 , max_cycle_length: 8 }},
           }
         ],
     }

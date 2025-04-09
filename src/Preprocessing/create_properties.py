@@ -7,10 +7,9 @@ from pathlib import Path
 import networkx as nx
 import torch
 import yaml
-from torch_geometric.io import fs
 
-from src.utils.GraphData import get_graph_data, ShareGNNDataset
-from src.utils.load_labels import load_labels
+from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.load_labels import load_labels
 import copy
 
 from src.utils.utils import convert_to_list

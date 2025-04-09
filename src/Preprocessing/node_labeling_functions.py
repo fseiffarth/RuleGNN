@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import networkx as nx
 
@@ -64,13 +64,22 @@ def degree_node_labeling(graphs: List[nx.Graph]):
     db_unique_node_labels = dict(sorted(db_unique_node_labels.items()))
     return node_labels, unique_node_labels, db_unique_node_labels
 
-def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], depth: int = 3, labeled: bool = False):
+def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], depth: int = 3, labeled: bool = False, base_labels: Optional[dict] = None):
     unique_node_labels = []
     db_unique_node_labels = {}
     union_graph = nx.disjoint_union_all(graphs)
+    # check if the base_labels is not None
+    if base_labels is not None:
+        for i, node in enumerate(union_graph.nodes(data=True)):
+            # add base label as node attribute
+            node[1]['base_label'] = base_labels['labels'].node_labels[node[0]].item()
     hash_dict = []
     if labeled:
-        hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='primary_label')
+        if base_labels is not None:
+            # use the base label as the node attribute
+            hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='base_label')
+        else:
+            hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='primary_label')
     else:
         hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth)
     largest_int = 0

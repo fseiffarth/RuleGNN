@@ -1,9 +1,8 @@
 import torch_geometric
-from torch import nn
 
 from src.Architectures.BaseArchitecture import BaseGNN
 from src.utils.GraphData import ShareGNNDataset
-from src.utils.Parameters.Parameters import Parameters
+from src.Architectures.ShareGNN.Parameters import Parameters
 
 
 class GCNGraph(BaseGNN):

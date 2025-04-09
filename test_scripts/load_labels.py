@@ -14,6 +14,8 @@ def load_label_files(path: Path):
 
 
 def main():
+    test_0 = load_label_files('Labels/MUTAG_labels_wl_labeled_simple_cycles_6_6_base_labels_1.pt')
+    test_1 = load_label_files('Labels/MUTAG_labels_wl_labeled_simple_cycles_6_6_primary_base_labels_1.pt')
     base_path = Path('/home/florian/Documents/Code/GNNs/RuleGNN/ReproduceExtended/Data/Labels/ZINC/')
     base_path_ring = Path('/home/florian/Documents/Code/GNNs/RuleGNN/ReproduceExtended/Data/Labels/RingCounting3/')
     labels = load_label_files(base_path_ring.joinpath('RingCounting3_labels_subgraph_0.pt'))

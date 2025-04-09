@@ -14,7 +14,7 @@ from src.Architectures.ShareGNN import ShareGNN
 from src.Experiment.ModelConfiguration import ModelConfiguration
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
 from src.utils.GraphData import get_graph_data, ShareGNNDataset
-from src.utils.Parameters.Parameters import Parameters
+from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
 from src.utils.path_conversions import config_paths_to_absolute

@@ -5,7 +5,7 @@ from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
 from scripts.ExperimentMain import ExperimentMain
 from src.utils.GraphData import get_graph_data
 from src.utils.RunConfiguration import get_run_configs
-from src.utils.load_labels import load_labels
+from src.Preprocessing.load_labels import load_labels
 from src.utils.utils import save_graphs
 
 

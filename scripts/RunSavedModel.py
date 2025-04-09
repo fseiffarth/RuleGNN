@@ -8,7 +8,7 @@ import yaml
 from find_best_models import config_paths_to_absolute, load_preprocessed_data_and_parameters
 from src.Architectures.RuleGNN import RuleGNN
 from src.utils.GraphData import get_graph_data
-from src.utils.Parameters.Parameters import Parameters
+from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
 

@@ -8,8 +8,9 @@ import torch
 from networkx.algorithms.isomorphism import GraphMatcher
 from torch_geometric.io import fs
 
+from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
 from src.utils.GraphData import ShareGNNDataset
-from src.utils.NodeLabeling import weisfeiler_lehman_node_labeling
+from src.Preprocessing.node_labeling_functions import weisfeiler_lehman_node_labeling
 
 def save_labels_to_file(file:Path, dataset_name:str, label_name:str, graph_node_labels:Optional[Union[List[List[int]], torch.Tensor]], max_labels:None):
     """
@@ -211,9 +212,12 @@ def save_wl_labels(graph_data:ShareGNNDataset, depth, max_labels=None, label_pat
         print(f"File {file} already exists. Skipping.")
     return file
 
-def save_wl_labeled_labels(graph_data:ShareGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:
+def save_wl_labeled_labels(graph_data:ShareGNNDataset, depth, max_labels=None, label_path=None, base_labels:Optional[dict]=None, save_times=None)->str:
     # save the node labels to a file
-    l = f'wl_labeled_{depth}'
+    l = 'wl_labeled'
+    if base_labels is not None and base_labels['layer_dict']['label_type'] != 'primary':
+        l = f'{l}_{get_label_string(base_labels["layer_dict"])}_base_labels'
+    l = f'{l}_{depth}'
     if max_labels is not None:
         l = f'{l}_{max_labels}'
     if label_path is None:
@@ -225,7 +229,7 @@ def save_wl_labeled_labels(graph_data:ShareGNNDataset, depth, max_labels=None, l
         if graph_data.nx_graphs is None:
             graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
-        node_labels, unique_node_labels, db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.nx_graphs, depth=depth, labeled=True)
+        node_labels, unique_node_labels, db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.nx_graphs, depth=depth, labeled=True, base_labels=base_labels)
         save_labels_to_file(file, graph_data.name, l, node_labels, max_labels)
         if save_times is not None:
             try:

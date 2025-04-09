@@ -7,7 +7,7 @@ import networkx as nx
 import numpy as np
 import torch
 
-from src.utils.Parameters import Parameters
+from src.Architectures.ShareGNN import Parameters
 
 
 def get_k_lowest_nonzero_indices(tensor, k):

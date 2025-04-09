@@ -74,7 +74,7 @@ paths:
   splits:
     "ReproduceExtended/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "ReproduceExtended/Results/" # Results will be saved in this folder
+    "ReproduceExtended/Results/SubstructureCounting/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
@@ -151,8 +151,8 @@ training_data_sampling: { type: 'default'}
 #training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True }
 #training_data_sampling: { type: 'random' }
 
-#input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
 input_features: {name: constant, value: 1.0}
+#input_features: {name: constant, value: 1.0}
 #input_features: {name: node_labels, transformation: 'one_hot'}
 #use_feature_transformation: {out_dimension: 21, bias: True}
 best_model: True

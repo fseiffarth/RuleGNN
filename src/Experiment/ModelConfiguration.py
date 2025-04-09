@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,11 +10,10 @@ from torch import optim, nn
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 from src.Architectures.Ordinary.GCNGraph import GCNGraph
-from src.Architectures.ShareGNN import ShareGNN
+from src.Architectures.ShareGNN import ShareGNN, Parameters
 from src.Experiment.data_sampling import curriculum_sampling
 from src.utils import GraphData
 from src.utils.GraphData import ShareGNNDataset
-from src.utils.Parameters import Parameters
 from src.Time.TimeClass import TimeClass
 from src.TrainTestData import TrainTestData as ttd
 from src.utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configuration, is_pruning

@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 
+from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
 from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels, save_primary_labels, \
     save_degree_labels, save_cycle_labels, save_subgraph_labels, save_clique_labels, save_index_labels, \
     save_labeled_degree_labels, save_wl_labeled_labels, save_labels_to_file
@@ -10,11 +11,8 @@ from src.Preprocessing.create_splits import create_splits
 from src.utils.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import combine_node_labels
 from src.Experiment.RunConfiguration import get_run_configs
-from src.utils.load_labels import load_labels
+from src.Preprocessing.load_labels import load_labels
 from src.utils.utils import save_graphs
-import networkx as nx
-
-
 
 
 class DatasetPreprocessing:
@@ -282,6 +280,14 @@ class DatasetPreprocessing:
             elif layer['label_type'] == 'wl_labeled':
                 layer['max_labels'] = layer.get('max_labels', None)
                 layer['depth'] = layer.get('depth', 3)
+                base_labels = None
+                if 'base_labels' in layer:
+                    base_labels = dict()
+                    base_label_path = self.experiment_configuration['paths']['labels'].joinpath(f'{self.graph_data.name}').joinpath(f"{self.graph_data.name}_labels_{get_label_string(layer['base_labels'])}.pt")
+                    base_labels['layer_dict'] = layer['base_labels']
+                    base_labels['layer_string'] = get_label_string(layer['base_labels'])
+                    base_labels['labels'] = load_labels(base_label_path)
+
                 if layer['depth'] == 0:
                     file_path = save_labeled_degree_labels(graph_data=self.graph_data,
                                                            label_path=label_path,
@@ -292,6 +298,7 @@ class DatasetPreprocessing:
                                                        depth=layer.get('depth', 3),
                                                        max_labels=layer['max_labels'],
                                                        label_path=label_path,
+                                                       base_labels=base_labels,
                                                        save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'simple_cycles' or layer['label_type'] == 'induced_cycles':
                 cycle_type = 'simple' if layer['label_type'] == 'simple_cycles' else 'induced'
@@ -362,6 +369,7 @@ class DatasetPreprocessing:
         run_configs = get_run_configs(self.experiment_configuration)
         # preprocessed layers
         preprocessed_label_dicts = set()
+        proprocessed_label_dicts_first = set()
         preprocessed_properties = set()
         # iterate over the layers
         for run_config in run_configs:
@@ -374,8 +382,14 @@ class DatasetPreprocessing:
                 for label_dict in layer.get_unique_layer_dicts():
                     json_layer = json.dumps(label_dict, sort_keys=True)
                     preprocessed_label_dicts.add(json_layer)
+                    # if key base_labels in label_dict, then add the base_labels to the preprocessed_label_dicts
+                    if 'base_labels' in label_dict:
+                        json_layer = json.dumps(label_dict['base_labels'], sort_keys=True)
+                        proprocessed_label_dicts_first.add(json_layer)
         # generate all necessary labels and properties, first need to create the nx graphs to run the algorithms on
         #self.graph_data.create_nx_graphs(directed=False)
+        for layer in proprocessed_label_dicts_first:
+            self.layer_to_labels(layer)
         for layer in preprocessed_label_dicts:
             self.layer_to_labels(layer)
         for preprocessed_property in preprocessed_properties:

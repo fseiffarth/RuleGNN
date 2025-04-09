@@ -1,5 +1,4 @@
 import os
-from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Optional, Callable, List, Union
 
@@ -11,7 +10,6 @@ from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset
 
-from src.utils import NodeLabeling, EdgeLabeling
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
 from torch_geometric.io import fs
@@ -708,7 +706,7 @@ class ShareGNNDataset(InMemoryDataset):
                     del self.nx_graphs[-1].nodes[node[0]]['x']
                 counter += 1
             if graph.edge_attr is not None:
-                unique_edge_labels = torch.unique(self.data['edge_attr'])
+                unique_edge_labels = torch.unique(self.data.edge_attr)
                 for edge in self.nx_graphs[-1].edges(data=True):
                     edge_label_one_hot = np.array(edge[2]['edge_attr'])[self.num_edge_attributes:]
                     if edge_label_one_hot.size == 1 :
