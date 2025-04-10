@@ -3,6 +3,7 @@ Created on 15.03.2019
 
 @author:
 '''
+from abc import abstractmethod
 from pathlib import Path
 from typing import Tuple, Optional
 
@@ -319,6 +320,13 @@ class InvariantBasedLayer(nn.Module):
         self.name = f"Invariant Based Layer"
         # get the underlying graph data
         self.graph_data = graph_data
+
+        self.device = device  # set the device
+
+        self.precision = torch.float # set the precision of the weights
+        if parameters.run_config.config.get('precision', 'float') == 'double':
+            self.precision = torch.double
+
         # get the input features, i.e. the dimension of the input vector and output_features
         self.input_features = self.graph_data.num_node_features
         if input_features is not None:
@@ -334,11 +342,36 @@ class InvariantBasedLayer(nn.Module):
         self.weight_distribution = None
         self.weight_distribution_slices = None
         self.weight_num = [] # number of weights per head
+        self.current_W = torch.Tensor() # current weight matrix (for the graph considered in the forward pass)
         # Bias
         self.Param_b = None
         self.bias_distribution = None
         self.bias_distribution_slices = None
         self.bias_num = [] # number of biases per head
+        self.current_B = torch.Tensor() # current bias matrix (for the graph considered in the forward pass)
+
+
+
+        # number of node labels for message passing (per head)
+        self.n_source_labels = []  # count of the different labels occuring for the first entry in the triple (each list entry stands for one head)
+        self.source_label_descriptions = []  # graph invariant description (each list entry corresponds to one head)
+        self.n_target_labels = []  # count of the different labels occuring for the second entry in the triple (each list entry stands for one head)
+        self.target_label_descriptions = []  # graph invariant description (each list entry corresponds to one head)
+
+        # pairwise properties for message passing (per head) e.g., the distance between two nodes
+        self.n_properties = []  # counts of the different properties occuring in the third entry in the triple (each list entry corresponds to one head)
+        self.property_descriptions = []
+
+        # number of node labels for bias (per head)
+        self.n_bias_labels = []  # count of the different labels occuring in the bias term (each list entry stands for one head)
+        self.bias_label_descriptions = []  # graph invariant description (each list entry corresponds to one head)
+
+
+    # abstract forward function
+    @abstractmethod
+    def forward(self, x: torch.Tensor, pos: int) -> torch.Tensor:
+        pass
+
 
 
 # TODO define a class for invariant based positional encodings that takes a node label and outputs a vector of size k of learnable weights for each node label
@@ -374,23 +407,9 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
         :param device: use 'cpu' or 'cuda' as device ('cpu' is recommended)
         :param input_feature_dimensions: the number of input features
         """
-        super(InvariantBasedLayer, self).__init__(layer_id, seed, parameters, layer, graph_data, device, input_features, output_features)
+        super(InvariantBasedMessagePassingLayer, self).__init__(layer_id, seed, parameters, layer, graph_data, device, input_features, output_features)
         self.name = f"Invariant Based Message Passing"
         self.activation_function = activation_function(self.para.run_config.config['convolution_activation'])
-
-        # number of node labels for message passing (per head)
-        self.n_source_labels = [] # count of the different labels occuring for the first entry in the triple (each list entry stands for one head)
-        self.source_label_descriptions = [] # graph invariant description (each list entry corresponds to one head)
-        self.n_target_labels = [] # count of the different labels occuring for the second entry in the triple (each list entry stands for one head)
-        self.target_label_descriptions = [] # graph invariant description (each list entry corresponds to one head)
-        self.n_properties = [] # counts of the different properties occuring in the third entry in the triple (each list entry corresponds to one head)
-        self.property_descriptions = []
-        # number of node labels for bias (per head)
-        self.n_bias_labels = [] # count of the different labels occuring in the bias term (each list entry stands for one head)
-        self.bias_label_descriptions = []
-
-        # number of heads
-        self.num_heads = len(layer.layer_heads)
 
         for h_id, head in enumerate(layer.layer_heads):
             self.source_label_descriptions.append(layer.get_source_string(h_id))
@@ -404,31 +423,19 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
 
         self.bias_list = [head.bias for head in layer.layer_heads]
         self.bias = any(self.bias_list)  # check if bias is used
-        self.device = device  # set the device
-        self.precision = torch.float # set the precision of the weights
-        if parameters.run_config.config.get('precision', 'float') == 'double':
-            self.precision = torch.double
-
-        # Initialize the current weight matrix, bias vector and feature weight matrix
-        self.current_W = torch.Tensor()
-        self.current_B = torch.Tensor()
-        self.feature_W = torch.Tensor()
-        if parameters.run_config.config.get('use_feature_transformation', None) is not None:
-            feature_out_dimension = parameters.run_config.config['use_feature_transformation'].get('out_dimension', self.input_features)
-            self.feature_W = nn.Parameter(torch.nn.init.xavier_normal_(torch.zeros((self.input_features, feature_out_dimension), dtype=self.precision)))
-            if parameters.run_config.config['use_feature_transformation'].get('bias', False):
-                self.feature_B = nn.Parameter(torch.zeros((feature_out_dimension), dtype=self.precision))
 
         # Determine the number of weights and biases
-        # There are two cases asymetric and symmetric, asymetric is the default
+        # There are two cases asymetric and symmetric, asymetric is the default, TODO add symmetric case
         self.skips = [0]
         self.skips_description = [None]
         self.skips_description_text = [None]
         self.weight_distribution = [None] * len(graph_data)
         self.bias_distribution = [None] * len(graph_data)
-        for i, head in enumerate(layer.layer_heads):
+
+        # Iterate over all heads in the layer
+        for i, head in enumerate(self.layer.layer_heads):
+            # get all the valid property values for the head (e.g., the distances 0, 3, 6)
             valid_property_values = self.graph_data.properties[self.property_descriptions[i]].valid_values[(layer_id, i)]
-            # get subdict of valid properties
             # apply the head and tail labels to the subdict
             source_labels = self.graph_data.node_labels[self.source_label_descriptions[i]].node_labels
             target_labels = self.graph_data.node_labels[self.target_label_descriptions[i]].node_labels
@@ -492,6 +499,7 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
 
             self.weight_num.append(self.skips[-1])
             # TODO symmetric case
+
             if self.bias:
                 # Determine the number of different learnable parameters in the bias vector
                 self.bias_num.append(self.input_features * self.n_bias_labels[i])
@@ -911,7 +919,7 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
 
 
 
-class InvariantBasedAggregationLayer(nn.Module):
+class InvariantBasedAggregationLayer(InvariantBasedLayer):
     """
     This class represents an invariant based decoder layer of a ShareGNN
     :param
@@ -926,37 +934,16 @@ class InvariantBasedAggregationLayer(nn.Module):
     """
     def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, out_dim, device='cpu', input_features=None, output_features=None):
 
-        super(InvariantBasedAggregationLayer, self).__init__()
+        super(InvariantBasedAggregationLayer, self).__init__(layer_id, seed, parameters, layer, graph_data, device, input_features, output_features)
         torch.manual_seed(seed)
         self.name = f"Rule Aggregation Layer"
-        self.para = parameters
-        # id of the layer
-        self.layer_id = layer_id
-        # all the layer parameters
-        self.layer = layer
-        # get the graph data
-        self.graph_data = graph_data
         self.activation_function = activation_function(self.para.run_config.config['aggregation_activation'])
-        self.precision = torch.float
-        if parameters.run_config.config.get('precision', 'float') == 'double':
-            self.precision = torch.double
 
-
-        # get the input features, i.e. the dimension of the input vector and output_features
-        self.input_features = self.graph_data.num_node_features
-        if input_features is not None:
-            self.input_features = input_features
-        self.output_features = self.graph_data.num_node_features
-        if output_features is not None:
-            self.output_features = output_features
         # fixed output dimension of the layer
         self.output_dimension = out_dim
-        self.num_heads = len(layer.layer_heads)
 
-        # device
-        self.device = device
-        self.n_node_labels = []
-        self.node_label_descriptions = []
+        self.n_node_labels = [] # number of node labels per head
+        self.node_label_descriptions = [] # node label descriptions per head
         # bias per head
         self.bias_list = [head.bias for head in layer.layer_heads]
         # is there any bias
@@ -965,14 +952,9 @@ class InvariantBasedAggregationLayer(nn.Module):
             self.node_label_descriptions.append(layer.get_source_string(i))
             self.n_node_labels.append(graph_data.node_labels[self.node_label_descriptions[i]].num_unique_node_labels)
 
-
-
         self.weight_num = np.sum(self.n_node_labels) * out_dim
-        #self.weight_map = np.arange(self.weight_num, dtype=np.int64).reshape((self.heads, out_dim, n_node_labels))
-        self.current_W = torch.Tensor()
-
-
         self.weight_distribution = [None] * len(graph_data)
+
         for i, head in enumerate(layer.layer_heads):
             node_labels = self.graph_data.node_labels[self.node_label_descriptions[i]].node_labels
             # Set the bias weights
