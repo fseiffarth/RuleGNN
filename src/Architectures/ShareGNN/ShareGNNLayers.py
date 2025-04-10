@@ -950,22 +950,22 @@ class InvariantBasedAggregationLayer(InvariantBasedLayer):
         self.bias = any(self.bias_list)
         for i, head in enumerate(layer.layer_heads):
             self.node_label_descriptions.append(layer.get_source_string(i))
-            self.n_node_labels.append(graph_data.node_labels[self.node_label_descriptions[i]].num_unique_node_labels)
+            self.n_node_labels.append(self.graph_data.node_labels[self.node_label_descriptions[i]].num_unique_node_labels)
 
         self.weight_num = np.sum(self.n_node_labels) * out_dim
-        self.weight_distribution = [None] * len(graph_data)
+        self.weight_distribution = [None] * len(self.graph_data)
 
         for i, head in enumerate(layer.layer_heads):
             node_labels = self.graph_data.node_labels[self.node_label_descriptions[i]].node_labels
             # Set the bias weights
             _, indices, counts = torch.unique(node_labels, dim=0, return_inverse=True, return_counts=True, sorted=False)
-            for idx in range(len(graph_data)):
+            for idx in range(len(self.graph_data)):
                 for out_dim_id in range(out_dim):
-                    new_weight_distribution = torch.zeros((graph_data.num_nodes[idx].item(), 4), dtype=torch.int64)
+                    new_weight_distribution = torch.zeros((self.graph_data.num_nodes[idx].item(), 4), dtype=torch.int64)
                     new_weight_distribution[:, 0] = i
                     new_weight_distribution[:, 1] = out_dim_id
-                    new_weight_distribution[:, 2] = torch.arange(graph_data.num_nodes[idx].item()) # torch.arange(start=graph_data.slices['x'][idx], end=graph_data.slices['x'][idx+1], dtype=torch.int64)
-                    new_weight_distribution[:, 3] = indices[graph_data.slices['x'][idx]:graph_data.slices['x'][idx+1]] + out_dim_id * self.n_node_labels[i]
+                    new_weight_distribution[:, 2] = torch.arange(self.graph_data.num_nodes[idx].item()) # torch.arange(start=self.graph_data.slices['x'][idx], end=self.graph_data.slices['x'][idx+1], dtype=torch.int64)
+                    new_weight_distribution[:, 3] = indices[self.graph_data.slices['x'][idx]:self.graph_data.slices['x'][idx+1]] + out_dim_id * self.n_node_labels[i]
                     if self.weight_distribution[idx] is None:
                         self.weight_distribution[idx] = new_weight_distribution.detach().clone()
                     else:
@@ -974,7 +974,7 @@ class InvariantBasedAggregationLayer(InvariantBasedLayer):
 
         # merge the bias distribution of all graphs (creating additionally slicing information)
         self.weight_distribution_slices = torch.tensor([0] + [len(w) for w in self.weight_distribution], dtype=torch.int64).cumsum(dim=0)
-        self.weight_distribution = torch.cat([self.weight_distribution[i] for i in range(len(graph_data))], dim=0).to(self.device)
+        self.weight_distribution = torch.cat([self.weight_distribution[i] for i in range(len(self.graph_data))], dim=0).to(self.device)
 
         self.Param_W = self.init_weights(self.weight_num, init_type='aggregation')
 
