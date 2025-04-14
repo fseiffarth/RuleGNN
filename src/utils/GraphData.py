@@ -73,6 +73,9 @@ class ShareGNNDataset(InMemoryDataset):
         num_zero_columns = 0
         if data.get('x', None) is not None:
             if delete_zero_columns and data['x'].layout != torch.sparse_csr:
+                # if x is one dimensional, add a dimension
+                if data['x'].dim() == 1:
+                    data['x'] = data['x'].unsqueeze(1)
                 columns = data['x'].shape[1]
                 # remove columns with only zeros
                 if self.precision == torch.float:

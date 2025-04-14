@@ -1,0 +1,91 @@
+
+# networks: list of network configurations, each configuration is a list of layers, each layer is a dictionary with the layer_type and properties
+networks:
+  - - { layer_type: convolution ,
+        bias: False,
+        heads: [10],
+        labels: [
+          { label_type: [primary, index] },
+        ],
+        properties: [
+          { name: distances, values: [ 0 ] },
+        ]
+  }
+    - { layer_type: linear,
+        mode: 'aggr_heads',
+        output_features: 10,
+        bias: True,
+        activation: 'tanh'
+    }
+    - { layer_type: convolution ,
+        bias: False,
+        heads: [10],
+        labels: [
+          { label_type: [primary] },
+        ],
+        properties: [
+          { name: distances, values: [ 0,1,2,3,4,5,6 ] },
+        ]
+      }
+    - { layer_type: linear,
+        mode: 'aggr_heads',
+        output_features: 10,
+        bias: True,
+        activation: 'tanh'}
+    - { layer_type: convolution ,
+        bias: False,
+        heads: [ 10 ],
+        labels: [
+          { label_type: [ primary ] },
+        ],
+        properties: [
+          { name: distances, values: [ 0,1,2,3,4,5,6 ] },
+        ]
+    }
+    - { layer_type: linear,
+        mode: 'aggr_heads',
+        output_features: 10,
+        bias: True,
+        activation: 'tanh'}
+    - { layer_type: convolution ,
+        bias: False,
+        heads: [ 10 ],
+        labels: [
+          { label_type: [ primary ] },
+        ],
+        properties: [
+          { name: distances, values: [ 0,1,2,3,4,5,6 ] },
+        ]
+    }
+    - { layer_type: linear,
+        mode: 'aggr_heads',
+        output_features: 10,
+        bias: True,
+        activation: 'tanh' }
+    - { layer_type: aggregation,
+          bias: True,
+          heads: [10],
+          labels: [
+            { label_type: [primary, index] },
+          ]
+      }
+    - { layer_type: linear,
+        mode: 'aggr_heads',
+        output_features: 2,
+        bias: True,
+        activation: 'tanh' }
+    - { layer_type: linear,
+        mode: 'aggr_features',
+        output_features: 1,
+        bias: True,
+        activation: 'tanh' }
+    - { layer_type: reshape }
+
+# if subgraph labels are used the corresponding list of subgraphs should be provided here, the subgraph id of the layer corresponds to the index of the subgraph in the list
+subgraphs:
+  - "[nx.cycle_graph(5), nx.star_graph(1)]"
+  - "[nx.cycle_graph(6), nx.star_graph(1)]"
+
+
+
+

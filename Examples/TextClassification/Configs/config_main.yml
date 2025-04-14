@@ -1,0 +1,148 @@
+# datasets: list of datasets to be used for the experiment
+# -name: "DHFR", name of the dataset (if type is TUDataset, the name can be any of the datasets from
+# -validation_folds: 10, number of validation folds
+# -experiment_config_file: path to the experiment configuration file
+# -type: type of the dataset, options: [TUDataset, generate_from_function]
+# -generate_function: if type is generate_from_function, the name of the function to generate the dataset from src/utils/SyntheticGraphs.py
+# -generate_function_args: if type is generate_from_function, the arguments for the generate function as a dictionary
+datasets:
+  - {name: "sentiment_test",
+     type: "NEL",
+     task: 'graph_classification',
+     validation_folds: 10,
+     experiment_config_file: "Examples/NLP/Configs/network_sentiment.yml"}
+
+# paths: paths to the data, properties, labels, results and splits
+paths:
+  # Path to the folder containing the graph data
+  data: "Examples/NLP/Data/Graphs/"
+  # Precomputed properties will be saved and loaded from this folder
+  properties: "Examples/NLP/Data/Properties/"
+  # Path to the folder containing the labels
+  labels: "Examples/NLP/Data/Labels/"
+  # Results will be saved in this folder
+  results: "Examples/NLP/Results/"
+  # Path to the folder containing the data splits
+  splits: "Examples/NLP/Data/Splits/"
+
+# mode: mode of the experiment, there are two modes one for debugging and one for running the experiments
+#   - debug
+#   - experiments
+mode: experiments # options: [debug, experiments] if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
+
+# precision: precision of the model, can be set to float or double
+#  - float
+#  - double
+precision: double
+
+# device: the device to use, cpu is recommended as it is faster at the moment
+#   - cpu (recommended)
+#   - cuda
+device: cpu
+
+### Experiment options
+# batch_size: batch size used for training, use several options for hyperparameter search, use None to set the batch size to the size of the dataset
+batch_size:
+  - 16
+
+# learning_rate: learning rate used for training, use several options for hyperparameter search
+learning_rate:
+  - 0.0001
+
+# epochs: number of epochs used for training, use several options for hyperparameter search
+epochs:
+  - 500
+
+# dropout: dropout rate used for training, use several options for hyperparameter search
+dropout:
+  - 0.0
+
+# weight_decay: weight decay used for training, use several options for hyperparameter search (TODO)
+weight_decay:
+  - 0.0
+
+# optimizer: optimizer used for training, use several options for hyperparameter search
+optimizer:
+  - Adam
+
+# loss: loss function used for training, use several options for hyperparameter search
+loss:
+  - CrossEntropyLoss
+
+# scheduler: learning rate scheduler used for training, use several options for hyperparameter search (TODO: different schedulers),
+#  - False
+#  - True (each 5 epochs the learning rate is reduced by a factor of 0.5)
+scheduler: False
+
+# early_stopping: early stopping used for training, enabled can be set to True or False, patience is the number of epochs to wait for improvement of the validation accuracy
+early_stopping:
+  enabled:
+    False
+  patience:
+    5000
+
+
+# network options
+# bias: Turn on or off the bias in all layers
+bias: True
+
+# convolution_grad: Turn on or off learning for the convolutional layers
+convolution_grad: True
+
+# aggregation_grad: Turn on or off learning for the aggregation layer
+aggregation_grad: True
+
+# activation: activation function for the convolutional layers
+convolution_activation: 'tanh'
+
+# output_activation: activation function for the output layer
+aggregation_activation: 'tanh'
+
+# rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
+# -type: [graph, total], graph: the rule has to be present in a graph, total: the rule has to be present in the whole dataset
+# -threshold: the threshold for the rule occurrence at least this many times
+rule_occurrence_threshold: 1
+
+# weight initialization: weight initialization for the network (TODO)
+# - convolution: weight initialization for the convolutional layers
+# - convolution_bias: weight initialization for the convolutional bias
+# - aggregation: weight initialization for the aggregation layer
+# - aggregation_bias: weight initialization for the aggregation bias
+# keys:
+#     - type: [uniform, normal, constant, lower_upper], uniform: uniform distribution, normal: normal distribution, constant: constant value, lower_upper: uniform distribution with lower and upper bound from the number of weights
+#     - min: minimum value for the uniform distribution
+#     - max: maximum value for the uniform distribution
+#     - value: constant value for the constant distribution
+#     - mean for the normal distribution
+#     - std: variance for the normal distribution
+#weight_initialization: { convolution: { type: 'lower_upper', min: -0.01, max: 0.01 },
+#                         convolution_bias: { type: 'constant', value: 0.0 },
+#                         aggregation: { type: 'lower_upper', min: -0.01, max: 0.01 },
+#                         aggregation_bias: { type: 'constant', value: 0.0 }}
+weight_initialization: { convolution: { type: 'constant', value: 0.001 },
+                         convolution_bias: { type: 'constant', value: 0.0 },
+                         aggregation: { type: 'constant', value: 0.001 },
+                         aggregation_bias: { type: 'constant', value: 0.0 }}
+
+# input_features: determine how the input features should be transformed, the following options show some examples
+# keys:
+#  - name: [constant, node_labels, node_features, all], the type of input features
+#  - transformation: [normalize, normalize_positive, unit_circle, one_hot], the transformation of the input features
+#  - features_as_channels: True, use the features as channels
+#  - value: constant value for the constant input features
+#  - random_variation: add random variation to the input features
+# examples:
+#  - {name: constant, value: 1.0}, use a constant value as input feature
+#  - {name: node_labels, transformation: normalize}, use node labels and normalize them between -1 and 1
+#  - {name: node_labels, transformation: normalize_positive}, use node labels and normalize them between 0 and 1
+#  - {name: node_labels, transformation: unit_circle, features_as_channels: True}, use node labels mapped to the 2D unit circle, use features as channels
+#  - {name: node_labels, transformation: one_hot, features_as_channels: True}, use node labels and transform them to one-hot encoding
+#  - {name: node_features, features_as_channels: True}, use node features as inpu, use features as channels
+#  - {name: all, features_as_channels: True}, use node labels and node features as input, use features as channels
+input_features: { name: constant, value: 1.0 }
+
+save_best_model: True
+best_model: True
+
+
+

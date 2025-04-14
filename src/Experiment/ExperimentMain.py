@@ -265,7 +265,7 @@ class ExperimentMain:
                                 if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
                                     raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
                         else:
-                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark']:
+                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark', 'NEL']:
                                 raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                     ###
@@ -291,7 +291,7 @@ class ExperimentMain:
                     if 'optimizer' not in configuration:
                         raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
                     if 'convolution_activation' not in configuration:
-                        raise ValueError(f'Please specify the activation function in the experiment configuration file using the key "activation".')
+                        raise ValueError(f'Please specify the convolution activation function in the experiment configuration file using the key "convolution_activation".')
                     if 'aggregation_activation' not in configuration:
                         raise ValueError(f'Please specify the aggregation activation function in the experiment configuration file using the key "aggregation_activation".')
                     if 'loss' not in configuration:

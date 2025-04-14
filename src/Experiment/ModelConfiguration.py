@@ -220,7 +220,7 @@ class ModelConfiguration:
 
 
             # apply scheduler
-            if self.para.run_config.config.get('scheduler', None) is not None:
+            if self.scheduler is not None:
                 if self.para.run_config.config['scheduler']['type'] == 'ReduceLROnPlateau':
                     self.scheduler.step(validation_values.loss)
                 else:
@@ -283,6 +283,12 @@ class ModelConfiguration:
         """
         if self.para.run_config.config.get('scheduler', None) is not None:
             scheduler = self.para.run_config.config.get('scheduler')
+            if isinstance(scheduler, bool):
+                if scheduler is True:
+                    raise ValueError("Scheduler is set to True, but no scheduler is defined")
+                else:
+                    self.scheduler = None
+                    return
             scheduler_type = scheduler.get('type', None)
             if scheduler_type == 'StepLR':
                 self.scheduler = StepLR(self.optimizer, step_size=scheduler.get('step_size', None), gamma=scheduler.get('gamma', None))
