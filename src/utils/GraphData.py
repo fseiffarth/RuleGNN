@@ -8,7 +8,7 @@ import torch
 import torch_geometric.data
 from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.data import InMemoryDataset, Data
-from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset
+from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset, LRGBDataset
 
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
@@ -152,7 +152,11 @@ class ShareGNNDataset(InMemoryDataset):
         if self.task == 'graph_classification':
             self.number_of_output_classes = torch.unique(data['y']).shape[0]
         elif self.task == 'graph_regression':
-            self.number_of_output_classes = 1
+            # if y is 2D-tensor, take the dimension of the second axis as number of output classes
+            if data['y'].dim() == 2:
+                self.number_of_output_classes = data['y'].shape[1]
+            else:
+                self.number_of_output_classes = 1
         elif self.task == 'node_classification':
             self.number_of_output_classes = self.num_node_labels
         elif self.task == 'edge_classification':
@@ -382,8 +386,9 @@ class ShareGNNDataset(InMemoryDataset):
                 test_data = GraphCount(root=str(root.joinpath('tmp')) + '/', split="test", task=self.name)
                 all_data = torch_geometric.data.InMemoryDataset.collate([train_data._data, validation_data._data, test_data._data])
                 self.data = all_data[0]
-                # flatten y
-                self.data.y = self.data.y.view(-1)
+                # flatten y if self.name is not 'substructure_counting'
+                if self.name != 'substructure_counting':
+                    self.data.y = self.data.y.view(-1)
                 # merge the slices
                 self.slices = dict()
                 for key in train_data.slices.keys():
@@ -468,6 +473,16 @@ class ShareGNNDataset(InMemoryDataset):
                 self.slices = dataset.slices
                 self.data = dataset.data
                 pass
+            elif self.from_existing_data == 'Peptides':
+                dataset = torch_geometric.datasets.LRGBDataset(root='tmp/', name=self.name)
+                self.data = dataset.data
+                self.slices = dataset.slices
+                sizes = {
+                    'num_node_labels': dataset.num_node_features,
+                    'num_node_attributes': dataset.num_node_features,
+                    'num_edge_labels': dataset.num_edge_features,
+                    'num_edge_attributes': dataset.num_edge_features
+                }
         else:
             print('Cannot process the data')
 

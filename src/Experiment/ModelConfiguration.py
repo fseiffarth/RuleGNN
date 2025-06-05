@@ -84,7 +84,10 @@ class ModelConfiguration:
         # Set up the optimizer
         self.set_optimizer()
         # Preprocess the results writer
-        self.preprocess_writer()
+        if not self.preprocess_writer():
+            # Run already exists, so we do not run the training again
+            print(f"Run {self.run_id} already exists, skipping training.")
+            return
         # set the scheduler
         self.set_scheduler()
 
@@ -601,7 +604,7 @@ class ModelConfiguration:
 
         return train_values, validation_values, test_values
 
-    def preprocess_writer(self):
+    def preprocess_writer(self)-> bool:
         if self.run_id == 0 and self.k_val == 0:
             # create a file about the net details including (net, optimizer, learning rate, loss function, batch size, number of classes, number of epochs, balanced data, dropout)
             file_name = f'{self.para.db}_{self.para.config_id}_Network.txt'
@@ -692,7 +695,7 @@ class ModelConfiguration:
                 print(f'The file {file_name} already exists and recomputation is skipped')
 
         if does_run_exist:
-            return
+            return False
         else:
             # if the file does not exist create a new file
             with open(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), "w") as file_obj:
@@ -715,6 +718,7 @@ class ModelConfiguration:
         with open(final_path, "a") as file_obj:
             if os.stat(final_path).st_size == 0:
                 file_obj.write(header)
+        return True
 
 
     def postprocess_writer(self, epoch, epoch_time, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues):

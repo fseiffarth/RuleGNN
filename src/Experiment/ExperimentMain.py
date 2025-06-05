@@ -454,17 +454,20 @@ class ExperimentMain:
         else:
             raise FileNotFoundError(f"Model {model_path} not found")
 
-    def evaluate_model(self, db_name, config_id=0, run_id=0, validation_id=0):
+
+    # evaluate the model on the test data
+    def evaluate_model(self, db_name, db_id=0, config_id=0, run_id=0, validation_id=0, best=True):
         # evaluate the performance of the model on the test data
-        net = self.load_model(db_name, config_id, run_id, validation_id)
-        experiment_configuration = self.experiment_configurations[db_name]
-        graph_data = preprocess_graph_data(db_name, experiment_configuration)
+        experiment_configuration = self.experiment_configurations[db_name][db_id]
+        graph_data = preprocess_graph_data(experiment_configuration)
         split_data = Load_Splits(experiment_configuration['paths']['splits'], db_name)
         test_data = np.asarray(split_data[0][validation_id], dtype=int)
         outputs = torch.zeros((len(test_data), graph_data.num_classes), dtype=torch.double)
+        # load the model
+        net = self.load_model(db_name, config_id=config_id, run_id=run_id, validation_id=validation_id, best=best)
         with torch.no_grad():
             for j, data_pos in enumerate(test_data, 0):
-                inputs = torch.DoubleTensor(graph_data.input_data[data_pos])
+                inputs = torch.DoubleTensor(graph_data.x[data_pos])
                 outputs[j] = net(inputs, data_pos)
             labels = graph_data.output_data[test_data]
             # calculate the errors between the outputs and the labels by getting the argmax of the outputs and the labels
@@ -476,7 +479,7 @@ class ExperimentMain:
                 counter += 1
             accuracy = correct / counter
             print(f"Dataset: {db_name}, Run Id: {run_id}, Validation Split Id: {validation_id}, Accuracy: {accuracy}")
-
+        return outputs, labels, accuracy
 
 def collect_paths(main_configuration, experiment_configuration, dataset_configuration=None):
     # first look into the main config file

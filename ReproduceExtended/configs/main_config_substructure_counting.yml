@@ -1,5 +1,15 @@
 datasets:
   - {
+    name: "substructure_counting",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: substructure_counting_splits,
+    split_function_args: { db_name: "substructure_counting" },
+    experiment_config_file: "ReproduceExtended/configs/config_substructure_counting_multi.yml",
+    type: 'SubstructureBenchmark',
+  }
+  - {
     name: "tri_tail",
     task: "graph_regression",
     validation_folds: 1,

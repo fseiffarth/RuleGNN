@@ -136,7 +136,6 @@ class DatasetPreprocessing:
                 print(f'Do not know how to handle data from {data_generation_type}. Do you mean "TUDataset"?')
             pass
         else:
-            # TODO generate the pt data
             if data_generation_type is not None:
                 if data_generation_args is None:
                     data_generation_args = {}
