@@ -798,7 +798,7 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
         graph_weights = all_weights[param_indices]
 
         # sort weights
-        if filter_weights is not None:
+        if filter_weights is not None and len(graph_weights) != 0:
             sorted_weights = np.sort(np.array(list(set(graph_weights))))
             if filter_weights.get('percentage', None) is not None:
                 percentage = filter_weights['percentage']
@@ -817,8 +817,13 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
         else:
             weights = np.asarray(graph_weights)
 
-        weight_min = np.min(graph_weights)
-        weight_max = np.max(graph_weights)
+        # if graph weights is empty, return
+        if len(weights) == 0:
+            weight_min = 0
+            weight_max = 0
+        else:
+            weight_min = np.min(graph_weights)
+            weight_max = np.max(graph_weights)
         weight_max_abs = max(abs(weight_min), abs(weight_max))
         # use seismic colormap with maximum and minimum values from the weight matrix
         cmap = graph_drawing[1].colormap
@@ -890,7 +895,7 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
             node_colors = []
             node_sizes = []
             for node in digraph.nodes():
-                node_label = self.graph_data.node_labels[self.bias_label_descriptions[head]].node_labels[graph_id][node]
+                node_label = self.graph_data.node_labels[self.bias_label_descriptions[head]].node_labels[self.graph_data.slices['x'][graph_id]:self.graph_data.slices['x'][graph_id+1]][node]
                 node_colors.append(bias_colors[node_label])
                 node_sizes.append(graph_drawing[1].node_size * abs(bias[node_label]) / bias_max_abs)
 

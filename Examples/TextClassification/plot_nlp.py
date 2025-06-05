@@ -3,10 +3,13 @@ from pathlib import Path
 import matplotlib.colors as mcolors
 import pandas as pd
 
-from scripts.ExperimentMain import ExperimentMain
 from scripts.WeightVisualization import WeightVisualization, GraphDrawing
 import matplotlib.pyplot as plt
 import numpy as np
+
+from src.Experiment.ExperimentMain import ExperimentMain
+from src.utils.load_splits import Load_Splits
+
 
 class CustomColorMap:
     def __init__(self):
@@ -40,66 +43,78 @@ def get_graph_tokens(graph_id, graph_data, token_list, text_column='Text'):
 
 
 def main():
-    experiment = ExperimentMain(Path('Testing/NLP/Configs/config_main.yml'))
-    db_name = 'sentiment_test'
-    data = pd.read_csv(f'Testing/NLP/Data/{db_name}/raw/all.csv')
-    all_tokens = np.load(f'Testing/NLP/Data/{db_name}/raw/tokens_sorted.npy')
-    texts = []
-    labels = []
-    tokens = []
-    graph_ids = [180, 181, 182, 183, 184, 185, 186, 187, 188, 189]
-    net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=0, best=False)
-    n = 10
-    m = 4
+    experiment = ExperimentMain(Path('Examples/TextClassification/Configs/config_main.yml'))
+    experiment.ExperimentPreprocessing()
+    for db_name in ['sentiment_small', 'sentiment_test', 'sentiment_bert']:
 
-    fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(5 * m, 5 * n))
-    plt.subplots_adjust(wspace=0, hspace=0)
-    graph_drawing = (
-        GraphDrawing(node_size=40,
-                     edge_width=1,
-                     draw_type='bfs'),
-        GraphDrawing(node_size=40, edge_width=1,
-                     weight_edge_width=2.5,
-                     weight_arrow_size=10,
-                     draw_type='bfs',
-                     colormap=CustomColorMap().cmap)
-    )
-    # use plasma colormap for the bias
-    graph_bias_drawing = (
-        GraphDrawing(node_size=40, edge_width=1, colormap=plt.cm.plasma,draw_type='bfs'),
-        GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,draw_type='bfs'),
-    )
+        validation_id = 2
+        configuration = experiment.experiment_configurations[db_name][0]
+        path_to_data = Path(configuration['paths']['data']) / f'{db_name}'
+        with open(path_to_data / f'{db_name}_plain_text.txt', 'r') as f:
+            plain_texts = [line.strip() for line in f.readlines()]
+        with open(path_to_data / f'{db_name}_tokenized_text.txt', 'r') as f:
+            tokenized_texts = [line.strip() for line in f.readlines()]
+        with open(path_to_data / f'{db_name}_labels.txt', 'r') as f:
+            output_labels = [line.strip() for line in f.readlines()]
+        split_data = Load_Splits(configuration['paths']['splits'], db_name)
+        test_data = np.asarray(split_data[0][validation_id], dtype=int)
+        graph_ids = test_data
+        net = experiment.load_model(db_name=db_name, config_id=0, run_id=0, validation_id=2, best=False)
+        outputs, labels, accuracy = experiment.evaluate_model_on_graphs(db_name=db_name, graph_ids=graph_ids, config_id=0, run_id=0, validation_id=2, best=False)
+        arg_max_outputs = np.argmax(outputs, axis=1)
+        correct_outputs = np.equal(arg_max_outputs, labels)
+        n = len(graph_ids)
+        m = 4
 
-    for idx, graph_id in enumerate(graph_ids):
-        texts.append(get_graph_text(graph_id, data))
-        labels.append(get_graph_label(graph_id, data))
-        tokens.append(get_graph_tokens(graph_id, net.net_layers[0].graph_data, all_tokens))
-        # get convolution layer
-        convolution_layer = net.net_layers[0]
-        aggregation_layer = net.net_layers[-1]
-        convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
-        convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_bias_drawing, graph_only=True,
-                               draw_bias_labels=True)
-        convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None)
-        convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing,
-                               filter_weights={'absolute': 3})
+        fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(5 * m, 5 * n))
+        plt.subplots_adjust(wspace=0, hspace=0)
+        graph_drawing = (
+            GraphDrawing(node_size=40,
+                         edge_width=1,
+                         draw_type='bfs'),
+            GraphDrawing(node_size=40, edge_width=1,
+                         weight_edge_width=2.5,
+                         weight_arrow_size=10,
+                         draw_type='bfs',
+                         colormap=CustomColorMap().cmap)
+        )
+        # use plasma colormap for the bias
+        graph_bias_drawing = (
+            GraphDrawing(node_size=40, edge_width=1, colormap=plt.cm.plasma,draw_type='bfs'),
+            GraphDrawing(node_size=40, edge_width=1, weight_edge_width=2.5, weight_arrow_size=10,draw_type='bfs'),
+        )
 
-    # add subplots column and row titles
-    axs[0][0].set_title(f'Sentence with Word Labels')
-    axs[0][1].set_title(f'Sentence with Word + Position labels')
-    axs[0][2].set_title(f'All Coefficients')
-    axs[0][3].set_title(f'Top $5$ Coefficients')
+        texts = []
+        labels = []
+        tokens = []
+        for idx, graph_id in enumerate(graph_ids):
+            texts.append(plain_texts[graph_id])
+            labels.append(output_labels[graph_id])
+            tokens.append(tokenized_texts[graph_id])
+            # get convolution layer
+            convolution_layer = net.net_layers[0]
+            aggregation_layer = net.net_layers[-1]
+            convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
+            convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_bias_drawing, graph_only=True, draw_bias_labels=True)
+            convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None)
+            convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3})
 
-    for idx, graph_id in enumerate(graph_ids):
-        axs[idx][0].set_ylabel(f'Sentence: {graph_id}, Label {net.graph_data.y[graph_id]}')
+        # add subplots column and row titles
+        axs[0][0].set_title(f'Sentence with Word + Position Labels')
+        axs[0][1].set_title(f'Sentence with Position labels')
+        axs[0][2].set_title(f'All Coefficients')
+        axs[0][3].set_title(f'Top $5$ Coefficients')
 
-    plt.savefig(f'Testing/NLP/Results/sentiment_test/Plots/sentiment_test.png')
-    plt.show()
-    # print the sentences
-    for i, (text, label, token) in enumerate(zip(texts, labels, tokens)):
-        print(f'Sentence {i}: {text}')
-        print(f'Label {i}: {label}')
-        print(f'Tokens {i}: {token}')
+        for idx, graph_id in enumerate(graph_ids):
+            axs[idx][0].set_ylabel(f'Sentence: {graph_id}, Label {net.graph_data.y[graph_id]}, {"Correct" if correct_outputs[idx] else "Wrong"}')
+
+        plt.savefig(f'Examples/TextClassification/Plots/{db_name}.png', bbox_inches='tight', dpi=300)
+        plt.show()
+        # print the sentences
+        for i, (text, label, token) in enumerate(zip(texts, labels, tokens)):
+            print(f'Sentence {i}: {text}')
+            print(f'Label {i}: {label} ({"True" if correct_outputs[i] else "False"})')
+            print(f'Tokens {i}: {token}')
 
     return
 

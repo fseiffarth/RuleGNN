@@ -10,20 +10,33 @@ datasets:
      type: "NEL",
      task: 'graph_classification',
      validation_folds: 10,
-     experiment_config_file: "Examples/NLP/Configs/network_sentiment.yml"}
+     experiment_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
+  }
+  - { name: "sentiment_small",
+      type: "NEL",
+      task: 'graph_classification',
+      validation_folds: 10,
+      experiment_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
+  }
+  - { name: "sentiment_bert",
+      type: "NEL",
+      task: 'graph_classification',
+      validation_folds: 10,
+      experiment_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
+  }
 
 # paths: paths to the data, properties, labels, results and splits
 paths:
   # Path to the folder containing the graph data
-  data: "Examples/NLP/Data/Graphs/"
+  data: "Examples/TextClassification/Data/Graphs/"
   # Precomputed properties will be saved and loaded from this folder
-  properties: "Examples/NLP/Data/Properties/"
+  properties: "Examples/TextClassification/Data/Properties/"
   # Path to the folder containing the labels
-  labels: "Examples/NLP/Data/Labels/"
+  labels: "Examples/TextClassification/Data/Labels/"
   # Results will be saved in this folder
-  results: "Examples/NLP/Results/"
+  results: "Examples/TextClassification/Results/"
   # Path to the folder containing the data splits
-  splits: "Examples/NLP/Data/Splits/"
+  splits: "Examples/TextClassification/Data/Splits/"
 
 # mode: mode of the experiment, there are two modes one for debugging and one for running the experiments
 #   - debug
@@ -101,7 +114,7 @@ aggregation_activation: 'tanh'
 # rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
 # -type: [graph, total], graph: the rule has to be present in a graph, total: the rule has to be present in the whole dataset
 # -threshold: the threshold for the rule occurrence at least this many times
-rule_occurrence_threshold: 1
+rule_occurrence_threshold: 3
 
 # weight initialization: weight initialization for the network (TODO)
 # - convolution: weight initialization for the convolutional layers

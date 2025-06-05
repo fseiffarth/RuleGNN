@@ -134,9 +134,14 @@ class Properties:
             self.valid_values[(layer_id, channel_id)] = valid_values
 
         # check if all the valid values are in the valid properties, if not raise an error
+        invalid_values = []
         for value in self.valid_values[(layer_id, channel_id)]:
             if value not in self.all_values:
-                raise ValueError(f'Property {value} not in valid properties')
+                invalid_values.append(value)
+        if len(invalid_values) > 0:
+            # remove invalid values from the valid values
+            self.valid_values[(layer_id, channel_id)] = [v for v in self.valid_values[(layer_id, channel_id)] if v not in invalid_values]
+            print(f'There are properties that are not arising in the dataset: {invalid_values}')
 
         # number of valid properties
         self.num_properties[(layer_id, channel_id)] = len(self.valid_values[(layer_id, channel_id)])

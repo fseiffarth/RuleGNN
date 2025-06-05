@@ -454,6 +454,25 @@ class ExperimentMain:
         else:
             raise FileNotFoundError(f"Model {model_path} not found")
 
+    def evaluate_model_on_graphs(self, db_name, db_id=0, graph_ids=[], config_id=0, run_id=0, validation_id=0, best=True):
+        # evaluate the performance of the model on the test data
+        experiment_configuration = self.experiment_configurations[db_name][db_id]
+        graph_data = preprocess_graph_data(experiment_configuration)
+        data = np.asarray(graph_ids, dtype=int)
+        outputs = torch.zeros((len(data), graph_data.num_classes), dtype=torch.double)
+        # load the model
+        net = self.load_model(db_name, config_id=config_id, run_id=run_id, validation_id=validation_id, best=best)
+        with torch.no_grad():
+            for j, data_pos in enumerate(data, 0):
+                outputs[j] = net(graph_data[data_pos].x, data_pos)
+            labels = graph_data.y[data]
+            # calculate the errors between the outputs and the labels by getting the argmax of the outputs and the labels
+            arg_max_outputs = torch.argmax(outputs, dim=1)
+            correct_outputs = torch.eq(arg_max_outputs, labels)
+            num_correct = torch.sum(correct_outputs).item()
+            accuracy = num_correct / len(correct_outputs)
+            print(f"Dataset: {db_name}, Run Id: {run_id}, Validation Split Id: {validation_id}, Accuracy: {accuracy}")
+        return outputs, labels, accuracy
 
     # evaluate the model on the test data
     def evaluate_model(self, db_name, db_id=0, config_id=0, run_id=0, validation_id=0, best=True):
