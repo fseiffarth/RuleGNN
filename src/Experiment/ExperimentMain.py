@@ -467,9 +467,8 @@ class ExperimentMain:
         net = self.load_model(db_name, config_id=config_id, run_id=run_id, validation_id=validation_id, best=best)
         with torch.no_grad():
             for j, data_pos in enumerate(test_data, 0):
-                inputs = torch.DoubleTensor(graph_data.x[data_pos])
-                outputs[j] = net(inputs, data_pos)
-            labels = graph_data.output_data[test_data]
+                outputs[j] = net(graph_data[data_pos].x, data_pos)
+            labels = graph_data.y[test_data]
             # calculate the errors between the outputs and the labels by getting the argmax of the outputs and the labels
             counter = 0
             correct = 0
