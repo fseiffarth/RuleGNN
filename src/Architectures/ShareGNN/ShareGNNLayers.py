@@ -77,6 +77,11 @@ def get_label_string(label_dict: dict) -> str:
         max_labels = label_dict.get('max_labels', None)
         if max_labels is not None:
             l_string = f"index_{max_labels}"
+    elif label_type == "index_text":
+        l_string = "index_text"
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
+            l_string = f"index_text_{max_labels}"
     elif label_type == "wl":
         iterations = label_dict.get('depth', 3)
         l_string = f"wl_{iterations}"

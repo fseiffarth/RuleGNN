@@ -270,11 +270,11 @@ At the moment, the following property functions are implemented:
 To define a new node labeling function, go to [src/Preprocessing/create_labels.py](src/Preprocessing/create_labels.py) and add a new function called ```save_<your_labeling_function>_labels```.
 The node labels should be generated as list of lists of integers (one list of node labels per graph). 
 Moreover, give your new labeling function a unique ```label_type``` used as argument in the config file.
-- **Save Labels:** Use ```write_node_labels(file, node_labels)``` to save the labels to the path ```file```.
-The file name should be ```<DB_NAME>_<your_characteristic_labeling_function_string>_labels.txt```.
-- **Load Labels**: Go to [src/Architectures/ShareGNN/ShareGNNLayers.py](src/Architectures/ShareGNN/ShareGNNLayers.py) and add a new case to the function ```get_layer_string``` that gives you the string ```<your_characteristic_labeling_function_string>``` for your labeling function based on possible additional arguments.
+- **Save Labels:** Use ```save_labels_to_file(file, graph_data.name, l, graph_node_labels, max_labels)``` to save the labels to the path ```file```. 
+The filename will be ```graph_data.name_l.pt```.
+- **Load Labels**: Go to [src/Architectures/ShareGNN/ShareGNNLayers.py](src/Architectures/ShareGNN/ShareGNNLayers.py) and add a new case to the function ```get_labels_string``` that gives you the string ```<your_characteristic_labeling_function_string>``` for your labeling function based on possible additional arguments.
 - **Automatic Label Generation**: If you want to automatically generate the labels based on the config file you need to go to
-[scripts/Preprocessing.py](src/Preprocessing/Preprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
+[scripts/Preprocessing.py](src/Preprocessing/DatasetPreprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
 
 ## Add new property functions
 To define a new property function, go to [src/Preprocessing/create_properties.py](src/Preprocessing/create_properties.py) and add a new function called ```write_<your_property_function>_properties```.

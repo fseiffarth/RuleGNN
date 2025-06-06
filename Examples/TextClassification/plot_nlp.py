@@ -45,7 +45,7 @@ def get_graph_tokens(graph_id, graph_data, token_list, text_column='Text'):
 def main():
     experiment = ExperimentMain(Path('Examples/TextClassification/Configs/config_main.yml'))
     experiment.ExperimentPreprocessing()
-    for db_name in ['sentiment_small', 'sentiment_test', 'sentiment_bert']:
+    for db_name in ['sentiment_small']:
 
         validation_id = 2
         configuration = experiment.experiment_configurations[db_name][0]
@@ -64,7 +64,7 @@ def main():
         arg_max_outputs = np.argmax(outputs, axis=1)
         correct_outputs = np.equal(arg_max_outputs, labels)
         n = len(graph_ids)
-        m = 4
+        m = 6
 
         fig, axs = plt.subplots(nrows=n, ncols=m, figsize=(5 * m, 5 * n))
         plt.subplots_adjust(wspace=0, hspace=0)
@@ -96,14 +96,18 @@ def main():
             aggregation_layer = net.net_layers[-1]
             convolution_layer.draw(ax=axs[idx][0], graph_id=graph_id, graph_drawing=graph_drawing, graph_only=True)
             convolution_layer.draw(ax=axs[idx][1], graph_id=graph_id, graph_drawing=graph_bias_drawing, graph_only=True, draw_bias_labels=True)
-            convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None)
-            convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3})
+            convolution_layer.draw(ax=axs[idx][2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None, head=0)
+            convolution_layer.draw(ax=axs[idx][3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None, head=1)
+            convolution_layer.draw(ax=axs[idx][4], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3}, head=0)
+            convolution_layer.draw(ax=axs[idx][5], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights={'absolute': 3}, head=1)
 
         # add subplots column and row titles
         axs[0][0].set_title(f'Sentence with Word + Position Labels')
         axs[0][1].set_title(f'Sentence with Position labels')
-        axs[0][2].set_title(f'All Coefficients')
-        axs[0][3].set_title(f'Top $5$ Coefficients')
+        axs[0][2].set_title(f'All Coefficients (head 0)')
+        axs[0][3].set_title(f'All Coefficients (head 1)')
+        axs[0][4].set_title(f'Top $3$ Coefficients (head 0)')
+        axs[0][5].set_title(f'Top $3$ Coefficients (head 1)')
 
         for idx, graph_id in enumerate(graph_ids):
             axs[idx][0].set_ylabel(f'Sentence: {graph_id}, Label {net.graph_data.y[graph_id]}, {"Correct" if correct_outputs[idx] else "Wrong"}')
@@ -112,9 +116,10 @@ def main():
         plt.show()
         # print the sentences
         for i, (text, label, token) in enumerate(zip(texts, labels, tokens)):
-            print(f'Sentence {i}: {text}')
-            print(f'Label {i}: {label} ({"True" if correct_outputs[i] else "False"})')
-            print(f'Tokens {i}: {token}')
+            print(f'Sentence {graph_ids[i]}: {text}')
+            print(f'Tokens: {token}')
+            print(f'Label: {label} ({"True" if correct_outputs[i] else "False"})')
+            print('\n')
 
     return
 

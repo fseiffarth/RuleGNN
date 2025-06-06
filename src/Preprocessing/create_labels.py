@@ -1,7 +1,8 @@
 # generate WL labels for the graph data and save them to a file
+import abc
 import time
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import networkx as nx
 import torch
@@ -11,6 +12,188 @@ from torch_geometric.io import fs
 from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
 from src.utils.GraphData import ShareGNNDataset
 from src.Preprocessing.node_labeling_functions import weisfeiler_lehman_node_labeling
+
+# Todo replace the save functions by classes (the base class should be the following NodeLabelingBase)
+class NodeLabelingBase(abc.ABC):
+    def __init__(self,
+                 base_name,
+                 graph_data: ShareGNNDataset,
+                 label_path: Optional[Path] = None,
+                 max_labels: Optional[int] = None,
+                 optional_parameters: List[Tuple[str, int]] = None,
+                 save_times: Optional[Path] = None):
+        self.base_name = base_name
+        self.graph_data = graph_data
+        self.label_path = label_path
+        self.max_labels = max_labels
+        self.optional_parameters = optional_parameters
+        self.save_times = save_times
+        self.string_label_name = self.base_name
+        self.set_string_label_name()
+        self.file_path = None
+
+    def create_and_save_labels(self):
+        if self.label_path is None:
+            raise ValueError("No label path given")
+        else:
+            self.file_path = self.label_path.joinpath(f"{self.graph_data.name}_labels_{self.string_label_name}.pt")
+        if not self.file_path.exists():
+            print(f"Saving {self.string_label_name} labels for {self.graph_data.name} to {self.file_path}")
+            start_time = time.time()
+            # create the labels
+            graph_node_labels = self.generate()
+            self.save_labels_to_file(graph_node_labels)
+            if self.save_times is not None:
+                try:
+                    with open(self.save_times, 'a') as f:
+                        f.write(f"{self.graph_data.name}, {self.string_label_name}, {time.time() - start_time}\n")
+                except:
+                    raise ValueError("No save time path given")
+        else:
+            print(f"File {self.file_path} already exists. Skipping.")
+
+    @abc.abstractmethod
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        """
+        Create the labels for the graph data.
+        This method should be implemented by subclasses.
+        It return the graph_node labels
+        """
+        raise NotImplementedError("This method should be implemented by subclasses")
+
+    def set_string_label_name(self):
+        # take base name and append first max_labels if it is not None and then all the parameters in the optional_parameters list
+        if self.max_labels is not None:
+            self.string_label_name = f"{self.string_label_name}_max_labels_{self.max_labels}"
+        if self.optional_parameters is not None:
+            for param in self.optional_parameters:
+                self.string_label_name = f"{self.string_label_name}_{param[0]}_{param[1]}"
+        return
+
+
+    def save_labels_to_file(self, graph_node_labels: Optional[Union[List[List[int]], torch.Tensor]]):
+        """
+        Save the node labels to a file
+        :param graph_node_labels: List of lists with the node labels for each graph or torch.Tensor with the node labels
+        """
+        if isinstance(graph_node_labels, torch.Tensor):
+            pass
+        elif isinstance(graph_node_labels, list):
+            # flatten the node labels
+            graph_node_labels = torch.tensor([label for graph_labels in graph_node_labels for label in graph_labels])
+        else:
+            raise ValueError("graph_node_labels must be either a torch.Tensor or a list of lists")
+        # save the node labels to a file as torch tensor with the original labels as first column and the new labels as second column
+        fs.torch_save(
+            (self.graph_data.name, self.string_label_name, relabel_node_labels(graph_node_labels, self.max_labels)), str(self.file_path)
+        )
+        raise NotImplementedError("This method should be implemented by subclasses")
+
+
+class TrivialNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, label_path: Optional[Path] = None, max_labels: Optional[int] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='trivial', graph_data=graph_data, label_path=label_path, max_labels=max_labels, save_times=save_times)
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        # label 0 for all nodes
+        return torch.zeros(len(self.graph_data.data.x), dtype=torch.long)
+
+class IndexNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, label_path: Optional[Path] = None, max_labels: Optional[int] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='index', graph_data=graph_data, label_path=label_path, max_labels=max_labels, save_times=save_times)
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        node_labels = []
+        if self.graph_data.nx_graphs is None:
+            self.graph_data.create_nx_graphs(directed=False)
+        for graph in self.graph_data.nx_graphs:
+            node_labels.append([index for index, node in enumerate(graph.nodes())])
+        return node_labels
+
+class IndexTextNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, label_path: Optional[Path] = None, max_labels: Optional[int] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='index_text', graph_data=graph_data, label_path=label_path, max_labels=max_labels, save_times=save_times)
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        node_labels = []
+        if self.graph_data.nx_graphs is None:
+            self.graph_data.create_nx_graphs(directed=False)
+        for graph in self.graph_data.nx_graphs:
+            node_labels.append([index for index, node in enumerate(graph.nodes())])
+            # define index -1 and -2 for the first and last entry
+            node_labels[-1][0] = -1  # first entry
+            node_labels[-1][-1] = -2  # last entry
+        return node_labels
+
+class PrimaryNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, label_path: Optional[Path] = None, max_labels: Optional[int] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='primary', graph_data=graph_data, label_path=label_path, max_labels=max_labels, save_times=save_times)
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        return self.graph_data.node_labels['primary']
+
+class DegreeNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, label_path: Optional[Path] = None, max_labels: Optional[int] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='wl_0', graph_data=graph_data, label_path=label_path, max_labels=max_labels, save_times=save_times)
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        if self.graph_data.nx_graphs is None:
+            self.graph_data.create_nx_graphs(directed=False)
+        # iterate over the graphs and get the degree of each node
+        node_labels = []
+        for i, graph in enumerate(self.graph_data.nx_graphs):
+            node_labels.append([0 for _ in range(len(graph.nodes()))])
+            for node in graph.nodes():
+                node_labels[-1][node] = graph.degree(node)
+        return node_labels
+
+class LabeledDegreeNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, label_path: Optional[Path] = None, max_labels: Optional[int] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='wl_labeled_0', graph_data=graph_data, label_path=label_path, max_labels=max_labels, save_times=save_times)
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        if self.graph_data.nx_graphs is None:
+            self.graph_data.create_nx_graphs(directed=False)
+        # iterate over the graphs and get the degree of each node
+        node_labels = []
+        unique_neighbor_labels = set()
+        node_to_hash = dict()
+        for graph_id, graph in enumerate(self.graph_data.nx_graphs):
+            for i, node in enumerate(graph.nodes(data=True)):
+                neighbors = list(graph.neighbors(node[0]))
+                node_identifier = [node[1]['primary_label']]
+                node_identifier += [graph.nodes[neighbor]['primary_label'] for neighbor in neighbors]
+                # convert to tuple and add to set
+                node_identifier = tuple(node_identifier)
+                unique_neighbor_labels.add(node_identifier)
+                node_to_hash[node[0]] = node_identifier
+        # convert the unique neighbor labels to a dict
+        unique_neighbor_label_dict = {label: i for i, label in enumerate(unique_neighbor_labels)}
+        for graph in self.graph_data.nx_graphs:
+            node_labels.append([unique_neighbor_label_dict[node_to_hash[node]] for node in graph.nodes()])
+        return node_labels
+
+class WeisfeilerLehmanNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, depth, max_labels: Optional[int] = None, label_path: Optional[Path] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='wl', graph_data=graph_data, label_path=label_path, max_labels=max_labels, optional_parameters=[('depth', depth)], save_times=save_times)
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        if self.graph_data.nx_graphs is None:
+            self.graph_data.create_nx_graphs(directed=False)
+        node_labels, unique_node_labels, db_unique_node_labels = weisfeiler_lehman_node_labeling(self.graph_data.nx_graphs, depth=self.optional_parameters['depth'], labeled=False)
+        return node_labels
+
+class WeisfeilerLehmanLabeledNodeLabeling(NodeLabelingBase):
+    def __init__(self, graph_data: ShareGNNDataset, depth, max_labels: Optional[int] = None, label_path: Optional[Path] = None, base_labels: Optional[dict] = None, save_times: Optional[Path] = None):
+        super().__init__(base_name='wl_labeled', graph_data=graph_data, label_path=label_path, max_labels=max_labels, optional_parameters=[('depth', depth), ('base_labels', get_label_string(base_labels['layer_dict']))], save_times=save_times)
+        self.base_labels = base_labels
+
+    def generate(self) -> Optional[Union[List[List[int]], torch.Tensor]]:
+        if self.graph_data.nx_graphs is None:
+            self.graph_data.create_nx_graphs(directed=False)
+        node_labels, unique_node_labels, db_unique_node_labels = weisfeiler_lehman_node_labeling(self.graph_data.nx_graphs, depth=self.optional_parameters['depth'], labeled=True, base_labels=self.base_labels)
+        return node_labels
+
 
 def save_labels_to_file(file:Path, dataset_name:str, label_name:str, graph_node_labels:Optional[Union[List[List[int]], torch.Tensor]], max_labels:None):
     """
@@ -157,8 +340,10 @@ def save_trivial_labels(graph_data:ShareGNNDataset, label_path=None, save_times=
         print(f"File {file} already exists. Skipping.")
     return file
 
-def save_index_labels(graph_data:ShareGNNDataset, max_labels=None, label_path=None, save_times=None)->str:
+def save_index_labels(graph_data:ShareGNNDataset, max_labels=None, label_path=None, index_text=False, save_times=None)->str:
     l = 'index'
+    if index_text:
+        l = f'{l}_text'
     if max_labels is not None:
         l = f'{l}_{max_labels}'
     if label_path is None:
@@ -174,6 +359,10 @@ def save_index_labels(graph_data:ShareGNNDataset, max_labels=None, label_path=No
         start_time = time.time()
         for graph in graph_data.nx_graphs:
             node_labels.append([index for index, node in enumerate(graph.nodes())])
+            if index_text:
+                # define index -1 and -2 for the first and last entry
+                node_labels[-1][0] = -1  # first entry
+                node_labels[-1][-1] = -2
         save_labels_to_file(file, graph_data.name, l, node_labels, max_labels)
         if save_times is not None:
             try:
@@ -184,6 +373,7 @@ def save_index_labels(graph_data:ShareGNNDataset, max_labels=None, label_path=No
     else:
         print(f"File {file} already exists. Skipping.")
     return file
+
 
 
 def save_wl_labels(graph_data:ShareGNNDataset, depth, max_labels=None, label_path=None, save_times=None)->str:

@@ -257,6 +257,12 @@ class DatasetPreprocessing:
                                               max_labels=layer.get('max_labels', None),
                                               label_path=label_path,
                                               save_times=self.generation_times_labels_path)
+            elif layer['label_type'] == 'index_text':
+                file_path = save_index_labels(graph_data=self.graph_data,
+                                              max_labels=layer.get('max_labels', None),
+                                              label_path=label_path,
+                                              save_times=self.generation_times_labels_path,
+                                                index_text=True)
             elif layer['label_type'] == 'degree':
                 file_path = save_degree_labels(graph_data=self.graph_data,
                                                label_path=label_path,
