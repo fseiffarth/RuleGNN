@@ -234,14 +234,22 @@ class ModelConfiguration:
         Initialize the network, i.e., if pretrained_network is given load the network from the file, else create a new network
         """
         print(f'Initializing network with seed {self.seed}')
-        if pretrained_network is not None:
-            self.net = torch.load(pretrained_network)
-        elif use_model == 'GCN':
+        if use_model == 'GCN':
             self.net = GCNGraph(graph_data=self.graph_data, para=self.para, seed=self.seed, device=self.device)
         else:
             self.net = ShareGNN.ShareGNN(graph_data=self.graph_data,
                                          para=self.para,
                                          seed=self.seed, device=self.device)
+        # if pretrained_network is None, initialize the network weights with the pretrained weights
+        if pretrained_network is not None:
+            parameter_list = []
+            for parameter in pretrained_network.parameters():
+                parameter_list.append(parameter)
+            # set self.net's parameters to the pretrained parameters
+            for i, parameter in enumerate(self.net.parameters()):
+                parameter.data = parameter_list[i].data.clone().detach()
+
+
         # set the network to device
         self.net.to(self.device)
         print(f'Network initialized with seed {self.seed}')

@@ -32,9 +32,9 @@ def transfer(num_threads=-1):
         # fine-tune the model on the target dataset, i.e., all except for db_name
         for target_db_name in datasets:
             if target_db_name != db_name:
-                print(f'Fine-tuning {db_name} on {target_db_name}')
+                print(f'Fine-tuning {target_db_name} on model pre-trained on {db_name}')
                 model = experiment.load_model(db_name, run_id=run_id, validation_id=validation_id)
-                experiment_finetune = ExperimentMain(Path(f'ReproduceExtended/configs_transfer/main_config_finetune_{db_name}.yml'),
+                experiment_finetune = ExperimentMain(Path(f'ReproduceExtended/configs_transfer/main_config_finetune_{target_db_name}.yml'),
                                                      pretrained_network=model)
                 experiment_finetune.ExperimentPreprocessing(num_threads=num_threads)
                 ## run real world experiment
