@@ -38,9 +38,6 @@ def transfer(num_threads=-1):
         if pretraining_datasets is None:
             raise ValueError("pretraining_datasets must be specified in the experiment configuration")
         # finetuning
-        # run_ids
-        run_ids = list(range(3))
-        validation_ids = list(range(10))
         experiment_finetuning = ExperimentMain(Path(f'ReproduceTransfer/configs_transfer/main_config_finetune.yml'), pretrained_network=(experiment_pretrained, i))
         # set results appendix
         for config in experiment_finetuning.experiment_configurations['NCI1_NCI109_Mutagenicity']:
@@ -48,36 +45,11 @@ def transfer(num_threads=-1):
             # also set the results path
             config['paths']['results'] = config['paths']['results'].joinpath(experiment_configuration['results_appendix'])
         experiment_finetuning.ExperimentPreprocessing(num_threads=num_threads)
-        ## run real world experiment
+        ## run real world experiment using the pre-trained model
         experiment_finetuning.GridSearch(num_threads=num_threads)
         experiment_finetuning.EvaluateResults()
         experiment_finetuning.RunBestModel(num_threads=num_threads)
         experiment_finetuning.EvaluateResults(evaluate_best_model=True)
-
-
-    # iterate over the pretraining datasets
-
-
-
-
-    run_id = 0
-    validation_id = 0
-    datasets = ['NCI1', 'NCI109', 'Mutagenicity']
-    for db_name in datasets:
-        # fine-tune the model on the target dataset, i.e., all except for db_name
-        for target_db_name in datasets:
-            if target_db_name != db_name:
-                print(f'Fine-tuning {target_db_name} on model pre-trained on {db_name}')
-                model = experiment_pretrained.load_model(db_name, run_id=run_id, validation_id=validation_id)
-                experiment_finetune = ExperimentMain(Path(f'ReproduceTransfer/configs_transfer/main_config_finetune_{target_db_name}.yml'),
-                                                     pretrained_network=model)
-                experiment_finetune.ExperimentPreprocessing(num_threads=num_threads)
-                ## run real world experiment
-                experiment_finetune.GridSearch(num_threads=num_threads)
-                experiment_finetune.EvaluateResults()
-                experiment_finetune.RunBestModel(num_threads=num_threads)
-                experiment_finetune.EvaluateResults(evaluate_best_model=True)
-
 
 @click.command()
 @click.option('--num_threads', default=-1, help='Number of threads to use')
