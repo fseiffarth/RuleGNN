@@ -237,17 +237,12 @@ class ModelConfiguration:
         if use_model == 'GCN':
             self.net = GCNGraph(graph_data=self.graph_data, para=self.para, seed=self.seed, device=self.device)
         else:
-            self.net = ShareGNN.ShareGNN(graph_data=self.graph_data,
+            if pretrained_network is not None:
+                self.net = pretrained_network
+            else:
+                self.net = ShareGNN.ShareGNN(graph_data=self.graph_data,
                                          para=self.para,
                                          seed=self.seed, device=self.device)
-        # if pretrained_network is None, initialize the network weights with the pretrained weights
-        if pretrained_network is not None:
-            parameter_list = []
-            for parameter in pretrained_network.parameters():
-                parameter_list.append(parameter)
-            # set self.net's parameters to the pretrained parameters
-            for i, parameter in enumerate(self.net.parameters()):
-                parameter.data = parameter_list[i].data.clone().detach()
 
 
         # set the network to device

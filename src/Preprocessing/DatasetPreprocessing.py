@@ -188,25 +188,34 @@ class DatasetPreprocessing:
                                               )
 
     def generate_splits(self):
-        # generate the splits
-        if self.experiment_configuration.get('with_splits', True):
-            # generate splits
-            create_splits(self.db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.experiment_configuration['validation_folds'], graph_data=self.graph_data)
+        splits_path = self.experiment_configuration['paths']['splits']
+        if 'split_appendix' in self.experiment_configuration:
+            splits_path = splits_path.joinpath(f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json')
         else:
-            if self.experiment_configuration.get('split_function', None) is not None:
+            splits_path = splits_path.joinpath(f'{self.db_name}_splits.json')
+        if splits_path.exists():
+            pass
+        else:
+            # generate the splits
+            if self.experiment_configuration.get('with_splits', True):
                 # generate splits
-                self.experiment_configuration['split_function'](self.experiment_configuration['paths']['splits'], **self.experiment_configuration['split_function_args'], graph_data=self.graph_data)
+                create_splits(self.db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.experiment_configuration['validation_folds'], graph_data=self.graph_data)
             else:
-                raise ValueError(f'Please specify a split function in the main config file for the dataset {self.db_name} using the key "split_function".')
+                if self.experiment_configuration.get('split_function', None) is not None:
+                    # generate splits
+                    self.experiment_configuration['split_function'](self.experiment_configuration['paths']['splits'], **self.experiment_configuration['split_function_args'], graph_data=self.graph_data)
+                else:
+                    raise ValueError(f'Please specify a split function in the main config file for the dataset {self.db_name} using the key "split_function".')
 
         # copy the splits to the processed folder
-        if self.experiment_configuration['paths']['splits'].joinpath(f'{self.db_name}_splits.json').exists():
-            split_file_path = self.experiment_configuration['paths']['splits'].joinpath(f'{self.db_name}_splits.json')
-            if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').exists():
-                Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').mkdir()
+        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').exists():
+            Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').mkdir()
+        if 'split_appendix' in self.experiment_configuration:
+            split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json')
+        else:
             split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_splits.json')
-            # copy the content of the split file to the target path
-            split_target_path.write_text(split_file_path.read_text())
+        # copy the content of the split file to the target path
+        split_target_path.write_text(splits_path.read_text())
 
 
 

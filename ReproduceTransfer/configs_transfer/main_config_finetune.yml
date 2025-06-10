@@ -1,33 +1,27 @@
 datasets:
   # real-world datasets
-  - {name: "NCI1",
+  - {name: ["NCI1", "NCI109", "Mutagenicity"],
      task: 'graph_classification',
      validation_folds: 10,
-     experiment_config_file: "ReproduceExtended/configs_transfer/network_transfer.yml",
-     type: "TUDataset"}
-  - {name: "NCI109",
-     task: 'graph_classification',
-     validation_folds: 10,
-     experiment_config_file: "ReproduceExtended/configs_transfer/network_transfer.yml",
-     type: "TUDataset"}
-  - {name: "Mutagenicity",
-    task: 'graph_classification',
-     validation_folds: 10,
-     experiment_config_file: "ReproduceExtended/configs_transfer/network_transfer.yml",
-     type: "TUDataset"}
+     with_splits: False,
+     split_appendix: "finetuning_Mutagenicity",
+     experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+     type: ["TUDataset", "TUDataset", "TUDataset"],
+     results_appendix: "finetuning_Mutagenicity"
+  }
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
   data:
-    "ReproduceExtended/Data/TUDatasets/"
+    "ReproduceTransfer/Data/TransferGraphs/" # Path to the folder containing the graphs
   properties:
-    "ReproduceExtended/Data/Properties/" # Precomputed properties will be loaded from this folder
+    "ReproduceTransfer/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "ReproduceExtended/Data/Labels/" # Path to the folder containing the labels
+    "ReproduceTransfer/Data/Labels/" # Path to the folder containing the labels
   splits:
-    "ReproduceExtended/Data/Splits/" # Path to the folder containing the data splits
+    "ReproduceTransfer/Data/SplitsTransfer/" # Path to the folder containing the data splits
   results:
-    "ReproduceExtended/Results/Transfer/" # Results will be saved in this folder
+    "ReproduceTransfer/Results/Finetuning/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'

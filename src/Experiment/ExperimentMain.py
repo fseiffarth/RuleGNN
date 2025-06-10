@@ -301,7 +301,7 @@ class ExperimentMain:
 
                     # optional keys (print a message that the value was set to the default value)
                     if 'with_splits' not in configuration:
-                        print('To use own splits, please set the key "with_splits" to True in the main configuration file. The default value is True.'
+                        print('To use own splits, please set the key "with_splits" to False in the main configuration file. The default value is True.'
                               'In addition specify a path to the splits using the key "splits_path".')
                         configuration['with_splits'] = True
                     else:
@@ -324,6 +324,11 @@ class ExperimentMain:
                                     raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
                                 else:
                                     configuration['splits'] = Load_Splits(configuration['splits_path'], configuration['name'])
+                            elif 'split_appendix' in configuration:
+                                if not os.path.exists(configuration['paths']['splits']):
+                                    raise FileNotFoundError(f"Splits path {configuration['paths']['splits']} not found")
+                                else:
+                                    configuration['splits'] = Load_Splits(configuration['paths']['splits'], configuration['name'], appendix=configuration['split_appendix'])
                             else:
                                 raise ValueError(
                                     f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
@@ -389,7 +394,7 @@ class ExperimentMain:
 
         # split the data into training, validation and test data
         seed = 42 + validation_id + para.n_val_runs * run_id
-        data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('transfer', False))
+        data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('split_appendix', None))
         test_data = data[0][validation_id]
         train_data = data[1][validation_id]
         validation_data = data[2][validation_id]
@@ -399,13 +404,20 @@ class ExperimentMain:
         configuration = ModelConfiguration(run_id, validation_id, graph_data, model_data, seed, para)
 
         # run the model, if a pretrained network is given, use it
-        configuration.Run(pretrained_network=self.pretrained_network)
+        if isinstance(self.pretrained_network, tuple):
+            # tuple ExperimentMain object and experiment_db_id
+            configuration.Run(pretrained_network=self.pretrained_network[0].load_model(db_name=para.run_config.config['name'], run_id=run_id, validation_id=validation_id, best=True, experiment_db_id=self.pretrained_network[1]))
+        else:
+            configuration.Run(pretrained_network=self.pretrained_network)
+
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True, experiment_db_id=0):
         experiment_configuration = self.experiment_configurations[db_name][experiment_db_id]
         graph_data = preprocess_graph_data(experiment_configuration)
         run_configs = get_run_configs(experiment_configuration)
+        # get the path to the model
         model_path = experiment_configuration['paths']['results'].joinpath(db_name).joinpath('Models')
+
         if best:
             # get config id of the best model
             if model_path.exists():
@@ -506,6 +518,9 @@ def collect_paths(main_configuration, experiment_configuration, dataset_configur
     if dataset_configuration is not None and dataset_configuration.get('data', None) is not None:
         paths['data'] = dataset_configuration['data']
 
+    if 'results_appendix' in dataset_configuration:
+        paths['results'] = paths['results'] + dataset_configuration['results_appendix'] + '/'
+
     # if there are paths in the experiment config file, overwrite the paths
     if experiment_configuration.get('paths', None) is not None:
         if experiment_configuration['paths'].get('data', None) is not None:
@@ -518,6 +533,8 @@ def collect_paths(main_configuration, experiment_configuration, dataset_configur
             paths['properties'] = experiment_configuration['paths']['properties']
         if experiment_configuration['paths'].get('labels', None) is not None:
             paths['labels'] = experiment_configuration['paths']['labels']
+
+
 
     # check wheter one of the paths is missing
     if 'data' not in paths:
@@ -535,9 +552,10 @@ def collect_paths(main_configuration, experiment_configuration, dataset_configur
 
 def copy_experiment_config(absolute_path, experiment_configuration, experiment_configuration_path,
                            graph_db_name):
-    if not os.path.exists(experiment_configuration['paths']['results'].joinpath(f"{graph_db_name}/config.yml")):
+    results_path = experiment_configuration['paths']['results']
+    if not results_path.joinpath(f"{graph_db_name}/config.yml"):
         source_path = Path(absolute_path).joinpath(experiment_configuration_path)
-        destination_path = experiment_configuration['paths']['results'].joinpath(f"{graph_db_name}/config.yml")
+        destination_path =results_path.joinpath(f"{graph_db_name}/config.yml")
         # copy the config file to the results directory
         # if linux
         if os.name == 'posix':
