@@ -1,7 +1,8 @@
 from pathlib import Path
-
-from scripts.ExperimentMain import ExperimentMain
 import click
+
+from src.Experiment.ExperimentMain import ExperimentMain
+
 
 def get_existing_splits():
     # copy the splits from the Data folder to the Splits folder

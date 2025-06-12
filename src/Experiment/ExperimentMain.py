@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from pathlib import Path
 
 import joblib
@@ -162,11 +163,11 @@ class ExperimentMain:
                                                             config_id=config_id)
                                                  for run_id, validation_id in parallelization_pairs)
 
-    def update_experiment_configuration(self, dataset):
-        experiment_configuration_path = dataset.get('experiment_config_file', '')
+    def update_experiment_configuration(self, dataset_configuration):
+        experiment_configuration_path = dataset_configuration.get('experiment_config_file', '')
         # load the config file
         experiment_configuration = yaml.load(open(experiment_configuration_path), Loader=yaml.FullLoader)
-        paths = collect_paths(main_configuration=self.main_config, dataset_configuration=dataset,
+        paths = collect_paths(main_configuration=self.main_config, dataset_configuration=dataset_configuration,
                               experiment_configuration=experiment_configuration)
         experiment_configuration['paths'] = paths
         # paths to Path objects
@@ -175,29 +176,29 @@ class ExperimentMain:
         # update the global configuration with the experiment configuration
         for key in self.main_config:
             if key == 'datasets':
-                for k in dataset:
-                    experiment_configuration[k] = dataset[k]
+                for k in dataset_configuration:
+                    experiment_configuration[k] = dataset_configuration[k]
             else:
                 if key not in experiment_configuration:
                     experiment_configuration[key] = self.main_config[key]
 
         experiment_configuration['format'] = 'RuleGNNDataset'
         dataset_string_name = None
-        if isinstance(dataset['name'], list):
+        if isinstance(dataset_configuration['name'], list):
             str_concatenation = ''
-            for i, name in enumerate(dataset['name']):
+            for i, name in enumerate(dataset_configuration['name']):
                 str_concatenation += name
-                if i < len(dataset['name']) - 1:
+                if i < len(dataset_configuration['name']) - 1:
                     str_concatenation += '_'
             experiment_configuration['name'] = str_concatenation
             if str_concatenation not in self.experiment_configurations:
                 self.experiment_configurations[str_concatenation] = [experiment_configuration.copy()]
             else:
                 self.experiment_configurations[str_concatenation].append(experiment_configuration.copy())
-            self.experiment_configurations[str_concatenation][-1]['single_datasets'] = dataset['name']
+            self.experiment_configurations[str_concatenation][-1]['single_datasets'] = dataset_configuration['name']
 
         else:
-            dataset_string_name = dataset['name']
+            dataset_string_name = dataset_configuration['name']
             if dataset_string_name not in self.experiment_configurations:
                 self.experiment_configurations[dataset_string_name] = [experiment_configuration.copy()]
             else:
@@ -329,6 +330,8 @@ class ExperimentMain:
                                     raise FileNotFoundError(f"Splits path {configuration['paths']['splits']} not found")
                                 else:
                                     configuration['splits'] = Load_Splits(configuration['paths']['splits'], configuration['name'], appendix=configuration['split_appendix'])
+                            elif 'pretraining_datasets' or 'finetuning_datasets' in configuration:
+                                pass
                             else:
                                 raise ValueError(
                                     f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
@@ -394,11 +397,21 @@ class ExperimentMain:
 
         # split the data into training, validation and test data
         seed = 42 + validation_id + para.n_val_runs * run_id
+        # load the data splits
         data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('split_appendix', None))
         test_data = data[0][validation_id]
         train_data = data[1][validation_id]
         validation_data = data[2][validation_id]
         model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
+
+        if run_id == 0 and config_id == f'Configuration_{str(0).zfill(6)}':
+            # save the model data used for training, validation and testing
+            data_out_path = para.run_config.config['paths']['results'].joinpath(run_config.config['name']).joinpath('Results').joinpath('DataIds')
+            # save under data_ids_{run_id}_{validation_id}.csv (first line train, second line validation, third line test)
+            with open(data_out_path.joinpath(f'data_ids_validation_{validation_id}.txt'), 'w') as f:
+                f.write(','.join(map(str, model_data[0])) + '\n')
+                f.write(','.join(map(str, model_data[1])) + '\n')
+                f.write(','.join(map(str, model_data[2])) + '\n')
 
         # create the main method object
         configuration = ModelConfiguration(run_id, validation_id, graph_data, model_data, seed, para)
@@ -407,6 +420,10 @@ class ExperimentMain:
         if isinstance(self.pretrained_network, tuple):
             # tuple ExperimentMain object and experiment_db_id
             configuration.Run(pretrained_network=self.pretrained_network[0].load_model(db_name=para.run_config.config['name'], run_id=run_id, validation_id=validation_id, best=True, experiment_db_id=self.pretrained_network[1]))
+        elif isinstance(self.pretrained_network, str):
+            if self.pretrained_network in ['best', 'Best']:
+                # TODO load only the best model that achieved the best test accuracy on the pretraining datasets
+                pass
         else:
             configuration.Run(pretrained_network=self.pretrained_network)
 
@@ -513,15 +530,19 @@ class ExperimentMain:
 
 def collect_paths(main_configuration, experiment_configuration, dataset_configuration=None):
     # first look into the main config file
-    paths = main_configuration.get('paths', {})
-    # if available add the data path from the dataset config file
-    if dataset_configuration is not None and dataset_configuration.get('data', None) is not None:
-        paths['data'] = dataset_configuration['data']
+    paths = deepcopy(main_configuration.get('paths', {}))
+    # copy to dataset configuration if it does not exist TODO use only the paths from the dataset configuration
+    if 'paths' not in dataset_configuration:
+        dataset_configuration['paths'] = paths
 
+    if 'pretraining_datasets' in dataset_configuration:
+        dataset_configuration['results_appendix'] = 'pretraining_' + '_'.join(dataset_configuration['pretraining_datasets'])
+    if 'finetuning_datasets' in dataset_configuration:
+        dataset_configuration['results_appendix'] = 'finetuning_' + '_'.join(dataset_configuration['finetuning_datasets'])
     if 'results_appendix' in dataset_configuration:
-        paths['results'] = paths['results'] + dataset_configuration['results_appendix'] + '/'
+        dataset_configuration['paths']['results'] = dataset_configuration['paths']['results'] + dataset_configuration['results_appendix'] + '/'
 
-    # if there are paths in the experiment config file, overwrite the paths
+    # if there are paths in the experiment config file, overwrite the paths TODO change this experiment config should only be for network definition
     if experiment_configuration.get('paths', None) is not None:
         if experiment_configuration['paths'].get('data', None) is not None:
             paths['data'] = experiment_configuration['paths']['data']
@@ -533,6 +554,11 @@ def collect_paths(main_configuration, experiment_configuration, dataset_configur
             paths['properties'] = experiment_configuration['paths']['properties']
         if experiment_configuration['paths'].get('labels', None) is not None:
             paths['labels'] = experiment_configuration['paths']['labels']
+
+    # get the paths from the dataset configuration
+    paths = dataset_configuration.get('paths', None)
+    if paths is None:
+        raise ValueError("Paths not found in the dataset configuration. Please specify the paths in the dataset configuration file.")
 
 
 

@@ -16,3 +16,4 @@ networks:
           { label_type: [wl, primary], depth: [2] }
         ]
     }
+    - { layer_type: reshape }

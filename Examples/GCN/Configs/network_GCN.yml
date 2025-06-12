@@ -16,7 +16,7 @@ optimizer:
 scheduler:
   - null
 loss:
-  - MulticlassClassificationLoss
+  - CrossEntropyLoss
 gradient_clipping:
   - null
 early_stopper:
@@ -30,8 +30,7 @@ early_stopper:
     args:
       patience: 500
       use_loss: True
-shuffle:
-  - True
+
 dim_embedding:
   - 32
   - 64
@@ -42,5 +41,4 @@ aggregation:
   - mean
 
 dropout:
-  - 0.5
   - 0.

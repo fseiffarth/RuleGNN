@@ -1,14 +1,60 @@
 datasets:
   # real-world datasets
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      pretraining_datasets: [ "NCI1" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
+  }
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      pretraining_datasets: [ "NCI109" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
+  }
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      pretraining_datasets: [ "Mutagenicity" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
+  }
   - {name: ["NCI1", "NCI109", "Mutagenicity"],
      pretraining_datasets: ["NCI1", "NCI109"],
      task: 'graph_classification',
      validation_folds: 10,
      with_splits: False,
-     split_appendix: "pretraining_NCI1_NCI109",
      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
      type: ["TUDataset", "TUDataset", "TUDataset"],
-     results_appendix: "pretraining_NCI1_NCI109"
+  }
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      pretraining_datasets: [ "NCI1", "Mutagenicity" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
+  }
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      pretraining_datasets: [ "NCI109", "Mutagenicity" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
+  }
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      pretraining_datasets: [ "NCI1", "NCI109", "Mutagenicity" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
   }
 
 paths:

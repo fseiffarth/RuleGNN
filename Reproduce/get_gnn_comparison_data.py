@@ -2,9 +2,9 @@ import os
 from pathlib import Path
 
 from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
-from scripts.ExperimentMain import ExperimentMain
+from src.Experiment.ExperimentMain import ExperimentMain
+from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.GraphData import get_graph_data
-from src.utils.RunConfiguration import get_run_configs
 from src.Preprocessing.load_labels import load_labels
 from src.utils.utils import save_graphs
 

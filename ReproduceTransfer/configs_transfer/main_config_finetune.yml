@@ -1,13 +1,28 @@
 datasets:
   # real-world datasets
   - {name: ["NCI1", "NCI109", "Mutagenicity"],
+     finetuning_datasets: ["NCI1"],
      task: 'graph_classification',
      validation_folds: 10,
      with_splits: False,
-     split_appendix: "finetuning_Mutagenicity",
      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
      type: ["TUDataset", "TUDataset", "TUDataset"],
-     results_appendix: "finetuning_Mutagenicity"
+  }
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      finetuning_datasets: [ "NCI109" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
+  }
+  - { name: [ "NCI1", "NCI109", "Mutagenicity" ],
+      finetuning_datasets: [ "Mutagenicity" ],
+      task: 'graph_classification',
+      validation_folds: 10,
+      with_splits: False,
+      experiment_config_file: "ReproduceTransfer/configs_transfer/network_transfer.yml",
+      type: [ "TUDataset", "TUDataset", "TUDataset" ],
   }
 
 paths:

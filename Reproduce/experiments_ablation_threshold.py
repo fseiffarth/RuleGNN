@@ -1,10 +1,10 @@
 from pathlib import Path
 
 import joblib
-from torch.ao.nn.quantized.functional import threshold
 
-from scripts.ExperimentMain import ExperimentMain
 import click
+
+from src.Experiment.ExperimentMain import ExperimentMain
 
 
 def get_existing_splits():

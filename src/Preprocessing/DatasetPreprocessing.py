@@ -1,5 +1,6 @@
 import json
 import os
+import networkx as nx # Important do not remove
 from pathlib import Path
 
 from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
@@ -8,6 +9,7 @@ from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels,
     save_labeled_degree_labels, save_wl_labeled_labels, save_labels_to_file
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
+from src.TransferLearning.combine_split_files import pretraining_finetuning
 from src.utils.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import combine_node_labels
 from src.Experiment.RunConfiguration import get_run_configs
@@ -45,7 +47,7 @@ class DatasetPreprocessing:
                 self.generate_data(dataset, data_generation, data_generation_args)
             self.load_data()
             # generate the split files
-            self.generate_splits()
+            self.generate_configuration_splits()
 
             # generate the labels and properties automatically from the config file
             if with_labels_and_properties:
@@ -64,6 +66,7 @@ class DatasetPreprocessing:
         self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Weights').mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Models').mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Results').mkdir(exist_ok=True, parents=True)
+        self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Results').joinpath('DataIds').mkdir(exist_ok=True, parents=True)
 
 
         # if not exists create the generation_times_labels.txt and generation_times_properties.txt in the Results folder
@@ -187,37 +190,73 @@ class DatasetPreprocessing:
                                               task=self.experiment_configuration.get('task', None)
                                               )
 
-    def generate_splits(self):
+
+    def generate_configuration_splits(self):
         splits_path = self.experiment_configuration['paths']['splits']
-        if 'split_appendix' in self.experiment_configuration:
-            splits_path = splits_path.joinpath(f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json')
+        if 'pretraining_datasets' in self.experiment_configuration or 'finetuning_datasets' in self.experiment_configuration:
+            # check whether the split file exists
+            if 'pretraining_datasets' in self.experiment_configuration:
+                self.experiment_configuration['split_appendix'] = 'pretraining_' + '_'.join(self.experiment_configuration['pretraining_datasets'])
+                split_string = f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json'
+                new_splits_path = splits_path.joinpath(split_string)
+                if new_splits_path.exists():
+                    return
+            elif 'finetuning_datasets' in self.experiment_configuration:
+                self.experiment_configuration['split_appendix'] = 'finetuning_' + '_'.join(self.experiment_configuration['finetuning_datasets'])
+                split_string = f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json'
+                new_splits_path = splits_path.joinpath(split_string)
+                if new_splits_path.exists():
+                    return
+            # otherwise check whether all split files for the datasets exist
+            for dataset in self.experiment_configuration['single_datasets']:
+                if not splits_path.joinpath(f'{dataset}_splits.json').exists():
+                    self.create_split_file()
+            paths = [splits_path for dataset in self.experiment_configuration['single_datasets']]
+            datasets = self.experiment_configuration['single_datasets']
+            pretraining_ids = []
+            finetuning_ids = []
+            if 'pretraining_datasets' in self.experiment_configuration:
+                # get the ids by positions in the self.experiment_configuration['single_datasets']
+                pretraining_ids = [self.experiment_configuration['single_datasets'].index(dataset) for dataset in self.experiment_configuration['pretraining_datasets']]
+            if 'finetuning_datasets' in self.experiment_configuration:
+                # get the ids by positions in the self.experiment_configuration['single_datasets']
+                finetuning_ids = [self.experiment_configuration['single_datasets'].index(dataset) for dataset in self.experiment_configuration['finetuning_datasets']]
+            # create the pretraining respective finetuning splits
+            pretraining_finetuning(paths, datasets, pretraining_ids=pretraining_ids, finetuning_ids=finetuning_ids)
+
         else:
             splits_path = splits_path.joinpath(f'{self.db_name}_splits.json')
+
         if splits_path.exists():
             pass
         else:
-            # generate the splits
-            if self.experiment_configuration.get('with_splits', True):
-                # generate splits
-                create_splits(self.db_name, Path(self.experiment_configuration['paths']['data']), Path(self.experiment_configuration['paths']['splits']), folds=self.experiment_configuration['validation_folds'], graph_data=self.graph_data)
-            else:
-                if self.experiment_configuration.get('split_function', None) is not None:
-                    # generate splits
-                    self.experiment_configuration['split_function'](self.experiment_configuration['paths']['splits'], **self.experiment_configuration['split_function_args'], graph_data=self.graph_data)
-                else:
-                    raise ValueError(f'Please specify a split function in the main config file for the dataset {self.db_name} using the key "split_function".')
+            self.create_split_file()
 
         # copy the splits to the processed folder
-        if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').exists():
-            Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').mkdir()
-        if 'split_appendix' in self.experiment_configuration:
-            split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json')
-        else:
-            split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_splits.json')
+        #if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').exists():
+        #    Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').mkdir()
+        #if 'split_appendix' in self.experiment_configuration:
+        #    split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json')
+        #else:
+        #    split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_splits.json')
         # copy the content of the split file to the target path
-        split_target_path.write_text(splits_path.read_text())
+        #split_target_path.write_text(splits_path.read_text())
 
-
+    def create_split_file(self):
+        # create the splits
+        if self.experiment_configuration.get('with_splits', True):
+            create_splits(self.db_name, Path(self.experiment_configuration['paths']['data']),
+                          Path(self.experiment_configuration['paths']['splits']),
+                          folds=self.experiment_configuration['validation_folds'], graph_data=self.graph_data)
+        else:
+            if self.experiment_configuration.get('split_function', None) is not None:
+                # generate splits
+                self.experiment_configuration['split_function'](self.experiment_configuration['paths']['splits'],
+                                                                **self.experiment_configuration['split_function_args'],
+                                                                graph_data=self.graph_data)
+            else:
+                raise ValueError(
+                    f'Please specify a split function in the main config file for the dataset {self.db_name} using the key "split_function".')
 
     def layer_to_labels(self, layer_strings: json)->Path:
         file_path = None

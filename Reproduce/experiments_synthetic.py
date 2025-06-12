@@ -1,7 +1,7 @@
 from pathlib import Path
-
-from scripts.ExperimentMain import ExperimentMain
 import click
+
+from src.Experiment.ExperimentMain import ExperimentMain
 
 
 def main_synthetic(num_threads=-1):

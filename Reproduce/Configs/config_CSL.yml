@@ -16,3 +16,4 @@ networks:
           { label_type: simple_cycles, max_cycle_length: [ 10 ] }
         ]
     }
+    - { layer_type: reshape }

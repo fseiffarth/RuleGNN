@@ -3,7 +3,7 @@ networks:
         bias: False,
         heads: [1],
         labels: [
-          { label_type: [wl_labeled], depth: [1] },
+          { label_type: [wl_labeled], depth: [2] },
         ],
         properties: [
           { name: distances, values: [ 0,1,2,3,4,5,6 ] },
@@ -12,8 +12,9 @@ networks:
     - { layer_type: aggregation,
         bias: True,
         heads: [1],
+        out_dim: 2,
         labels: [
-          { label_type: primary },
+          { label_type: [wl_labeled], depth: [2] },
         ]
     }
     - { layer_type: reshape }

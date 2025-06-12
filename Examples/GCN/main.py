@@ -5,7 +5,7 @@ import click
 
 from src.Experiment.ExperimentMain import ExperimentMain
 
-def main_foundation(num_threads=-1):
+def main_example_gcn(num_threads=-1):
     experiment = ExperimentMain(Path('Examples/GCN/Configs/main_config.yml'))
     experiment.ExperimentPreprocessing(num_threads=num_threads)
     ## run real world experiment
@@ -17,7 +17,7 @@ def main_foundation(num_threads=-1):
 @click.command()
 @click.option('--num_threads', default=1, help='Number of threads to use')
 def main(num_threads):
-    main_foundation(num_threads)
+    main_example_gcn(num_threads)
 
 
 

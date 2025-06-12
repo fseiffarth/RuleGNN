@@ -23,6 +23,7 @@ networks:
           { label_type: cliques, max_clique_size: [ 3,4,6,10,20,50 ] },
         ]
     }
+    - { layer_type: reshape }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:
 subgraphs:

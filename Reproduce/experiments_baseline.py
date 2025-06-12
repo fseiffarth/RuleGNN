@@ -5,9 +5,6 @@ import click
 import joblib
 import numpy as np
 import pandas as pd
-from contourpy import max_threads
-
-from scripts.ExperimentMain import ExperimentMain
 from src.Competitors.Kernels.GraphKernels import WLKernel
 from src.Competitors.Kernels.NoGKernel import NoGKernel
 from src.utils.GraphData import get_graph_data
