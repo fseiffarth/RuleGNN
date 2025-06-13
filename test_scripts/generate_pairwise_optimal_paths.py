@@ -26,9 +26,9 @@ class EditPath():
             self.edge_operations = dict()
             self.edge_operations['remove'] = [a for (a, b) in edge_operations_all if b is None]
             self.edge_operations['add'] = [b for (a, b) in edge_operations_all if a is None]
-            # check wheter 'label' is in the edge attributes
+            # check whether 'label' is in the edge attributes
             if nx.get_edge_attributes(start_graph, 'label') and nx.get_edge_attributes(end_graph, 'label'):
-                self.edge_operations['relabel'] = [(a, b) for (a, b) in edge_operations_all if a is not None and b is not None and end_graph.edges[a]['label'] != end_graph.edges[b]['label']]
+                self.edge_operations['relabel'] = [(a, b) for (a, b) in edge_operations_all if a is not None and b is not None and start_graph.edges[a]['label'] != end_graph.edges[b]['label']]
             self.all_operations = list()
             for key, value in self.node_operations.items():
                 self.all_operations.extend([(f'{key}_node', op) for op in value])
@@ -49,7 +49,8 @@ class EditPath():
             'distance': self.distance,
             'node_operations': self.node_operations,
             'edge_operations': self.edge_operations,
-            'all_operations': self.all_operations
+            'all_operations': self.all_operations,
+            'node_map': self.node_map
         }
     def loadJSON(self, json_obj):
         """
@@ -69,6 +70,8 @@ class EditPath():
                 self.all_operations.extend([(f'{key}_node', op) for op in value])
             for key, value in self.edge_operations.items():
                 self.all_operations.extend([(f'{key}_edge', op) for op in value])
+        if 'node_map' in json_obj:
+            self.node_map = json_obj['node_map']
         return self
 
 
@@ -102,7 +105,7 @@ class EditPath():
                     graph_sequence.append(last_graph)
                     if plotting:
                         plot_graph_changes(graph_sequence[-1], node=op_value, type='remove')
-            elif op_type == 'change_node':
+            elif op_type == 'relabel_node':
                 pass
             elif op_type == 'add_edge':
                 # add an edge between the two nodes with the given values
@@ -120,7 +123,7 @@ class EditPath():
                     if plotting:
                         plot_graph_changes(graph_sequence[-1], edge=op_value, type='remove')
                     pass
-            elif op_type == 'change_edge':
+            elif op_type == 'relabel_edge':
                 pass
 
 
@@ -208,6 +211,9 @@ def generate_pairwise_optimal_paths(share_dataset:ShareGNNDataset, output_dir:st
     def node_match_primary(n1, n2):
         return n1['primary_label'] == n2['primary_label']
 
+    def edge_match_primary(e1, e2):
+        return e1['label'] == e2['label']
+
     num_max_edit_paths_per_pair = 1
     nx_graphs = share_dataset.nx_graphs
     # plot the first graph
@@ -219,7 +225,7 @@ def generate_pairwise_optimal_paths(share_dataset:ShareGNNDataset, output_dir:st
     for i in range(len(nx_graphs)):
         for j in range(i + 1, len(nx_graphs)):
             print(f"Comparing graph {i} with graph {j}")
-            result_nx = nx.optimize_edit_paths(nx_graphs[i], nx_graphs[j], node_match=node_match_primary)
+            result_nx = nx.optimize_edit_paths(nx_graphs[i], nx_graphs[j], node_match=node_match_primary, edge_match=edge_match_primary)
             optimal_edit_paths = []
             p = 0
             while p < num_max_edit_paths_per_pair:
