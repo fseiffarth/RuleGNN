@@ -18,9 +18,11 @@ class EditPath():
             if nx.get_node_attributes(start_graph, 'primary_label') and nx.get_node_attributes(end_graph, 'primary_label'):
                 self.node_operations['relabel'] = [(a, b) for (a, b) in node_operations_all if a is not None and b is not None and start_graph.nodes[a]['primary_label'] != end_graph.nodes[b]['primary_label']]
             self.node_map = dict()
+            self.inverse_node_map = dict()
             for (a, b) in node_operations_all:
                 if a is not None and b is not None:
                     self.node_map[a] = b
+                    self.inverse_node_map[b] = a
             # edge operations
             edge_operations_all = [(a, b) for (a, b) in edit_path[1] if a != b]
             self.edge_operations = dict()
@@ -50,7 +52,8 @@ class EditPath():
             'node_operations': self.node_operations,
             'edge_operations': self.edge_operations,
             'all_operations': self.all_operations,
-            'node_map': self.node_map
+            'node_map': self.node_map,
+            'inverse_node_map': self.inverse_node_map
         }
     def loadJSON(self, json_obj):
         """
@@ -72,7 +75,80 @@ class EditPath():
                 self.all_operations.extend([(f'{key}_edge', op) for op in value])
         if 'node_map' in json_obj:
             self.node_map = json_obj['node_map']
+        if 'inverse_node_map' in json_obj:
+            self.inverse_node_map = json_obj['inverse_node_map']
+        else:
+            self.inverse_node_map = dict()
+            for key, value in self.node_map.items():
+                self.inverse_node_map[value] = key
         return self
+
+    def apply_operations(self, operations_list, graph_sequence, target_graph, plotting=False):
+        unsuccessful_operations = []
+        for op_type, op_value in operations_list:
+            # create a copy of the last graph in the sequence
+            last_graph = graph_sequence[-1].copy()
+            # differentiate between operation types
+            if op_type == 'add_node':
+                # add a node with the given value
+                last_graph.add_node(op_value, primary_label=op_value)
+                graph_sequence.append(last_graph)
+                if plotting:
+                    plot_graph_changes(graph_sequence[-1], node=op_value, type='add', title='Add Node')
+            elif op_type == 'remove_node':
+                # remove the node with the given value (only if it degree is 0)
+                if last_graph.has_node(op_value) and last_graph.degree(op_value) == 0:
+                    last_graph.remove_node(op_value)
+                    graph_sequence.append(last_graph)
+                    if plotting:
+                        plot_graph_changes(graph_sequence[-1], node=op_value, type='remove', title='Remove Node')
+                else:
+                    unsuccessful_operations.append((op_type, op_value))
+            elif op_type == 'relabel_node':
+                # relabel the node with the given value
+                if last_graph.has_node(op_value[0]):
+                    last_graph.nodes[op_value[0]]['primary_label'] = target_graph.nodes[op_value[1]]['primary_label']
+                    graph_sequence.append(last_graph)
+                    if plotting:
+                        plot_graph_changes(graph_sequence[-1], node=op_value[0], type='add', title='Relabel Node')
+                    pass
+            elif op_type == 'add_edge':
+                # add an edge between the two nodes with the given values
+                # first use inverse_node_map to get the correct node ids
+                head_node = op_value[0]
+                tail_node = op_value[1]
+                if op_value[0] in self.inverse_node_map:
+                    head_node = self.inverse_node_map[op_value[0]]
+                if op_value[1] in self.inverse_node_map:
+                    tail_node = self.inverse_node_map[op_value[1]]
+
+                if last_graph.has_node(head_node) and last_graph.has_node(tail_node):
+                    last_graph.add_edge(head_node, tail_node)
+                    graph_sequence.append(last_graph)
+                    if plotting:
+                        plot_graph_changes(graph_sequence[-1], edge=op_value, type='add', title='Add Edge')
+                    pass
+            elif op_type == 'remove_edge':
+                # first use inverse_node_map to get the correct node ids
+                head_node = op_value[0]
+                tail_node = op_value[1]
+                # remove the edge between the two nodes with the given values
+                if last_graph.has_edge(head_node, tail_node):
+                    last_graph.remove_edge(head_node, tail_node)
+                    graph_sequence.append(last_graph)
+                    if plotting:
+                        plot_graph_changes(graph_sequence[-1], edge=op_value, type='remove', title='Remove Edge')
+                    pass
+            elif op_type == 'relabel_edge':
+                if last_graph.has_edge(*op_value[0]):
+                    last_graph.edges[op_value[0]]['label'] = target_graph.edges[op_value[1]]['label']
+                    graph_sequence.append(last_graph)
+                    if plotting:
+                        plot_graph_changes(graph_sequence[-1], edge=op_value[0], type='add', title='Relabel Edge')
+                    pass
+            else:
+                raise ValueError(f"Unknown operation type: {op_type}")
+        return unsuccessful_operations
 
 
     def create_edit_path_graphs(self, nx_graph1, nx_graph2, seed=42, plotting=True):
@@ -82,55 +158,17 @@ class EditPath():
         """
         graph_sequence = [nx_graph1]
         if plotting:
-            plot_graph(graph_sequence[-1])
+            plot_graph(nx_graph1, with_node_ids=True)
+            plot_graph(nx_graph2, with_node_ids=True)
         # create a shuffled list of operations to apply
-        shuffled_operations = self.all_operations.copy()
+        unsuccessful_operations = self.all_operations.copy()
         np.random.seed(seed)
-        np.random.shuffle(shuffled_operations)
-        unsuccessful_operations = list()
-        for op_type, op_value in shuffled_operations:
-            # create a copy of the last graph in the sequence
-            last_graph = graph_sequence[-1].copy()
-            # differentiate between operation types
-            if op_type == 'add_node':
-                # add a node with the given value
-                last_graph.add_node(op_value, primary_label=op_value)
-                graph_sequence.append(last_graph)
-                if plotting:
-                    plot_graph_changes(graph_sequence[-1], node=op_value, type='add')
-            elif op_type == 'remove_node':
-                # remove the node with the given value
-                if last_graph.has_node(op_value):
-                    last_graph.remove_node(op_value)
-                    graph_sequence.append(last_graph)
-                    if plotting:
-                        plot_graph_changes(graph_sequence[-1], node=op_value, type='remove')
-            elif op_type == 'relabel_node':
-                pass
-            elif op_type == 'add_edge':
-                # add an edge between the two nodes with the given values
-                if last_graph.has_node(op_value[0]) and last_graph.has_node(op_value[1]):
-                    last_graph.add_edge(op_value[0], op_value[1])
-                    graph_sequence.append(last_graph)
-                    if plotting:
-                        plot_graph_changes(graph_sequence[-1], edge=op_value, type='add')
-                    pass
-            elif op_type == 'remove_edge':
-                # remove the edge between the two nodes with the given values
-                if last_graph.has_edge(op_value[0], op_value[1]):
-                    last_graph.remove_edge(op_value[0], op_value[1])
-                    graph_sequence.append(last_graph)
-                    if plotting:
-                        plot_graph_changes(graph_sequence[-1], edge=op_value, type='remove')
-                    pass
-            elif op_type == 'relabel_edge':
-                pass
+        np.random.shuffle(unsuccessful_operations)
+        while len(unsuccessful_operations) > 0:
+            unsuccessful_operations = self.apply_operations(unsuccessful_operations, graph_sequence, target_graph=nx_graph2, plotting=plotting)
 
-
-
-
-            pass
         # TODO: add the node operations to the graph1 and graph2
+        plot_graph(nx_graph2)
         return graph_sequence
 
 def plot_graph(nx_graph: nx.Graph, with_node_ids: bool = False):
@@ -149,7 +187,7 @@ def plot_graph(nx_graph: nx.Graph, with_node_ids: bool = False):
     nx.draw_networkx_edges(nx_graph, pos)
     plt.show()
 
-def plot_graph_changes(nx_graph: nx.Graph, edge=None, node=None, type=None):
+def plot_graph_changes(nx_graph: nx.Graph, edge=None, node=None, type=None, title=None):
     """
     Plot the given networkx graph.
     """
@@ -167,6 +205,7 @@ def plot_graph_changes(nx_graph: nx.Graph, edge=None, node=None, type=None):
     node_labels = nx.get_node_attributes(nx_graph, 'primary_label')
     nx.draw_networkx_labels(nx_graph, pos, labels=node_labels, font_size=12)
     nx.draw_networkx_edges(nx_graph, pos)
+    plt.title(title if title is not None else '')
     plt.show()
 
 def save_edit_path_to_file(db_name, edit_paths, file_path):
@@ -247,7 +286,7 @@ if __name__ == '__main__':
         from_existing_data='TUDataset',
         task='graph_classification'
     )
-    generate_pairwise_optimal_paths(share_dataset, output_dir='data/')
+    #generate_pairwise_optimal_paths(share_dataset, output_dir='data/')
 
     share_dataset.create_nx_graphs()
     nx_graphs = share_dataset.nx_graphs
