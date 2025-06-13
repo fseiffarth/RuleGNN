@@ -3,15 +3,24 @@ import matplotlib.pyplot as plt
 from src.utils.GraphData import ShareGNNDataset
 
 class EditPath():
-    def __init__(self, db_name, start_id, end_id, edit_path):
-        # node operations
-        self.distance = edit_path[2]
-        self.node_operations = [(a, b) for (a, b) in edit_path[0] if a != b]
-        # edge operations
-        self.edge_operations = edit_path[1]
-        self.db_name = db_name
-        self.start_id = start_id
-        self.end_id = end_id
+    def __init__(self, db_name=None, start_id=None, end_id=None, edit_path=None):
+        if edit_path is not None:
+            # node operations
+            self.distance = edit_path[2]
+            node_operations_all = [(a, b) for (a, b) in edit_path[0] if a != b]
+            self.node_operations = dict()
+            self.node_operations['remove'] = [a for (a, b) in node_operations_all if b is None]
+            self.node_operations['add'] = [b for (a, b) in node_operations_all if a is None]
+            self.node_operations['change'] = [(a, b) for (a, b) in node_operations_all if a is not None and b is not None]
+            # edge operations
+            edge_operations_all = [(a, b) for (a, b) in edit_path[1] if a != b]
+            self.edge_operations = dict()
+            self.edge_operations['remove'] = [a for (a, b) in edge_operations_all if b is None]
+            self.edge_operations['add'] = [b for (a, b) in edge_operations_all if a is None]
+            self.edge_operations['change'] = [(a, b) for (a, b) in edge_operations_all if a is not None and b is not None]
+            self.db_name = db_name
+            self.start_id = start_id
+            self.end_id = end_id
 
     # serialize the class to a json object
     def toJSON(self):
@@ -49,8 +58,26 @@ def save_edit_path_to_file(db_name, edit_paths, file_path):
     with open(f'{file_path}/{db_name}_ged_paths.paths', 'w') as f:
         for i in range(len(edit_paths)):
             for j in range(i + 1, len(edit_paths)):
-                for edit_path in edit_paths[i][j]:
-                    f.write(f"{i} {j} {edit_path.save()}\n")
+                if (i, j) not in edit_paths:
+                    continue
+                else:
+                    for edit_path in edit_paths[(i, j)]:
+                        f.write(f"{i} {j} {edit_path.toJSON()}\n")
+
+def load_edit_paths_from_file(db_name, file_path):
+    # load the global edit paths from a file
+    edit_paths = dict()
+    with open(f'{file_path}/{db_name}_ged_paths.paths', 'r') as f:
+        for line in f:
+            parts = line.strip().split(' ', 2)
+            if len(parts) < 3:
+                continue
+            i, j, json_str = int(parts[0]), int(parts[1]), parts[2]
+            edit_path = EditPath().loadJSON(eval(json_str))
+            if (i, j) not in edit_paths:
+                edit_paths[(i, j)] = []
+            edit_paths[(i, j)].append(edit_path)
+    return edit_paths
 
 def optimal_edit_path():
     db_name = 'MUTAG'
@@ -68,21 +95,24 @@ def optimal_edit_path():
         return n1['primary_label'] == n2['primary_label']
 
     num_max_edit_paths_per_pair = 1
-    nx_graphs = share_dataset.nx_graphs
+    nx_graphs = share_dataset.nx_graphs[:3]
     # iterate over all the graph pairs
-    global_edit_paths = [[] * len(nx_graphs) for _ in range(len(nx_graphs))]
+    global_edit_paths = dict()
     for i in range(len(nx_graphs)):
         for j in range(i + 1, len(nx_graphs)):
             print(f"Comparing graph {i} with graph {j}")
             result_nx = nx.optimize_edit_paths(nx_graphs[i], nx_graphs[j], node_match=node_match_primary)
             optimal_edit_paths = []
-            for p, x in enumerate(result_nx):
-                if p >= num_max_edit_paths_per_pair:
-                    break
+            p = 0
+            while p < num_max_edit_paths_per_pair:
+                x = next(result_nx)
                 optimal_edit_paths.append(EditPath(db_name, i, j, x))
-                print(f"Calculated optimal edit path {p} / {num_max_edit_paths_per_pair} for graphs {i} and {j}")
-            global_edit_paths[i][j] = optimal_edit_paths
+                print(f"Calculated optimal edit path {p+1} / {num_max_edit_paths_per_pair} for graphs {i} and {j}")
+                p += 1
+            global_edit_paths[(i, j)] = optimal_edit_paths
     save_edit_path_to_file(db_name, global_edit_paths, 'data')
+    # load the edit paths from the file
+    load_edit_paths_from_file(db_name, 'data')
 
 
 
@@ -116,7 +146,9 @@ def optimal_edit_path():
         optimal_edit_path = x
         print(x)
         break
-
+    # create graphs on the optimal edit path steps
+    node_changes = optimal_edit_path[0]
+    edge_changes = optimal_edit_path[1]
 
     pass
 

@@ -472,9 +472,10 @@ class ModelConfiguration:
                     prediction = torch.argmax(outputs, dim=1)
                     validation_acc = 100 * torch.sum(prediction==labels).item() / len(labels)
                     validation_values.accuracy = validation_acc
-                    # roc_auc
-                    validation_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
-                    validation_values.accuracy_roc_auc = validation_roc_auc
+                    if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
+                        # roc_auc
+                        validation_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
+                        validation_values.accuracy_roc_auc = validation_roc_auc
 
                 # update best epoch
                 if self.para.run_config.task == 'graph_regression':
@@ -572,9 +573,10 @@ class ModelConfiguration:
                     prediction = torch.argmax(outputs, dim=1)
                     test_acc = 100 * torch.sum(prediction == labels).item() / len(labels)
                     test_values.accuracy = test_acc
-                    # roc_auc
-                    test_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
-                    test_values.accuracy_roc_auc = test_roc_auc
+                    if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
+                        # roc_auc
+                        test_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
+                        test_values.accuracy_roc_auc = test_roc_auc
 
                 if self.para.print_results:
                     np_labels = labels.detach().numpy()
@@ -680,29 +682,9 @@ class ModelConfiguration:
 
         file_name = f'{self.para.db}_{self.para.config_id}_Results_run_id_{self.run_id}_validation_step_{self.para.validation_id}.csv'
 
-        does_run_exist = False
-        # check if the file already exists
-        if Path(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')).exists():
-            # load the file with pandas and get the last epoch completed
-            df = pd.read_csv(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), delimiter=';')
-            if df['Epoch'].size <= 1:
-                last_epoch = 0
-            else:
-                last_epoch = df['Epoch'].iloc[-1]
-            # if the last_epoch equals the number of epochs the run is already completed
-            if last_epoch != self.para.run_config.epochs - 1:
-                does_run_exist = False
-                print(f'The file {file_name} already exists but the run was not completed, or new parameters are used')
-            else:
-                does_run_exist = True
-                print(f'The file {file_name} already exists and recomputation is skipped')
-
-        if does_run_exist:
-            return False
-        else:
-            # if the file does not exist create a new file
-            with open(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), "w") as file_obj:
-                file_obj.write("")
+        # if the file does not exist create a new file
+        with open(self.results_path.joinpath(f'{self.para.db}/Results/{file_name}'), "w") as file_obj:
+            file_obj.write("")
 
         # header use semicolon as delimiter
         if self.para.run_config.task == 'graph_regression':

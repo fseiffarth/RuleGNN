@@ -1,4 +1,6 @@
+import json
 import os
+import time
 from copy import deepcopy
 from pathlib import Path
 
@@ -386,46 +388,56 @@ class ExperimentMain:
         - validation_id: integer with the validation id, i.e., which validation split to use
         - run_id: integer with the run id, i.e., which run to use. The id determines the seed for the random number generator
         """
+        final_path = run_config.config['paths']['results'].joinpath(f'{graph_data.name}/Results/')
+        configuration_file_name = f'{run_config.config["name"]}_{str(config_id).zfill(6)}_Results_run_id_{run_id}_validation_step_{validation_id}.json'
+        # check if the configuration file exists
+        if not final_path.joinpath(configuration_file_name).exists():
+            print(f"Run the model for dataset {run_config.config['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
+            para = Parameters()
+            load_preprocessed_data_and_parameters(config_id=config_id,
+                                                  run_id=run_id,
+                                                  validation_id=validation_id,
+                                                  validation_folds=run_config.config.get('validation_folds', 10),
+                                                  graph_data=graph_data, run_config=run_config, para=para)
 
-        print(f"Run the model for dataset {run_config.config['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
-        para = Parameters()
-        load_preprocessed_data_and_parameters(config_id=config_id,
-                                              run_id=run_id,
-                                              validation_id=validation_id,
-                                              validation_folds=run_config.config.get('validation_folds', 10),
-                                              graph_data=graph_data, run_config=run_config, para=para)
+            # split the data into training, validation and test data
+            seed = 42 + validation_id + para.n_val_runs * run_id
+            # load the data splits
+            data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('split_appendix', None))
+            test_data = data[0][validation_id]
+            train_data = data[1][validation_id]
+            validation_data = data[2][validation_id]
+            model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
 
-        # split the data into training, validation and test data
-        seed = 42 + validation_id + para.n_val_runs * run_id
-        # load the data splits
-        data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('split_appendix', None))
-        test_data = data[0][validation_id]
-        train_data = data[1][validation_id]
-        validation_data = data[2][validation_id]
-        model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
+            # create the main method object
+            configuration = ModelConfiguration(run_id, validation_id, graph_data, model_data, seed, para)
 
-        if run_id == 0 and config_id == f'Configuration_{str(0).zfill(6)}':
-            # save the model data used for training, validation and testing
-            data_out_path = para.run_config.config['paths']['results'].joinpath(run_config.config['name']).joinpath('Results').joinpath('DataIds')
-            # save under data_ids_{run_id}_{validation_id}.csv (first line train, second line validation, third line test)
-            with open(data_out_path.joinpath(f'data_ids_validation_{validation_id}.txt'), 'w') as f:
-                f.write(','.join(map(str, model_data[0])) + '\n')
-                f.write(','.join(map(str, model_data[1])) + '\n')
-                f.write(','.join(map(str, model_data[2])) + '\n')
+            # run the model, if a pretrained network is given, use it
+            if isinstance(self.pretrained_network, tuple):
+                # tuple ExperimentMain object and experiment_db_id
+                configuration.Run(pretrained_network=self.pretrained_network[0].load_model(db_name=para.run_config.config['name'], run_id=run_id, validation_id=validation_id, best=True, experiment_db_id=self.pretrained_network[1]))
+            elif isinstance(self.pretrained_network, str):
+                if self.pretrained_network in ['best', 'Best']:
+                    # TODO load only the best model that achieved the best test accuracy on the pretraining datasets
+                    pass
+            else:
+                configuration.Run(pretrained_network=self.pretrained_network)
+            # create a configuration file TODO fill the configuration file with more infos
+            with open(final_path.joinpath(configuration_file_name), 'w') as f:
+                # add train_validation_test_data to the configuration file
+                # get current time in yyyy-mm-dd HH:MM:SS format
+                current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+                f.write(json.dumps({
+                    'experiment_time': current_time,
+                    'config_id': config_id,
+                    'run_id': run_id,
+                    'validation_id': validation_id,
+                }, indent=4))
 
-        # create the main method object
-        configuration = ModelConfiguration(run_id, validation_id, graph_data, model_data, seed, para)
 
-        # run the model, if a pretrained network is given, use it
-        if isinstance(self.pretrained_network, tuple):
-            # tuple ExperimentMain object and experiment_db_id
-            configuration.Run(pretrained_network=self.pretrained_network[0].load_model(db_name=para.run_config.config['name'], run_id=run_id, validation_id=validation_id, best=True, experiment_db_id=self.pretrained_network[1]))
-        elif isinstance(self.pretrained_network, str):
-            if self.pretrained_network in ['best', 'Best']:
-                # TODO load only the best model that achieved the best test accuracy on the pretraining datasets
-                pass
         else:
-            configuration.Run(pretrained_network=self.pretrained_network)
+            print(f"Configuration file {configuration_file_name} already exists. Skipping the run for dataset {run_config.config['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
+
 
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True, experiment_db_id=0):

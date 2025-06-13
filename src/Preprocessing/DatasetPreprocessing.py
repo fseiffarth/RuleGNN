@@ -66,7 +66,6 @@ class DatasetPreprocessing:
         self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Weights').mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Models').mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Results').mkdir(exist_ok=True, parents=True)
-        self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Results').joinpath('DataIds').mkdir(exist_ok=True, parents=True)
 
 
         # if not exists create the generation_times_labels.txt and generation_times_properties.txt in the Results folder
