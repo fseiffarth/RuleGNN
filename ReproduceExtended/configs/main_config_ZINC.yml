@@ -80,7 +80,7 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
 batch_size:
   - 64
 learning_rate:
-  - 0.001
+  - 0.01
 epochs:
   - 1000
 
