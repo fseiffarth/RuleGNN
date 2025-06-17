@@ -274,7 +274,7 @@ Moreover, give your new labeling function a unique ```label_type``` used as argu
 The filename will be ```graph_data.name_l.pt```.
 - **Load Labels**: Go to [src/Architectures/ShareGNN/ShareGNNLayers.py](src/Architectures/ShareGNN/ShareGNNLayers.py) and add a new case to the function ```get_labels_string``` that gives you the string ```<your_characteristic_labeling_function_string>``` for your labeling function based on possible additional arguments.
 - **Automatic Label Generation**: If you want to automatically generate the labels based on the config file you need to go to
-[scripts/Preprocessing.py](src/Preprocessing/DatasetPreprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
+[src/Preprocessing/DatasetPreprocessing.py](src/Preprocessing/DatasetPreprocessing.py) and add a new case in the function ```layer_to_labels``` that calls your labeling function based on the ```label_type``` given in the config file.
 
 ## Add new property functions
 To define a new property function, go to [src/Preprocessing/create_properties.py](src/Preprocessing/create_properties.py) and add a new function called ```write_<your_property_function>_properties```.

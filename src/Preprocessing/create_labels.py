@@ -432,6 +432,35 @@ def save_wl_labeled_labels(graph_data:ShareGNNDataset, depth, max_labels=None, l
     return file
 
 
+def save_wl_labeled_edges_labels(graph_data:ShareGNNDataset, depth, max_labels=None, label_path=None, base_labels:Optional[dict]=None, save_times=None)->str:
+    # save the node labels to a file
+    l = 'wl_labeled_edges'
+    if base_labels is not None and base_labels['layer_dict']['label_type'] != 'primary':
+        l = f'{l}_{get_label_string(base_labels["layer_dict"])}_base_labels'
+    l = f'{l}_{depth}'
+    if max_labels is not None:
+        l = f'{l}_{max_labels}'
+    if label_path is None:
+        raise ValueError("No label path given")
+    else:
+        file = label_path.joinpath(f'{graph_data.name}_labels_{l}.pt')
+    if not file.exists():
+        print(f"Saving {l} labels for {graph_data.name} to {file}")
+        if graph_data.nx_graphs is None:
+            graph_data.create_nx_graphs(directed=False)
+        start_time = time.time()
+        node_labels, unique_node_labels, db_unique_node_labels = weisfeiler_lehman_node_labeling(graph_data.nx_graphs, depth=depth, labeled=True, base_labels=base_labels, with_edge_labels=True)
+        save_labels_to_file(file, graph_data.name, l, node_labels, max_labels)
+        if save_times is not None:
+            try:
+                with open(save_times, 'a') as f:
+                    f.write(f"{graph_data.name}, {l}_{max_labels}, {time.time() - start_time}\n")
+            except:
+                raise ValueError("No save time path given")
+    else:
+        print(f"File {file} already exists. Skipping.")
+    return file
+
 def save_cycle_labels(graph_data:ShareGNNDataset, min_cycle_length=None, max_cycle_length=6, max_labels=None, cycle_type='simple', label_path=None, save_times=None)->str:
     if cycle_type not in ['simple', 'induced']:
         raise ValueError("Cycle type must be either 'simple' or 'induced'")

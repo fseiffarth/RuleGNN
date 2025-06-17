@@ -97,6 +97,15 @@ def get_label_string(label_dict: dict) -> str:
         max_labels = label_dict.get('max_labels', None)
         if max_labels is not None:
             l_string = f"{l_string}_{max_labels}"
+    elif label_type == "wl_labeled_edges":
+        l_string = 'wl_labeled_edges'
+        if 'base_labels' in label_dict:
+            l_string = f"{l_string}_{get_label_string(label_dict['base_labels'])}_base_labels"
+        iterations = label_dict.get('depth', 3)
+        l_string = f"{l_string}_{iterations}"
+        max_labels = label_dict.get('max_labels', None)
+        if max_labels is not None:
+            l_string = f"{l_string}_{max_labels}"
     elif label_type == "degree":
         l_string = "wl_0"
         max_labels = label_dict.get('max_labels', None)

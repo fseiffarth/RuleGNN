@@ -64,7 +64,7 @@ def degree_node_labeling(graphs: List[nx.Graph]):
     db_unique_node_labels = dict(sorted(db_unique_node_labels.items()))
     return node_labels, unique_node_labels, db_unique_node_labels
 
-def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], depth: int = 3, labeled: bool = False, base_labels: Optional[dict] = None):
+def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], depth: int = 3, labeled: bool = False, base_labels: Optional[dict] = None, with_edge_labels: bool = False):
     unique_node_labels = []
     db_unique_node_labels = {}
     union_graph = nx.disjoint_union_all(graphs)
@@ -77,9 +77,17 @@ def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], depth: int = 3, labe
     if labeled:
         if base_labels is not None:
             # use the base label as the node attribute
-            hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='base_label')
+            if with_edge_labels:
+                # use the base label as the node attribute and edge attribute
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='base_label', edge_attr='label')
+            else:
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='base_label')
         else:
-            hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='primary_label')
+            if with_edge_labels:
+                # use the primary label as the node attribute and edge attribute
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='primary_label', edge_attr='label')
+            else:
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='primary_label')
     else:
         hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth)
     largest_int = 0

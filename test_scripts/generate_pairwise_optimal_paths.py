@@ -286,10 +286,10 @@ if __name__ == '__main__':
         from_existing_data='TUDataset',
         task='graph_classification'
     )
-    #generate_pairwise_optimal_paths(share_dataset, output_dir='data/')
+    generate_pairwise_optimal_paths(share_dataset, output_dir='data/')
 
     share_dataset.create_nx_graphs()
     nx_graphs = share_dataset.nx_graphs
-    edit_paths = load_edit_paths_from_file(db_name=db_name, file_path='data/')
+    edit_paths = load_edit_paths_from_file(db_name=db_name, file_path='data')
     edit_paths[(0, 1)][0].create_edit_path_graphs(nx_graphs[0], nx_graphs[1])
     pass

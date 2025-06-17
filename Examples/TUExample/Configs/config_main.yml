@@ -1,6 +1,6 @@
 datasets:
   # real-world datasets
-  - { name: "IMDB-MULTI",
+  - { name: "MUTAG",
       task: 'graph_classification',
       validation_folds: 10,
       experiment_config_file: "Examples/TUExample/Configs/config_network.yml",

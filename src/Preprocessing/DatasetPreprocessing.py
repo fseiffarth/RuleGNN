@@ -6,7 +6,7 @@ from pathlib import Path
 from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
 from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels, save_primary_labels, \
     save_degree_labels, save_cycle_labels, save_subgraph_labels, save_clique_labels, save_index_labels, \
-    save_labeled_degree_labels, save_wl_labeled_labels, save_labels_to_file
+    save_labeled_degree_labels, save_wl_labeled_labels, save_labels_to_file, save_wl_labeled_edges_labels
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
 from src.TransferLearning.combine_split_files import pretraining_finetuning
@@ -347,6 +347,29 @@ class DatasetPreprocessing:
                                                            save_times=self.generation_times_labels_path)
                 else:
                     file_path = save_wl_labeled_labels(graph_data=self.graph_data,
+                                                       depth=layer.get('depth', 3),
+                                                       max_labels=layer['max_labels'],
+                                                       label_path=label_path,
+                                                       base_labels=base_labels,
+                                                       save_times=self.generation_times_labels_path)
+            elif layer['label_type'] == 'wl_labeled_edges':
+                layer['max_labels'] = layer.get('max_labels', None)
+                layer['depth'] = layer.get('depth', 3)
+                base_labels = None
+                if 'base_labels' in layer:
+                    base_labels = dict()
+                    base_label_path = self.experiment_configuration['paths']['labels'].joinpath(f'{self.graph_data.name}').joinpath(f"{self.graph_data.name}_labels_{get_label_string(layer['base_labels'])}.pt")
+                    base_labels['layer_dict'] = layer['base_labels']
+                    base_labels['layer_string'] = get_label_string(layer['base_labels'])
+                    base_labels['labels'] = load_labels(base_label_path)
+
+                if layer['depth'] == 0:
+                    file_path = save_labeled_degree_labels(graph_data=self.graph_data,
+                                                           label_path=label_path,
+                                                              max_labels=layer.get('max_labels', None),
+                                                           save_times=self.generation_times_labels_path)
+                else:
+                    file_path = save_wl_labeled_edges_labels(graph_data=self.graph_data,
                                                        depth=layer.get('depth', 3),
                                                        max_labels=layer['max_labels'],
                                                        label_path=label_path,

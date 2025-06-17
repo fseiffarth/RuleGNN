@@ -9,7 +9,6 @@ import torch
 from torch import optim, nn
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
-from src.Architectures.Ordinary.GCNGraph import GCNGraph
 from src.Architectures.ShareGNN import ShareGNN, Parameters
 from src.Experiment.data_sampling import curriculum_sampling
 from src.utils import GraphData

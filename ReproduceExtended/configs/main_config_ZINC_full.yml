@@ -71,10 +71,10 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
-                         convolution_bias: { type: 'lower_upper', value: 0.0},
-                         aggregation: {  type: 'lower_upper', value: 0.001 },
-                         aggregation_bias: { type: 'lower_upper', value: 0.0 }}
+weight_initialization: { convolution: {  type: 'constant', value: -0.001 },
+                         convolution_bias: { type: 'constant', value: 0.0},
+                         aggregation: {  type: 'constant', value: -0.001 },
+                         aggregation_bias: { type: 'constant', value: 0.0 }}
 
 batch_size:
   - 128
@@ -98,9 +98,9 @@ training_data_sampling: { type: 'default'}
 #training_data_sampling: { type: 'curriculum', bucket_num: 5, anti: True }
 #training_data_sampling: { type: 'random' }
 
-#input_features: {name: constant, value: 1.0, random_variation: { mean: 0.0, variance: 0.5 }}
-input_features: {name: constant, value: 1.0}
-#input_features: {name: node_labels, transformation: 'one_hot'}
+#input_features: {name: constant, value: 1.0}
+#input_features: {name: constant, value: 1.0}
+input_features: {name: node_labels, transformation: 'one_hot'}
+#input_features: {name: node_features}
 #use_feature_transformation: {out_dimension: 21, bias: True}
 best_model: True
-
