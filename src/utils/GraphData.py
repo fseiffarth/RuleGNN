@@ -16,8 +16,6 @@ from torch_geometric.io import fs
 from torch_geometric.utils.convert import to_networkx
 from ogb.nodeproppred import PygNodePropPredDataset
 
-from test_scripts.counting_from_paper import GraphCount
-
 
 class ShareGNNDataset(InMemoryDataset):
     def __init__(
@@ -36,7 +34,8 @@ class ShareGNNDataset(InMemoryDataset):
             input_features = None,
             output_features = None,
             task = None,
-            merge_graphs = None
+            merge_graphs = None,
+            testing: Optional[int] = None,
     ) -> None:
         self.name = name # name of the dataset
         self.from_existing_data = from_existing_data # create the dataset from existing data
@@ -47,10 +46,36 @@ class ShareGNNDataset(InMemoryDataset):
         self.properties = {} # different pairwise properties for the graph data
         self.precision = torch.float
         self.task = task
+        self.testing = testing # take the first n graphs for testing (only for debugging)
         if precision == 'double':
             self.precision = torch.double
         super(ShareGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
         out = fs.torch_load(self.processed_paths[0])
+        if testing is not None:
+            if isinstance(testing, int):
+                # reduce out to the first testing graphs
+                # slices
+                testing_slices = {'edge_index': out[1]['edge_index'][:testing],
+                'edge_attr': out[1]['edge_attr'][:testing],
+                'x': out[1]['x'][:testing],
+                'y': out[1]['y'][:testing]}
+                testing_data = {
+                    'num_nodes': testing_slices['y'][-1].item(),
+                    'edge_index': out[0]['edge_index'][:, :testing_slices['edge_index'][-1]],
+                    'edge_attr': out[0]['edge_attr'][:testing_slices['edge_attr'][-1], :],
+                    'x': out[0]['x'][:testing_slices['x'][-1]],
+                    'y': out[0]['y'][:testing_slices['y'][-1]],
+                }
+                testing_sizes = {
+                    'num_node_labels': out[2]['num_node_labels'],
+                    'num_node_attributes': out[2]['num_node_attributes'],
+                    'num_edge_labels': out[2]['num_edge_labels'],
+                    'num_edge_attributes': out[2]['num_edge_attributes'],
+                }
+
+            else:
+                raise ValueError("testing must be an integer or None")
+
         if not isinstance(out, tuple) or len(out) < 3:
             raise RuntimeError(
                 "The 'data' object was created by an older version of PyG. "
@@ -59,11 +84,14 @@ class ShareGNNDataset(InMemoryDataset):
                 "root folder and try again.")
         assert len(out) == 3 or len(out) == 4
 
-        if len(out) == 3:  # Backward compatibility.
-            data, self.slices, self.sizes = out
-            data_cls = Data
+        if testing is not None:
+            data, self.slices, self.sizes, data_cls = testing_data, testing_slices, testing_sizes, out[3]
         else:
-            data, self.slices, self.sizes, data_cls = out
+            if len(out) == 3:  # Backward compatibility.
+                data, self.slices, self.sizes = out
+                data_cls = Data
+            else:
+                data, self.slices, self.sizes, data_cls = out
 
         self._num_graph_nodes = torch.zeros(len(self), dtype=torch.long)
         num_node_attributes = self.num_node_attributes
@@ -312,9 +340,9 @@ class ShareGNNDataset(InMemoryDataset):
 
 
 
-            elif self.from_existing_data in ['ZINC', 'ZINC-full', 'ZINC-Full', 'ZINCFull']:
+            elif self.from_existing_data in ['ZINC', 'ZINC-full', 'ZINC-Full', 'ZINCFull', 'ZINC-12k', 'ZINC-25k']:
                 subset = True
-                if self.name in ['ZINC-full', 'ZINC-Full', 'ZINCFull']:
+                if self.name in ['ZINC-full', 'ZINC-Full', 'ZINCFull', 'ZINC-250k']:
                     subset = False
                 train_data = ZINC(root='tmp/', subset=subset, split='train')
                 validation_data = ZINC(root='tmp/', subset=subset, split='val')
@@ -337,7 +365,6 @@ class ShareGNNDataset(InMemoryDataset):
                 }
             elif self.from_existing_data == 'OGB_GraphProp':
                 dataset_ogb = PygGraphPropPredDataset(name=self.name, root='tmp/')
-                dataset_torch = torch_geometric.datasets.MoleculeNet(root='tmp/', name='HIV')
                 split_idx = dataset_ogb.get_idx_split()
                 train_idx, valid_idx, test_idx = split_idx["train"], split_idx["valid"], split_idx["test"]
                 self.data = dataset_ogb.data
@@ -1360,3 +1387,75 @@ def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True
     # convert one hot label list to tensor
     graphs.output_data = torch.stack(graphs.output_data)
     return graphs
+
+class GraphCount(InMemoryDataset):
+
+    task_index = dict(
+        triangle=0,
+        tri_tail=1,
+        star=2,
+        cycle4=3,
+        cycle5=4,
+        cycle6=5,
+        multi = -1,
+    )
+
+    def __init__(self, root:str, split:str, task:str, **kwargs):
+        super().__init__(root=root, **kwargs)
+
+        _pt = dict(zip(["train", "val", "test"], self.processed_paths))
+        self.data, self.slices = torch.load(_pt[split])
+
+        index = self.task_index[task]
+        if index != -1:
+            self.data.y = self.data.y[:, index:index+1]
+
+    @property
+    def raw_file_names(self):
+        return ["Data/GraphDatasets/SubstructureCountingBenchmark.pt"]
+
+    @property
+    def processed_dir(self):
+        return f"{self.root}/randomgraph"
+
+    @property
+    def processed_file_names(self):
+        return ["train.pt", "val.pt", "test.pt"]
+
+    def process(self):
+
+        _pt, = self.raw_file_names
+        raw = torch.load(f"{self.root}/{_pt}")
+
+        def to(graph):
+
+            A = graph["A"]
+            y = graph["y"]
+
+            return pyg.data.Data(
+                x=torch.ones(A.shape[0], 1, dtype=torch.int64), y=y,
+                edge_index=torch.Tensor(np.vstack(np.where(graph["A"] > 0)))
+                     .type(torch.int64),
+            )
+
+        data = [to(graph) for graph in raw["data"]]
+
+        if self.pre_filter is not None:
+            data = filter(self.pre_filter, data)
+
+        if self.pre_transform is not None:
+            data = map(self.pre_transform, data)
+
+        data_list = list(data)
+        normalize = torch.std(torch.stack([data.y for data in data_list]), dim=0)
+
+        for split in ["train", "val", "test"]:
+
+            from operator import itemgetter
+            split_idx = raw["index"][split]
+            splits = itemgetter(*split_idx)(data_list)
+
+            data, slices = self.collate(splits)
+            data.y = data.y / normalize
+
+            torch.save((data, slices), f"{self.processed_dir}/{split}.pt")

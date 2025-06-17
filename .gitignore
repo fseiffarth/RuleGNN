@@ -9,6 +9,7 @@
 /Data/*
 !/Data/Splits/
 !/Data/SplitsSimple/
+!/Data/GraphDatasets/
 # ignore everything in the Reproduce folder except for the Configs folder and .py files
 /Reproduce/*
 !/Reproduce/Configs/

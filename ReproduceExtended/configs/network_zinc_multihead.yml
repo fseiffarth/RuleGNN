@@ -1,7 +1,7 @@
 networks:
   - - { layer_type: linear,
       mode: 'aggr_features',
-      output_features: 1,
+      output_features: 10,
       bias: True,
       activation: 'LeakyReLU',
     }
@@ -77,7 +77,7 @@ networks:
     - { layer_type: reshape}
     - { layer_type: linear,
         mode: 'aggr_features',
-        output_features: 10,
+        output_features: 100,
         bias: True,
         activation: 'None',
     }

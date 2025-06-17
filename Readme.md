@@ -1,9 +1,77 @@
-# ShareGNN
+# Benchmarking GNNs
 
-This repository contains the code for experiments with ShareGNNs to run the competitors please use
-https://anonymous.4open.science/r/FairSetup-F3DE/CONTRIBUTING.md.
-First, we give an overview of the repository and how to reproduce the experiments of the paper.
-Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experiments) and how to add new [layers](#Layers), [labeling functions](#Add-new-labeling-functions), and [property functions](#Add-new-property-functions).
+This repository should be a starting point to compare various GNN architectures on various dataset.
+It is based on the pytorch geometric representation of graphs and implements various evaluation schemes including the the fair evaluation of
+GNNs as proposed in the paper [Fair Setup for Benchmarking Graph Neural Networks](https://arxiv.org/abs/2309.14924) by Errica et al.
+
+The implemented framework mainly bases on two configuration files:
+1. In the [main config file](Examples/ConfigurationFiles/example_config_main.yml) you can define which datasets to use and how many splits which splits are used for training, validation, and test sets.
+2. In the [network config file](Examples/ConfigurationFiles/example_config_experiment.yml) you can define the architecture to use and the corresponding hyperparameters of the network.
+
+The links above lead to some example configuration files that can be used as a starting point for your own experiments.
+If running experiments with the framework, the results will be automatically saved in a clearly structured way.
+Below we provide a detailed description of how to set up the environment, reproduce the experiments of our paper, and customize your own experiments with your favorite datasets and architectures.
+
+### List of implemented GNN architectures
+- Graph Convolutional Network (GCN) 
+- Graph Attention Network (GAT)
+- Graph Isomorphism Network (GIN)
+- GraphSAGE
+- ShareGNN
+
+### Table of implemented datasets
+The following datasets are automatically downloaded and processed.
+Custom datasets can be added as described in [Customize Experiments](#Customize-Experiments).
+
+#### Graph Classification 
+Use ```task: graph_classification``` in config file
+
+  **Real World Graphs**
+
+  | name           | type | Source | Comments |
+  |----------------|----------------------------------|--------------------------------|------------|
+  | All TUDatasets | TUDataset                        | https://chrsmrrs.github.io/datasets/docs/datasets/ | |
+  | e.g            |                                  || |
+  | MUTAG          | TUDataset                        | https://chrsmrrs.github.io/datasets/docs/datasets/ | |
+  | NCI1           | TUDataset                        | https://chrsmrrs.github.io/datasets/docs/datasets/ | |
+  | DHFR           | TUDataset                        | https://chrsmrrs.github.io/datasets/docs/datasets/ | |
+
+  **Synthetic Graphs**
+
+  | name | type | Source | Comments |
+  |----------------|----------------------------------|--------------------------------|------------|
+  | CSL | gnn_benchmark | --- | |
+  | Snowflakes | generate_from_function | --- | |
+  | EvenOddRings2_16 | generate_from_function |  | |
+  | EvenOddRingsCount16 | generate_from_function |  | |
+  | LongRings100 | generate_from_function |  | |
+
+
+#### Graph Regression
+Use ```task: graph_regression``` in config file
+
+| name | type  | Source | Comments |
+| ------- |--------------------------------| ----------------------------| ------------|
+| ZINC-12k | ZINC                        | | |
+| ZINC-250k | ZINC                      | | |
+| Substructure Counting Benchmark | SubstructureBenchmark |  | |
+
+
+#### Node Classification 
+Use ```task: node_classification``` in config file
+
+name | type | Source | Comments |
+| ------- |--------------------------------| -------------------------------| ------------|
+| Cora | Planetoid | https://pytorch-geometric.readthedocs.io/en/latest/modules/datasets.html#planetoid | |
+| Citeseer | Planetoid | https://pytorch-geometric.readthedocs.io/en/latest/modules/datasets.html#planetoid | |
+| Pubmed | Planetoid | https://pytorch-geometric.readthedocs.io/en/latest/modules/datasets.html#planetoid | |
+| Nell | Nell | https://pytorch-geometric.readthedocs.io/en/latest/modules/datasets.html#nell | |
+| ogbn-arxiv | ogbn | https://ogb.stanford.edu/docs/nodeprop/#ogbn-arxiv | |
+
+- **Link Prediction:**
+  (not implemented yet)
+
+
 
 ## Setting up the Environment
 
@@ -21,7 +89,8 @@ Then, we explain how to use ShareGNNs for [custom datasets](#Customize-Experimen
    E.g., in PyCharm, you have to change the working directory path to the root directory of the repository.
     Go to ```File -> Settings -> Project Structure``` and mark the root directory as ```Sources``` (blue folder icon).
 
-## Reproduce Paper Experiments
+
+## Reproduce ShareGNN Paper Experiments
 To reproduce the experiments of the paper, follow the steps below. All necessary code can be found in the [Reproduce](Reproduce) folder.
 All experiments take approximately 4 days on an AMD Ryzen 9 7950X with 16 cores and 32 threads and 128 GB of RAM.
 Also single experiments can be started, see [Run specific experiment](#Run-specific-experiment).
@@ -223,7 +292,7 @@ The list of parameters always iterates over all combinations.
   ```
   The parameter ```id``` specifies which list of subgraphs to use.
   In this example the layer uses the labels of the nodes induced by the embeddings of the subgraphs (in this case cycles of length 4 and 5).
-  
+
 - Cycle-Layer (special case of Subgraph-Layer)
   ```yaml
     - { label_type: simple_cycles, max_cycle_length: [ 3,4,5 ] },

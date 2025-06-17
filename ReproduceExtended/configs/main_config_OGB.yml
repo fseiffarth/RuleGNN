@@ -7,6 +7,9 @@ datasets:
       split_function: ogb_molhiv_splits,
       experiment_config_file: "ReproduceExtended/configs/network_molhiv_multihead.yml",
       type: 'OGB_GraphProp',
+      use_node_attr: True,
+      use_edge_attr: True,
+      testing: 10, # test on the first 10 graphs
   }
 #  - {
 #    name: "HIV",

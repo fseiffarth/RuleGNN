@@ -155,7 +155,8 @@ class DatasetPreprocessing:
                                                       delete_zero_columns=self.experiment_configuration.get(
                                                          'delete_zero_columns', True),
                                                       from_existing_data='NEL',
-                                                      task=self.experiment_configuration.get('task', 'graph')
+                                                      task=self.experiment_configuration.get('task', 'graph'),
+                                                      testing=self.experiment_configuration.get('testing', None),
                                                       )
                 except:
                     # raise the error that has occurred
@@ -186,7 +187,8 @@ class DatasetPreprocessing:
                                               use_node_attr=self.experiment_configuration.get('use_node_attr', False),
                                               use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
                                               delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
-                                              task=self.experiment_configuration.get('task', None)
+                                              task=self.experiment_configuration.get('task', None),
+                                              testing=self.experiment_configuration.get('testing', None)
                                               )
 
 
