@@ -9,6 +9,9 @@ networks:
           { name: distances, values: [ 8 ] }
         ]
       }
+    - { layer_type: reshape,
+        shape: 'flatten_head'
+    }
     - { layer_type: convolution ,
         bias: False,
         heads: [1],

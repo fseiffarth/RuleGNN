@@ -98,13 +98,13 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
                 class_number = 2
                 opposite_nodes = []
                 for node in G.nodes(data=True):
-                    node_label = node[1]["primary_label"]
+                    node_label = node[1]["label"]
                     node_id = node[0]
                     pos = np.where(random_permutation == node_id)[0][0]
                     # get opposite node in the ring
                     opposite_node = random_permutation[(pos + ring_size // 2) % ring_size]
                     # get opposite node label in the ring
-                    opposite_node_label = G.nodes[opposite_node]["primary_label"]
+                    opposite_node_label = G.nodes[opposite_node]["label"]
                     # add node_label + opposite_node_label to opposite_nodes
                     opposite_nodes.append(node_label + opposite_node_label)
                 # count odd and even entries in opposite_nodes
@@ -129,11 +129,11 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
                 node_4 = random_permutation[(pos + 1) % ring_size]
                 node_5 = random_permutation[(pos - 1 + ring_size) % ring_size]
 
-                label_node_1 = G.nodes[node_1]["primary_label"]
-                label_node_2 = G.nodes[node_2]["primary_label"]
-                label_node_3 = G.nodes[node_3]["primary_label"]
-                label_node_4 = G.nodes[node_4]["primary_label"]
-                label_node_5 = G.nodes[node_5]["primary_label"]
+                label_node_1 = G.nodes[node_1]["label"]
+                label_node_2 = G.nodes[node_2]["label"]
+                label_node_3 = G.nodes[node_3]["label"]
+                label_node_4 = G.nodes[node_4]["label"]
+                label_node_5 = G.nodes[node_5]["label"]
 
                 # add the labels of the nodes
                 a = 0 + label_node_2
@@ -372,7 +372,7 @@ def first_a(data_size=1500, max_size=40, seed=764,*args, **kwargs) -> (List[nx.G
         for j in range(size):
             G.nodes[j]["label"] = rand_sequence[j]
         graphs.append(G)
-        # check wheter first and last node have the same label 0
+        # check whether first and last node have the same label 0
         valid = rand_sequence[0]
         labels.append(valid)
     return graphs, labels

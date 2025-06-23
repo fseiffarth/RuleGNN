@@ -190,6 +190,9 @@ class DatasetPreprocessing:
                                               task=self.experiment_configuration.get('task', None),
                                               testing=self.experiment_configuration.get('testing', None)
                                               )
+            # raise an error if the graph data is still None
+        if self.graph_data is None:
+            raise ValueError(f'Could not load the graph data for {self.db_name} from {self.experiment_configuration["paths"]["data"]}. Please check the configuration and the data generation function.')
 
 
     def generate_configuration_splits(self):

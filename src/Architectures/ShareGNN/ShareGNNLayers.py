@@ -1326,6 +1326,11 @@ class ShareGNNReshapeLayer(nn.Module):
         self.name = "Reshape Layer"
         self.layer = layer
         self.shape = layer.layer_dict.get('shape', [-1,])
+        if isinstance(self.shape, str):
+            # if the shape is named flatten heads
+            if self.shape == 'flatten_head':
+                # flatten the heads, i.e. reshape the input tensor from (C, N, F) to (C*N, F)
+                self.shape = [-1, self.layer.layer_dict.get('input_features', graph_data.num_node_features)]
         # get the input features, i.e. the dimension of the input vector and output_features
         self.input_features = graph_data.num_node_features
         if input_features is not None:
