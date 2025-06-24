@@ -12,3 +12,5 @@ pandas~=2.3.0
 matplotlib~=3.10.3
 # OGB for loading the OGB benchmark datasets
 ogb~=1.3.6
+# Click for command line interface
+click~=8.2.1
