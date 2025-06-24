@@ -16,9 +16,8 @@ import time
 import numpy as np
 import math
 
-from numpy.core.fromnumeric import shape
-
-from src.utils import GraphData, GraphDrawing
+from src.utils import GraphData
+from src.utils.GraphDrawing import GraphDrawing
 from src.utils.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import NodeLabels
 
@@ -667,8 +666,11 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
 
 
     def forward(self, x, pos):
-        #x = x.view(-1)
-        # print(x.size()[0])
+        # automatically modifiy input if x is 3-dimensional, i.e., (N, F) -> (1, N, F)
+        if x.dim() == 3:
+            if x.size(0) != 1:
+                raise ValueError("Input tensor x must have size 1 in the first dimension for InvariantBasedMessagePassingLayer")
+            x = x.squeeze(0)
         begin = time.time()
         # set the weights, i.e., sets self.current_W to (C, N, N) where C is the number of channels and N is the number of nodes in graph at position pos of the dataset
         self.set_weights(pos)

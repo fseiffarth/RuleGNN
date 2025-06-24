@@ -77,10 +77,20 @@ name | type | Source | Comments |
 
 1. Clone the repository
 
-2. Install the required packages using the environment.yml file using the following command:
+2. Install the required packages using the install.sh script:
    ```bash
-   conda env create -f environment.yml
+   # Make the script executable (this is necessary before you can run it)
+   chmod +x install.sh
+   # Run the installation script
+   ./install.sh
    ```
+
+   > **Note:** The `chmod +x install.sh` command makes the script executable. This is a necessary step on Unix-based systems (Linux/macOS) before you can run a shell script. If you're on Windows using Git Bash or WSL, you'll also need this command.
+
+   This script will:
+   - Check if Python 3.12 is installed (with installation hints if it's not)
+   - Create a Python virtual environment
+   - Install all dependencies from requirements.txt
 3. **(for command line)** To run the scripts with the correct paths please set your PYTHONPATH (working directory) to the root directory of the repository.
    ```bash
    export PYTHONPATH=/path/to/ShareGNN

@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# set PATH
-export PYTHONPATH=/home/mlai21/share/code/RuleGNN/
+# set PATH to the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export PYTHONPATH=$SCRIPT_DIR
 # set number of threads variable
 NUM_THREADS=30
 
@@ -12,9 +13,14 @@ fi
 
 
 export OMP_NUM_THREADS=1
-# activate conda
-eval "$(conda shell.bash hook)"
-conda activate RuleGNN
+# check if virtual environment exists
+if [ ! -d "venv" ]; then
+    echo "Error: Virtual environment not found. Please run ./install.sh first."
+    exit 1
+fi
+
+# activate virtual environment
+source venv/bin/activate
 
 # run the script
 python ReproduceExtended/main.py --num_threads $NUM_THREADS
