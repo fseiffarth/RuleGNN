@@ -1,13 +1,12 @@
 from pathlib import Path
 
 import matplotlib.colors as mcolors
-import pandas as pd
 
-from scripts.WeightVisualization import WeightVisualization, GraphDrawing
 import matplotlib.pyplot as plt
 import numpy as np
 
 from src.Experiment.ExperimentMain import ExperimentMain
+from src.utils.GraphDrawing import GraphDrawing
 from src.utils.load_splits import Load_Splits
 
 

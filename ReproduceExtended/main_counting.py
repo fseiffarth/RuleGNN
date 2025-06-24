@@ -3,8 +3,6 @@ from pathlib import Path
 
 import click
 
-from Reproduce.latex_plots import plot_specific_graphs_from_db
-from scripts.Evaluation.graph_plotting import plot_all_graphs_from_db
 from src.Experiment.ExperimentMain import ExperimentMain
 
 def main_counting(num_threads=-1):

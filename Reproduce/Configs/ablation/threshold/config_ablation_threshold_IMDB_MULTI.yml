@@ -16,6 +16,7 @@ networks:
           { label_type: [wl], depth: [0] },
         ]
     }
+    - { layer_type: reshape }
 
 # if subgraph labels are used the corresponding list of subgraphs should be provided here:
 subgraphs:
