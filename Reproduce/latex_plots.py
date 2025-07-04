@@ -572,10 +572,10 @@ def main():
     plot_shared_weights(plot_network_path_ablation_threshold(10), 'IMDB-BINARY', appendix='lower_10')
     plot_shared_weights(plot_network_path_ablation_threshold(10), 'IMDB-MULTI', appendix='lower_10')
 
-    #plot_shared_weights(plot_network_path_ablation_distance, 'NCI1', appendix='distance')
-    #plot_shared_weights(plot_network_path_ablation_distance, 'NCI109', appendix='distance')
-    #plot_shared_weights(plot_network_path_ablation_distance, 'Mutagenicity', appendix='distance')
-    #plot_shared_weights(plot_network_path_ablation_distance, 'DHFR', appendix='distance')
+    plot_shared_weights(plot_network_path_ablation_distance, 'NCI1', appendix='distance')
+    plot_shared_weights(plot_network_path_ablation_distance, 'NCI109', appendix='distance')
+    plot_shared_weights(plot_network_path_ablation_distance, 'Mutagenicity', appendix='distance')
+    plot_shared_weights(plot_network_path_ablation_distance, 'DHFR', appendix='distance')
 
 
 

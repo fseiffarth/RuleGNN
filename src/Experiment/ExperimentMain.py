@@ -9,13 +9,13 @@ import numpy as np
 import torch
 import yaml
 
-from scripts.Evaluation.EvaluationFinal import model_selection_evaluation
 from src.Preprocessing.DatasetPreprocessing import DatasetPreprocessing
 import src.utils.SyntheticGraphs as synthetic_graphs
 import src.Preprocessing.split_functions as split_functions
 from src.Architectures.ShareGNN import ShareGNN
 from src.Experiment.ModelConfiguration import ModelConfiguration
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
+from src.utils.EvaluationFinal import model_selection_evaluation
 from src.utils.GraphData import get_graph_data, ShareGNNDataset
 from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Experiment.RunConfiguration import get_run_configs
@@ -47,6 +47,53 @@ class ExperimentMain:
         for dataset in self.main_config['datasets']:
             self.update_experiment_configuration(dataset) # merge all information from the main config file and the experiment config file
         self.config_consistency_and_preprocessing() # check the consistency of the configuration files, raise an error if the configuration is not consistent
+
+    def HyperparameterOptimization(self, num_threads=-1):
+        """
+        This function performs automatic hyperparameter search optimization.
+        Starting with some initial hyperparameters
+        - num_threads: number of threads to use for the grid search. Default is -1. If -1, use all available threads.
+        """
+        torch.set_warn_always(False)
+        # set omp num threads to 1 to avoid conflicts with OpenMP if num_threads is unequal to 1
+        if num_threads != 1:
+            os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP
+        # iterate over the databases
+        for dataset in self.experiment_configurations.keys():
+            for i, configuration in enumerate(self.experiment_configurations[dataset]):
+                print(f"Running experiment configuration {i+1}/{len(self.experiment_configurations[dataset])} for dataset {dataset}")
+                max_threads = os.cpu_count()                 # determine the number of parallel jobs
+                num_threads = min(configuration.get('num_workers', num_threads), num_threads)
+                if num_threads == -1:
+                    num_threads = max_threads
+
+
+                graph_data = preprocess_graph_data(configuration)
+                # copy config file to the results directory if it is not already there
+                absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+                absolute_path = Path(absolute_path)
+                copy_experiment_config(absolute_path, configuration,
+                                       configuration.get('experiment_config_file', ''),
+                                       dataset)
+
+                # get all possible hyperparameter configurations from the config files
+                run_configs = get_run_configs(configuration)
+                config_id_names = {}
+                for idx, run_config in enumerate(run_configs):
+                    config_id = idx + configuration.get('config_id', 0)
+                    config_id_names[idx] = f'Configuration_{str(config_id).zfill(6)}'
+                print(f"Total number of hyperparameter configurations: {len(run_configs)}")
+
+                # zip all configurations for parallelization and run the grid search
+                run_loops = [(validation_id, run_id, c_idx) for validation_id in range(configuration.get('validation_folds', 10)) for run_id in range(configuration.get('num_runs', 1)) for c_idx in range(len(run_configs))]
+                num_threads = min(num_threads, len(run_loops))
+                print(f"Run the grid search for dataset {dataset} using {configuration.get('validation_folds', 10)}-fold cross-validation and {num_threads} number of parallel jobs")
+                joblib.Parallel(n_jobs=num_threads)(
+                    joblib.delayed(self.run_configuration)(graph_data=graph_data,
+                                                           run_config=run_configs[run_loops[i][2]],
+                                                           validation_id=run_loops[i][0],
+                                                           run_id=run_loops[i][1],
+                                                           config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
 
 
 
@@ -113,9 +160,20 @@ class ExperimentMain:
         for dataset in self.experiment_configurations.keys():
             for i, configuration in enumerate(self.experiment_configurations[dataset]):
                 if evaluate_best_model:
-                    print(f"Evaluate the best model of the experiment for dataset {dataset}")
+                    # check whether evaluation has been done before
+                    out_path = configuration['paths']['results'].joinpath(dataset).joinpath('summary_best.csv')
+                    if out_path.exists():
+                        print(f"Evaluation for the best model of dataset {dataset} already exists. Skipping the evaluation.")
+                        continue
+                    else:
+                        print(f"Evaluate the best model of the experiment for dataset {dataset}")
                 else:
-                    print(f"Evaluate the results of the experiment for dataset {dataset}")
+                    out_path = configuration['paths']['results'].joinpath(dataset).joinpath('summary.csv')
+                    if out_path.exists():
+                        print(f"Evaluation for the experiment of dataset {dataset} already exists. Skipping the evaluation.")
+                        continue
+                    else:
+                        print(f"Evaluate the results of the experiment for dataset {dataset}")
 
                 model_selection_evaluation(db_name = dataset,
                                            evaluate_best_model=evaluate_best_model,
@@ -293,10 +351,6 @@ class ExperimentMain:
                         raise ValueError(f'Please specify the learning rate in the experiment configuration file using the key "learning_rate".')
                     if 'optimizer' not in configuration:
                         raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
-                    if 'convolution_activation' not in configuration:
-                        raise ValueError(f'Please specify the convolution activation function in the experiment configuration file using the key "convolution_activation".')
-                    if 'aggregation_activation' not in configuration:
-                        raise ValueError(f'Please specify the aggregation activation function in the experiment configuration file using the key "aggregation_activation".')
                     if 'loss' not in configuration:
                         raise ValueError(f'Please specify the loss function in the experiment configuration file using the key "loss".')
 
@@ -445,31 +499,25 @@ class ExperimentMain:
         graph_data = preprocess_graph_data(experiment_configuration)
         run_configs = get_run_configs(experiment_configuration)
         # get the path to the model
-        model_path = experiment_configuration['paths']['results'].joinpath(db_name).joinpath('Models')
+        path_to_models = experiment_configuration['paths']['results'].joinpath(db_name).joinpath('Models')
 
         if best:
-            # get config id of the best model
-            if model_path.exists():
-                # get one file from the directory
-                file = next(model_path.iterdir())
-                # get the config id from the file name
-                config_id = int(file.name.split('_')[3])
+            if path_to_models.exists():
+                # get one file that contais the string 'Best_Configuration' in the name
+                curr_path = next(path_to_models.glob('*Best_Configuration*'))
             else:
-                raise FileNotFoundError(f"Model directory {model_path} not found")
+                raise FileNotFoundError(f"Model directory {path_to_models} not found")
+            config_id = int(curr_path.name.split('_')[3])
+            model_path = path_to_models.joinpath(f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
         else:
-            # get config id of the model
-            if model_path.exists():
-                # get one file from the directory
-                file = next(model_path.iterdir())
-                # get the config id from the file name
-                config_id = int(file.name.split('_')[2])
+            if path_to_models.exists():
+                # get one file that contains the string 'model_Configuration' in the name
+                curr_path = next(path_to_models.glob('*model_Configuration*'))
             else:
-                raise FileNotFoundError(f"Model directory {model_path} not found")
+                raise FileNotFoundError(f"Model directory {path_to_models} not found")
+            config_id = int(curr_path.name.split('_')[2])
+            model_path = path_to_models.joinpath(f'model_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
         run_config = run_configs[config_id]
-        if best:
-            model_path = model_path.joinpath(f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
-        else:
-            model_path = model_path.joinpath(f'model_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
         # check if the model exists
         if model_path.exists():
             with open(model_path, 'r'):

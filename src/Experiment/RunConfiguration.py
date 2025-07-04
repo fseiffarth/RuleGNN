@@ -161,11 +161,15 @@ def preprocess_network_architectures(network_architectures_dict):
                                     for property_id in range(property_combinations):
                                         option_dict = {}
                                         option_dict['layer_type'] = layer['layer_type']
+                                        option_dict['activation'] = layer.get('activation', None)
+                                        option_dict['activation_kwargs'] = layer.get('activation_kwargs', {})
                                         option_dict['heads'] = []
                                         option_dict['concatenate_heads'] = layer.get('concatenate_heads', True)
                                         for j in range(num_channels):
                                             channel_dict = {}
                                             channel_dict['bias'] = layer['bias']
+                                            channel_dict['activation'] = layer.get('activation', None)
+                                            channel_dict['activation_kwargs'] = layer.get('activation_kwargs', {})
                                             label_dict = {}
                                             label_dict['head'] = {'label_type': layer['labels'][label_id]['label_type']}
                                             label_dict['tail'] = {'label_type': layer['labels'][label_id]['label_type']}
@@ -188,6 +192,8 @@ def preprocess_network_architectures(network_architectures_dict):
                                 else:
                                     option_dict = {}
                                     option_dict['layer_type'] = layer['layer_type']
+                                    option_dict['activation'] = layer.get('activation', None)
+                                    option_dict['activation_kwargs'] = layer.get('activation_kwargs', {})
                                     if layer.get('out_dim', None) is not None:
                                         option_dict['out_dim'] = layer['out_dim']
                                     option_dict['heads'] = []
@@ -195,6 +201,8 @@ def preprocess_network_architectures(network_architectures_dict):
                                     for j in range(num_channels):
                                         channel_dict = {}
                                         channel_dict['bias'] = layer['bias']
+                                        channel_dict['activation'] = layer.get('activation', None)
+                                        channel_dict['activation_kwargs'] = layer.get('activation_kwargs', {})
                                         label_dict = {'label_type': layer['labels'][label_id]['label_type']}
                                         if len(all_choices) > 0:
                                             choice = all_choices[key_combinations]

@@ -1,0 +1,34 @@
+label_type:
+  - wl
+  - wl_labeled
+  - wl_labeled_edges
+  - induced_cycles
+  - simple_cycles
+  - primary
+depths:
+  min: 0
+  max: 1000
+min_cycle_length:
+  min: 0
+  max: 1000
+max_cycle_length:
+  min: 0
+  max: 1000
+distances:
+  min: 0
+  max: 1000
+heads:
+  min: 1
+  max: 10
+activation:
+  - tanh
+  - LeakyReLU
+  - ReLU
+  - None
+learning_rate:
+  min: 0.00001
+  max: 0.1
+batch_size:
+  min: 8
+  max: 512
+

@@ -1,5 +1,6 @@
 networks:
-  - - { layer_type: convolution ,
+  - - { layer_type: convolution,
+        activation: 'tanh',
         bias: False,
         heads: [1],
         labels: [
@@ -10,6 +11,7 @@ networks:
         ]
   }
     - { layer_type: aggregation,
+        activation: 'tanh',
         bias: True,
         heads: [1],
         labels: [

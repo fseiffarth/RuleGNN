@@ -80,29 +80,6 @@ class ShareGNN(nn.Module):
         self.epoch = 0
         self.timer = TimeClass()
 
-
-
-
-    def get_activation_function(self, key):
-        if key in self.para.run_config.config and self.para.run_config.config[key] in ['None', 'Identity', 'identity', 'Id']:
-            return ShareGNNActivation(nn.Identity())
-        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Relu', 'ReLU']:
-            return ShareGNNActivation(nn.ReLU())
-        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['LeakyRelu', 'LeakyReLU']:
-            return ShareGNNActivation(nn.LeakyReLU())
-        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Tanh', 'tanh']:
-            return ShareGNNActivation(nn.Tanh())
-        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Sigmoid', 'sigmoid']:
-            return ShareGNNActivation(nn.Sigmoid())
-        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['Softmax', 'softmax']:
-            return ShareGNNActivation(nn.Softmax(dim=0))
-        elif key in self.para.run_config.config and self.para.run_config.config[key] in ['LogSoftmax', 'logsoftmax', 'log_softmax']:
-            return ShareGNNActivation(nn.LogSoftmax(dim=0))
-        else:
-            # default is Identity but print a warning
-            print(f'Activation function {key} not found. Using Identity activation function.')
-            return ShareGNNActivation(nn.Identity())
-
     def forward(self, x, pos):
         for i, layer in enumerate(self.net_layers):
             x = layer(x, pos)

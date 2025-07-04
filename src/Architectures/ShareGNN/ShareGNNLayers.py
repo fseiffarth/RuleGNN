@@ -22,12 +22,14 @@ from src.utils.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import NodeLabels
 
 
-def activation_function(function_name: str):
+def activation_function(function_name: str, **kwargs):
     if function_name in ['None', 'Identity', 'identity', 'Id']:
         return ShareGNNActivation(nn.Identity())
     elif function_name in ['Relu', 'ReLU']:
         return ShareGNNActivation(nn.ReLU())
     elif function_name in ['LeakyRelu', 'LeakyReLU']:
+        if 'negative_slope' in kwargs:
+            return ShareGNNActivation(nn.LeakyReLU(negative_slope=kwargs['negative_slope']))
         return ShareGNNActivation(nn.LeakyReLU())
     elif function_name in ['Tanh', 'tanh']:
         return ShareGNNActivation(nn.Tanh())
@@ -293,7 +295,7 @@ class Layer:
         :return: the string representation of the source labels of the head
         """
         return get_label_string(self.layer_heads[head_id].source_labels)
-    def get_tail_string(self, head_id=0):
+    def get_target_string(self, head_id=0):
         """
         :return: the string representation of the target labels of the head
         """
@@ -307,9 +309,9 @@ class Layer:
     def get_layer_label_strings(self)->list[str]:
         label_string_list = set()
         for head in range(len(self.layer_heads)):
-            label_string_list.add(get_label_string(self.layer_heads[head].get_source_string()))
-            label_string_list.add(get_label_string(self.layer_heads[head].get_target_string()))
-            label_string_list.add(get_label_string(self.layer_heads[head].get_bias_string()))
+            label_string_list.add(self.get_source_string(head))
+            label_string_list.add(self.get_target_string(head))
+            label_string_list.add(self.get_bias_string(head))
         return list(label_string_list)
 
     def num_heads(self):
@@ -422,12 +424,13 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
         """
         super(InvariantBasedMessagePassingLayer, self).__init__(layer_id, seed, parameters, layer, graph_data, device, input_features, output_features)
         self.name = f"Invariant Based Message Passing"
-        self.activation_function = activation_function(self.para.run_config.config['convolution_activation'])
+        self.activation = activation_function(layer.layer_dict.get('activation', 'tanh'), **layer.layer_dict.get('activation_kwargs',
+                                                                                                                 {}))
 
         for h_id, head in enumerate(layer.layer_heads):
             self.source_label_descriptions.append(layer.get_source_string(h_id))
             self.n_source_labels.append(graph_data.node_labels[self.source_label_descriptions[h_id]].num_unique_node_labels)
-            self.target_label_descriptions.append(layer.get_tail_string(h_id))
+            self.target_label_descriptions.append(layer.get_target_string(h_id))
             self.n_target_labels.append(graph_data.node_labels[self.target_label_descriptions[h_id]].num_unique_node_labels)
             self.bias_label_descriptions.append(layer.get_bias_string(h_id))
             self.n_bias_labels.append(graph_data.node_labels[self.bias_label_descriptions[h_id]].num_unique_node_labels)
@@ -685,7 +688,7 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
         if self.bias:
             self.set_bias(pos)
             x = x + self.current_B
-        x = self.activation_function(x)
+        x = self.activation(x)
         return x
 
 
@@ -958,7 +961,8 @@ class InvariantBasedAggregationLayer(InvariantBasedLayer):
         super(InvariantBasedAggregationLayer, self).__init__(layer_id, seed, parameters, layer, graph_data, device, input_features, output_features)
         torch.manual_seed(seed)
         self.name = f"Rule Aggregation Layer"
-        self.activation_function = activation_function(self.para.run_config.config['aggregation_activation'])
+        self.activation = activation_function(layer.layer_dict.get('activation', 'tanh'), **layer.layer_dict.get('activation_kwargs',
+                                                                                                                 {}))
 
         # fixed output dimension of the layer
         self.output_dimension = out_dim
@@ -1282,7 +1286,7 @@ class ShareGNNLinear(nn.Module):
 
 
         self.bias = layer.layer_dict.get('bias', True)
-        self.activation = activation_function(layer.layer_dict.get('activation', 'None'))
+        self.activation = activation_function(layer.layer_dict.get('activation', 'None'), **layer.layer_dict.get('activation_kwargs', {}))
         self.precision = torch.float
         if parameters.run_config.config.get('precision', 'float') == 'double':
             self.precision = torch.double

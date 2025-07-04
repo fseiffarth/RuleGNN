@@ -483,6 +483,7 @@ def save_cycle_labels(graph_data:ShareGNNDataset, min_cycle_length=None, max_cyc
         start_time = time.time()
         cycle_dict = []
         for graph in graph_data.nx_graphs:
+            print(f"Graph {graph_data.name} {i + 1}/{len(graph_data.nx_graphs)} Labels: {l}")
             cycle_dict.append({})
             if cycle_type == 'simple':
                 cycles = nx.simple_cycles(graph, max_cycle_length)
@@ -598,7 +599,7 @@ def save_subgraph_labels(graph_data:ShareGNNDataset, subgraphs=List[nx.Graph], n
         subgraph_dict = []
         for i, graph in enumerate(graph_data.nx_graphs):
             # print the progress
-            print(f"Graph {i + 1}/{len(graph_data.nx_graphs)}")
+            print(f"Graph {graph_data.name} {i + 1}/{len(graph_data.nx_graphs)} Labels: {l}")
             subgraph_dict.append({})
             for i, subgraph in enumerate(subgraphs):
                 GM = GraphMatcher(graph, subgraph)
@@ -662,6 +663,7 @@ def save_clique_labels(graph_data:ShareGNNDataset, max_clique=6, max_labels=None
         start_time = time.time()
         clique_dict = []
         for graph in graph_data.nx_graphs:
+            print(f"Graph {graph_data.name} {i + 1}/{len(graph_data.nx_graphs)} Labels: {l}")
             clique_dict.append({})
             cliques = list(nx.find_cliques(graph))
             for clique in cliques:

@@ -636,7 +636,7 @@ def training_and_preprocessing_time(share_gnn_type=''):
                     else:
                         raise ValueError('share_gnn_type not recognized')
                 experiment = ExperimentMain(Path(config_path))
-                experiment.ExperimentPreprocessing(num_jobs=1)
+                experiment.ExperimentPreprocessing()
 
 
                 for dataset in datasets:
@@ -645,7 +645,7 @@ def training_and_preprocessing_time(share_gnn_type=''):
                     print('Loading Finished')
                     label_strings = set()
                     for i, layer in enumerate(net.net_layers):
-                        if isinstance(layer, RuleConvolutionLayer):
+                        if isinstance(layer, InvariantBasedMessagePassingLayer):
                             if 'heads' in results[dataset]:
                                 results[dataset]['heads'].append(len(layer.n_source_labels))
                             else:
@@ -676,7 +676,7 @@ def training_and_preprocessing_time(share_gnn_type=''):
                                     results[dataset]['layer_labels_bias'].append(x)
                                 else:
                                     results[dataset]['layer_labels_bias'] = [x]
-                        elif isinstance(layer, RuleAggregationLayer):
+                        elif isinstance(layer, InvariantBasedAggregationLayer):
                             for x in layer.source_label_descriptions:
                                 label_strings.add(x)
                                 if 'layer_labels_aggregation' in results[dataset]:
@@ -749,9 +749,9 @@ def hyper_parameter_configurations():
         ## Real World Data
         config_path = Path('Reproduce/Configs/main_config_fair_real_world.yml')
         experiment = ExperimentMain(Path(config_path))
-        experiment.ExperimentPreprocessing(num_jobs=1)
-        run_configs_molecule = get_run_configs(experiment.experiment_configurations[molecule])
-        run_configs_social = get_run_configs(experiment.experiment_configurations[social])
+        experiment.ExperimentPreprocessing()
+        run_configs_molecule = get_run_configs(experiment.experiment_configurations[molecule][0])
+        run_configs_social = get_run_configs(experiment.experiment_configurations[social][0])
         for run_configs in [run_configs_molecule, run_configs_social]:
             convolution_configs = set()
             aggregation_configs = set()
@@ -812,7 +812,7 @@ def main():
     sota_baseline_and_share()
     print('\n\n\n\n')
     features_evaluation()
-    #synthetic_table()
+    synthetic_table()
 
 
 if __name__ == '__main__':
