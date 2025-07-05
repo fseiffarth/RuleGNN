@@ -6,7 +6,7 @@ import click
 from src.Experiment.ExperimentMain import ExperimentMain
 
 def main_ZINC(num_threads=-1):
-    for i in range(1, 4):
+    for i in [3,4]:
         experiment = ExperimentMain(Path(f'ReproduceExtended/configs/ZINC/main_config_ZINC_{i}.yml'))
         experiment.ExperimentPreprocessing(num_threads=num_threads)
         ## run real world experiment

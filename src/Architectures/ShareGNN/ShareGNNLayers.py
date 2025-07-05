@@ -326,7 +326,7 @@ class InvariantBasedLayer(nn.Module):
     def __init__(self, layer_id, seed, parameters, layer: Layer, graph_data: GraphData.ShareGNNDataset, device='cpu', input_features=None, output_features=None):
         super().__init__()
         # set seed for reproducibility
-        torch.manual_seed(seed)
+        torch.manual_seed(layer_id + seed)
         # id and name of the layer
         self.layer_id = layer_id
         # layer information
@@ -1261,11 +1261,13 @@ class ShareGNNLinear(nn.Module):
     """
     Wrapper class for a linear layer that ignores the pos argument
     """
-    def __init__(self, layer:Layer, parameters, graph_data:ShareGNNDataset, num_heads=None, input_features=None, output_features=None):
+    def __init__(self, seed:int, layer_id:int, layer:Layer, parameters, graph_data:ShareGNNDataset, num_heads=None, input_features=None, output_features=None):
         """
         """
         super(ShareGNNLinear, self).__init__()
+        torch.manual_seed(layer_id + seed)
         self.layer = layer
+        self.layer_id = layer_id
 
         # get the input features, i.e. the dimension of the input vector and output_features
         self.input_features = graph_data.num_node_features
@@ -1327,7 +1329,7 @@ class ShareGNNLinear(nn.Module):
         return x
 
 class ShareGNNReshapeLayer(nn.Module):
-    def __init__(self, layer, parameters, graph_data:ShareGNNDataset, num_heads=None, input_features=None, output_features=None):
+    def __init__(self, layer_id, seed, layer, parameters, graph_data:ShareGNNDataset, num_heads=None, input_features=None, output_features=None):
         super(ShareGNNReshapeLayer, self).__init__()
         self.name = "Reshape Layer"
         self.layer = layer

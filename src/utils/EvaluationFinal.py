@@ -422,10 +422,10 @@ def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_vali
             # write headers to file
             if evaluate_best_model:
                 with open(result_path.joinpath(db_name).joinpath('summary_best.csv'), 'w') as f:
-                    f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
+                    f.write('Seed,ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
             else:
                 with open(result_path.joinpath(db_name).joinpath('summary.csv'), 'w') as f:
-                    f.write('ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
+                    f.write('Seed,ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
 
             for name, group in validation_groups:
                 group['EpochLoss'] *= group['TrainingSize']
@@ -457,12 +457,13 @@ def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_vali
                 configuration_id = int(avg['ConfigurationId'])
                 run_id = int(avg['RunNumber'])
                 # write to file
+                seed = int(avg['Seed'])
                 if evaluate_best_model:
                     with open(result_path.joinpath(db_name).joinpath('summary_best.csv'), 'a') as f:
-                        f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
+                        f.write(f"{seed},{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
                 else:
                     with open(result_path.joinpath(db_name).joinpath('summary.csv'), 'a') as f:
-                        f.write(f"{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
+                        f.write(f"{seed},{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
 
 
             if evaluate_best_model:

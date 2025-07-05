@@ -1,3 +1,4 @@
+import datetime
 import os
 from pathlib import Path
 from typing import Tuple
@@ -687,14 +688,14 @@ class ModelConfiguration:
 
         # header use semicolon as delimiter
         if self.para.run_config.task == 'graph_regression':
-            header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
+            header = "Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
                      "EpochAccuracy;EpochTime;EpochMAE;EpochMAEStd;ValidationLoss;ValidationAccuracy;ValidationMAE;ValidationMAEStd;TestLoss;TestAccuracy;TestMAE;TestMAEStd\n"
         else:
             if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
-                header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
+                header = "Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
                          "EpochAccuracy;EpochAUC;EpochTime;ValidationAccuracy;ValidationLoss;ValidationAUC;TestAccuracy;TestLoss;TestAUC\n"
             else:
-                header = "Dataset;RunNumber;ValidationNumber;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
+                header = "Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
                          "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
 
         # Save file for results and add header if the file is new
@@ -706,6 +707,7 @@ class ModelConfiguration:
 
 
     def postprocess_writer(self, epoch, epoch_time, train_values: EvaluationValues, validation_values: EvaluationValues, test_values: EvaluationValues):
+        time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if self.para.print_results:
             # if class num is one print the mae and mse
             if self.para.run_config.task == 'graph_regression':
@@ -722,18 +724,18 @@ class ModelConfiguration:
                     f'time: {epoch_time}')
 
         if self.para.run_config.task == 'graph_regression':
-            res_str =   f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+            res_str =   f"{self.para.db};{time};{self.run_id};{self.k_val};{self.seed};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
                         f"{train_values.loss};{train_values.accuracy};{epoch_time};{train_values.mae};{train_values.mae_std};" \
                         f"{validation_values.loss};{validation_values.accuracy};{validation_values.mae};{validation_values.mae_std};" \
                         f"{test_values.loss};{test_values.accuracy};{test_values.mae};{test_values.mae_std}\n"
         else:
             if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
-                res_str =   f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+                res_str =   f"{self.para.db};{time};{self.run_id};{self.k_val};{self.seed};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
                             f"{train_values.loss};{train_values.accuracy};{train_values.accuracy_roc_auc};{epoch_time};" \
                             f"{validation_values.accuracy};{validation_values.loss};{validation_values.accuracy_roc_auc};" \
                             f"{test_values.accuracy};{test_values.loss};{test_values.accuracy_roc_auc}\n"
             else:
-                res_str =   f"{self.para.db};{self.run_id};{self.k_val};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
+                res_str =   f"{self.para.db};{time};{self.run_id};{self.k_val};{self.seed};{epoch};{self.training_data.size};{self.validate_data.size};{self.test_data.size};" \
                             f"{train_values.loss};{train_values.accuracy};{epoch_time};" \
                             f"{validation_values.accuracy};{validation_values.loss};" \
                             f"{test_values.accuracy};{test_values.loss}\n"

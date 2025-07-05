@@ -27,3 +27,5 @@
 !Examples/TextClassification/Data/Graphs/sentiment_test/raw
 /Examples/TextClassification/Plots/
 /venv/
+/unit_tests/Synthetic/Data/
+/unit_tests/Synthetic/Results/

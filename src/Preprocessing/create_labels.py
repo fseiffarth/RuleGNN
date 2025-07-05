@@ -482,7 +482,7 @@ def save_cycle_labels(graph_data:ShareGNNDataset, min_cycle_length=None, max_cyc
             graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         cycle_dict = []
-        for graph in graph_data.nx_graphs:
+        for i, graph in enumerate(graph_data.nx_graphs):
             print(f"Graph {graph_data.name} {i + 1}/{len(graph_data.nx_graphs)} Labels: {l}")
             cycle_dict.append({})
             if cycle_type == 'simple':
@@ -662,7 +662,7 @@ def save_clique_labels(graph_data:ShareGNNDataset, max_clique=6, max_labels=None
             graph_data.create_nx_graphs(directed=False)
         start_time = time.time()
         clique_dict = []
-        for graph in graph_data.nx_graphs:
+        for i,graph in enumerate(graph_data.nx_graphs):
             print(f"Graph {graph_data.name} {i + 1}/{len(graph_data.nx_graphs)} Labels: {l}")
             clique_dict.append({})
             cliques = list(nx.find_cliques(graph))
