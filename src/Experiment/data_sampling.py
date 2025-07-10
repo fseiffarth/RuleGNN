@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 import torch
 
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 
 
 def curriculum_sampling(graph_data: ShareGNNDataset,

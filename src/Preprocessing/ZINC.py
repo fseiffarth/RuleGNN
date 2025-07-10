@@ -3,7 +3,7 @@ from pathlib import Path
 
 from torch_geometric.datasets import ZINC
 
-from src.utils.GraphData import zinc_to_graph_data
+from src.Preprocessing.GraphData.GraphData import zinc_to_graph_data
 from src.utils.utils import save_graphs
 
 

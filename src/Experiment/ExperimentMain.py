@@ -14,9 +14,11 @@ import src.utils.SyntheticGraphs as synthetic_graphs
 import src.Preprocessing.split_functions as split_functions
 from src.Architectures.ShareGNN import ShareGNN
 from src.Experiment.ModelConfiguration import ModelConfiguration
+from src.Preprocessing.GraphData.GraphData import get_graph_data, ShareGNNDataset
 from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_parameters
 from src.utils.EvaluationFinal import model_selection_evaluation
-from src.utils.GraphData import get_graph_data, ShareGNNDataset
+
+
 from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Experiment.RunConfiguration import get_run_configs
 from src.utils.load_splits import Load_Splits
@@ -326,7 +328,7 @@ class ExperimentMain:
                                 if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
                                     raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
                         else:
-                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark', 'NEL']:
+                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark', 'NEL', 'QM9']:
                                 raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                     ###

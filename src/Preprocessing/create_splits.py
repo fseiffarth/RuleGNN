@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from ogb.graphproppred import PygGraphPropPredDataset
 
-from src.utils.GraphData import get_graph_data, GraphData
+from src.Preprocessing.GraphData.GraphData import get_graph_data, GraphData
 from src.TrainTestData import TrainTestData as ttd
 import torch_geometric
 

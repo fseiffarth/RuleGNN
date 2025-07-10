@@ -212,7 +212,7 @@ At the moment, the code supports three different options.
 
 All the experiment details are defined in two configuration files:
 - the [main config file](Examples/ConfigurationFiles/example_config_main.yml)  that defines which datasets you want to use and how many splits are used for validation
-- the [experiment config file](Examples/ConfigurationFiles/example_config_experiment.yml) that defines the hyperparameters, the model to use and all paths (to the data, proprocessing results, etc.)
+- the [experiment config file](Examples/ConfigurationFiles/example_config_experiment.yml) that defines the hyperparameters, the model to use and all paths (to the data, Preprocessing results, etc.)
 
 To run an experiment you only need the following code:
 

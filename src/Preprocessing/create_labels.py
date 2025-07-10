@@ -10,7 +10,7 @@ from networkx.algorithms.isomorphism import GraphMatcher
 from torch_geometric.io import fs
 
 from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.Preprocessing.node_labeling_functions import weisfeiler_lehman_node_labeling
 
 # Todo replace the save functions by classes (the base class should be the following NodeLabelingBase)

@@ -10,6 +10,8 @@ from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset, LRGBDataset
 
+from src.Preprocessing.GraphData.GraphDataPreprocessing import ZINCGraphDataPreprocessing, QM9GraphDataPreprocessing, \
+    OGBGraphPropertyGraphDataPreprocessing
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
 from torch_geometric.io import fs
@@ -93,84 +95,90 @@ class ShareGNNDataset(InMemoryDataset):
             else:
                 data, self.slices, self.sizes, data_cls = out
 
+        # check if the data object matches our format
+        self.validate_dataset_object(data)
+
         self._num_graph_nodes = torch.zeros(len(self), dtype=torch.long)
         num_node_attributes = self.num_node_attributes
         num_edge_attributes = self.num_edge_attributes
 
+        self.node_labels['primary'] = data['primary_node_labels']
+        self.edge_labels['primary'] = data['primary_edge_labels']
+
+        # TODO : do the following in the preprocess function (use primary node labels and primary edge labels and node_attributes and edge_attributes)
         # split node labels and attributes as well as edge labels and attributes
-        num_zero_columns = 0
-        if data.get('x', None) is not None:
-            if delete_zero_columns and data['x'].layout != torch.sparse_csr:
-                # if x is one dimensional, add a dimension
-                if data['x'].dim() == 1:
-                    data['x'] = data['x'].unsqueeze(1)
-                columns = data['x'].shape[1]
-                # remove columns with only zeros
-                if self.precision == torch.float:
-                    data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].float()
-                else:
-                    data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].double()
-                num_zero_columns = columns - data['x'].shape[1]
-                if self.task == 'graph_classification' or self.task == 'graph_regression':
-                    self.sizes['num_node_labels'] = data['x'].shape[1]
-        else:
-            if data.get('num_nodes', None) is None:
-                data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
-            # create data['x'] using vectors of ones
-            data['x'] = torch.ones(data['num_nodes'], 1, dtype=self.precision)
-            self.sizes['num_node_labels'] = 1
-            self.slices['x'] = [0]
-            self.slices['x'] += data['_num_nodes']
-            self.slices['x'] = torch.tensor(self.slices['x'], dtype=torch.long).cumsum(dim=0)
+        #num_zero_columns = 0
+        #if data.get('x', None) is not None:
+        #    if delete_zero_columns and data['x'].layout != torch.sparse_csr:
+        #        # if x is one dimensional, add a dimension
+        #        if data['x'].dim() == 1:
+        #            data['x'] = data['x'].unsqueeze(1)
+        #        columns = data['x'].shape[1]
+        #        # remove columns with only zeros
+        #        if self.precision == torch.float:
+        #            data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].float()
+        #        else:
+        #            data['x'] = data['x'][:, data['x'].sum(dim=0) != 0].double()
+        #        num_zero_columns = columns - data['x'].shape[1]
+        #        if self.task == 'graph_classification' or self.task == 'graph_regression':
+        #            self.sizes['num_node_labels'] = data['x'].shape[1]
+        #else:
+        #    if data.get('num_nodes', None) is None:
+        #        data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
+        #    # create data['x'] using vectors of ones
+        #    data['x'] = torch.ones(data['num_nodes'], 1, dtype=self.precision)
+        #    self.sizes['num_node_labels'] = 1
+        #    self.slices['x'] = [0]
+        #    self.slices['x'] += data['_num_nodes']
+        #    self.slices['x'] = torch.tensor(self.slices['x'], dtype=torch.long).cumsum(dim=0)
 
-        if len(data['x'].shape) == 1:
-            data['x'] = data['x'].unsqueeze(1)
-        if data['x'].shape[1] == 1:
-            self.node_labels['primary'] = data['x'].clone().detach().long()
-        else:
-            if self.task == 'graph_classification' or self.task == 'graph_regression':
-                if data['x'].shape[1] - (num_node_attributes - num_zero_columns) == 1:
-                    self.node_labels['primary'] = data['x'][:, -1].clone().detach().long()
-                else:
-                    self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
-            if self.task == 'node_classification':
-                self.node_labels['primary'] = data['y']
-        self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
-        if not use_node_attr:
-            data['x'] = data['x'][:, self.num_node_attributes-num_zero_columns:]
-            self.sizes['num_node_attributes'] = 0
+        #if len(data['x'].shape) == 1:
+        #    data['x'] = data['x'].unsqueeze(1)
+        #if data['x'].shape[1] == 1:
+        #    self.node_labels['primary'] = data['x'].clone().detach().long()
+        #else:
+        #    if self.task == 'graph_classification' or self.task == 'graph_regression':
+        #        if data['x'].shape[1] - (num_node_attributes - num_zero_columns) == 1:
+        #            self.node_labels['primary'] = data['x'][:, -1].clone().detach().long()
+        #        else:
+        #            self.node_labels['primary'] = torch.argmax(data['x'][:, num_node_attributes:], dim=1)
+        #    if self.task == 'node_classification':
+        #        self.node_labels['primary'] = data['y']
+        #self.unique_node_labels = torch.unique(self.node_labels['primary']).shape[0]
+        #if not use_node_attr:
+        #    data['x'] = data['x'][:, self.num_node_attributes-num_zero_columns:]
+        #    self.sizes['num_node_attributes'] = 0
 
 
 
-        if data.get('edge_attr', None) is not None:
-            if len(data['edge_attr'].shape) == 1:
-                # unsqueeze the edge_attr tensor
-                data['edge_attr'] = data['edge_attr'].unsqueeze(1)
-            if data['edge_attr'].shape[1] == 1:
-                self.edge_labels['primary'] = data['edge_attr'].clone().detach().long()
-            else:
-                if data['edge_attr'].shape[1] - num_edge_attributes == 1:
-                    self.edge_labels['primary'] = data['edge_attr'][:, -1].clone().detach().long()
-                else:
-                    self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
-            if not use_edge_attr:
-                data['edge_attr'] = data['edge_attr'][:, self.num_edge_attributes:]
-                self.sizes['num_edge_attributes'] = 0
+        #if data.get('edge_attr', None) is not None:
+        #    if len(data['edge_attr'].shape) == 1:
+        #        # unsqueeze the edge_attr tensor
+        #        data['edge_attr'] = data['edge_attr'].unsqueeze(1)
+        #    if data['edge_attr'].shape[1] == 1:
+        #        self.edge_labels['primary'] = data['edge_attr'].clone().detach().long()
+        #    else:
+        #        if data['edge_attr'].shape[1] - num_edge_attributes == 1:
+        #            self.edge_labels['primary'] = data['edge_attr'][:, -1].clone().detach().long()
+        #        else:
+        #            self.edge_labels['primary'] = torch.argmax(data['edge_attr'][:, num_edge_attributes:], dim=1)
+        #    if not use_edge_attr:
+        #        data['edge_attr'] = data['edge_attr'][:, self.num_edge_attributes:]
+        #        self.sizes['num_edge_attributes'] = 0
 
-        if data.get('y', None) is not None:
-            if self.task == 'graph_classification':
-                # convert y to long
-                data['y'] = data['y'].long()
-                # flatten y
-                data['y'] = data['y'].view(-1)
+        #if data.get('y', None) is not None:
+        if self.task == 'graph_classification':
+            # convert y to long
+            data['y'] = data['y'].long()
+            # flatten y
+            data['y'] = data['y'].view(-1)
 
 
         if len(self) == 1:
             data['num_nodes'] = torch.tensor([data['x'].shape[0]], dtype=torch.long)
         else:
-            data['num_nodes'] = torch.zeros(len(self), dtype=torch.long)
-            for i in range(len(self)):
-                data['num_nodes'][i] = data['x'][self.slices['x'][i]:self.slices['x'][i+1]].shape[0]
+            # get the number of nodes for each graph (using the slices x differences)
+            data['num_nodes'] = self.slices['x'][1:] - self.slices['x'][:-1]
 
 
         self.preprocess_share_gnn_data(data, input_features, output_features, task=task)
@@ -341,49 +349,16 @@ class ShareGNNDataset(InMemoryDataset):
 
 
             elif self.from_existing_data in ['ZINC', 'ZINC-full', 'ZINC-Full', 'ZINCFull', 'ZINC-12k', 'ZINC-25k']:
-                subset = True
-                if self.name in ['ZINC-full', 'ZINC-Full', 'ZINCFull', 'ZINC-250k']:
-                    subset = False
-                train_data = ZINC(root='tmp/', subset=subset, split='train')
-                validation_data = ZINC(root='tmp/', subset=subset, split='val')
-                test_data = ZINC(root='tmp/', subset=subset, split='test')
-                # merge train_data._data, validation_data._data and test_data._data
-                all_data = torch_geometric.data.InMemoryDataset.collate([train_data._data, validation_data._data, test_data._data])
-
-                self.data = all_data[0]
-                # merge the slices
-                self.slices = dict()
-                for key in train_data.slices.keys():
-                    validation_data.slices[key] += train_data.slices[key][-1]
-                    test_data.slices[key] += validation_data.slices[key][-1]
-                    self.slices[key] = torch.cat((train_data.slices[key], validation_data.slices[key][1:], test_data.slices[key][1:]))
-
-                sizes = {'num_edge_attributes': 0,
-                         'num_edge_labels': len(torch.unique(self.data.edge_attr)),
-                         'num_node_attributes': 0,
-                         'num_node_labels': 0
-                }
+                preprocessed_data = ZINCGraphDataPreprocessing(self.name)
+                self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
+                pass
+            elif self.from_existing_data in ['QM9', 'QM-9']:
+                preprocessed_data = QM9GraphDataPreprocessing(self.name)
+                self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
+                pass
             elif self.from_existing_data == 'OGB_GraphProp':
-                dataset_ogb = PygGraphPropPredDataset(name=self.name, root='tmp/')
-                split_idx = dataset_ogb.get_idx_split()
-                train_idx, valid_idx, test_idx = split_idx["train"], split_idx["valid"], split_idx["test"]
-                self.data = dataset_ogb.data
-                # put column 0 of x and edge_attr to the end
-                self.data.x = torch.cat((self.data.x[:, 1:], self.data.x[:, 0].unsqueeze(1)), dim=1)
-                unique_node_labels = torch.unique(self.data.x[:, -1])
-                # map unique node labels to integers 0, 1, 2, ...
-                self.data.x[:, -1] = torch.tensor([torch.where(unique_node_labels == x)[0] for x in self.data.x[:, -1]], dtype=torch.long)
-                self.data.edge_attr = torch.cat((self.data.edge_attr[:, 1:], self.data.edge_attr[:, 0].unsqueeze(1)), dim=1)
-                unique_edge_labels = torch.unique(self.data.edge_attr[:, -1])
-                # map unique edge labels to integers 0, 1, 2, ...
-                self.data.edge_attr[:, -1] = torch.tensor([torch.where(unique_edge_labels == x)[0] for x in self.data.edge_attr[:, -1]], dtype=torch.long)
-                self.slices = dataset_ogb.slices
-                sizes = {
-                    'num_node_labels': len(unique_node_labels),
-                    'num_node_attributes': 8,
-                    'num_edge_labels': len(unique_edge_labels),
-                    'num_edge_attributes': 2,
-                }
+                preprocessed_data = OGBGraphPropertyGraphDataPreprocessing(self.name)
+                self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
                 pass
             elif self.from_existing_data == 'MoleculeNet':
                 dataset = torch_geometric.datasets.MoleculeNet(root='tmp/', name=self.name)
@@ -530,6 +505,24 @@ class ShareGNNDataset(InMemoryDataset):
             (self._data.to_dict(), self.slices, sizes, self._data.__class__),
             self.processed_paths[0],
         )
+
+    def validate_dataset_object(self, data):
+        # check whether there is at least node_labels, node_attributes, edge_labels, edge_attributes, x, y
+        if not 'x' in data:
+            raise ValueError("Data object must have an attribute 'x' for node features.")
+        if not 'y' in data:
+            raise ValueError("Data object must have an attribute 'y' for labels.")
+        if not 'edge_index' in data:
+            raise ValueError("Data object must have an attribute 'edge_index' for edge indices.")
+        if not 'primary_node_labels' in data:
+            raise ValueError("Data object must have an attribute 'primary_node_labels' for node labels.")
+        if not 'primary_edge_labels' in data:
+            raise ValueError("Data object must have an attribute 'primary_edge_labels' for edge labels.")
+        if not 'node_attributes' in data:
+            raise ValueError("Data object must have an attribute 'node_attributes' for node attributes.")
+        if not 'edge_attributes' in data:
+            raise ValueError("Data object must have an attribute 'edge_attributes' for edge attributes.")
+        pass
 
     def read_nel_data(self):
         graphs, labels = load_graphs(Path(self.raw_dir), self.name, graph_format='NEL')
@@ -774,18 +767,17 @@ class ShareGNNDataset(InMemoryDataset):
 
             ### Determine the input data
             if use_labels:
-                data['x'] = data['x'][:, self.num_node_attributes:]
+                data['x'] = data['primary_node_labels'].long()
                 if transformation in ['one_hot', 'one_hot_encoding']:
+                    # one hot encode the node labels
+                    data['x'] = torch.nn.functional.one_hot(data['x'])
                     if data['x'].shape[1] == 1:
-                        # convert to long tensor
-                        data['x'] = data['x'].long()
-                        data['x'] = torch.nn.functional.one_hot(data['x'].squeeze(1)).type(self.precision)
-                else:
-                    data['x'] = torch.argmax(data['x'], dim=1).unsqueeze(1)
+                        data['x'] = data['x'].squeeze(1)
+                data['x'] = data['x'].type(self.precision)
             elif use_constant:
                 data['x'] = torch.full(size=(data['x'].shape[0], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0), dtype=self.precision)
             elif use_features:
-                data['x'] = data['x'][:, :self.num_node_attributes]
+                data['x'] = data['node_attributes'].type(self.precision)
                 if use_train_node_labels:
                     # get data y one hot
                     y_one_hot = torch.nn.functional.one_hot(data['y']).type(self.precision)
@@ -795,7 +787,7 @@ class ShareGNNDataset(InMemoryDataset):
                     data['x'] = torch.cat((y_one_hot, data['x']), dim=1)
             elif use_labels_and_features:
                 # get first self.num_node_attributes columns and on the rest apply argmax
-                data['x'] = torch.cat((data['x'][:, :self.num_node_attributes], torch.argmax(data['x'][:,self.num_node_attributes:], dim=1).unsqueeze(0)), dim=1)
+                data['x'] = torch.cat((data['node_attributes'].type(self.precision), data['primary_node_labels'].long().unsqueeze(1)), dim=1)
             else:
                 pass
 
@@ -844,6 +836,18 @@ class ShareGNNDataset(InMemoryDataset):
                 data['x'] = data['x'].repeat(1, 2)
                 data['x'] = data['x'][:, 0:1].apply_(lambda x: torch.cos(2 * np.pi * x / num_node_labels))
                 data['x'] = data['x'][:, 1:2].apply_(lambda x: torch.sin(2 * np.pi * x / num_node_labels))
+            elif use_labels_and_features and transformation == 'one_hot_labels_normalize_features':
+                one_hot_labels = data['primary_node_labels'].long()
+                max_label = torch.max(one_hot_labels)
+                one_hot_labels = torch.nn.functional.one_hot(one_hot_labels, num_classes=max_label + 1).type(self.precision)
+                # find non-zero columns
+                non_zero_columns = torch.where(one_hot_labels.sum(dim=0) != 0)[0]
+                one_hot_labels = one_hot_labels[:, non_zero_columns]
+                normalized_features = data['node_attributes'].type(self.precision)
+                non_zero_columns = torch.where(normalized_features.sum(dim=0) != 0)[0]
+                normalized_features = normalized_features[:, non_zero_columns]
+                normalized_features = (normalized_features - normalized_features.min(dim=0, keepdim=True).values) / (normalized_features.max(dim=0, keepdim=True).values - normalized_features.min(dim=0, keepdim=True).values)
+                data['x'] = torch.cat((one_hot_labels, normalized_features), dim=1)
             elif use_labels_and_features and transformation == 'normalize_labels':
                 # get the number of unique node labels
                 num_node_labels = self.unique_node_labels

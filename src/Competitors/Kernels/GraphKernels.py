@@ -10,7 +10,7 @@ from sklearn.multioutput import MultiOutputRegressor
 from sklearn.svm import SVC, SVR
 from sklearn.metrics import accuracy_score, mean_absolute_error
 
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 
 
 def nx_to_grakel(nx_graphs: List[nx.Graph]):

@@ -10,7 +10,7 @@ from torch_geometric.nn.models import GCN, GIN
 
 from src.Competitors.GNN.Models.GraphSAGE import GraphSAGE
 from GraphData.DataSplits.load_splits import Load_Splits
-from src.utils.GraphData import get_graph_data, BenchmarkDatasets
+from src.Preprocessing.GraphData.GraphData import get_graph_data, BenchmarkDatasets
 
 
 class GNNModule(torch.nn.Module):

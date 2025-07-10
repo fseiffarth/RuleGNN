@@ -48,14 +48,14 @@ source venv/bin/activate
 
 
 # First install the cpu or cuda version of torch
-echo "Installing PyTorch..."
+echo "Installing PyTorch 2.5.1..."
 # Check if CUDA is available
 if command -v nvidia-smi &> /dev/null; then
     echo "CUDA is available. Installing PyTorch with CUDA support..."
-    pip install torch~=2.7.1 --index-url https://download.pytorch.org/whl/cu118
+    pip install torch~=2.5.1 --index-url https://download.pytorch.org/whl/cu118
 else
     echo "CUDA is not available. Installing CPU-only version of PyTorch..."
-    pip install torch~=2.7.1 --index-url https://download.pytorch.org/whl/cpu
+    pip install torch~=2.5.1 --index-url https://download.pytorch.org/whl/cpu
 fi
 
 # Install dependencies from requirements.txt

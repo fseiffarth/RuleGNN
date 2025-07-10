@@ -1,7 +1,7 @@
 import os
 
 from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import Properties
 from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Preprocessing.load_labels import load_labels

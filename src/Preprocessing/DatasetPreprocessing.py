@@ -10,7 +10,7 @@ from src.Preprocessing.create_labels import save_trivial_labels, save_wl_labels,
 from src.Preprocessing.create_properties import write_distance_properties, write_distance_edge_properties
 from src.Preprocessing.create_splits import create_splits
 from src.TransferLearning.combine_split_files import pretraining_finetuning
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import combine_node_labels
 from src.Experiment.RunConfiguration import get_run_configs
 from src.Preprocessing.load_labels import load_labels

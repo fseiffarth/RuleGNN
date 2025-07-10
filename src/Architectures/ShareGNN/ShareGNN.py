@@ -5,7 +5,7 @@ import torch.nn as nn
 from src.Architectures.ShareGNN.ShareGNNLayers import ShareGNNActivation
 
 from src.Time.TimeClass import TimeClass
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.Architectures.ShareGNN.Parameters import Parameters
 
 

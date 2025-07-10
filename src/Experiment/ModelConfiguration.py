@@ -12,8 +12,8 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 from src.Architectures.ShareGNN import ShareGNN, Parameters
 from src.Experiment.data_sampling import curriculum_sampling
-from src.utils import GraphData
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData import GraphData
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.Time.TimeClass import TimeClass
 from src.TrainTestData import TrainTestData as ttd
 from src.utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configuration, is_pruning

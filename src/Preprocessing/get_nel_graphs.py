@@ -1,6 +1,6 @@
 import os
 
-from src.utils.GraphData import get_graph_data
+from src.Preprocessing.GraphData.GraphData import get_graph_data
 from src.utils.utils import save_graphs
 
 

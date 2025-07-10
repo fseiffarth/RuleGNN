@@ -1,7 +1,7 @@
 import joblib
 import numpy as np
 
-from src.utils.GraphData import get_graph_data
+from src.Preprocessing.GraphData.GraphData import get_graph_data
 from Kernels.NoGKernel import NoGKernel
 from Kernels.GraphKernels import WLKernel
 

@@ -5,7 +5,7 @@ import numpy as np
 
 from src.Preprocessing.create_splits import splits_from_index_lists
 from src.utils.BenchmarkDatasetGeneration.RingTransfer import RingTransfer
-from src.utils.GraphData import zinc_to_graph_data
+from src.Preprocessing.GraphData.GraphData import zinc_to_graph_data
 from src.utils.snowflake_generation import Snowflakes, glue_graphs, glue_graphs_edge
 import torch_geometric.datasets as tgd
 

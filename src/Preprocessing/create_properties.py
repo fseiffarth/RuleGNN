@@ -8,7 +8,7 @@ import networkx as nx
 import torch
 import yaml
 
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.Preprocessing.load_labels import load_labels
 import copy
 

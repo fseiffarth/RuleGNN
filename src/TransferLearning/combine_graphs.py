@@ -5,7 +5,7 @@ from src.Preprocessing.create_labels import  save_cycle_labels, save_subgraph_la
     save_clique_labels
 from src.Preprocessing.create_properties import write_distance_properties
 from src.Preprocessing.create_splits import create_splits, create_transfer_splits
-from src.utils.GraphData import get_graph_data
+from src.Preprocessing.GraphData.GraphData import get_graph_data
 from src.utils.utils import save_graphs
 import networkx as nx
 

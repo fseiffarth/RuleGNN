@@ -4,7 +4,7 @@ from torch_geometric.datasets import GNNBenchmarkDataset
 
 from src.utils import EdgeLabeling
 from src.Preprocessing import NodeLabeling
-from src.utils.GraphData import GraphData
+from src.Preprocessing.GraphData.GraphData import GraphData
 
 
 class CSL:

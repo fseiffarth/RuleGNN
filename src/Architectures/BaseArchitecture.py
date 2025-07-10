@@ -3,7 +3,7 @@ from abc import abstractmethod
 import torch
 from torch import nn
 
-from src.utils.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.Architectures.ShareGNN.Parameters import Parameters
 
 

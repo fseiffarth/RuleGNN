@@ -16,9 +16,9 @@ import time
 import numpy as np
 import math
 
-from src.utils import GraphData
+from src.Preprocessing.GraphData import GraphData
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.utils.GraphDrawing import GraphDrawing
-from src.utils.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import NodeLabels
 
 

@@ -1,6 +1,6 @@
 import torch
 
-from src.utils.GraphData import NodeLabels
+from src.Preprocessing.GraphData.GraphData import NodeLabels
 
 
 def load_labels(path='') -> NodeLabels:
