@@ -3,11 +3,10 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
-from ogb.graphproppred import PygGraphPropPredDataset
 
 from src.Preprocessing.GraphData.GraphData import get_graph_data, GraphData
-from src.TrainTestData import TrainTestData as ttd
-import torch_geometric
+from src.utils.utils import get_train_validation_test_list
+
 
 def zinc_splits():
     splits = []
@@ -116,7 +115,7 @@ def create_transfer_splits(db_name, path:Path, output_path:Path, data_format=Non
             """
             Create the data
             """
-            training_data, validate_data, test_data = ttd.get_train_validation_test_list(test_indices=run_test_indices,
+            training_data, validate_data, test_data = get_train_validation_test_list(test_indices=run_test_indices,
                                                                                          validation_step=validation_id,
                                                                                          seed=seed,
                                                                                          balanced=False,
