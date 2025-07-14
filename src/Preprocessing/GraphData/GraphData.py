@@ -698,16 +698,22 @@ class ShareGNNDataset(InMemoryDataset):
                  'num_edge_labels': edge_labels.shape[1],
                  'num_edge_attributes': edge_attr.shape[1] if edge_attr is not None else 0}
         data.primary_node_labels = node_labels
-        data.slices['primary_node_labels'] = data.slices['x']
+        slices['primary_node_labels'] = slices['x']
         if node_attributes is not None:
             data.node_attributes = node_attributes
-            data.slices['node_attributes'] = data.slices['x']
+            slices['node_attributes'] = slices['x']
+        else:
+            data.node_attributes = torch.Tensor()
         if len(torch.unique(edge_labels)) > 1:
             data.primary_edge_labels = data.edge_labels.long()
-            data.slices['primary_edge_labels'] = data.slices['edge_attr']
+            slices['primary_edge_labels'] = slices['edge_attr']
+        else:
+            data.primary_edge_labels = torch.Tensor()
         if edge_attr is not None:
             data.edge_attributes = edge_attr
-            data.slices['edge_attributes'] = data.slices['edge_attr']
+            slices['edge_attributes'] = slices['edge_attr']
+        else:
+            data.edge_attributes = torch.Tensor()
 
         return data, slices, sizes
 
