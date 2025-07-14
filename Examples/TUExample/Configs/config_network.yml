@@ -3,7 +3,9 @@ networks:
         bias: False,
         heads: [1],
         labels: [
-          { label_type: wl_labeled_edges, depth: [1] }
+          { label_type: wl_labeled, depth: [0,1,2] },
+          { label_type: primary },
+          { label_type: wl, depth: [0,1,2] }
         ],
         properties: [
           { name: distances, values: [ 0,1,2 ] },

@@ -148,15 +148,8 @@ class DatasetPreprocessing:
                     save_graphs(Path(self.experiment_configuration['paths']['data']), dataset, graphs, labels, with_degree=False, graph_format='NEL')
                     self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                                                       name=dataset,
-                                                      use_node_attr=self.experiment_configuration.get(
-                                                         'use_node_attr', False),
-                                                      use_edge_attr=self.experiment_configuration.get(
-                                                         'use_edge_attr', False),
-                                                      delete_zero_columns=self.experiment_configuration.get(
-                                                         'delete_zero_columns', True),
                                                       from_existing_data='NEL',
                                                       task=self.experiment_configuration.get('task', 'graph'),
-                                                      testing=self.experiment_configuration.get('testing', None),
                                                       )
                 except:
                     # raise the error that has occurred
@@ -166,12 +159,6 @@ class DatasetPreprocessing:
                 try:
                     self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                                                       name=dataset,
-                                                      use_node_attr=self.experiment_configuration.get(
-                                                         'use_node_attr', False),
-                                                      use_edge_attr=self.experiment_configuration.get(
-                                                         'use_edge_attr', False),
-                                                      delete_zero_columns=self.experiment_configuration.get(
-                                                         'delete_zero_columns', True),
                                                       from_existing_data='NEL',
                                                       task=self.dataset_configuration.get('task', None)
                                                       )
@@ -184,11 +171,7 @@ class DatasetPreprocessing:
         if self.graph_data is None and self.experiment_configuration['paths']['data'].joinpath(f'{self.db_name}').joinpath('processed').exists():
             self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                                               name=self.db_name,
-                                              use_node_attr=self.experiment_configuration.get('use_node_attr', False),
-                                              use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
-                                              delete_zero_columns=self.experiment_configuration.get('delete_zero_columns', True),
                                               task=self.experiment_configuration.get('task', None),
-                                              testing=self.experiment_configuration.get('testing', None)
                                               )
             # raise an error if the graph data is still None
         if self.graph_data is None:
@@ -368,18 +351,13 @@ class DatasetPreprocessing:
                     base_labels['layer_string'] = get_label_string(layer['base_labels'])
                     base_labels['labels'] = load_labels(base_label_path)
 
-                if layer['depth'] == 0:
-                    file_path = save_labeled_degree_labels(graph_data=self.graph_data,
-                                                           label_path=label_path,
-                                                              max_labels=layer.get('max_labels', None),
-                                                           save_times=self.generation_times_labels_path)
-                else:
-                    file_path = save_wl_labeled_edges_labels(graph_data=self.graph_data,
-                                                       depth=layer.get('depth', 3),
-                                                       max_labels=layer['max_labels'],
-                                                       label_path=label_path,
-                                                       base_labels=base_labels,
-                                                       save_times=self.generation_times_labels_path)
+
+                file_path = save_wl_labeled_edges_labels(graph_data=self.graph_data,
+                                                   depth=layer.get('depth', 3),
+                                                   max_labels=layer['max_labels'],
+                                                   label_path=label_path,
+                                                   base_labels=base_labels,
+                                                   save_times=self.generation_times_labels_path)
             elif layer['label_type'] == 'simple_cycles' or layer['label_type'] == 'induced_cycles':
                 cycle_type = 'simple' if layer['label_type'] == 'simple_cycles' else 'induced'
                 if 'max_labels' not in layer:

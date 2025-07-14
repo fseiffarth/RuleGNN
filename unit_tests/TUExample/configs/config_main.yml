@@ -3,6 +3,12 @@ datasets:
   - { name: "MUTAG",
       task: 'graph_classification',
       validation_folds: 10,
+      experiment_config_file: "unit_tests/TUExample/configs/config_network_edges.yml",
+      type: "TUDataset"
+  }
+  - { name: "DHFR",
+      task: 'graph_classification',
+      validation_folds: 10,
       experiment_config_file: "unit_tests/TUExample/configs/config_network.yml",
       type: "TUDataset"
   }
@@ -93,3 +99,5 @@ early_stopping:
     25
 
 input_features: {name: constant, value: 1.0}
+
+best_model: True

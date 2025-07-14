@@ -180,7 +180,7 @@ def ring_diagonals( data_size=1200, ring_size=100,*args, **kwargs) -> (List[nx.G
             G.nodes[node]['label'] = np.random.randint(0, 2)
             G.nodes[node]['feature'] = [np.random.rand(), np.random.rand(), np.random.rand()]
         for edge in G.edges():
-            G[edge[0]][edge[1]]['label'] = np.random.randint(0, 2)
+            G[edge[0]][edge[1]]['primary_node_labels'] = np.random.randint(0, 2)
             G[edge[0]][edge[1]]['feature'] = [np.random.rand(), np.random.rand(), np.random.rand()]
 
         # get two random nodes in the ring and connect them with an edge
@@ -192,7 +192,7 @@ def ring_diagonals( data_size=1200, ring_size=100,*args, **kwargs) -> (List[nx.G
         # get the distance in the ring between the two nodes
         dist = nx.shortest_path_length(G, diag_start, diag_end)
         G.add_edge(diag_start, diag_end)
-        G[diag_start][diag_end]['label'] = np.random.randint(0, 2)
+        G[diag_start][diag_end]['primary_edge_labels'] = np.random.randint(0, 2)
         G[diag_start][diag_end]['feature'] = [np.random.rand(), np.random.rand(), np.random.rand()]
         # determine the label of the graph G
         # Case 1: Edge Label of the diagonal is 1
@@ -201,9 +201,9 @@ def ring_diagonals( data_size=1200, ring_size=100,*args, **kwargs) -> (List[nx.G
         # => Then the graph label is 1, else 0
         graph_label = 0
         edge = G.edges[diag_start, diag_end]
-        if 'label' in edge and edge['label'] == 1:
+        if 'primary_edge_labels' in edge and edge['primary_edge_labels'] == 1:
             graph_label = 1
-        elif G.nodes[diag_start]['label'] == G.nodes[diag_end]['label']:
+        elif G.nodes[diag_start]['primary_node_labels'] == G.nodes[diag_end]['primary_node_labels']:
             graph_label = 1
         elif dist > 13:
             graph_label = 1

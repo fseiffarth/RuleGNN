@@ -15,7 +15,6 @@ from src.Experiment.data_sampling import curriculum_sampling
 from src.Preprocessing.GraphData import GraphData
 from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.Time.TimeClass import TimeClass
-from src.TrainTestData import TrainTestData as ttd
 from src.utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configuration, is_pruning
 
 class EvaluationValues:
@@ -745,11 +744,6 @@ class ModelConfiguration:
         final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
         with open(final_path, "a") as file_obj:
             file_obj.write(res_str)
-
-        if self.para.draw:
-            self.para.draw_data = ttd.plot_learning_data(epoch + 1,
-                                                         [train_values.accuracy, validation_values.accuracy, test_values.accuracy, train_values.loss],
-                                                         self.para.draw_data, self.para.n_epochs)
 
 
 

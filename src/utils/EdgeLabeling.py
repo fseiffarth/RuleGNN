@@ -20,19 +20,19 @@ def standard_edge_labeling(graphs: List[nx.Graph]):
         edge_labels.append([])
         unique_edge_labels.append({})
         for edge in graph.edges(data=True):
-            if 'label' in edge[2]:
-                if type(edge[2]['label']) == int:
-                    edge_label = edge[2]['label']
-                elif type(edge[2]['label']) == list and len(edge[2]['label']) > 0:
-                    edge_label = edge[2]['label'][0]
-                elif type(edge[2]['label']) == list and len(edge[2]['label']) == 1:
-                    edge_label = edge[2]['label'][0]
-                elif type(edge[2]['label']) == np.ndarray and len(edge[2]['label']) == 1:
+            if 'primary_edge_labels' in edge[2]:
+                if type(edge[2]['primary_edge_labels']) == int:
+                    edge_label = edge[2]['primary_edge_labels']
+                elif type(edge[2]['primary_edge_labels']) == list and len(edge[2]['primary_edge_labels']) > 0:
+                    edge_label = edge[2]['primary_edge_labels'][0]
+                elif type(edge[2]['primary_edge_labels']) == list and len(edge[2]['primary_edge_labels']) == 1:
+                    edge_label = edge[2]['primary_edge_labels'][0]
+                elif type(edge[2]['primary_edge_labels']) == np.ndarray and len(edge[2]['primary_edge_labels']) == 1:
                     try:
-                        edge_label = int(edge[2]['label'][0])
+                        edge_label = int(edge[2]['primary_edge_labels'][0])
                     except:
                         try:
-                            edge_label = float(edge[2]['label'][0])
+                            edge_label = float(edge[2]['primary_edge_labels'][0])
                         except:
                             raise ValueError("Edge label is not a number")
                 else:

@@ -23,7 +23,7 @@ def RingTransfer(data_size, node_dimension, ring_size, seed)-> (List[nx.Graph], 
         G = nx.relabel_nodes(G, {i: random_permutation[i] for i in range(ring_size)})
         # set all graph node labels to 0
         for node in G.nodes():
-            G.nodes[node]['label'] = 0
+            G.nodes[node]['primary_node_labels'] = 0
         # get a random node and the one on the opposite and the one on 90 degree and 270 and assign random labels from the list {1,2,3,4}
         pos = np.random.randint(0, ring_size)
         node_0 = random_permutation[pos]

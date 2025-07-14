@@ -25,7 +25,7 @@ def get_existing_splits():
 
 # add arguments to the main function if needed using click
 @click.command()
-@click.option('--num_threads', default=-1, help='Number of tasks to run in parallel')
+@click.option('--num_threads', default=1, help='Number of tasks to run in parallel')
 def main(num_threads):
     get_existing_splits()
     experiments_synthetic.main_synthetic(num_threads)

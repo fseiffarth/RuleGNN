@@ -29,15 +29,11 @@ class ShareGNNDataset(InMemoryDataset):
             pre_filter: Optional[Callable] = None,
             from_existing_data: Union[str, list, None] = None,
             force_reload: bool = False,
-            use_node_attr: bool = True,
-            use_edge_attr: bool = True,
-            delete_zero_columns: bool = True,
             precision: str = 'float',
             input_features = None,
             output_features = None,
             task = None,
             merge_graphs = None,
-            testing: Optional[int] = None,
     ) -> None:
         self.name = name # name of the dataset
         self.from_existing_data = from_existing_data # create the dataset from existing data
@@ -48,35 +44,10 @@ class ShareGNNDataset(InMemoryDataset):
         self.properties = {} # different pairwise properties for the graph data
         self.precision = torch.float
         self.task = task
-        self.testing = testing # take the first n graphs for testing (only for debugging)
         if precision == 'double':
             self.precision = torch.double
         super(ShareGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
         out = fs.torch_load(self.processed_paths[0])
-        if testing is not None:
-            if isinstance(testing, int):
-                # reduce out to the first testing graphs
-                # slices
-                testing_slices = {'edge_index': out[1]['edge_index'][:testing],
-                'edge_attr': out[1]['edge_attr'][:testing],
-                'x': out[1]['x'][:testing],
-                'y': out[1]['y'][:testing]}
-                testing_data = {
-                    'num_nodes': testing_slices['y'][-1].item(),
-                    'edge_index': out[0]['edge_index'][:, :testing_slices['edge_index'][-1]],
-                    'edge_attr': out[0]['edge_attr'][:testing_slices['edge_attr'][-1], :],
-                    'x': out[0]['x'][:testing_slices['x'][-1]],
-                    'y': out[0]['y'][:testing_slices['y'][-1]],
-                }
-                testing_sizes = {
-                    'num_node_labels': out[2]['num_node_labels'],
-                    'num_node_attributes': out[2]['num_node_attributes'],
-                    'num_edge_labels': out[2]['num_edge_labels'],
-                    'num_edge_attributes': out[2]['num_edge_attributes'],
-                }
-
-            else:
-                raise ValueError("testing must be an integer or None")
 
         if not isinstance(out, tuple) or len(out) < 3:
             raise RuntimeError(
@@ -86,14 +57,12 @@ class ShareGNNDataset(InMemoryDataset):
                 "root folder and try again.")
         assert len(out) == 3 or len(out) == 4
 
-        if testing is not None:
-            data, self.slices, self.sizes, data_cls = testing_data, testing_slices, testing_sizes, out[3]
+
+        if len(out) == 3:  # Backward compatibility.
+            data, self.slices, self.sizes = out
+            data_cls = Data
         else:
-            if len(out) == 3:  # Backward compatibility.
-                data, self.slices, self.sizes = out
-                data_cls = Data
-            else:
-                data, self.slices, self.sizes, data_cls = out
+            data, self.slices, self.sizes, data_cls = out
 
         # check if the data object matches our format
         self.validate_dataset_object(data)
@@ -455,6 +424,18 @@ class ShareGNNDataset(InMemoryDataset):
 
             elif self.from_existing_data == 'TUDataset':
                 tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
+                tu_dataset.data.primary_node_labels = torch.argmax(tu_dataset.data.x[:,tu_dataset.sizes['num_node_attributes']:], dim=1)
+                tu_dataset.slices['primary_node_labels'] = tu_dataset.slices['x']
+                tu_dataset.data.node_attributes = tu_dataset.data.x[:,:tu_dataset.sizes['num_node_attributes']]
+                tu_dataset.slices['node_attributes'] = tu_dataset.slices['x']
+                if tu_dataset.data.edge_attr is None:
+                    tu_dataset.data.primary_edge_labels = torch.Tensor()
+                    tu_dataset.data.edge_attributes = torch.Tensor()
+                else:
+                    tu_dataset.data.primary_edge_labels = torch.argmax(tu_dataset.data.edge_attr[:,tu_dataset.sizes['num_edge_attributes']:], dim=1)
+                    tu_dataset.slices['primary_edge_labels'] = tu_dataset.slices['edge_attr']
+                    tu_dataset.data.edge_attributes = tu_dataset.data.edge_attr[:,:tu_dataset.sizes['num_edge_attributes']]
+                    tu_dataset.slices['edge_attributes'] = tu_dataset.slices['edge_attr']
                 self.data, self.slices, sizes = tu_dataset._data, tu_dataset.slices, tu_dataset.sizes
             elif self.from_existing_data == 'NEL':
                 self.data, self.slices, sizes = self.read_nel_data_v2()
@@ -472,6 +453,11 @@ class ShareGNNDataset(InMemoryDataset):
                 nodes_per_graph = dataset.data.num_nodes // num_graphs
                 # remove num_nodes from x
                 dataset.slices['x'] = torch.linspace(0, dataset.data.num_nodes, num_graphs + 1, dtype=torch.long)
+                dataset.data.primary_node_labels = torch.zeros(dataset.data.num_nodes, dtype=torch.long)
+                dataset.data.node_attributes = torch.Tensor()
+                dataset.data.primary_edge_labels = torch.Tensor()
+                dataset.data.edge_attributes = torch.Tensor()
+                dataset.slices['primary_node_labels'] = dataset.slices['x']
                 self.slices = dataset.slices
                 self.data = dataset.data
                 pass
@@ -510,12 +496,20 @@ class ShareGNNDataset(InMemoryDataset):
         # check whether there is at least node_labels, node_attributes, edge_labels, edge_attributes, x, y
         if not 'x' in data:
             raise ValueError("Data object must have an attribute 'x' for node features.")
+        if not 'x' in self.slices:
+            raise ValueError("Data object must have an attribute 'x' in slices for node features.")
         if not 'y' in data:
             raise ValueError("Data object must have an attribute 'y' for labels.")
+        if not 'y' in self.slices:
+            raise ValueError("Data object must have an attribute 'y' in slices for labels.")
         if not 'edge_index' in data:
             raise ValueError("Data object must have an attribute 'edge_index' for edge indices.")
+        if not 'edge_index' in self.slices:
+            raise ValueError("Data object must have an attribute 'edge_index' in slices for edge indices.")
         if not 'primary_node_labels' in data:
             raise ValueError("Data object must have an attribute 'primary_node_labels' for node labels.")
+        if not 'primary_node_labels' in self.slices:
+            raise ValueError("Data object must have an attribute 'primary_node_labels' in slices for node labels.")
         if not 'primary_edge_labels' in data:
             raise ValueError("Data object must have an attribute 'primary_edge_labels' for edge labels.")
         if not 'node_attributes' in data:
@@ -535,12 +529,12 @@ class ShareGNNDataset(InMemoryDataset):
             node_labels += [0] * graph.number_of_nodes()
             node_attributes += [0] * graph.number_of_nodes()
             for node in graph.nodes(data=True):
-                if 'label' in node[1]:
+                if 'primary_node_labels' in node[1]:
                     index_start = np.sum(node_slices[0:graph_id+1])
-                    node_labels[index_start+node[0]] = int(node[1]['label'][0])
-                    if len(node[1]['label']) > 1:
+                    node_labels[index_start+node[0]] = int(node[1]['primary_node_labels'][0])
+                    if len(node[1]['primary_node_labels']) > 1:
                         with_node_attributes = True
-                        node_attributes[index_start+node[0]] = node[1]['label'][1:]
+                        node_attributes[index_start+node[0]] = node[1]['primary_node_labels'][1:]
             node_slices.append(graph.number_of_nodes())
         # convert the node labels to a tensor
         node_labels = torch.tensor(node_labels, dtype=torch.long)
@@ -564,10 +558,10 @@ class ShareGNNDataset(InMemoryDataset):
         for i, graph in enumerate(graphs):
             for edge in graph.edges(data=True):
                 edge_indices.append([edge[0], edge[1]])
-                if 'label' in edge[2]:
-                    edge_labels.append(int(edge[2]['label'][0]))
-                    if len(edge[2]['label']) > 1:
-                        edge_attributes.append(edge[2]['label'][1:])
+                if 'primary_edge_labels' in edge[2]:
+                    edge_labels.append(int(edge[2]['primary_edge_labels'][0]))
+                    if len(edge[2]['primary_edge_labels']) > 1:
+                        edge_attributes.append(edge[2]['primary_edge_labels'][1:])
             edge_slices.append(len(graph.edges()))
         # convert the edge indices to a tensor
         edge_indices = torch.tensor(edge_indices, dtype=torch.long).T
@@ -703,25 +697,27 @@ class ShareGNNDataset(InMemoryDataset):
                  'num_node_attributes': node_attributes.shape[1] if node_attributes is not None else 0,
                  'num_edge_labels': edge_labels.shape[1],
                  'num_edge_attributes': edge_attr.shape[1] if edge_attr is not None else 0}
+        data.primary_node_labels = node_labels
+        data.slices['primary_node_labels'] = data.slices['x']
+        if node_attributes is not None:
+            data.node_attributes = node_attributes
+            data.slices['node_attributes'] = data.slices['x']
+        if len(torch.unique(edge_labels)) > 1:
+            data.primary_edge_labels = data.edge_labels.long()
+            data.slices['primary_edge_labels'] = data.slices['edge_attr']
+        if edge_attr is not None:
+            data.edge_attributes = edge_attr
+            data.slices['edge_attributes'] = data.slices['edge_attr']
+
         return data, slices, sizes
 
     def create_nx_graph(self, graph_id: int, directed: bool = False):
         graph = self[graph_id]
-        if isinstance(self.node_labels['primary'], NodeLabels):
-            primary_labels = self.node_labels['primary'].node_labels[self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
-        elif isinstance(self.node_labels['primary'], torch.Tensor):
-            primary_labels = self.node_labels['primary'][self.slices['x'][graph_id]:self.slices['x'][graph_id+1]]
-        else:
-            raise ValueError('Node labels are not of type NodeLabels or torch.Tensor')
         nx_graph = to_networkx(
-            data=graph,
-            node_attrs=['x'],
-            edge_attrs=['edge_attr'] if graph.edge_attr is not None else None,
-            to_undirected=not directed)
-        # change node label 'x' to 'primary_label'
-        for node in nx_graph.nodes(data=True):
-            nx_graph.nodes[node[0]]['primary_label'] = primary_labels[node[0]].item()
-            del nx_graph.nodes[node[0]]['x']
+                data=graph,
+                node_attrs=['primary_node_labels'] if self.task != 'node_classification' else None,
+                edge_attrs=['primary_edge_labels'] if 'primary_edge_labels' in graph else None,
+                to_undirected=not directed)
         return nx_graph
 
     def create_nx_graphs(self, directed: bool = False):
@@ -733,25 +729,9 @@ class ShareGNNDataset(InMemoryDataset):
 
             self.nx_graphs.append(to_networkx(
                 data=graph,
-                node_attrs=['x'] if self.task != 'node_classification' else None,
-                edge_attrs=['edge_attr'] if graph.edge_attr is not None else None,
+                node_attrs=['primary_node_labels'] if self.task != 'node_classification' else None,
+                edge_attrs=['primary_edge_labels'] if 'primary_edge_labels' in graph else None,
                 to_undirected=not directed))
-
-            # change node label 'x' to 'primary_label'
-            for node in self.nx_graphs[-1].nodes(data=True):
-                self.nx_graphs[-1].nodes[node[0]]['primary_label'] = self.node_labels['primary'][counter].item()
-                if self.task != 'node_classification':
-                    del self.nx_graphs[-1].nodes[node[0]]['x']
-                counter += 1
-            if graph.edge_attr is not None:
-                unique_edge_labels = torch.unique(self.data.edge_attr)
-                for edge in self.nx_graphs[-1].edges(data=True):
-                    edge_label_one_hot = np.array(edge[2]['edge_attr'])[self.num_edge_attributes:]
-                    if edge_label_one_hot.size == 1 :
-                        # get one hot vector from edge_label_one_hot value
-                        edge[2]['label'] = edge_label_one_hot
-                    else:
-                        edge[2]['label'] = np.argmax(edge_label_one_hot)
         pass
 
     def preprocess_share_gnn_data(self, data, input_features=None, output_features=None, task=None) -> None:
@@ -1082,15 +1062,15 @@ class GraphData:
                 elif use_constant:
                     self.input_data.append(torch.full(size=(1,graph.number_of_nodes(),1), fill_value=input_features.get('value', 1.0)).float())
                 elif use_features:
-                    self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'][1:])))
+                    self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['primary_node_labels'][1:])))
                     for node in graph.nodes(data=True):
                         # add all except the first element of the label
-                        self.input_data[-1][0][node[0]] = torch.tensor(node[1]['label'][1:])
+                        self.input_data[-1][0][node[0]] = torch.tensor(node[1]['primary_node_labels'][1:])
                 elif use_labels_and_features:
-                    self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['label'])))
+                    self.input_data.append(torch.zeros(1,graph.number_of_nodes(), len(graph.nodes(data=True)[0]['primary_node_labels'])))
                     for node in graph.nodes(data=True):
                         # add all except the first element of the label
-                        self.input_data[-1][0][node[0]] = torch.tensor([self.node_labels['primary'].node_labels[graph_id][node[0]]] + node[1]['label'][1:])
+                        self.input_data[-1][0][node[0]] = torch.tensor([self.node_labels['primary'].node_labels[graph_id][node[0]]] + node[1]['primary_node_labels'][1:])
 
 
 
@@ -1305,7 +1285,7 @@ class BenchmarkDatasets(InMemoryDataset):
             data_x = torch.zeros((graph.number_of_nodes(), num_node_labels))
             # create one hot encoding for node labels
             for j, node in graph.nodes(data=True):
-                data_x[j][node['label']] = 1
+                data_x[j][node['primary_node_labels']] = 1
             data.x = data_x
             edge_index = torch.zeros((2, 2 * len(graph.edges)), dtype=torch.long)
             # add each edge twice, once in each direction
@@ -1364,7 +1344,7 @@ def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True
             graphs.node_labels['primary'].node_labels.append([x.item() for x in graph['x']])
             # add also node labels to the existing graph node
             for node in graphs.graphs[-1].nodes(data=True):
-                node[1]['label'] = graph['x'][node[0]].item()
+                node[1]['primary_node_labels'] = graph['x'][node[0]].item()
 
             # update max_label
             max_label = max(abs(max_label), max(abs(graph['x'])).item())

@@ -1,6 +1,6 @@
 datasets:
   # real-world datasets
-  - { name: "MUTAG",
+  - { name: "DHFR",
       task: 'graph_classification',
       validation_folds: 10,
       experiment_config_file: "Examples/TUExample/Configs/config_network.yml",

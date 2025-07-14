@@ -3,8 +3,8 @@ from pathlib import Path
 
 from src.Experiment.ExperimentMain import ExperimentMain
 from src.Experiment.RunConfiguration import get_run_configs
+from src.Preprocessing.GraphData.GraphData import get_graph_data
 from src.utils.EvaluationFinal import model_selection_evaluation
-from src.utils.GraphData import get_graph_data
 from src.Preprocessing.load_labels import load_labels
 from src.utils.utils import save_graphs
 
@@ -81,7 +81,7 @@ def get_gnn_comparison_data(main_config_path:Path, output_path:Path, db_name:str
                     for node in g.nodes:
                         # remove additional attributes
                         if layer_label_string == 'primary':
-                            g.nodes[node]['primary_label'] = node_labels[node].item()
+                            g.nodes[node]['primary_node_labels'] = node_labels[node].item()
                         else:
                             if with_features:
                                 if 'attr' in g.nodes[node]:

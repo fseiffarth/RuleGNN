@@ -19,11 +19,11 @@ def standard_node_labeling(graphs: List[nx.Graph]):
         unique_node_labels.append({})
         for node in graph.nodes(data=True):
             # check if the node has a label
-            if 'label' in node[1]:
-                if type(node[1]['label']) == int or type(node[1]['label']) == float:
-                    node_label = node[1]['label']
-                elif len(node[1]['label']) > 0:
-                    node_label = node[1]['label'][0]
+            if 'primary_node_labels' in node[1]:
+                if type(node[1]['primary_node_labels']) == int or type(node[1]['primary_node_labels']) == float:
+                    node_label = node[1]['primary_node_labels']
+                elif len(node[1]['primary_node_labels']) > 0:
+                    node_label = node[1]['primary_node_labels'][0]
                 else:
                     node_label = 0
             else:
@@ -79,15 +79,15 @@ def weisfeiler_lehman_node_labeling(graphs: List[nx.Graph], depth: int = 3, labe
             # use the base label as the node attribute
             if with_edge_labels:
                 # use the base label as the node attribute and edge attribute
-                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='base_label', edge_attr='label')
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth+1, node_attr='base_label', edge_attr='primary_edge_labels')
             else:
-                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='base_label')
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth+1, node_attr='base_label')
         else:
             if with_edge_labels:
                 # use the primary label as the node attribute and edge attribute
-                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='primary_label', edge_attr='label')
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth+1, node_attr='primary_node_labels', edge_attr='primary_edge_labels')
             else:
-                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth, node_attr='primary_label')
+                hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth+1, node_attr='primary_node_labels')
     else:
         hashes = nx.weisfeiler_lehman_subgraph_hashes(union_graph, iterations=depth)
     largest_int = 0

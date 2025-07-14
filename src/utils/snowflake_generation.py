@@ -20,8 +20,8 @@ def glue_graphs(G1, G2, node1, node2, plot=False):
     # add nodes from G1
     for i, node in enumerate(G1.nodes()):
         # check if node is labeled
-        if 'label' in G1.nodes[node]:
-            G.add_node(i, label=G1.nodes[node]['label'])
+        if 'primary_node_labels' in G1.nodes[node]:
+            G.add_node(i, label=G1.nodes[node]['primary_node_labels'])
         else:
             G.add_node(i)
     # add edges from G1
@@ -57,8 +57,8 @@ def glue_graphs_edge(G1, G2, edge1, edge2, plot=False):
     # add nodes from G1
     for i, node in enumerate(G1.nodes()):
         # check if node is labeled
-        if 'label' in G1.nodes[node]:
-            G.add_node(i, label=G1.nodes[node]['label'])
+        if 'primary_node_labels' in G1.nodes[node]:
+            G.add_node(i, label=G1.nodes[node]['primary_node_labels'])
         else:
             G.add_node(i)
     # add edges from G1
@@ -254,18 +254,18 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
                     # add node labels to the last graph in snowflakes
                     for node in snowflakes[-1].nodes():
                         if node == rand_index1:
-                            snowflakes[-1].nodes[node]['primary_label'] = 1
+                            snowflakes[-1].nodes[node]['primary_node_labels'] = 1
                         elif node >= i:
                             # set node to random label between 0 and 4
                             rand_node_label = np.random.randint(0, 1)
-                            snowflakes[-1].nodes[node]['primary_label'] = rand_node_label
+                            snowflakes[-1].nodes[node]['primary_node_labels'] = rand_node_label
                         #elif node == rand_index2:
-                        #    snowflakes[-1].nodes[node]['label'] = 1
+                        #    snowflakes[-1].nodes[node]['primary_node_labels'] = 1
                         #elif node == rand_index3:
-                        #    snowflakes[-1].nodes[node]['label'] = 1
+                        #    snowflakes[-1].nodes[node]['primary_node_labels'] = 1
                         else:
                             rand_node_label = np.random.randint(0, 1)
-                            snowflakes[-1].nodes[node]['primary_label'] = rand_node_label
+                            snowflakes[-1].nodes[node]['primary_node_labels'] = rand_node_label
                     label = part_list[rand_index1]
                     labels.append(label)
 
@@ -326,7 +326,7 @@ def Snowflakes(smallest_snowflake=1, largest_snowflake=20, flakes_per_size=10, p
             pos = nx.kamada_kawai_layout(snowflake)
             nx.draw_networkx_nodes(snowflake, pos, node_size=50)
             nx.draw_networkx_edges(snowflake, pos)
-            nx.draw_networkx_labels(snowflake, pos, font_size=8, labels={node: snowflake.nodes[node]['label'] for node in snowflake.nodes()})
+            nx.draw_networkx_labels(snowflake, pos, font_size=8, labels={node: snowflake.nodes[node]['primary_node_labels'] for node in snowflake.nodes()})
             plt.show()
     return snowflakes, labels
 

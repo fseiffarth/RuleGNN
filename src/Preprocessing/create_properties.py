@@ -178,7 +178,7 @@ def write_distance_edge_properties(graph_data:ShareGNNDataset, out_path:Path = P
                                 edge_start = shortest_path[i]
                                 edge_end = shortest_path[i + 1]
                                 # get the label of the edge
-                                edge_label = graph[edge_start][edge_end]['label']
+                                edge_label = graph[edge_start][edge_end]['primary_edge_labels']
                                 edge_label_sequence.append(edge_label)
                                 try:
                                     isinstance(edge_label, int)

@@ -7,6 +7,7 @@ from typing import List, Optional, Union, Tuple
 import networkx as nx
 import torch
 from networkx.algorithms.isomorphism import GraphMatcher
+from numpy import sort
 from torch_geometric.io import fs
 
 from src.Architectures.ShareGNN.ShareGNNLayers import get_label_string
@@ -161,8 +162,8 @@ class LabeledDegreeNodeLabeling(NodeLabelingBase):
         for graph_id, graph in enumerate(self.graph_data.nx_graphs):
             for i, node in enumerate(graph.nodes(data=True)):
                 neighbors = list(graph.neighbors(node[0]))
-                node_identifier = [node[1]['primary_label']]
-                node_identifier += [graph.nodes[neighbor]['primary_label'] for neighbor in neighbors]
+                node_identifier = [node[1]['primary_node_labels']]
+                node_identifier += [graph.nodes[neighbor]['primary_node_labels'] for neighbor in neighbors]
                 # convert to tuple and add to set
                 node_identifier = tuple(node_identifier)
                 unique_neighbor_labels.add(node_identifier)
@@ -291,20 +292,22 @@ def save_labeled_degree_labels(graph_data:ShareGNNDataset, label_path=None, max_
         # iterate over the graphs and get the degree of each node
         node_labels = []
         unique_neighbor_labels = set()
-        node_to_hash = dict()
+        node_to_hash = []
         for graph_id, graph in enumerate(graph_data.nx_graphs):
-            for i, node in enumerate(graph.nodes(data=True)):
+            node_to_hash.append(dict())
+            for node in graph.nodes(data=True):
                 neighbors = list(graph.neighbors(node[0]))
-                node_identifier = [node[1]['primary_label']]
-                node_identifier += [graph.nodes[neighbor]['primary_label'] for neighbor in neighbors]
+                node_identifier = str(node[1]['primary_node_labels'])
+                neighbor_identifier = sort([graph.nodes[neighbor]['primary_node_labels'] for neighbor in neighbors])
+                string_neighbor_identifier = ''.join([str(n) for n in neighbor_identifier])
+                node_identifier = f'{node_identifier}|{string_neighbor_identifier}'
                 # convert to tuple and add to set
-                node_identifier = tuple(node_identifier)
                 unique_neighbor_labels.add(node_identifier)
-                node_to_hash[node[0]] = node_identifier
+                node_to_hash[graph_id][node[0]] = node_identifier
         # convert the unique neighbor labels to a dict
         unique_neighbor_label_dict = {label: i for i, label in enumerate(unique_neighbor_labels)}
-        for graph in graph_data.nx_graphs:
-            node_labels.append([unique_neighbor_label_dict[node_to_hash[node]] for node in graph.nodes()])
+        for graph_id, graph in enumerate(graph_data.nx_graphs):
+            node_labels.append([unique_neighbor_label_dict[node_to_hash[graph_id][node]] for node in graph.nodes()])
         save_labels_to_file(file, graph_data.name, l, node_labels, max_labels)
         if save_times is not None:
             try:
@@ -483,7 +486,8 @@ def save_cycle_labels(graph_data:ShareGNNDataset, min_cycle_length=None, max_cyc
         start_time = time.time()
         cycle_dict = []
         for i, graph in enumerate(graph_data.nx_graphs):
-            print(f"Graph {graph_data.name} {i + 1}/{len(graph_data.nx_graphs)} Labels: {l}")
+            if i % (len(graph_data.nx_graphs) // 10) == 0:
+                print(f"Graph {graph_data.name} {i + 1}/{len(graph_data.nx_graphs)} Labels: {l}")
             cycle_dict.append({})
             if cycle_type == 'simple':
                 cycles = nx.simple_cycles(graph, max_cycle_length)
