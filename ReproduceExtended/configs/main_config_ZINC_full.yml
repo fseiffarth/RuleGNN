@@ -5,7 +5,7 @@ datasets:
     validation_folds: 1,
     with_splits: False,
     split_function: zinc_splits_full,
-    experiment_config_file: "ReproduceExtended/configs/network_zinc_multihead.yml",
+    experiment_config_file: "ReproduceExtended/configs/network_zinc_full_multihead.yml",
     type: 'ZINC',
   }
 
@@ -41,12 +41,6 @@ convolution_grad: True
 
 # aggregation_grad: Turn on or off learning for the aggregation layer
 aggregation_grad: True
-
-# activation: activation function for the convolutional layers
-convolution_activation: 'LeakyReLU'
-
-# aggregation_activation: activation function for the aggregation layer
-aggregation_activation: 'LeakyReLU'
 
 # loss: loss function for the network
 loss:
