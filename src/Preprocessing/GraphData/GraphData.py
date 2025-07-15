@@ -424,10 +424,26 @@ class ShareGNNDataset(InMemoryDataset):
 
             elif self.from_existing_data == 'TUDataset':
                 tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
-                tu_dataset.data.primary_node_labels = torch.argmax(tu_dataset.data.x[:,tu_dataset.sizes['num_node_attributes']:], dim=1)
+                if 'x' not in tu_dataset.data:
+                    tu_dataset.data.x = torch.zeros((tu_dataset.num_nodes,1), dtype=torch.float)
+                    tu_dataset.data.primary_node_labels = torch.zeros(tu_dataset.num_nodes, dtype=torch.long)
+                    tu_dataset.slices['x'] = torch.zeros(len(tu_dataset)+1, dtype=torch.long)
+                    # get slices from edge_index_slices
+                    edge_slices = tu_dataset.slices['edge_index']
+                    for i, edge_slice in enumerate(edge_slices):
+                        if i > 0:
+                            start = edge_slices[i-1]
+                            end = edge_slices[i]
+                            num_nodes = torch.max(tu_dataset.edge_index[:, start:end]) - torch.min(tu_dataset.edge_index[:, start:end]) + 1
+                            tu_dataset.slices['x'][i] = tu_dataset.slices['x'][i-1] + num_nodes
+                else:
+                    tu_dataset.data.primary_node_labels = torch.argmax(tu_dataset.data.x[:,tu_dataset.sizes['num_node_attributes']:], dim=1)
                 tu_dataset.slices['primary_node_labels'] = tu_dataset.slices['x']
-                tu_dataset.data.node_attributes = tu_dataset.data.x[:,:tu_dataset.sizes['num_node_attributes']]
-                tu_dataset.slices['node_attributes'] = tu_dataset.slices['x']
+                if tu_dataset.sizes['num_node_attributes'] > 0:
+                    tu_dataset.data.node_attributes = tu_dataset.data.x[:,:tu_dataset.sizes['num_node_attributes']]
+                    tu_dataset.slices['node_attributes'] = tu_dataset.slices['x']
+                else:
+                    tu_dataset.data.node_attributes = torch.Tensor()
                 if tu_dataset.data.edge_attr is None:
                     tu_dataset.data.primary_edge_labels = torch.Tensor()
                     tu_dataset.data.edge_attributes = torch.Tensor()

@@ -32,10 +32,10 @@ def long_rings(data_size=1200, ring_size=100, seed=764,*args, **kwargs) -> (List
         # randomly shuffle {1,2,3,4} and assign to the nodes
         rand_perm = np.random.permutation([1, 2, 3, 4])
         # change the labels of the nodes
-        G.nodes[node_0]["primary_label"] = rand_perm[0]
-        G.nodes[node_1]["primary_label"] = rand_perm[1]
-        G.nodes[node_2]["primary_label"] = rand_perm[2]
-        G.nodes[node_3]["primary_label"] = rand_perm[3]
+        G.nodes[node_0]['primary_node_labels'] = rand_perm[0]
+        G.nodes[node_1]['primary_node_labels'] = rand_perm[1]
+        G.nodes[node_2]['primary_node_labels'] = rand_perm[2]
+        G.nodes[node_3]['primary_node_labels'] = rand_perm[3]
         # find position of 1 in rand_perm
         pos_one = np.where(rand_perm == 1)[0][0]
         # find label opposite to 1
@@ -79,7 +79,7 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
         G = nx.Graph()
         label_permutation = np.random.permutation(ring_size)
         for j in range(0, ring_size):
-            G.add_node(j, primary_label=label_permutation[j])
+            G.add_node(j, primary_node_labels=label_permutation[j])
         for j in range(0, ring_size):
             G.add_edge(j % ring_size, (j + 1) % ring_size)
         # permute the Ids of the nodes
@@ -98,13 +98,13 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
                 class_number = 2
                 opposite_nodes = []
                 for node in G.nodes(data=True):
-                    node_label = node[1]["primary_label"]
+                    node_label = node[1]['primary_node_labels']
                     node_id = node[0]
                     pos = np.where(random_permutation == node_id)[0][0]
                     # get opposite node in the ring
                     opposite_node = random_permutation[(pos + ring_size // 2) % ring_size]
                     # get opposite node label in the ring
-                    opposite_node_label = G.nodes[opposite_node]["primary_label"]
+                    opposite_node_label = G.nodes[opposite_node]['primary_node_labels']
                     # add node_label + opposite_node_label to opposite_nodes
                     opposite_nodes.append(node_label + opposite_node_label)
                 # count odd and even entries in opposite_nodes
@@ -117,7 +117,7 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
             else:
                 # find graph node with label 0
                 for node in G.nodes(data=True):
-                    if node[1]["primary_label"] == 0:
+                    if node[1]['primary_node_labels'] == 0:
                         node_0 = node[0]
                         break
                 # get index of node_0 in random_permutation
@@ -129,11 +129,11 @@ def even_odd_rings(data_size=1200, ring_size=100, difficulty=1, count=False, see
                 node_4 = random_permutation[(pos + 1) % ring_size]
                 node_5 = random_permutation[(pos - 1 + ring_size) % ring_size]
 
-                label_node_1 = G.nodes[node_1]["primary_label"]
-                label_node_2 = G.nodes[node_2]["primary_label"]
-                label_node_3 = G.nodes[node_3]["primary_label"]
-                label_node_4 = G.nodes[node_4]["primary_label"]
-                label_node_5 = G.nodes[node_5]["primary_label"]
+                label_node_1 = G.nodes[node_1]['primary_node_labels']
+                label_node_2 = G.nodes[node_2]['primary_node_labels']
+                label_node_3 = G.nodes[node_3]['primary_node_labels']
+                label_node_4 = G.nodes[node_4]['primary_node_labels']
+                label_node_5 = G.nodes[node_5]['primary_node_labels']
 
                 # add the labels of the nodes
                 a = 0 + label_node_2
@@ -319,14 +319,14 @@ def parity_check(data_size=1500, max_size=40, seed=764,*args, **kwargs) -> (List
         size = np.random.randint(1, max_size + 1)
         G = nx.Graph()
         for j in range(size):
-            G.add_node(j, primary_label=0)
+            G.add_node(j, primary_node_labels=0)
         for j in range(size - 1):
             G.add_edge(j, j + 1)
         # create random seqeunce of size size of 0s and 1s
         rand_sequence = np.random.randint(0, 2, size)
         # assign the labels to the nodes
         for j in range(size):
-            G.nodes[j]["primary_label"] = rand_sequence[j]
+            G.nodes[j]['primary_node_labels'] = rand_sequence[j]
         graphs.append(G)
         # count number of 1s in the sequence
         even = np.count_nonzero(rand_sequence) % 2
@@ -341,14 +341,14 @@ def even_pairs(data_size=1500, max_size=40, seed=764,*args, **kwargs) -> (List[n
         size = np.random.randint(1, max_size + 1)
         G = nx.Graph()
         for j in range(size):
-            G.add_node(j, primary_label=0)
+            G.add_node(j, primary_node_labels=0)
         for j in range(size - 1):
             G.add_edge(j, j + 1)
         # create random seqeunce of size size of 0s and 1s
         rand_sequence = np.random.randint(0, 2, size)
         # assign the labels to the nodes
         for j in range(size):
-            G.nodes[j]["primary_label"] = rand_sequence[j]
+            G.nodes[j]['primary_node_labels'] = rand_sequence[j]
         graphs.append(G)
         # check wheter first and last node have the same label 0
         valid = rand_sequence[0] == rand_sequence[-1]
@@ -363,14 +363,14 @@ def first_a(data_size=1500, max_size=40, seed=764,*args, **kwargs) -> (List[nx.G
         size = np.random.randint(1, max_size + 1)
         G = nx.Graph()
         for j in range(size):
-            G.add_node(j, primary_label=0)
+            G.add_node(j, primary_node_labels=0)
         for j in range(size - 1):
             G.add_edge(j, j + 1)
         # create random seqeunce of size size of 0s and 1s
         rand_sequence = np.random.randint(0, 2, size)
         # assign the labels to the nodes
         for j in range(size):
-            G.nodes[j]["primary_label"] = rand_sequence[j]
+            G.nodes[j]['primary_node_labels'] = rand_sequence[j]
         graphs.append(G)
         # check whether first and last node have the same label 0
         valid = rand_sequence[0]
@@ -385,14 +385,14 @@ def node_classification_test(data_size=1, max_size=1000, num_node_features=1,see
         size = np.random.randint(1, max_size + 1)
         G = nx.Graph()
         for j in range(size):
-            G.add_node(j, primary_label=0)
+            G.add_node(j, primary_node_labels=0)
         for j in range(size - 1):
             G.add_edge(j, j + 1)
         # create random seqeunce of size size of 0s and 1s
         rand_sequence = np.random.randint(0, 2, size)
         # assign the labels to the nodes
         for j in range(size):
-            G.nodes[j]["primary_label"] = rand_sequence[j]
+            G.nodes[j]['primary_node_labels'] = rand_sequence[j]
         graphs.append(G)
         # check wheter first and last node have the same label 0
         valid = rand_sequence[0]

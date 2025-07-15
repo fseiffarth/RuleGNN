@@ -27,7 +27,7 @@ rule_occurrence_threshold: 17
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
-precision: double
+precision: float
 
 # network options
 

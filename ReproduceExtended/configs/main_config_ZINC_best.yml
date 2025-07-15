@@ -1,6 +1,6 @@
 datasets:
   - {
-      name: "ZINC",
+      name: "ZINC-full",
       task: "graph_regression",
       validation_folds: 1,
       with_splits: False,
