@@ -1,6 +1,7 @@
 networks:
   - - { layer_type: convolution ,
         bias: False,
+        activation: 'tanh',
         heads: [1],
         labels: [
           { label_type: wl_labeled, depth: [0,1,2] },
@@ -11,8 +12,10 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
   }
+    - { layer_type: layer_norm }
     - { layer_type: aggregation,
         bias: True,
+        activation: 'tanh',
         heads: [1],
         labels: [
           { label_type: wl, depth: [ 0 ] },

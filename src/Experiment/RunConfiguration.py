@@ -233,6 +233,8 @@ def check_layer(i:int, layer: dict)->(bool, str):
         pass
     elif layer['layer_type'] == 'reshape':
         pass
+    elif layer['layer_type'] == 'layer_norm':
+        pass
     else:
         if 'heads' not in layer:
             return False, f'Channels not defined in layer {i}'

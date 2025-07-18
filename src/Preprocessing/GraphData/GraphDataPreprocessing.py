@@ -79,6 +79,8 @@ class ZINCGraphDataPreprocessing(GraphDataPreprocessing):
                 (train_data.slices[key], validation_data.slices[key][1:], test_data.slices[key][1:]))
 
         self.processed_dataset.primary_node_labels = self.processed_dataset.x
+        # flatten
+        self.processed_dataset.primary_node_labels = self.processed_dataset.primary_node_labels.view(-1)
         self.slices['primary_node_labels'] = self.slices['x']
         self.processed_dataset.node_attributes = torch.Tensor()
         self.processed_dataset.primary_edge_labels = self.processed_dataset.edge_attr
