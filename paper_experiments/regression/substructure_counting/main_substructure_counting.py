@@ -17,7 +17,7 @@ def main_counting(num_threads=-1):
     ### Additional evaluation of the experiment with dataset substructure_counting
     ### Here we optimized against the 6-dim output, now calculate the MAE for each entry
     # load the models
-    outputs, labels, accuracy = experiment.evaluate_model("substructure_counting", best=False)
+    outputs, labels, accuracy = experiment.evaluate_model("multi", best=False)
     # get the MAE per column
     mae_per_column = [] * len(outputs[0])
     for i in range(len(outputs[0])):
