@@ -1,6 +1,6 @@
 datasets:
   # real-world datasets
-  - { name: "DHFR",
+  - { name: "MUTAG",
       task: 'graph_classification',
       validation_folds: 10,
       experiment_config_file: "Examples/TUExample/Configs/config_network.yml",
@@ -86,4 +86,4 @@ early_stopping:
   patience:
     25
 
-input_features: {name: constant, value: 1.0}
+input_features: {name: constant, value: 1.0, random_variation: {mean: 0.0, std: 0.1}}

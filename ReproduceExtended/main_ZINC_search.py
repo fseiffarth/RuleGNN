@@ -6,14 +6,31 @@ import click
 from src.Experiment.ExperimentMain import ExperimentMain
 
 def main_ZINC(num_threads=-1):
-    for i in [2]:
-        experiment = ExperimentMain(Path(f'ReproduceExtended/configs/ZINC/main_config_ZINC_{i}.yml'))
+    experiment = ExperimentMain(Path(f'ReproduceExtended/configs/ZINC/main_config_ZINC_search.yml'))
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
+    ## run real world experiment
+    experiment.GridSearch(num_threads=num_threads)
+    experiment.EvaluateResults()
+    experiment.RunBestModel(num_threads=num_threads)
+    experiment.EvaluateResults(evaluate_best_model=True)
+
+    experiment = ExperimentMain(Path(f'ReproduceExtended/configs/ZINC/main_config_ZINC_search_I.yml'))
+    experiment.ExperimentPreprocessing(num_threads=num_threads)
+    ## run real world experiment
+    experiment.GridSearch(num_threads=num_threads)
+    experiment.EvaluateResults()
+    experiment.RunBestModel(num_threads=num_threads)
+    experiment.EvaluateResults(evaluate_best_model=True)
+
+    for variant in ['a', 'b', 'c', 'd', 'e', 'f']:
+        experiment = ExperimentMain(Path(f'ReproduceExtended/configs/ZINC/main_config_ZINC_search_II_{variant}.yml'))
         experiment.ExperimentPreprocessing(num_threads=num_threads)
         ## run real world experiment
         experiment.GridSearch(num_threads=num_threads)
         experiment.EvaluateResults()
         experiment.RunBestModel(num_threads=num_threads)
         experiment.EvaluateResults(evaluate_best_model=True)
+
 
 @click.command()
 @click.option('--num_threads', default=-1, help='Number of threads to use')

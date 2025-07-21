@@ -88,7 +88,11 @@ class ShareGNN(nn.Module):
                                                                            num_heads=num_heads,
                                                                            input_features=input_features,
                                                                            output_features=output_features).type(self.module_precision))
-
+            elif layer.layer_type == 'layer_norm':
+                self.net_layers.append(ShareGNNLayers.ShareGNNLayerNorm(layer_id=i,
+                                                                        num_heads=num_heads,
+                                                                        input_features=input_features,
+                                                                        output_features=output_features).type(self.module_precision))
         self.dropout = nn.Dropout(dropout)
 
         self.epoch = 0

@@ -299,7 +299,7 @@ def save_labeled_degree_labels(graph_data:ShareGNNDataset, label_path=None, max_
                 neighbors = list(graph.neighbors(node[0]))
                 node_identifier = str(node[1]['primary_node_labels'])
                 neighbor_identifier = sort([graph.nodes[neighbor]['primary_node_labels'] for neighbor in neighbors])
-                string_neighbor_identifier = ''.join([str(n) for n in neighbor_identifier])
+                string_neighbor_identifier = '_'.join([str(n) for n in neighbor_identifier])
                 node_identifier = f'{node_identifier}|{string_neighbor_identifier}'
                 # convert to tuple and add to set
                 unique_neighbor_labels.add(node_identifier)

@@ -29,3 +29,5 @@
 /venv/
 /unit_tests/Synthetic/Data/
 /unit_tests/Synthetic/Results/
+/paper_experiments/Data/
+/paper_experiments/Results/

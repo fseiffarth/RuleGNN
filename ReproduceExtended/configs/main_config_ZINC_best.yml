@@ -1,11 +1,11 @@
 datasets:
   - {
-      name: "ZINC-full",
+      name: "ZINC",
       task: "graph_regression",
       validation_folds: 1,
       with_splits: False,
       split_function: zinc_splits,
-      experiment_config_file: "ReproduceExtended/configs/ZINC/network_zinc_multihead_search.yml",
+      experiment_config_file: "ReproduceExtended/configs/ZINC/network_zinc_multihead_best.yml",
       type: 'ZINC',
   }
 
@@ -22,26 +22,17 @@ paths:
   splits:
     "ReproduceExtended/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "ReproduceExtended/Results/Threshold/2/" # Results will be saved in this folder
+    "ReproduceExtended/Results/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
-precision: float
+precision: double
 
 # network options
 
 # optimizer: optimizer for the network
 optimizer:
   - Adam
-
-# bias: Turn on or off the bias in all layers
-bias: True
-
-# convolution_grad: Turn on or off learning for the convolutional layers
-convolution_grad: True
-
-# aggregation_grad: Turn on or off learning for the aggregation layer
-aggregation_grad: True
 
 
 # loss: loss function for the network
@@ -67,10 +58,10 @@ rule_occurrence_threshold: 2
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'constant', value: -0.001 },
-                         convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'constant', value: -0.001 },
-                         aggregation_bias: { type: 'constant', value: 0.0 }}
+weight_initialization: { convolution: {  type: 'lower_upper', value: -0.001 },
+                         convolution_bias: { type: 'lower_upper', value: 0.0},
+                         aggregation: {  type: 'lower_upper', value: -0.001 },
+                         aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
   - 128

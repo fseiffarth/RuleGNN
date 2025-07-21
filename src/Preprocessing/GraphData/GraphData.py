@@ -11,7 +11,7 @@ from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset, LRGBDataset
 
 from src.Preprocessing.GraphData.GraphDataPreprocessing import ZINCGraphDataPreprocessing, QM9GraphDataPreprocessing, \
-    OGBGraphPropertyGraphDataPreprocessing
+    OGBGraphPropertyGraphDataPreprocessing, SubstructureBenchmarkPreprocessing
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
 from torch_geometric.io import fs
@@ -350,28 +350,8 @@ class ShareGNNDataset(InMemoryDataset):
                 }
                 pass
             elif self.from_existing_data == 'SubstructureBenchmark':
-                # relative path to project root
-                root = Path(__file__).resolve().parent.parent.parent
-                train_data = GraphCount(root=str(root.joinpath('tmp')) + '/', split="train", task=self.name)
-                validation_data = GraphCount(root=str(root.joinpath('tmp')) + '/', split="val", task=self.name)
-                test_data = GraphCount(root=str(root.joinpath('tmp')) + '/', split="test", task=self.name)
-                all_data = torch_geometric.data.InMemoryDataset.collate([train_data._data, validation_data._data, test_data._data])
-                self.data = all_data[0]
-                # flatten y if self.name is not 'substructure_counting'
-                if self.name != 'substructure_counting':
-                    self.data.y = self.data.y.view(-1)
-                # merge the slices
-                self.slices = dict()
-                for key in train_data.slices.keys():
-                    validation_data.slices[key] += train_data.slices[key][-1]
-                    test_data.slices[key] += validation_data.slices[key][-1]
-                    self.slices[key] = torch.cat((train_data.slices[key], validation_data.slices[key][1:], test_data.slices[key][1:]))
-
-                sizes = {'num_edge_attributes': 0,
-                         'num_edge_labels': 0,
-                         'num_node_attributes': 0,
-                         'num_node_labels': 0
-                }
+                preprocessed_data = SubstructureBenchmarkPreprocessing(self.name)
+                self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
 
 
                 pass
@@ -1393,75 +1373,3 @@ def zinc_to_graph_data(train, validation, test, graph_db_name, use_features=True
     # convert one hot label list to tensor
     graphs.output_data = torch.stack(graphs.output_data)
     return graphs
-
-class GraphCount(InMemoryDataset):
-
-    task_index = dict(
-        triangle=0,
-        tri_tail=1,
-        star=2,
-        cycle4=3,
-        cycle5=4,
-        cycle6=5,
-        multi = -1,
-    )
-
-    def __init__(self, root:str, split:str, task:str, **kwargs):
-        super().__init__(root=root, **kwargs)
-
-        _pt = dict(zip(["train", "val", "test"], self.processed_paths))
-        self.data, self.slices = torch.load(_pt[split])
-
-        index = self.task_index[task]
-        if index != -1:
-            self.data.y = self.data.y[:, index:index+1]
-
-    @property
-    def raw_file_names(self):
-        return ["Data/GraphDatasets/SubstructureCountingBenchmark.pt"]
-
-    @property
-    def processed_dir(self):
-        return f"{self.root}/randomgraph"
-
-    @property
-    def processed_file_names(self):
-        return ["train.pt", "val.pt", "test.pt"]
-
-    def process(self):
-
-        _pt, = self.raw_file_names
-        raw = torch.load(f"{self.root}/{_pt}")
-
-        def to(graph):
-
-            A = graph["A"]
-            y = graph["y"]
-
-            return pyg.data.Data(
-                x=torch.ones(A.shape[0], 1, dtype=torch.int64), y=y,
-                edge_index=torch.Tensor(np.vstack(np.where(graph["A"] > 0)))
-                     .type(torch.int64),
-            )
-
-        data = [to(graph) for graph in raw["data"]]
-
-        if self.pre_filter is not None:
-            data = filter(self.pre_filter, data)
-
-        if self.pre_transform is not None:
-            data = map(self.pre_transform, data)
-
-        data_list = list(data)
-        normalize = torch.std(torch.stack([data.y for data in data_list]), dim=0)
-
-        for split in ["train", "val", "test"]:
-
-            from operator import itemgetter
-            split_idx = raw["index"][split]
-            splits = itemgetter(*split_idx)(data_list)
-
-            data, slices = self.collate(splits)
-            data.y = data.y / normalize
-
-            torch.save((data, slices), f"{self.processed_dir}/{split}.pt")

@@ -29,6 +29,8 @@ def write_distance_properties(graph_data:ShareGNNDataset, cutoff=None, out_path:
         distances = {}
         slices_dict = {}
         for graph_id, graph in enumerate(graph_data.nx_graphs):
+            if graph_id % 100 == 0:
+                print(f"Processing graph {graph_id} of {len(graph_data.nx_graphs)}")
             for key in slices_dict:
                 slices_dict[key].append(slices_dict[key][-1])
             d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=cutoff))
@@ -83,7 +85,9 @@ def write_distance_circle_properties(graph_data:ShareGNNDataset, label_path, db_
         label_combinations = circle_labels.num_unique_node_labels ** 2
         valid_properties = set()
         start_time = time.time()
-        for graph in graph_data.graphs:
+        for graph_id, graph in enumerate(graph_data.graphs):
+            if graph_id % 100 == 0:
+                print(f"Processing graph {graph_id} of {len(graph_data.nx_graphs)}")
             d = dict(nx.all_pairs_shortest_path_length(graph, cutoff=cutoff))
             # use d to make a dictionary of pairs for each distance
             new_d = {}
@@ -160,6 +164,8 @@ def write_distance_edge_properties(graph_data:ShareGNNDataset, out_path:Path = P
         property_keys = {}
         slices_dict = {}
         for graph_id, graph in enumerate(graph_data.nx_graphs):
+            if graph_id % 100 == 0:
+                print(f"Processing graph {graph_id} of {len(graph_data.nx_graphs)}")
             for key in slices_dict:
                 slices_dict[key].append(slices_dict[key][-1])
             graph_map = {}

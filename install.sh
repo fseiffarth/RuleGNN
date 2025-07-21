@@ -48,7 +48,7 @@ source venv/bin/activate
 
 
 # First install the cpu or cuda version of torch
-echo "Installing PyTorch 2.5.1..."
+echo "Installing PyTorch 2.5.1..." # TODO: Update to the latest version, need to fix the weights_only issue first for the used packages
 # Check if CUDA is available
 if command -v nvidia-smi &> /dev/null; then
     echo "CUDA is available. Installing PyTorch with CUDA support..."
