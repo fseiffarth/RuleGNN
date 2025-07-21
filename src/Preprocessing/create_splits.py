@@ -8,32 +8,6 @@ from src.Preprocessing.GraphData.GraphData import get_graph_data, GraphData
 from src.utils.utils import get_train_validation_test_list, get_data_indices
 
 
-def zinc_splits():
-    splits = []
-    db_name = "ZINC_original"
-    # Dict use double quotes
-    training_data = [i for i in range(0, 10000)]
-    validate_data = [i for i in range(10000, 11000)]
-    test_data = [i for i in range(11000, 12000)]
-    # write data to txt file
-    with open(f"{db_name}_train.txt", "a") as f:
-        f.write(" ".join([str(x) for x in training_data]))
-        f.write("\n")
-    with open(f"{db_name}_validation.txt", "a") as f:
-        f.write(" ".join([str(x) for x in validate_data]))
-        f.write("\n")
-    with open(f"{db_name}_test.txt", "a") as f:
-        f.write(" ".join([str(x) for x in test_data]))
-        f.write("\n")
-
-    splits.append({"test": test_data, "model_selection": [{"train": training_data, "validation": validate_data}]})
-
-    # save splits to json as one line use json.dumps
-    with open(f"{db_name}_splits.json", "w") as f:
-        f.write(json.dumps(splits))
-
-
-
 def create_transfer_splits(db_name, path:Path, output_path:Path, data_format=None, split_type='random'):
     '''
     Create splits for transfer learning

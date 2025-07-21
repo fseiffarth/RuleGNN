@@ -1,13 +1,24 @@
 datasets:
   - {
-      name: "ogbg-molhiv",
-      task: "graph_classification",
-      validation_folds: 1,
-      with_splits: False,
-      split_function: ogb_molhiv_splits,
-      experiment_config_file: "ReproduceExtended/configs/network_molhiv_multihead.yml",
-      type: 'OGB_GraphProp',
+    name: "ogbg-molfreesolv",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: ogb_splits,
+    split_function_args: { db_name: 'ogbg-molfreesolv' },
+    experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple_regression.yml",
+    type: 'OGB_GraphProp',
   }
+#  - {
+#      name: "ogbg-molbbbp",
+#      task: "graph_classification",
+#      validation_folds: 1,
+#      with_splits: False,
+#      split_function: ogb_splits,
+#      split_function_args: {db_name: 'ogbg-molbbbp'},
+#      experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple.yml",
+#      type: 'OGB_GraphProp',
+#  }
 
 
 paths:
@@ -25,7 +36,7 @@ paths:
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
-precision: double
+precision: float
 
 # network options
 
@@ -34,9 +45,12 @@ optimizer:
   - Adam
 
 # loss: loss function for the network
+#loss:
+#  - CrossEntropyLoss
+#weighted_loss: True
 loss:
-  - CrossEntropyLoss
-weighted_loss: True
+  - RMSELoss
+
 
 
 # rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
@@ -64,9 +78,9 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: 0.1 },
 batch_size:
   - 128
 learning_rate:
-  - 0.0001
+  - 0.01
 epochs:
-  - 50
+  - 500
 
 early_stopping:
   enabled:

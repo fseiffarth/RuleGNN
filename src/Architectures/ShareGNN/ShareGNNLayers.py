@@ -1096,8 +1096,8 @@ class InvariantBasedAggregationLayer(InvariantBasedLayer):
 
     def forward(self, x, pos):
         #x = x.view(-1)
-        # remove first dim if x is of shape (1, N, F)
-        if x.size(0) == 1:
+        # remove first dim if x is of shape (1, N, F) (check if x is 3-dimensional)
+        if x.size(0) == 1 and x.dim() == 3:
             x = x.squeeze(0)
         begin = time.time()
         self.set_weights(pos)

@@ -253,6 +253,8 @@ class ModelConfiguration:
             self.criterion = nn.CrossEntropyLoss(*args, **kwargs)
         elif self.para.run_config.loss in ['MeanSquaredError', 'MSELoss', 'mse', 'MSE']:
             self.criterion = nn.MSELoss(*args, **kwargs)
+        elif self.para.run_config.loss in ['RootedMeanSquaredError', 'RMSELoss', 'rmse', 'RMSE']:
+            self.criterion = nn.MSELoss(*args, **kwargs)
         elif self.para.run_config.loss in ['L1Loss', 'l1', 'L1', 'mean_absolute_error', 'mae', 'MAE', 'MeanAbsoluteError']:
             self.criterion = nn.L1Loss(*args, **kwargs)
         elif self.para.run_config.loss in ['BCELoss', 'bce', 'BCE']:

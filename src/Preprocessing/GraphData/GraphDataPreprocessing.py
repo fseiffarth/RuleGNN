@@ -119,11 +119,14 @@ class QM9GraphDataPreprocessing(GraphDataPreprocessing):
 
         dataset.data.primary_node_labels = dataset_node_labels
         dataset.data.primary_edge_labels = dataset_edge_labels
-        dataset.data.node_attributes = dataset_node_attributes
+        dataset.data.node_attributes = torch.cat((dataset_node_attributes, dataset.pos), dim=1)
         dataset.data.edge_attributes = torch.Tensor()
 
         self.processed_dataset = dataset.data
         self.slices = dataset.slices
+        self.slices['primary_node_labels'] = self.slices['x']
+        self.slices['node_attributes'] = self.slices['x']
+        self.slices['primary_edge_labels'] = self.slices['edge_attr']
         self.set_sizes()
         return self.processed_dataset, self.slices, self.sizes
 
@@ -150,7 +153,18 @@ class OGBGraphPropertyGraphDataPreprocessing(GraphDataPreprocessing):
         self.processed_dataset.node_attributes = dataset_ogb.x[:, 1:9]  # next 8 columns are node attributes
         self.processed_dataset.primary_edge_labels = dataset_ogb.edge_attr[:, 0]  # first column is the primary edge label
         self.processed_dataset.edge_attributes = dataset_ogb.edge_attr[:, 1:3]  # next 2 columns are edge attributes
+
+        # if second dimension of y is 1, flatten it
+        if self.processed_dataset.y.dim() == 2 and self.processed_dataset.y.shape[1] == 1:
+            self.processed_dataset.y = self.processed_dataset.y.view(-1)
+
         self.slices = dataset_ogb.slices
+        self.slices['primary_node_labels'] = self.slices['x']
+        self.slices['node_attributes'] = self.slices['x']
+
+        self.slices['primary_edge_labels'] = self.slices['edge_attr']
+        self.slices['edge_attributes'] = self.slices['edge_attr']
+
         self.set_sizes()
 
         return self.processed_dataset, self.slices, self.sizes
