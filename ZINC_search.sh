@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export PYTHONPATH=$SCRIPT_DIR
 # set number of threads variable
-NUM_THREADS=1
+NUM_THREADS=30
 
 # if NUM_THREADS > 1, set OMP_NUM_THREADS to 1
 if [ $NUM_THREADS -gt 1 ]; then

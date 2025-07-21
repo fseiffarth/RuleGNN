@@ -90,7 +90,6 @@ networks:
         ],
     }
     - { layer_type: reshape}
-    - { layer_type: layer_norm }
     - { layer_type: linear,
         mode: 'aggr_features',
         output_features: 6,
