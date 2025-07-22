@@ -1,12 +1,23 @@
 datasets:
+#  - {
+#      name: "QM9",
+#      task: "graph_regression",
+#      validation_folds: 1,
+#      with_splits: False,
+#      split_function: qm_splits,
+#        split_function_args: { db_name: 'qm9' },
+#      experiment_config_file: "ReproduceExtended/configs/QM/network_qm9_multihead.yml",
+#      type: 'QM9',
+#  }
   - {
-      name: "QM9",
-      task: "graph_regression",
-      validation_folds: 1,
-      with_splits: False,
-      split_function: zinc_splits,
-      experiment_config_file: "ReproduceExtended/configs/QM9/network_qm9_multihead.yml",
-      type: 'QM9',
+    name: "QM7",
+    task: "graph_regression",
+    validation_folds: 1,
+    with_splits: False,
+    split_function: qm_splits,
+    split_function_args: { db_name: 'qm7' },
+    experiment_config_file: "ReproduceExtended/configs/QM/network_qm9_multihead.yml",
+    type: 'QM7',
   }
 
 
@@ -22,7 +33,7 @@ paths:
   splits:
     "ReproduceExtended/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "ReproduceExtended/Results/Threshold/2/" # Results will be saved in this folder
+    "ReproduceExtended/Results/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'

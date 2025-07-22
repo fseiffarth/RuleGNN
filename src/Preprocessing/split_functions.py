@@ -38,6 +38,12 @@ def ogb_splits(output_path, db_name, *args, **kwargs):
     train_idx, valid_idx, test_idx = split_idx["train"], split_idx["valid"], split_idx["test"]
     return splits_from_index_lists([train_idx.tolist()], [valid_idx.tolist()], [test_idx.tolist()], db_name, output_path)
 
+def qm_splits(output_path, db_name, *args, **kwargs):
+    training_indices = [list(range(0, 10000))]
+    validation_indices = [list(range(10000, 11000))]
+    test_indices = [list(range(11000, 12000))]
+    return splits_from_index_lists(training_indices, validation_indices, test_indices, db_name, output_path)
+
 def substructure_counting_splits(output_path, db_name, *args, **kwargs):
     training_indices = [list(range(0, 1500))]
     validation_indices = [list(range(1500, 2500))]

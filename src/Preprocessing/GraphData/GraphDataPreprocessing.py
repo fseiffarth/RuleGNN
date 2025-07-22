@@ -97,7 +97,7 @@ class ZINCGraphDataPreprocessing(GraphDataPreprocessing):
         return self.processed_dataset, self.slices, self.sizes
 
 
-class QM9GraphDataPreprocessing(GraphDataPreprocessing):
+class QMGraphDataPreprocessing(GraphDataPreprocessing):
     def __init__(self, name, tmp_dir="/tmp"):
         super().__init__(name, tmp_dir)
         self.preprocess()
@@ -111,7 +111,10 @@ class QM9GraphDataPreprocessing(GraphDataPreprocessing):
         :param kwargs: Additional keyword arguments.
         :return: Processed graph data.
         """
-        dataset = torch_geometric.datasets.QM9(root=self.tmp_dir)
+        if self.name in ['QM9', 'qm9', 'QM', 'qm']:
+            dataset = torch_geometric.datasets.QM9(root=self.tmp_dir)
+        elif self.name in ['QM7', 'qm7', 'QM7b', 'qm7b']:
+            dataset = torch_geometric.datasets.QM7b(root=self.tmp_dir)
         dataset_node_labels = dataset.data.z
         dataset_node_attributes = dataset.data.x[:, [6, 7, 8, 9]]
         # one hot over the edge_attr

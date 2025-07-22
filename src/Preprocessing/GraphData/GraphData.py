@@ -10,7 +10,7 @@ from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset, LRGBDataset
 
-from src.Preprocessing.GraphData.GraphDataPreprocessing import ZINCGraphDataPreprocessing, QM9GraphDataPreprocessing, \
+from src.Preprocessing.GraphData.GraphDataPreprocessing import ZINCGraphDataPreprocessing, QMGraphDataPreprocessing, \
     OGBGraphPropertyGraphDataPreprocessing, SubstructureBenchmarkPreprocessing
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
@@ -321,8 +321,8 @@ class ShareGNNDataset(InMemoryDataset):
                 preprocessed_data = ZINCGraphDataPreprocessing(self.name)
                 self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
                 pass
-            elif self.from_existing_data in ['QM9', 'QM-9']:
-                preprocessed_data = QM9GraphDataPreprocessing(self.name)
+            elif self.from_existing_data in ['QM9', 'QM-9', 'QM7', 'QM-7', 'QM8', 'QM-8']:
+                preprocessed_data = QMGraphDataPreprocessing(self.name)
                 self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
                 pass
             elif self.from_existing_data == 'OGB_GraphProp':
