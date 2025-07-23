@@ -889,6 +889,14 @@ class ShareGNNDataset(InMemoryDataset):
             elif task == 'node_classification':
                 pass
                 #data['y'] = torch.nn.functional.one_hot(data['y'], num_classes=self.num_classes).float()
+            # if output_normalization is set, normalize the output data
+            if isinstance(output_features, dict):
+                if output_features.get('normalization', None) is not None:
+                    if output_features.get('normalization', 'standard') == 'standard':
+                        data['y'] = (data['y'] - data['y'].mean())/ (data['y'].std() + 1e-8)
+                    elif output_features.get('normalization', 'standard') == 'minmax':
+                        data['original_y'] = data['y'].clone()
+                        data['y'] = (data['y'] - data['y'].min()) / (data['y'].max() - data['y'].min() + 1e-8)
             return None
 
     def __repr__(self) -> str:

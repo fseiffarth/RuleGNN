@@ -22,7 +22,7 @@ paths:
   splits:
     "ReproduceExtended/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "ReproduceExtended/Results/" # Results will be saved in this folder
+    "ReproduceExtended/Results/Normalize/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
@@ -88,7 +88,6 @@ training_data_sampling: { type: 'default'}
 #input_features: {name: constant, value: 1.0}
 #input_features: {name: constant, value: 1.0}
 input_features: {name: node_labels, transformation: 'one_hot'}
-#input_features: {name: node_features}
-#use_feature_transformation: {out_dimension: 21, bias: True}
+output_features: { normalization: 'minmax' }
 best_model: True
 

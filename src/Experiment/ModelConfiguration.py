@@ -399,6 +399,10 @@ class ModelConfiguration:
                 if self.para.run_config.config.get('output_features_inverse', None) is not None:
                     flatten_labels = GraphData.transform_data(flatten_labels, self.para.run_config.config['output_features_inverse'])
                     flatten_outputs = GraphData.transform_data(flatten_outputs, self.para.run_config.config['output_features_inverse'])
+                if self.para.run_config.config.get('invert_outputs', None) is not None:
+                    if isinstance(self.para.run_config.config['invert_outputs'], dict):
+                        if self.para.run_config.config['invert_outputs'].get('normalization', 'standard') == 'standard':
+                            flatten_labels =
                 batch_mae = torch.mean(torch.abs(flatten_labels - flatten_outputs))
                 batch_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
                 train_values.mae += batch_mae * (batch_length / len(self.training_data))
