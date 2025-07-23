@@ -15,7 +15,7 @@ def main_QM(num_threads=-1):
 @click.command()
 @click.option('--num_threads', default=-1, help='Number of threads to use')
 def main(num_threads):
-    main_QM(num_threads=num_threads)
+    main_QM(num_threads=1)
 
 if __name__ == '__main__':
     main()

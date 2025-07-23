@@ -897,6 +897,8 @@ class ShareGNNDataset(InMemoryDataset):
                         data['y'] = data['y'][:, self.experiment_config['regression_targets']:self.experiment_config['regression_targets'] + 1]
                     else:
                         raise ValueError("regression_tasks must be a list of indices")
+
+
             elif task == 'node_classification':
                 pass
                 #data['y'] = torch.nn.functional.one_hot(data['y'], num_classes=self.num_classes).float()

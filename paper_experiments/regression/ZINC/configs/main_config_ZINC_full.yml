@@ -4,7 +4,7 @@ datasets:
       task: "graph_regression",
       validation_folds: 1,
       with_splits: False,
-      split_function: zinc_splits,
+      split_function: zinc_splits_full,
       experiment_config_file: "paper_experiments/regression/ZINC/configs/network_ZINC.yml",
       type: 'ZINC',
   }
