@@ -2,6 +2,7 @@ datasets:
   - {
       name: "QM9",
       task: "graph_regression",
+      regression_targets: [0], # list of regression targets, if not specified all targets will be used
       validation_folds: 1,
       with_splits: False,
       split_function: qm_splits,
@@ -84,11 +85,11 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: -0.001 },
                          aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
-  - 128
+  - 64
 learning_rate:
   - 0.001
 epochs:
-  - 150
+  - 400
 
 early_stopping:
   enabled:
@@ -97,7 +98,7 @@ early_stopping:
     25
 
 
-scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.0001 }
+scheduler: { type: 'ReduceLROnPlateau', factor: 0.9, patience: 10, min_lr: 0.00001 }
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}
@@ -108,6 +109,8 @@ training_data_sampling: { type: 'default'}
 #input_features: {name: constant, value: 1.0}
 #input_features: {name: constant, value: 1.0}
 input_features: {name: node_labels, transformation: 'one_hot_labels_normalize_features'}
+output_features: { normalization: 'standard' }
+#invert_outputs: { normalization: 'standard' }
 #input_features: {name: node_features}
 #use_feature_transformation: {out_dimension: 21, bias: True}
 best_model: True

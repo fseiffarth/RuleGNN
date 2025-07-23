@@ -1,28 +1,40 @@
 datasets:
   - {
-      name: "ZINC",
+      name: "QM9",
       task: "graph_regression",
+      regression_targets: [0], # list of regression targets, if not specified all targets will be used
       validation_folds: 1,
       with_splits: False,
-      split_function: zinc_splits,
-      experiment_config_file: "ReproduceExtended/configs/ZINC/network_zinc_multihead_best.yml",
-      type: 'ZINC',
+      split_function: qm_splits,
+      split_function_args: { db_name: 'QM9', seed: 42 },
+      experiment_config_file: "paper_experiments/regression/QM9/configs/network_qm9_multihead.yml",
+      type: 'QM9',
   }
+#  - {
+#    name: "QM7",
+#    task: "graph_regression",
+#    validation_folds: 1,
+#    with_splits: False,
+#    split_function: qm_splits,
+#    split_function_args: { db_name: 'qm7' },
+#    experiment_config_file: "paper_experiments/configs/QM/network_qm9_multihead.yml",
+#    type: 'QM7',
+#  }
 
 
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
   data:
-    "ReproduceExtended/Data/Graphs/"
+    "paper_experiments/Data/Graphs/"
   properties:
-    "ReproduceExtended/Data/Properties/" # Precomputed properties will be loaded from this folder
+    "paper_experiments/Data/Properties/" # Precomputed properties will be loaded from this folder
   labels:
-    "ReproduceExtended/Data/Labels/" # Path to the folder containing the labels
+    "paper_experiments/Data/Labels/" # Path to the folder containing the labels
   splits:
-    "ReproduceExtended/Data/Splits/" # Path to the folder containing the data splits
+    "paper_experiments/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "ReproduceExtended/Results/Normalize/" # Results will be saved in this folder
+    "paper_experiments/Results/regression/QM0/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
@@ -33,6 +45,7 @@ precision: double
 # optimizer: optimizer for the network
 optimizer:
   - Adam
+
 
 
 # loss: loss function for the network
@@ -68,7 +81,7 @@ batch_size:
 learning_rate:
   - 0.001
 epochs:
-  - 500
+  - 400
 
 early_stopping:
   enabled:
@@ -77,7 +90,7 @@ early_stopping:
     25
 
 
-scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 50, min_lr: 0.00001 }
+scheduler: { type: 'ReduceLROnPlateau', factor: 0.9, patience: 10, min_lr: 0.00001 }
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}
@@ -87,9 +100,10 @@ training_data_sampling: { type: 'default'}
 
 #input_features: {name: constant, value: 1.0}
 #input_features: {name: constant, value: 1.0}
-input_features: {name: node_labels, transformation: 'one_hot'}
-# normalization of the outputs
-#output_features: { normalization: 'minmax_zero' }
-#invert_outputs: { normalization: 'minmax_zero' }
+input_features: {name: node_labels, transformation: 'one_hot_labels_normalize_features'}
+output_features: { normalization: 'standard' }
+invert_outputs: { normalization: 'standard' }
+#input_features: {name: node_features}
+#use_feature_transformation: {out_dimension: 21, bias: True}
 best_model: True
 

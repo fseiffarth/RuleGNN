@@ -402,7 +402,15 @@ class ModelConfiguration:
                 if self.para.run_config.config.get('invert_outputs', None) is not None:
                     if isinstance(self.para.run_config.config['invert_outputs'], dict):
                         if self.para.run_config.config['invert_outputs'].get('normalization', 'standard') == 'standard':
-                            flatten_labels =
+                            flatten_labels = flatten_labels*(self.graph_data.data['original_y'].std() + 1e-8) + self.graph_data.data['original_y'].mean()
+                            flatten_outputs = flatten_outputs*(self.graph_data.data['original_y'].std() + 1e-8) + self.graph_data.data['original_y'].mean()
+                        elif self.para.run_config.config['invert_outputs'].get('normalization', 'standard') == 'minmax':
+                            flatten_labels = flatten_labels * (self.graph_data.data['original_y'].max() - self.graph_data.data['original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
+                            flatten_outputs = flatten_outputs * (self.graph_data.data['original_y'].max() - self.graph_data.data['original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
+                        elif self.para.run_config.config['invert_outputs'].get('normalization', 'standard') == 'minmax_zero':
+                            flatten_labels = (0.5 * flatten_labels + 0.5) * (self.graph_data.data['original_y'].max() - self.graph_data.data['original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
+
+
                 batch_mae = torch.mean(torch.abs(flatten_labels - flatten_outputs))
                 batch_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
                 train_values.mae += batch_mae * (batch_length / len(self.training_data))
@@ -469,6 +477,27 @@ class ModelConfiguration:
                             'output_features_inverse'])
                         flatten_outputs = GraphData.transform_data(flatten_outputs, self.para.run_config.config[
                             'output_features_inverse'])
+                    if self.para.run_config.config.get('invert_outputs', None) is not None:
+                        if isinstance(self.para.run_config.config['invert_outputs'], dict):
+                            if self.para.run_config.config['invert_outputs'].get('normalization',
+                                                                                 'standard') == 'standard':
+                                flatten_labels = flatten_labels * (self.graph_data.data['original_y'].std() + 1e-8) + \
+                                                 self.graph_data.data['original_y'].mean()
+                                flatten_outputs = flatten_outputs * (self.graph_data.data['original_y'].std() + 1e-8) + \
+                                                  self.graph_data.data['original_y'].mean()
+                            elif self.para.run_config.config['invert_outputs'].get('normalization',
+                                                                                   'standard') == 'minmax':
+                                flatten_labels = flatten_labels * (
+                                            self.graph_data.data['original_y'].max() - self.graph_data.data[
+                                        'original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
+                                flatten_outputs = flatten_outputs * (
+                                            self.graph_data.data['original_y'].max() - self.graph_data.data[
+                                        'original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
+                            elif self.para.run_config.config['invert_outputs'].get('normalization',
+                                                                                   'standard') == 'minmax_zero':
+                                flatten_labels = (0.5 * flatten_labels + 0.5) * (
+                                            self.graph_data.data['original_y'].max() - self.graph_data.data[
+                                        'original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
                     validation_mae = torch.mean(torch.abs(flatten_labels - flatten_outputs))
                     validation_values.mae = validation_mae
                     validation_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
@@ -570,6 +599,27 @@ class ModelConfiguration:
                             'output_features_inverse'])
                         flatten_outputs = GraphData.transform_data(flatten_outputs, self.para.run_config.config[
                             'output_features_inverse'])
+                    if self.para.run_config.config.get('invert_outputs', None) is not None:
+                        if isinstance(self.para.run_config.config['invert_outputs'], dict):
+                            if self.para.run_config.config['invert_outputs'].get('normalization',
+                                                                                 'standard') == 'standard':
+                                flatten_labels = flatten_labels * (self.graph_data.data['original_y'].std() + 1e-8) + \
+                                                 self.graph_data.data['original_y'].mean()
+                                flatten_outputs = flatten_outputs * (self.graph_data.data['original_y'].std() + 1e-8) + \
+                                                  self.graph_data.data['original_y'].mean()
+                            elif self.para.run_config.config['invert_outputs'].get('normalization',
+                                                                                   'standard') == 'minmax':
+                                flatten_labels = flatten_labels * (
+                                            self.graph_data.data['original_y'].max() - self.graph_data.data[
+                                        'original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
+                                flatten_outputs = flatten_outputs * (
+                                            self.graph_data.data['original_y'].max() - self.graph_data.data[
+                                        'original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
+                            elif self.para.run_config.config['invert_outputs'].get('normalization',
+                                                                                   'standard') == 'minmax_zero':
+                                flatten_labels = (0.5 * flatten_labels + 0.5) * (
+                                            self.graph_data.data['original_y'].max() - self.graph_data.data[
+                                        'original_y'].min() + 1e-8) + self.graph_data.data['original_y'].min()
                     test_mae = torch.mean(torch.abs(flatten_labels - flatten_outputs))
                     test_values.mae = test_mae
                     test_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
