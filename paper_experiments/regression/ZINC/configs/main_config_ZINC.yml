@@ -64,11 +64,11 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: -0.001 },
                          aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
-  - 64
+  - 128
 learning_rate:
   - 0.001
 epochs:
-  - 500
+  - 150
 
 early_stopping:
   enabled:
@@ -77,7 +77,7 @@ early_stopping:
     25
 
 
-scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 50, min_lr: 0.00001 }
+scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.0001 }
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}
@@ -88,8 +88,8 @@ training_data_sampling: { type: 'default'}
 #input_features: {name: constant, value: 1.0}
 #input_features: {name: constant, value: 1.0}
 input_features: {name: node_labels, transformation: 'one_hot'}
-# normalization of the outputs
-#output_features: { normalization: 'minmax_zero' }
-#invert_outputs: { normalization: 'minmax_zero' }
+#input_features: {name: node_features}
+#use_feature_transformation: {out_dimension: 21, bias: True}
 best_model: True
+
 

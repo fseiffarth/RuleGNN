@@ -11,7 +11,7 @@ echo "Root directory: $ROOT_DIR"
 export PYTHONPATH=$ROOT_DIR
 
 # set number of threads variable
-NUM_THREADS=30
+NUM_THREADS=1
 
 # if NUM_THREADS > 1, set OMP_NUM_THREADS to 1
 if [ $NUM_THREADS -gt 1 ]; then

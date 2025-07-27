@@ -1,6 +1,4 @@
 networks:
-######################################################### 0
-
   - - { layer_type: linear,
         mode: 'aggr_features',
         output_features: 10,
@@ -30,7 +28,7 @@ networks:
               bias: { label_type: wl_labeled, depth: 2 },
             },
             properties:
-              { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 ] },
+              { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23 ] },
           },
           {
             bias: False,
