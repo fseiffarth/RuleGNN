@@ -5,7 +5,7 @@ datasets:
       validation_folds: 1,
       with_splits: False,
       split_function: zinc_splits,
-      experiment_config_file: "paper_experiments/regression/ZINC/configs/network_ZINC.yml",
+      experiment_config_file: "paper_experiments/regression/ZINC/configs/network_ZINC_test.yml",
       type: 'ZINC',
   }
 
@@ -22,7 +22,7 @@ paths:
   splits:
     "paper_experiments/Data/Splits/" # Path to the folder containing the data splits
   results:
-    "paper_experiments/Results/regression/" # Results will be saved in this folder
+    "paper_experiments/Results/regression/test/" # Results will be saved in this folder
 
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
