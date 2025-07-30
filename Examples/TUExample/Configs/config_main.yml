@@ -1,7 +1,7 @@
 datasets:
   # real-world datasets
   - { name: "IMDB-BINARY", task: 'graph_classification', validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_network.yml", type: "TUDataset" }
-  - { name: "IMDB-MULTI", task: 'graph_classification', validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_network.yml", type: "TUDataset" }
+  #- { name: "IMDB-MULTI", task: 'graph_classification', validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_network.yml", type: "TUDataset" }
 
 
 paths:

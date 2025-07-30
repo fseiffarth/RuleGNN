@@ -218,12 +218,6 @@ networks:
         bias: True,
         activation: 'LeakyReLU',
     }
-    - { layer_type: linear,
-        mode: 'aggr_features',
-        output_features: 10,
-        bias: True,
-        activation: 'LeakyReLU',
-    }
     - { layer_type: layer_norm }
     - { layer_type: aggregation,
         activation: 'None',
