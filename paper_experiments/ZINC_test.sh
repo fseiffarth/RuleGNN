@@ -40,7 +40,4 @@ if [ ! -d "venv" ]; then
 fi
 
 # run the script
-python paper_experiments/classification/tu/experiments_fair_real_world.py --num_threads $NUM_THREADS
-python paper_experiments/classification/tu/experiments_standard_real_world.py --num_threads $NUM_THREADS
-python paper_experiments/classification/tu/experiments_ablation_distance.py --num_threads $NUM_THREADS
-python paper_experiments/classification/tu/experiments_ablation_threshold.py --num_threads $NUM_THREADS
+python paper_experiments/regression/ZINC/main_ZINC_test.py --num_threads $NUM_THREADS

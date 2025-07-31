@@ -1,23 +1,8 @@
 datasets:
   # real-world datasets
-  - { name: "DHFR",
-      task: 'graph_classification',
-      validation_folds: 10,
-      experiment_config_file: "Examples/TUExample/Configs/config_network.yml",
-      type: "TUDataset"
-  }
-  - { name: "IMDB-BINARY",
-      task: 'graph_classification',
-      validation_folds: 10,
-      experiment_config_file: "Examples/TUExample/Configs/config_network.yml",
-      type: "TUDataset"
-  }
-  - { name: "IMDB-MULTI",
-      task: 'graph_classification',
-      validation_folds: 10,
-      experiment_config_file: "Examples/TUExample/Configs/config_network.yml",
-      type: "TUDataset"
-  }
+  - { name: "IMDB-BINARY", task: 'graph_classification', validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_network.yml", type: "TUDataset" }
+  #- { name: "IMDB-MULTI", task: 'graph_classification', validation_folds: 10, experiment_config_file: "Examples/TUExample/Configs/config_network.yml", type: "TUDataset" }
+
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
@@ -42,6 +27,7 @@ precision: double
 # optimizer: optimizer for the network
 optimizer:
   - Adam
+
 
 
 # convolution_grad: Turn on or off learning for the convolutional layers
@@ -75,10 +61,10 @@ rule_occurrence_threshold: 2
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'constant', value: -0.001 },
-                         convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'constant', value: -0.001 },
-                         aggregation_bias: { type: 'constant', value: -0.001 }}
+weight_initialization: { convolution: {  type: 'lower_upper', value: 0.001 },
+                         convolution_bias: { type: 'lower_upper', value: 0.0},
+                         aggregation: {  type: 'lower_upper', value: 0.001 },
+                         aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
   - 64
@@ -93,8 +79,6 @@ early_stopping:
   patience:
     25
 
+scheduler: { type: 'ReduceLROnPlateau', factor: 0.5, patience: 5, min_lr: 0.0001 }
+
 input_features: {name: constant, value: 1.0}
-
-#input_features: {name: constant, value: 1.0, random_variation: {mean: 0.0, std: 0.1}}
-
-best_model: True
