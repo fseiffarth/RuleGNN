@@ -1,6 +1,18 @@
 datasets:
   # real-world datasets
-  - { name: "MUTAG",
+  - { name: "DHFR",
+      task: 'graph_classification',
+      validation_folds: 10,
+      experiment_config_file: "Examples/TUExample/Configs/config_network.yml",
+      type: "TUDataset"
+  }
+  - { name: "IMDB-BINARY",
+      task: 'graph_classification',
+      validation_folds: 10,
+      experiment_config_file: "Examples/TUExample/Configs/config_network.yml",
+      type: "TUDataset"
+  }
+  - { name: "IMDB-MULTI",
       task: 'graph_classification',
       validation_folds: 10,
       experiment_config_file: "Examples/TUExample/Configs/config_network.yml",
@@ -20,6 +32,7 @@ paths:
   results:
     "Examples/TUExample/Results/RealWorld/" # Results will be saved in this folder
 
+
 device: cpu
 mode: experiments # if debug printing and plotting options are enabled, for the experiments mode should be 'experiments'
 precision: double
@@ -30,8 +43,6 @@ precision: double
 optimizer:
   - Adam
 
-# bias: Turn on or off the bias in all layers
-bias: True
 
 # convolution_grad: Turn on or off learning for the convolutional layers
 convolution_grad: True
@@ -39,11 +50,7 @@ convolution_grad: True
 # aggregation_grad: Turn on or off learning for the aggregation layer
 aggregation_grad: True
 
-# activation: activation function for the convolutional layers
-convolution_activation: 'tanh'
 
-# output_activation: activation function for the output layer
-aggregation_activation: 'tanh'
 
 # loss: loss function for the network
 loss:
@@ -54,7 +61,7 @@ loss:
 # rule_occurrence_threshold: threshold for the rule occurrence, determines how often a rule has to be present to be used in the network
 # -type: [graph, total], graph: the rule has to be present in a graph, total: the rule has to be present in the whole dataset
 # -threshold: the threshold for the rule occurrence at least this many times
-rule_occurrence_threshold: 1
+rule_occurrence_threshold: 2
 
 # weight initialization: weight initialization for the network (TODO)
 # - convolution: weight initialization for the convolutional layers
@@ -68,10 +75,10 @@ rule_occurrence_threshold: 1
 #     - value: constant value for the constant distribution
 #     - mean for the normal distribution
 #     - std: variance for the normal distribution
-weight_initialization: { convolution: {  type: 'constant', value: 0.001 },
+weight_initialization: { convolution: {  type: 'constant', value: -0.001 },
                          convolution_bias: { type: 'constant', value: 0.0},
-                         aggregation: {  type: 'constant', value: 0.001 },
-                         aggregation_bias: { type: 'constant', value: 0.0 }}
+                         aggregation: {  type: 'constant', value: -0.001 },
+                         aggregation_bias: { type: 'constant', value: -0.001 }}
 
 batch_size:
   - 64
@@ -86,4 +93,8 @@ early_stopping:
   patience:
     25
 
-input_features: {name: constant, value: 1.0, random_variation: {mean: 0.0, std: 0.1}}
+input_features: {name: constant, value: 1.0}
+
+#input_features: {name: constant, value: 1.0, random_variation: {mean: 0.0, std: 0.1}}
+
+best_model: True
