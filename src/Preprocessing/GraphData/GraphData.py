@@ -10,7 +10,7 @@ from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.data import InMemoryDataset, Data
 from torch_geometric.datasets import ZINC, TUDataset, GNNBenchmarkDataset, LRGBDataset
 
-from src.Preprocessing.GraphData.GraphDataPreprocessing import ZINCGraphDataPreprocessing, QM9GraphDataPreprocessing, \
+from src.Preprocessing.GraphData.GraphDataPreprocessing import ZINCGraphDataPreprocessing, QMGraphDataPreprocessing, \
     OGBGraphPropertyGraphDataPreprocessing, SubstructureBenchmarkPreprocessing
 from src.utils.GraphLabels import NodeLabels, EdgeLabels, Properties
 from src.utils.utils import load_graphs
@@ -34,6 +34,7 @@ class ShareGNNDataset(InMemoryDataset):
             output_features = None,
             task = None,
             merge_graphs = None,
+            experiment_config=None
     ) -> None:
         self.name = name # name of the dataset
         self.from_existing_data = from_existing_data # create the dataset from existing data
@@ -44,6 +45,7 @@ class ShareGNNDataset(InMemoryDataset):
         self.properties = {} # different pairwise properties for the graph data
         self.precision = torch.float
         self.task = task
+        self.experiment_config = experiment_config
         if precision == 'double':
             self.precision = torch.double
         super(ShareGNNDataset, self).__init__(root, transform, pre_transform, force_reload=force_reload)
@@ -321,8 +323,8 @@ class ShareGNNDataset(InMemoryDataset):
                 preprocessed_data = ZINCGraphDataPreprocessing(self.name)
                 self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
                 pass
-            elif self.from_existing_data in ['QM9', 'QM-9']:
-                preprocessed_data = QM9GraphDataPreprocessing(self.name)
+            elif self.from_existing_data in ['QM9', 'QM-9', 'QM7', 'QM-7', 'QM8', 'QM-8']:
+                preprocessed_data = QMGraphDataPreprocessing(self.name)
                 self.data, self.slices, sizes = preprocessed_data.processed_dataset, preprocessed_data.slices, preprocessed_data.sizes
                 pass
             elif self.from_existing_data == 'OGB_GraphProp':
@@ -886,9 +888,34 @@ class ShareGNNDataset(InMemoryDataset):
                 if isinstance(output_features, dict):
                     if output_features.get('transformation', None) is not None:
                         data['y'] = transform_data(data['y'], output_features)
+
+                # select regression task
+                if 'regression_targets' in self.experiment_config:
+                    if isinstance(self.experiment_config['regression_targets'], list):
+                        data['y'] = data['y'][:, self.experiment_config['regression_targets']]
+                    elif isinstance(self.experiment_config['regression_targets'], int):
+                        data['y'] = data['y'][:, self.experiment_config['regression_targets']:self.experiment_config['regression_targets'] + 1]
+                    else:
+                        raise ValueError("regression_tasks must be a list of indices")
+
+
             elif task == 'node_classification':
                 pass
                 #data['y'] = torch.nn.functional.one_hot(data['y'], num_classes=self.num_classes).float()
+            # if output_normalization is set, normalize the output data dimension-wise
+            if isinstance(output_features, dict):
+                if output_features.get('normalization', None) is not None:
+                    data['original_y'] = data['y'].clone()
+                    if output_features.get('normalization', 'standard') == 'standard':
+                        for i in range(data['y'].shape[1]):
+                            data['y'][:, i] = (data['y'][:, i] - data['y'][:, i].mean()) / (data['y'][:, i].std() + 1e-8)
+                    elif output_features.get('normalization', 'standard') == 'minmax':
+                        for i in range(data['y'].shape[1]):
+                            data['y'][:, i] = (data['y'][:, i] - data['y'][:, i].min()) / (data['y'][:, i].max() - data['y'][:, i].min() + 1e-8)
+                    elif output_features.get('normalization', 'standard') == 'minmax_zero':
+                        for i in range(data['y'].shape[1]):
+                            data['y'][:, i] = (data['y'][:, i] - data['y'][:, i].min()) / (data['y'][:, i].max() - data['y'][:, i].min() + 1e-8)
+
             return None
 
     def __repr__(self) -> str:
@@ -1229,7 +1256,7 @@ class GraphDataUnion:
         self.graph_data = graph_data
 
 
-def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, output_features=None, graph_format='NEL', only_graphs=False, precision='double'):
+def get_graph_data(db_name: str, data_path : Path, task='graph_classification', input_features=None, output_features=None, graph_format='NEL', only_graphs=False, precision='double', experiment_config=None):
     """
     Load the graph data by name.
     :param db_name: str - name of the graph database
@@ -1246,7 +1273,13 @@ def get_graph_data(db_name: str, data_path : Path, task='graph_classification', 
         graph_data = GraphData()
         graph_data.load_nel_graphs(db_name=db_name, path=data_path, input_features=input_features, output_features=output_features, task=task, only_graphs=only_graphs)
     elif graph_format == 'RuleGNNDataset':
-        graph_data = ShareGNNDataset(root=str(data_path), name=db_name, precision=precision, input_features=input_features, output_features=output_features, task=task)
+        graph_data = ShareGNNDataset(root=str(data_path),
+                                     name=db_name,
+                                     precision=precision,
+                                     input_features=input_features,
+                                     output_features=output_features,
+                                     task=task,
+                                     experiment_config=experiment_config)
         pass
     else:
         raise ValueError(f'Graph format {graph_format} not supported')

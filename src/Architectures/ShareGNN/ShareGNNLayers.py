@@ -457,6 +457,7 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
             target_labels = self.graph_data.node_labels[self.target_label_descriptions[i]].node_labels
             bias_labels = self.graph_data.node_labels[self.bias_label_descriptions[i]].node_labels
             for key in valid_property_values:
+                #print(f'Initialize head {i+1}/{len(self.layer.layer_heads)} with property {key}')
                 property_subdict = self.graph_data.properties[self.property_descriptions[i]].properties[key]
                 property_subdict_slices = self.graph_data.properties[self.property_descriptions[i]].properties_slices[key]
                 labeled_subdict = property_subdict.detach().clone()
@@ -1096,8 +1097,8 @@ class InvariantBasedAggregationLayer(InvariantBasedLayer):
 
     def forward(self, x, pos):
         #x = x.view(-1)
-        # remove first dim if x is of shape (1, N, F)
-        if x.size(0) == 1:
+        # remove first dim if x is of shape (1, N, F) (check if x is 3-dimensional)
+        if x.size(0) == 1 and x.dim() == 3:
             x = x.squeeze(0)
         begin = time.time()
         self.set_weights(pos)

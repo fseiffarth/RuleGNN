@@ -11,7 +11,7 @@ echo "Root directory: $ROOT_DIR"
 export PYTHONPATH=$ROOT_DIR
 
 # set number of threads variable
-NUM_THREADS=30
+NUM_THREADS=1
 
 # if NUM_THREADS > 1, set OMP_NUM_THREADS to 1
 if [ $NUM_THREADS -gt 1 ]; then
@@ -40,4 +40,4 @@ if [ ! -d "venv" ]; then
 fi
 
 # run the script
-python paper_experiments/regression/substructure_counting/main_substructure_counting.py --num_threads $NUM_THREADS
+python paper_experiments/regression/ZINC/main_ZINC_full.py --num_threads $NUM_THREADS

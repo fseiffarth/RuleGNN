@@ -4,14 +4,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from paper_experiments.latex import share_gnn_results
 from src.Experiment.ExperimentMain import ExperimentMain
 from src.Architectures.ShareGNN.ShareGNNLayers import InvariantBasedMessagePassingLayer
 from src.utils.GraphDrawing import GraphDrawing, CustomColorMap, RandomColorMap
 
 
 def ablation_threshold(dataset, threshold_type):
-    if not Path(f'paper_experiments/Results/Latex/Plots/ablation_threshold_{dataset}_{threshold_type}.pdf').exists():
+    if not Path(f'paper_experiments/Results/classification_old/Latex/Plots/ablation_threshold_{dataset}_{threshold_type}.pdf').exists():
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
             "font.size": 12,
@@ -24,7 +23,7 @@ def ablation_threshold(dataset, threshold_type):
                 r"\setmainfont{DejaVu Serif}",  # serif font via preamble
             ])
         })
-        ablation_results_path = Path(f'paper_experiments/Results/Ablation/{threshold_type}/')
+        ablation_results_path = Path(f'paper_experiments/Results/classification_old/Ablation/{threshold_type}/')
 
         ablation_results = dict()
         for i in list(range(1, 21)) + [30, 40, 50]:
@@ -42,7 +41,7 @@ def ablation_threshold(dataset, threshold_type):
             path = ablation_results_path.joinpath(f'{i}/')
             if Path(path).exists():
                 # get the file from results folder that contains Best and Network
-                for file in Path(f'{path}/{dataset}/Results').iterdir():
+                for file in Path(f'{path}/{dataset}/Results/classification_old').iterdir():
                     if 'Best_Configuration' in file.name and 'Network' in file.name:
                         with open(file, 'r') as f:
                             data = f.read()
@@ -66,7 +65,7 @@ def ablation_threshold(dataset, threshold_type):
             if Path(path).exists():
                 # get the file from results folder that contains Best and Network
                 df_all = None
-                for file in Path(f'{path}/{dataset}/Results').iterdir():
+                for file in Path(f'{path}/{dataset}/Results/classification_old').iterdir():
                     if f'{dataset}_Configuration' in file.name and '.csv' in file.suffix:
                         df = pd.read_csv(file, delimiter=";")
                         # concatenate the dataframes
@@ -118,11 +117,11 @@ def ablation_threshold(dataset, threshold_type):
             ax1.set_xlabel('Maximum \\# of Occurrences per Shared Weight (Encoder)')
         elif threshold_type == 'LowerUpper':
             ax1.set_xlabel('Minimum \\# of Occurrences per Shared Weight (Encoder)')
-        plt.savefig(f'paper_experiments/Results/Latex/Plots/ablation_threshold_{dataset}_{threshold_type}.pdf', bbox_inches='tight', backend='pgf')
+        plt.savefig(f'paper_experiments/Results/classification_old/Latex/Plots/ablation_threshold_{dataset}_{threshold_type}.pdf', bbox_inches='tight', backend='pgf')
         pass
 
 def ablation_distance(dataset='NCI1', max_distance=12, fontsize=9):
-    if not Path(f'paper_experiments/Results/Latex/Plots/ablation_distance_{dataset}_{max_distance}.pdf').exists():
+    if not Path(f'paper_experiments/Results/classification_old/Latex/Plots/ablation_distance_{dataset}_{max_distance}.pdf').exists():
         plt.rcParams.update({
             "font.family": "serif",  # use serif/main font for text elements
             "font.size": 12,
@@ -137,7 +136,7 @@ def ablation_distance(dataset='NCI1', max_distance=12, fontsize=9):
         })
 
         from mpl_toolkits.axes_grid1 import make_axes_locatable
-        path = Path(f'paper_experiments/Results/Distance/{dataset}/')
+        path = Path(f'paper_experiments/Results/classification_old/Distance/{dataset}/')
         # get the summary.csv file
         df = pd.read_csv(path.joinpath('summary.csv'), delimiter=",")
         model_layers_depths = []
@@ -215,13 +214,13 @@ def ablation_distance(dataset='NCI1', max_distance=12, fontsize=9):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(im, cax=cax).set_label('Accuracy in $\\%$')
-        plt.savefig(f'paper_experiments/Results/Latex/Plots/ablation_distance_{dataset}_{max_distance}.pdf', bbox_inches='tight', backend='pgf')
+        plt.savefig(f'paper_experiments/Results/classification_old/Latex/Plots/ablation_distance_{dataset}_{max_distance}.pdf', bbox_inches='tight', backend='pgf')
         pass
 
-def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_labels_from_invariant=True, with_aggregation=False, molecule=False, channel=0):
+def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_labels_from_invariant=True, with_aggregation=False, molecule=False, channel=0, headers=True):
     graph_id_string = '_'.join([str(graph_id) for graph_id in graph_ids])
     # check if file exists
-    if not Path(f'paper_experiments/Results/Latex/Plots/visualization_{db_name}_{graph_id_string}.pdf').exists():
+    if not Path(f'paper_experiments/Results/classification_old/Latex/Plots/visualization_{db_name}_{graph_id_string}.pdf').exists():
         #mpl.use("pgf")
         import matplotlib.pyplot as plt
 
@@ -244,8 +243,8 @@ def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_label
         plt.rcParams['axes.spines.right'] = False
         plt.rcParams['axes.spines.top'] = False
         plt.rcParams['axes.spines.bottom'] = False
-        #experiment = ExperimentMain(Path('paper_experiments/Configs/main_config_fair_real_world.yml'))
-        #experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
+        #experiment = ExperimentMain(Path('paper_experiments/classification/configs/main_config_fair_real_world.yml'))
+        #experiment = ExperimentMain(Path('Examples/TUExample/classification/configs/config_main.yml'))
         experiment = ExperimentMain(Path(path))
 
         net = experiment.load_model(db_name=db_name, run_id=0, validation_id=0, best=True)
@@ -349,7 +348,10 @@ def plot_network(path, db_name, graph_ids, filtering, draw_type=None, with_label
                         elif 'absolute' in filter_weights:
                             axs[0][1 + column_for_invariants + i*len(filtering) + j].set_title(f'Top ${filter_weights["absolute"]}$ Weights')
 
+
+
             for idx, graph_id in enumerate(graph_ids):
+                axs.axis('off')
                 axs[idx][0].set_ylabel(f'Graph Label: ${net.graph_data.y[graph_id].item()}$')
 
 
@@ -551,12 +553,18 @@ def main():
     # create Latex dir under Results
     Path('paper_experiments/Results/Latex').mkdir(parents=True, exist_ok=True)
     Path('paper_experiments/Results/Latex/Plots').mkdir(parents=True, exist_ok=True)
-    plot_network_path = 'paper_experiments/Configs/main_config_fair_real_world.yml'
-    plot_network_path_random = 'paper_experiments/Configs/main_config_fair_real_world_random_variation.yml'
-    plot_network_path_synthetic = 'paper_experiments/Configs/main_config_fair_synthetic.yml'
+    plot_network_path = 'paper_experiments/classification/configs/main_config_fair_real_world.yml'
+    plot_network_path_random = 'paper_experiments/classification/configs/main_config_fair_real_world_random_variation.yml'
+    plot_network_path_synthetic = 'paper_experiments/classification/configs/main_config_fair_synthetic.yml'
+    plot_regression_path = 'paper_experiments/regression/ZINC/configs/main_config_ZINC.yml'
 
-    plot_network_path_ablation_threshold = lambda x : f'paper_experiments/Configs/ablation/threshold/lower/main_config_ablation_threshold_{x}.yml'
-    plot_network_path_ablation_distance = 'paper_experiments/Configs/ablation/distances/main_config_ablation_distances.yml'
+    plot_network_path_ablation_threshold = lambda x : f'paper_experiments/classification/configs/ablation/threshold/lower/main_config_ablation_threshold_{x}.yml'
+    plot_network_path_ablation_distance = 'paper_experiments/classification/configs/ablation/distances/main_config_ablation_distances.yml'
+
+
+    plot_network(plot_regression_path, 'ZINC', [500], draw_type='kawai', filtering=[None, {'absolute' : 3}], molecule=True, headers=False)
+    plot_network(plot_network_path_random, 'DHFR', [272, 273], draw_type='kawai', filtering=[None, {'absolute' : 3}], molecule=True)
+
 
     plot_shared_weights(plot_network_path_random, 'DHFR')
     plot_shared_weights(plot_network_path_random, 'IMDB-BINARY')
@@ -592,7 +600,6 @@ def main():
     plot_network(plot_network_path_random, 'IMDB-MULTI', [25,805,1265], draw_type='kawai', filtering=[None, {'absolute' : 3}])
     plot_network(plot_network_path_random, 'IMDB-BINARY', [101,68,612], draw_type='kawai', filtering=[None, {'absolute' : 3}])
 
-    plot_network(plot_network_path_random, 'DHFR', [272, 273], draw_type='kawai', filtering=[None, {'absolute' : 3}], molecule=True)
     plot_network(plot_network_path, 'NCI1', [216, 320, 655], draw_type='kawai', filtering=[None, {'absolute' : 3}])
     plot_network(plot_network_path, 'NCI109', [56, 18, 3165], draw_type='kawai', filtering=[None, {'absolute' : 3}])
     plot_network(plot_network_path, 'Mutagenicity', [1654, 257, 360], draw_type='kawai', filtering=[None, {'absolute' : 3}])

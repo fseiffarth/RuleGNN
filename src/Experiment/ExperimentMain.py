@@ -328,7 +328,7 @@ class ExperimentMain:
                                 if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
                                     raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
                         else:
-                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark', 'NEL', 'QM9']:
+                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark', 'NEL', 'QM9', 'QM7']:
                                 raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
 
                     ###
@@ -512,12 +512,8 @@ class ExperimentMain:
             config_id = int(curr_path.name.split('_')[3])
             model_path = path_to_models.joinpath(f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
         else:
-            if path_to_models.exists():
-                # get one file that contains the string 'model_Configuration' in the name
-                curr_path = next(path_to_models.glob('*model_Configuration*'))
-            else:
+            if not path_to_models.exists():
                 raise FileNotFoundError(f"Model directory {path_to_models} not found")
-            config_id = int(curr_path.name.split('_')[2])
             model_path = path_to_models.joinpath(f'model_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
         run_config = run_configs[config_id]
         # check if the model exists
@@ -662,7 +658,8 @@ def preprocess_graph_data(experiment_configuration:dict):
                                 input_features=experiment_configuration.get('input_features', None),
                                 output_features=experiment_configuration.get('output_features', None),
                                 graph_format=experiment_configuration.get('format', 'RuleGNNDataset'),
-                                precision=experiment_configuration.get('precision', 'double'))
+                                precision=experiment_configuration.get('precision', 'double'),
+                                experiment_config=experiment_configuration)
     # move the dataset to the device
     graph_data.to(experiment_configuration.get('device', 'cpu'))
     return graph_data

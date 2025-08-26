@@ -1,10 +1,12 @@
+## Real World Data
 from pathlib import Path
+
 import click
+
 from src.Experiment.ExperimentMain import ExperimentMain
 
-
-def main_QM(num_threads=-1):
-    experiment = ExperimentMain(Path(f'ReproduceExtended/configs/QM9/main_config_QM9.yml'))
+def main_ZINC(num_threads=-1):
+    experiment = ExperimentMain(Path('paper_experiments/regression/ZINC/configs/main_config_ZINC_full.yml'))
     experiment.ExperimentPreprocessing(num_threads=num_threads)
     ## run real world experiment
     experiment.GridSearch(num_threads=num_threads)
@@ -15,7 +17,9 @@ def main_QM(num_threads=-1):
 @click.command()
 @click.option('--num_threads', default=-1, help='Number of threads to use')
 def main(num_threads):
-    main_QM(num_threads)
+    main_ZINC(1)
+
+
 
 if __name__ == '__main__':
     main()

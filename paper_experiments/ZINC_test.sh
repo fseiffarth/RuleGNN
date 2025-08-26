@@ -40,4 +40,4 @@ if [ ! -d "venv" ]; then
 fi
 
 # run the script
-python paper_experiments/regression/substructure_counting/main_substructure_counting.py --num_threads $NUM_THREADS
+python paper_experiments/regression/ZINC/main_ZINC_test.py --num_threads $NUM_THREADS
