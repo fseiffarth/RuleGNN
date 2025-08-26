@@ -79,11 +79,14 @@ class DatasetPreprocessing:
         self.generation_times_properties_path = self.experiment_configuration['paths']['results'].joinpath('generation_times_properties.txt')
 
     def generate_data(self, dataset, data_generation_type, data_generation_args):
-        # generate the data
+        # generate the graph data
+
         if isinstance(data_generation_type, list):
+            # Create union of the graphs for transfer learning
             if not isinstance(data_generation_args, list):
                 data_generation_args = [data_generation_args] * len(data_generation_type)
             zip_list = list(zip(data_generation_type, data_generation_args, self.experiment_configuration['single_datasets']))
+            # generate the graph data for each list entry
             for data_gen, data_gen_args, d in zip_list:
                 self.generate_data(d, data_gen, data_gen_args)
             # merge the generated datasets
@@ -91,18 +94,13 @@ class DatasetPreprocessing:
             for data_generation_type, data_generation_args, dataset in zip_list:
                 graphs.append(ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                                               name=dataset,
-                                              use_node_attr=self.experiment_configuration.get('use_node_attr', False),
-                                              use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
-                                              delete_zero_columns=False,
+                                              from_existing_data=data_generation_type,
                                               task=self.experiment_configuration.get('task', None)
                                               ))
-                # merge the graphs
+            # merge the graphs
             ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                             name=self.experiment_configuration['name'],
                             from_existing_data=graphs,
-                            use_node_attr=self.experiment_configuration.get('use_node_attr', False),
-                            use_edge_attr=self.experiment_configuration.get('use_edge_attr', False),
-                            delete_zero_columns=False,
                             task=self.experiment_configuration.get('task', None),
                             )
             return

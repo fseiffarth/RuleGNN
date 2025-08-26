@@ -46,7 +46,148 @@ class GraphDataPreprocessing(abc.ABC):
                  'num_node_attributes': self.processed_dataset.node_attributes.shape[-1],
                  'num_node_labels': len(torch.unique(self.processed_dataset.primary_node_labels))
                  }
+class MergedGraphDataPreprocessing(GraphDataPreprocessing):
+    def __init__(self, name, tmp_dir="/tmp", datasets_list=None):
+        super().__init__(name, tmp_dir)
+        self.preprocess(datasets_list=datasets_list)
 
+
+    def preprocess(self, datasets_list=None, *args, **kwargs):
+        """
+        Preprocess the merged dataset.
+
+        :param datasets_list:
+        :param args: Additional positional arguments.
+        :param kwargs: Additional keyword arguments.
+        :return: Processed graph data.
+        """
+        all_x = None
+        all_edge_indices = None
+        all_edge_atr = None
+        all_y = None
+        all_num_nodes = None
+        if datasets_list is None or len(datasets_list) == 0:
+            raise ValueError("datasets_list must be provided and non-empty")
+        self.slices = {
+            'x': [0],
+            'primary_node_labels': [0],
+            'primary_edge_labels': [0],
+            'node_attributes': [0],
+            'edge_index': [0],
+            'edge_attributes': [0],
+            'y': [0]
+        }
+        self.sizes = {
+            'num_node_labels': 0,
+            'num_node_attributes': 0,
+            'num_edge_labels': 0,
+            'num_edge_attributes': 0
+        }
+        for i, dataset in enumerate(datasets_list):
+            current_x = dataset.data.x
+            current_edge_indices = dataset.data.edge_index
+            current_edge_attributes = dataset.data.edge_attributes
+            current_node_attributes = dataset.data.node_attributes
+            current_primary_node_labels = dataset.data.primary_node_labels
+            current_primary_edge_labels = dataset.data.primary_edge_labels
+            current_y = dataset.data.y
+            current_num_nodes = dataset.data.num_nodes
+            if i == 0:
+                all_x = current_x
+                all_node_attributes = current_node_attributes
+                all_primary_node_labels = current_primary_node_labels
+                all_edge_indices = current_edge_indices
+                all_edge_attributes = current_edge_attributes
+                all_primary_edge_labels = current_primary_edge_labels
+                all_y = current_y
+                all_num_nodes = current_num_nodes
+                self.slices = {
+                    'x': dataset.slices['x'],
+                    'primary_node_labels': dataset.slices['primary_node_labels'],
+                    'edge_index': dataset.slices['edge_index'],
+                    'y': dataset.slices['y'],
+                    'names': [dataset.name] * len(dataset)
+                }
+                if 'node_attributes' in dataset.slices:
+                    self.slices['node_attributes'] = dataset.slices['node_attributes']
+                if 'edge_attributes' in dataset.slices:
+                    self.slices['edge_attributes'] = dataset.slices['edge_attributes']
+                if 'primary_edge_labels' in dataset.slices:
+                    self.slices['primary_edge_labels'] = dataset.slices['primary_edge_labels']
+                self.sizes = {
+                    'num_node_labels': dataset.num_node_labels,
+                    'num_node_attributes': dataset.num_node_attributes,
+                    'num_edge_labels': dataset.num_edge_labels,
+                    'num_edge_attributes': dataset.num_edge_attributes,
+                }
+            else:
+                max_node_labels = max(self.sizes['num_node_labels'], dataset.num_node_labels)
+                max_node_attrs = max(self.sizes['num_node_attributes'], dataset.num_node_attributes)
+                max_edge_labels = max(self.sizes['num_edge_labels'], dataset.num_edge_labels)
+                max_edge_attrs = max(self.sizes['num_edge_attributes'], dataset.num_edge_attributes)
+
+                self.slices['x'] = torch.cat((self.slices['x'], dataset.slices['x'][1:] + all_x.shape[0]), dim=0)
+                self.slices['primary_node_labels'] = torch.cat((self.slices['primary_node_labels'],
+                                                                dataset.slices['primary_node_labels'][1:] +
+                                                                all_primary_node_labels.shape[0]), dim=0)
+
+                self.slices['edge_index'] = torch.cat(
+                    (self.slices['edge_index'], dataset.slices['edge_index'][1:] + all_edge_indices.shape[1]), dim=0)
+
+                if 'node_attributes' in self.slices:
+                    self.slices['node_attributes'] = torch.cat((self.slices['node_attributes'],
+                                                                dataset.slices['node_attributes'][1:] +
+                                                                all_node_attributes.shape[0]), dim=0)
+                elif 'node_attributes' in dataset.slices:
+                    pass  # TODO: handle the case where the first dataset has no node attributes but the second has
+
+                if 'edge_attributes' in self.slices:
+                    self.slices['edge_attr'] = torch.cat(
+                        (self.slices['edge_attr'], dataset.slices['edge_attr'][1:] + all_edge_atr.shape[0]), dim=0)
+                elif 'edge_attributes' in dataset.slices:
+                    pass  # TODO: handle the case where the first dataset has no edge attributes but the second has
+
+                if 'primary_edge_labels' in self.slices:
+                    self.slices['primary_edge_labels'] = torch.cat((self.slices['primary_edge_labels'],
+                                                                   dataset.slices['primary_edge_labels'][1:] +
+                                                                   all_primary_edge_labels.shape[0]), dim=0)
+                elif 'primary_edge_labels' in dataset.slices:
+                    pass # TODO: handle the case where the first dataset has no primary edge labels but the second has
+
+                self.slices['y'] = torch.cat((self.slices['y'], dataset.slices['y'][1:] + all_y.shape[0]), dim=0)
+                self.slices['names'] += [dataset.name] * len(dataset)
+
+                # bring all tensors to the same size
+                max_size = max(current_x.shape[1], all_x.shape[1])
+                if all_x.shape[1] < max_size:
+                    all_x = torch.cat((all_x, torch.zeros(all_x.shape[0], max_size - all_x.shape[1])), dim=1)
+                if current_x.shape[1] < max_size:
+                    current_x = torch.cat((current_x, torch.zeros(current_x.shape[0], max_size - current_x.shape[1])), dim=1)
+                # merge the x tensors
+                all_x = torch.cat((all_x, current_x), dim=0)
+                all_primary_node_labels = torch.cat((all_primary_node_labels, current_primary_node_labels), dim=0)
+
+                if 'node_attributes' in self.slices:
+                    all_node_attributes = torch.cat((all_node_attributes, current_node_attributes), dim=0)
+
+                if 'edge_attributes' in self.slices:
+                    all_edge_attributes = torch.cat((all_edge_attributes, current_edge_attributes), dim=0)
+
+                all_edge_indices = torch.cat((all_edge_indices, current_edge_indices), dim=1)
+
+                if 'primary_edge_labels' in self.slices:
+                    all_primary_edge_labels = torch.cat((all_primary_edge_labels, current_primary_edge_labels), dim=0)
+
+                all_y = torch.cat((all_y, current_y), dim=0)
+                all_num_nodes = torch.cat((all_num_nodes, current_num_nodes), dim=0)
+
+                self.sizes['num_node_labels'] = max_node_labels
+                self.sizes['num_node_attributes'] = max_node_attrs
+                self.sizes['num_edge_labels'] = max_edge_labels
+                self.sizes['num_edge_attributes'] = max_edge_attrs
+        # make self data from all_x, all_edge_indices, all_edge_atr, all_y
+        self.processed_dataset = Data(x=all_x, node_attributes=all_node_attributes, primary_node_labels=all_primary_node_labels, edge_index=all_edge_indices, primary_edge_labels=all_primary_edge_labels, edge_attributes=all_edge_attributes, y=all_y, num_nodes=all_num_nodes)
+        return self.processed_dataset, self.slices, self.sizes
 
 class ZINCGraphDataPreprocessing(GraphDataPreprocessing):
     def __init__(self, name, tmp_dir="/tmp"):
