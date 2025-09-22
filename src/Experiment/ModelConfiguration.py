@@ -258,7 +258,7 @@ class ModelConfiguration:
             self.criterion = nn.MSELoss(*args, **kwargs)
         elif self.para.run_config.loss in ['RootedMeanSquaredError', 'RMSELoss', 'rmse', 'RMSE']:
             def RSMELoss(input, target):
-                return torch.sqrt(F.mse_loss(input, target))
+                return torch.sqrt(F.mse_loss(input, target) + 1e-8)
             self.criterion = RSMELoss
         elif self.para.run_config.loss in ['L1Loss', 'l1', 'L1', 'mean_absolute_error', 'mae', 'MAE', 'MeanAbsoluteError']:
             self.criterion = nn.L1Loss(*args, **kwargs)
