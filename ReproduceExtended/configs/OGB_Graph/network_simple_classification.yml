@@ -3,7 +3,7 @@ networks:
         mode: 'aggr_features',
         output_features: 2,
         bias: True,
-        activation: 'LeakyReLU',
+        activation: 'tanh',
   }
     - { layer_type: layer_norm }
     - {
@@ -73,11 +73,11 @@ networks:
         mode: 'aggr_heads',
         output_features: 4,
         bias: True,
-        activation: 'LeakyReLU',
+        activation: 'tanh',
     }
     - { layer_type: layer_norm }
     - { layer_type: aggregation,
-        activation: 'LeakyReLU',
+        activation: 'tanh',
         output_dim: 10,
         bias: True,
         heads:
@@ -97,18 +97,18 @@ networks:
         mode: 'aggr_features',
         output_features: 100,
         bias: True,
-        activation: 'LeakyReLU',
+        activation: 'tanh',
     }
     - { layer_type: linear,
         mode: 'aggr_features',
         output_features: 100,
         bias: True,
-        activation: 'LeakyReLU',
+        activation: 'tanh',
     }
     - { layer_type: linear,
         mode: 'aggr_features',
-        output_features: 1,
+        output_features: 2,
         bias: True,
-        activation: 'None',
+        activation: 'tanh',
     }
     - { layer_type: reshape }

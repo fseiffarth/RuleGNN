@@ -1,24 +1,44 @@
 datasets:
-  - {
-    name: "ogbg-molfreesolv",
-    task: "graph_regression",
-    validation_folds: 1,
-    with_splits: False,
-    split_function: ogb_splits,
-    split_function_args: { db_name: 'ogbg-molfreesolv' },
-    experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple_regression.yml",
-    type: 'OGB_GraphProp',
-  }
 #  - {
-#      name: "ogbg-molbbbp",
-#      task: "graph_classification",
-#      validation_folds: 1,
-#      with_splits: False,
-#      split_function: ogb_splits,
-#      split_function_args: {db_name: 'ogbg-molbbbp'},
-#      experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple.yml",
-#      type: 'OGB_GraphProp',
+#    name: "ogbg-molfreesolv",
+#    task: "graph_regression",
+#    validation_folds: 1,
+#    with_splits: False,
+#    split_function: ogb_splits,
+#    split_function_args: { db_name: 'ogbg-molfreesolv' },
+#    experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple_regression.yml",
+#    type: 'OGB_GraphProp',
 #  }
+#  - {
+#    name: "ogbg-molesol",
+#    task: "graph_regression",
+#    validation_folds: 1,
+#    with_splits: False,
+#    split_function: ogb_splits,
+#    split_function_args: { db_name: 'ogbg-molesol' },
+#    experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple_regression.yml",
+#    type: 'OGB_GraphProp',
+#  }
+#  - {
+#    name: "ogbg-mollipo",
+#    task: "graph_regression",
+#    validation_folds: 1,
+#    with_splits: False,
+#    split_function: ogb_splits,
+#    split_function_args: { db_name: 'ogbg-mollipo' },
+#    experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple_regression.yml",
+#    type: 'OGB_GraphProp',
+#  }
+  - {
+      name: "ogbg-molbbbp",
+      task: "graph_classification",
+      validation_folds: 1,
+      with_splits: False,
+      split_function: ogb_splits,
+      split_function_args: {db_name: 'ogbg-molbbbp'},
+      experiment_config_file: "ReproduceExtended/configs/OGB_Graph/network_simple_classification.yml",
+      type: 'OGB_GraphProp',
+  }
 
 
 paths:
@@ -49,7 +69,8 @@ optimizer:
 #  - CrossEntropyLoss
 #weighted_loss: True
 loss:
-  - RMSELoss
+  - CrossEntropyLoss
+#  - RSMELoss
 
 
 
@@ -76,9 +97,9 @@ weight_initialization: { convolution: {  type: 'lower_upper', value: 0.1 },
                          aggregation_bias: { type: 'lower_upper', value: 0.0 }}
 
 batch_size:
-  - 128
+  - 16
 learning_rate:
-  - 0.01
+  - 0.0001
 epochs:
   - 500
 
@@ -97,5 +118,5 @@ input_features: {name: node_features, transformation: 'normalize'}
 #input_features: {name: all, transformation: 'one_hot_labels_normalize_features'}
 best_model: True
 
-#evaluation_metric: roc_auc
+evaluation_metric: roc_auc
 
