@@ -93,8 +93,9 @@ early_stopping:
 
 # how to sample the training data
 training_data_sampling: { type: 'default'}
-input_features: {name: all, transformation: 'one_hot_labels_normalize_features'}
+input_features: {name: node_features, transformation: 'normalize'}
+#input_features: {name: all, transformation: 'one_hot_labels_normalize_features'}
 best_model: True
 
-evaluation_metric: roc_auc
+#evaluation_metric: roc_auc
 

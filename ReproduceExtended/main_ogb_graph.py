@@ -18,7 +18,7 @@ def main_ogb_graph(num_threads=-1):
 @click.command()
 @click.option('--num_threads', default=-1, help='Number of threads to use')
 def main(num_threads):
-    main_ogb_graph(1)
+    main_ogb_graph(num_threads)
 
 
 

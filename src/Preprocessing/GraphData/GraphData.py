@@ -673,6 +673,9 @@ class ShareGNNDataset(InMemoryDataset):
             elif use_constant:
                 data['x'] = torch.full(size=(data['x'].shape[0], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0), dtype=self.precision)
             elif use_features:
+                # remove zero columns from node attributes
+                non_zero_columns = torch.where(data['node_attributes'].sum(dim=0) != 0)[0]
+                data['node_attributes'] = data['node_attributes'][:, non_zero_columns]
                 data['x'] = data['node_attributes'].type(self.precision)
                 if use_train_node_labels:
                     # get data y one hot
@@ -708,6 +711,10 @@ class ShareGNNDataset(InMemoryDataset):
                     normalized_node_labels[idx] = value
                 # replace values in data['x'] by the normalized values
                 data['x'] = data['x'].apply_(lambda x: normalized_node_labels[x])
+            elif use_features and transformation == 'normalize':
+                # normalize each feature to be between -1 and 1
+                data['x'] = (data['x'] - data['x'].min(dim=0, keepdim=True).values) / (data['x'].max(dim=0, keepdim=True).values - data['x'].min(dim=0, keepdim=True).values)
+                data['x'] = data['x'] * 2 - 1
             elif use_labels and transformation == 'normalize_positive':
                 # get the number of different node labels
                 num_node_labels = self.unique_node_labels

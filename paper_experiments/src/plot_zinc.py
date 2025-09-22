@@ -91,12 +91,13 @@ def main():
         convolution_layer.draw(ax=axs_id[1], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None,
                                head=0)
         convolution_layer.draw(ax=axs_id[2], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None,
-                               head=5)
-        convolution_layer.draw(ax=axs_id[3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None,
                                head=10)
+        convolution_layer.draw(ax=axs_id[3], graph_id=graph_id, graph_drawing=graph_drawing, filter_weights=None,
+                               head=18)
 
     # use latex backend for matplotlib
-    plt.savefig(f'paper_experiments/Results/Latex/{db_name}_message_passing.pdf', bbox_inches='tight', backend='pgf')
+    graph_ids_string = '_'.join([str(x) for x in graph_ids])
+    plt.savefig(f'paper_experiments/Results/Latex/{db_name}_{graph_ids_string}_message_passing.pdf', bbox_inches='tight', backend='pgf')
     plt.show()
 
     return

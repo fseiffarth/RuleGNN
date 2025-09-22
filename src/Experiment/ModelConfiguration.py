@@ -8,6 +8,7 @@ import pandas as pd
 import sklearn
 import torch
 from torch import optim, nn
+import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
 from src.Architectures.ShareGNN import ShareGNN, Parameters
@@ -248,13 +249,17 @@ class ModelConfiguration:
         self.net.to(self.device)
         print(f'Network initialized with seed {self.seed}')
 
+
+
     def set_loss_function(self, *args, **kwargs):
         if self.para.run_config.loss == 'CrossEntropyLoss':
             self.criterion = nn.CrossEntropyLoss(*args, **kwargs)
         elif self.para.run_config.loss in ['MeanSquaredError', 'MSELoss', 'mse', 'MSE']:
             self.criterion = nn.MSELoss(*args, **kwargs)
         elif self.para.run_config.loss in ['RootedMeanSquaredError', 'RMSELoss', 'rmse', 'RMSE']:
-            self.criterion = nn.MSELoss(*args, **kwargs)
+            def RSMELoss(input, target):
+                return torch.sqrt(F.mse_loss(input, target))
+            self.criterion = RSMELoss
         elif self.para.run_config.loss in ['L1Loss', 'l1', 'L1', 'mean_absolute_error', 'mae', 'MAE', 'MeanAbsoluteError']:
             self.criterion = nn.L1Loss(*args, **kwargs)
         elif self.para.run_config.loss in ['BCELoss', 'bce', 'BCE']:
@@ -743,15 +748,15 @@ class ModelConfiguration:
 
         # header use semicolon as delimiter
         if self.para.run_config.task == 'graph_regression':
-            header = "Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
-                     "EpochAccuracy;EpochTime;EpochMAE;EpochMAEStd;ValidationLoss;ValidationAccuracy;ValidationMAE;ValidationMAEStd;TestLoss;TestAccuracy;TestMAE;TestMAEStd\n"
+            header = f"Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss ({self.para.run_config.loss});" \
+                     f"EpochAccuracy;EpochTime;EpochMAE;EpochMAEStd;ValidationLoss;ValidationAccuracy;ValidationMAE;ValidationMAEStd;TestLoss;TestAccuracy;TestMAE;TestMAEStd\n"
         else:
             if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
-                header = "Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;" \
-                         "EpochAccuracy;EpochAUC;EpochTime;ValidationAccuracy;ValidationLoss;ValidationAUC;TestAccuracy;TestLoss;TestAUC\n"
+                header = f"Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss ({self.para.run_config.loss});" \
+                         f"EpochAccuracy;EpochAUC;EpochTime;ValidationAccuracy;ValidationLoss;ValidationAUC;TestAccuracy;TestLoss;TestAUC\n"
             else:
-                header = "Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss;EpochAccuracy;" \
-                         "EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
+                header = f"Dataset;Time;RunNumber;ValidationNumber;Seed;Epoch;TrainingSize;ValidationSize;TestSize;EpochLoss  ({self.para.run_config.loss});EpochAccuracy;" \
+                         f"EpochTime;ValidationAccuracy;ValidationLoss;TestAccuracy;TestLoss\n"
 
         # Save file for results and add header if the file is new
         final_path = self.results_path.joinpath(f'{self.para.db}/Results/{file_name}')
