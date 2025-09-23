@@ -749,7 +749,9 @@ class ShareGNNDataset(InMemoryDataset):
                 normalized_features = data['node_attributes'].type(self.precision)
                 non_zero_columns = torch.where(normalized_features.sum(dim=0) != 0)[0]
                 normalized_features = normalized_features[:, non_zero_columns]
-                normalized_features = (normalized_features - normalized_features.min(dim=0, keepdim=True).values) / (normalized_features.max(dim=0, keepdim=True).values - normalized_features.min(dim=0, keepdim=True).values)
+                # normalize features between -1 and 1
+                normalized_features = (normalized_features - normalized_features.min(dim=0, keepdim=True).values) / (normalized_features.max(dim=0, keepdim=True).values - normalized_features.min(dim=0,                                     keepdim=True).values)
+                normalized_features = normalized_features * 2 - 1
                 data['x'] = torch.cat((one_hot_labels, normalized_features), dim=1)
             elif use_labels_and_features and transformation == 'normalize_labels':
                 # get the number of unique node labels

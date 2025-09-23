@@ -492,7 +492,12 @@ class InvariantBasedMessagePassingLayer(InvariantBasedLayer):
                     # relabel indices
                     indices[valid_indices] = torch.tensor([valid_value_dict[idx.item()] for idx in indices[valid_indices]], dtype=torch.int64)
                     num_weights = len(valid_values)
+                start_time = time.time()
                 for idx in range(len(graph_data)):
+                    # if number of graphs is larger than 10000 print progress
+                    if len(graph_data) > 10000 and idx % 1000 == 0:
+                        print(f'Head {i+1}/{len(self.layer.layer_heads)} with property {key}: {idx}/{len(graph_data)} graphs processed ({(idx/len(graph_data))*100:.2f}%) time so far (in s): {time.time()-start_time:.2f}')
+                    # get the valid indices for the current graph
                     if threshold > 1 or do_invalid_indices_exist or upper_threshold is not None:
                         valid_indices_graph = torch.where(valid_indices_bool[property_subdict_slices[idx]:property_subdict_slices[idx+1]])[0] + property_subdict_slices[idx]
                     else:

@@ -27,6 +27,7 @@ class EvaluationValues:
         self.loss_std = 0.0
         self.mae = 0.0
         self.mae_std = 0.0
+        self.current_elements = 0
 
 
 
@@ -153,6 +154,24 @@ class ModelConfiguration:
                 np.random.seed(shuffling_seed)
                 np.random.shuffle(random_indices)
                 train_batches = np.array_split(random_indices, self.training_data.size // self.para.run_config.batch_size)
+
+            # undersampling the majority class
+            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'undersampling':
+                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+                np.random.seed(shuffling_seed)
+                # get the class distribution of the training data
+                unique_classes, class_indices, class_counts = torch.unique(self.graph_data.y[self.training_data], return_counts=True, return_inverse=True)
+                minimum_class_count = torch.min(class_counts).item()
+                indices_per_class = []
+                for i in unique_classes:
+                    indices_per_class.append(np.where(class_indices == i)[0])
+                random_indices_per_class = []
+                for i in range(len(indices_per_class)):
+                    random_indices_per_class.append(np.random.choice(indices_per_class[i], minimum_class_count, replace=False))
+                # concatenate the random indices
+                random_indices = np.concatenate(random_indices_per_class)
+                np.random.shuffle(random_indices)
+                train_batches = np.array_split(self.training_data[random_indices], random_indices.size // self.para.run_config.batch_size)
 
 
 
@@ -418,16 +437,20 @@ class ModelConfiguration:
 
                 batch_mae = torch.mean(torch.abs(flatten_labels - flatten_outputs))
                 batch_mae_std = torch.std(torch.abs(flatten_labels - flatten_outputs))
-                train_values.mae += batch_mae * (batch_length / len(self.training_data))
-                train_values.mae_std += batch_mae_std * (batch_length / len(self.training_data))
+                train_values.mae = (train_values.mae * train_values.current_elements + batch_mae * batch_length) / (train_values.current_elements + batch_length)
+                train_values.mae_std = (train_values.mae_std * train_values.current_elements + batch_mae_std * batch_length) / (train_values.current_elements + batch_length)
             else:
                 prediction = torch.argmax(outputs, dim=1)
                 batch_acc = 100 * torch.sum(prediction == labels).item() / len(labels)
-                train_values.accuracy += batch_acc * (batch_length / len(self.training_data))
+                # accuracy
+                train_values.accuracy = (train_values.accuracy * train_values.current_elements + batch_acc * batch_length) / (train_values.current_elements + batch_length)
                 # roc_auc
-                #batch_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
-                #train_values.accuracy_roc_auc += batch_roc_auc * (batch_length / len(self.training_data))
-
+                # if undersampling is used, the batch always contains all classes otherwise roc_auc cannot be calculated
+                if self.para.run_config.config.get('training_data_sampling', None) is not None and self.para.run_config.config['training_data_sampling'].get('type', None) == 'undersampling':
+                    if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
+                        batch_roc_auc = sklearn.metrics.roc_auc_score(labels, prediction)
+                        train_values.accuracy_roc_auc = (train_values.accuracy_roc_auc * train_values.current_elements + batch_roc_auc * batch_length) / (train_values.current_elements + batch_length)
+            train_values.current_elements += batch_length
             if self.para.print_results:
                 if self.graph_data.num_classes == 1 or self.para.run_config.task == 'graph_regression':
                     print(
@@ -467,6 +490,9 @@ class ModelConfiguration:
             if self.validate_data.size != 0:
                 if self.para.run_config.task in ['graph_classification', 'graph_regression']:
                     labels, outputs = self.evaluate_graph_task(self.validate_data)
+                    # check if output is two dimensional and task is graph classification
+                    if self.para.run_config.config.get('task', None) == 'graph_classification' and len(outputs.shape) > 1 and outputs.shape[1] != 1:
+                        labels = torch.nn.functional.one_hot(labels, num_classes=self.graph_data.num_classes).to(self.dtype).to(self.device)
                 elif self.para.run_config.task == 'node_classification':
                     labels, outputs = self.evaluate_node_task(self.validate_data)
                 else:
@@ -509,6 +535,8 @@ class ModelConfiguration:
                     validation_values.mae_std = validation_mae_std
                 else:
                     prediction = torch.argmax(outputs, dim=1)
+                    if len(labels.shape) > 1:
+                        labels = torch.argmax(labels, dim=1)
                     validation_acc = 100 * torch.sum(prediction==labels).item() / len(labels)
                     validation_values.accuracy = validation_acc
                     if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
@@ -589,6 +617,9 @@ class ModelConfiguration:
             if self.para.run_config.config.get('best_model', False):
                 if self.para.run_config.task in ['graph_classification', 'graph_regression']:
                     labels, outputs = self.evaluate_graph_task(self.test_data)
+                    # check if output is two dimensional and task is graph classification
+                    if self.para.run_config.config.get('task', None) == 'graph_classification' and len(outputs.shape) > 1 and outputs.shape[1] != 1:
+                        labels = torch.nn.functional.one_hot(labels, num_classes=self.graph_data.num_classes).to(self.dtype).to(self.device)
                 elif self.para.run_config.task == 'node_classification':
                     labels, outputs = self.evaluate_node_task(self.test_data)
                 else:
@@ -631,6 +662,8 @@ class ModelConfiguration:
                     test_values.mae_std = test_mae_std
                 else:
                     prediction = torch.argmax(outputs, dim=1)
+                    if len(labels.shape) > 1:
+                        labels = torch.argmax(labels, dim=1)
                     test_acc = 100 * torch.sum(prediction == labels).item() / len(labels)
                     test_values.accuracy = test_acc
                     if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'roc_auc':
@@ -838,7 +871,11 @@ class ModelConfiguration:
             if self.para.run_config.config.get('weighted_loss', False):
                 self.set_loss_function(weight =self.class_weights[batch_counter])
 
-            loss = self.criterion(outputs, self.graph_data.y[batch])
+            target_labels = self.graph_data.y[batch]
+            # check if output is two dimensional and task is graph classification
+            if self.para.run_config.config.get('task', None) == 'graph_classification'  and len(outputs.shape) > 1 and outputs.shape[1] != 1:
+                target_labels = torch.nn.functional.one_hot(self.graph_data.y[batch], num_classes=self.graph_data.num_classes).to(self.dtype).to(self.device)
+            loss = self.criterion(outputs, target_labels)
             timer.measure("forward")
 
             weights = []

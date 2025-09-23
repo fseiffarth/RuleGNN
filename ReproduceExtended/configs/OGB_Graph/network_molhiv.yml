@@ -1,0 +1,79 @@
+networks:
+  - - { layer_type: linear,
+        mode: 'aggr_features',
+        output_features: 16,
+        bias: True,
+        activation: 'tanh',
+  }
+    - { layer_type: layer_norm }
+    - {
+        layer_type: convolution ,
+        bias: True,
+        activation: 'None',
+        heads: [
+          {
+            bias: True,
+            labels: {
+              head: { label_type: [induced_cycles, primary], max_cycle_length: 6 },
+              tail: { label_type: [induced_cycles, primary], max_cycle_length: 6 },
+              bias: { label_type: [induced_cycles, primary], max_cycle_length: 6 },
+            },
+            properties:
+              { name: distances, values: [ 1, 2, 3 ] },
+          },
+          {
+            bias: True,
+            labels: {
+              head: { label_type: [ induced_cycles, primary ], max_cycle_length: 6 },
+              tail: { label_type: [ induced_cycles, primary ], max_cycle_length: 6 },
+              bias: { label_type: [ induced_cycles, primary ], max_cycle_length: 6 },
+            },
+            properties:
+              { name: distances, values: [ 1, 2,3 ] },
+          },
+          ]
+  }
+    - { layer_type: linear,
+        mode: 'aggr_heads',
+        output_features: 16,
+        bias: True,
+        activation: 'tanh',
+    }
+    - { layer_type: layer_norm }
+    - { layer_type: aggregation,
+        activation: 'None',
+        output_dim: 10,
+        bias: True,
+        heads:
+          [
+            {
+                bias: True,
+                labels: { label_type: induced_cycles, max_cycle_length: 6 },
+            },
+            {
+              bias: True,
+              labels: { label_type: primary },
+            },
+            {
+              bias: True,
+              labels: { label_type: wl_labeled, depth: 0 },
+            },
+            {
+                bias: True,
+                labels: { label_type: wl_labeled, depth: 2 },
+            },
+            {
+              bias: True,
+              labels: { label_type: wl_labeled_edges, depth: 0 },
+            },
+          ]
+    }
+    - { layer_type: reshape}
+    - { layer_type: layer_norm }
+    - { layer_type: linear,
+        mode: 'aggr_features',
+        output_features: 2,
+        bias: True,
+        activation: 'tanh',
+    }
+    - { layer_type: reshape }
