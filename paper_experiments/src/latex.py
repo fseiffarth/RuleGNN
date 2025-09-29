@@ -750,8 +750,8 @@ def hyper_parameter_configurations():
         config_path = Path('paper_experiments/Configs/main_config_fair_real_world.yml')
         experiment = ExperimentMain(Path(config_path))
         experiment.ExperimentPreprocessing()
-        run_configs_molecule = get_run_configs(experiment.experiment_configurations[molecule][0])
-        run_configs_social = get_run_configs(experiment.experiment_configurations[social][0])
+        run_configs_molecule = get_run_configs(experiment.network_configurations[molecule][0])
+        run_configs_social = get_run_configs(experiment.network_configurations[social][0])
         for run_configs in [run_configs_molecule, run_configs_social]:
             convolution_configs = set()
             aggregation_configs = set()

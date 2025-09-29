@@ -95,7 +95,7 @@ def evaluation(dataset, experiment_configuration, graph_data, algorithm, test=Tr
 
 
 def dataset_baseline(dataset, experiment, config, inner_job_num=1):
-    experiment_configuration = experiment.experiment_configurations[dataset]
+    experiment_configuration = experiment.network_configurations[dataset]
     # load the graph data
     graph_data = get_graph_data(db_name=dataset, data_path=experiment_configuration['paths']['data'],
                                 task=experiment_configuration.get('task', 'graph_classification'),
@@ -129,7 +129,7 @@ def main_baseline(num_threads=-1):
     # load the yml file
     for config in ['main_config_fair_real_world.yml', 'main_config_sota_comparison.yml', 'main_config_fair_synthetic.yml']:
         experiment = ExperimentMain(Path(f"paper_experiments/Configs/{config}"))
-        datasets = list(experiment.experiment_configurations.keys())
+        datasets = list(experiment.network_configurations.keys())
         for dataset in datasets:
             experiment_tuples.append((dataset, experiment, config))
 

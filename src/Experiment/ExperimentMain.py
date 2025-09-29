@@ -30,13 +30,18 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class ExperimentMain:
     """
-    This is the main class to run the all the ShareGNN experiments.
-    All experiment parameters are defined in the main config file and the experiment config file.
-    parameters:
-    - main_config_path: path to the main config file (contains the path to the experiment config file)
-    - net: neural network model to run the experiments. Default is None. Otherwise, use the given model as starting point.
+    This is the main class to run the all the GNN experiments.
+    All experiment parameters are defined in two different configuration files:
+    1) main config file: contains general information about the datasets, paths, training parameters, contains also the paths to the network config files
+    2) network config file: contains information about the neural network architecture, hyperparameters
     """
+
     def __init__(self, main_config_path: os.path, pretrained_network=None):
+        """
+        Initialization of the ExperimentMain class. Loads the configuration files and checks their consistency. If given, load a pretrained network to run the experiments.
+        :param main_config_path: path to the main config file (contains the path to the experiment config file)
+        :param pretrained_network: neural network model to run the experiments. Default is None. Otherwise, use the given model as starting point.
+        """
         self.main_config_path = main_config_path
         self.pretrained_network = pretrained_network
         if not os.path.exists(main_config_path):
@@ -45,25 +50,25 @@ class ExperimentMain:
             self.main_config = yaml.safe_load(open(main_config_path)) # load the main config file
         except:
             raise ValueError(f"Config file {main_config_path} could not be loaded")
-        self.experiment_configurations = {}
+        self.network_configurations = {}
         for dataset in self.main_config['datasets']:
-            self.update_experiment_configuration(dataset) # merge all information from the main config file and the experiment config file
-        self.config_consistency_and_preprocessing() # check the consistency of the configuration files, raise an error if the configuration is not consistent
+            self.update_network_configuration(dataset) # merge all information from the main config file and the experiment config file
+        self.check_configuration_files() # check the consistency of the configuration files, raise an error if the configuration is not consistent
 
-    def HyperparameterOptimization(self, num_threads=-1):
+
+    def run_configurations(self, num_threads=-1):
         """
-        This function performs automatic hyperparameter search optimization.
-        Starting with some initial hyperparameters
-        - num_threads: number of threads to use for the grid search. Default is -1. If -1, use all available threads.
+        Run all configurations for all the datasets defined in the main config file (default) and save the results in the results directory defined in the config file.
+        :param num_threads: number of threads to use for the grid search. Default is -1. If -1, use all available threads.
         """
         torch.set_warn_always(False)
         # set omp num threads to 1 to avoid conflicts with OpenMP if num_threads is unequal to 1
         if num_threads != 1:
             os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         # iterate over the databases
-        for dataset in self.experiment_configurations.keys():
-            for i, configuration in enumerate(self.experiment_configurations[dataset]):
-                print(f"Running experiment configuration {i+1}/{len(self.experiment_configurations[dataset])} for dataset {dataset}")
+        for dataset in self.network_configurations.keys():
+            for i, configuration in enumerate(self.network_configurations[dataset]):
+                print(f"Running experiment configuration {i+1}/{len(self.network_configurations[dataset])} for dataset {dataset}")
                 max_threads = os.cpu_count()                 # determine the number of parallel jobs
                 num_threads = min(configuration.get('num_workers', num_threads), num_threads)
                 if num_threads == -1:
@@ -75,56 +80,7 @@ class ExperimentMain:
                 absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
                 absolute_path = Path(absolute_path)
                 copy_experiment_config(absolute_path, configuration,
-                                       configuration.get('experiment_config_file', ''),
-                                       dataset)
-
-                # get all possible hyperparameter configurations from the config files
-                run_configs = get_run_configs(configuration)
-                config_id_names = {}
-                for idx, run_config in enumerate(run_configs):
-                    config_id = idx + configuration.get('config_id', 0)
-                    config_id_names[idx] = f'Configuration_{str(config_id).zfill(6)}'
-                print(f"Total number of hyperparameter configurations: {len(run_configs)}")
-
-                # zip all configurations for parallelization and run the grid search
-                run_loops = [(validation_id, run_id, c_idx) for validation_id in range(configuration.get('validation_folds', 10)) for run_id in range(configuration.get('num_runs', 1)) for c_idx in range(len(run_configs))]
-                num_threads = min(num_threads, len(run_loops))
-                print(f"Run the grid search for dataset {dataset} using {configuration.get('validation_folds', 10)}-fold cross-validation and {num_threads} number of parallel jobs")
-                joblib.Parallel(n_jobs=num_threads)(
-                    joblib.delayed(self.run_configuration)(graph_data=graph_data,
-                                                           run_config=run_configs[run_loops[i][2]],
-                                                           validation_id=run_loops[i][0],
-                                                           run_id=run_loops[i][1],
-                                                           config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
-
-
-
-    def GridSearch(self, num_threads=-1):
-        """
-        This function performs a grid search over all datasets and hyperparameters defined in the main config file.
-        parameters:
-        - num_threads: number of threads to use for the grid search. Default is -1. If -1, use all available threads.
-        """
-        torch.set_warn_always(False)
-        # set omp num threads to 1 to avoid conflicts with OpenMP if num_threads is unequal to 1
-        if num_threads != 1:
-            os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP
-        # iterate over the databases
-        for dataset in self.experiment_configurations.keys():
-            for i, configuration in enumerate(self.experiment_configurations[dataset]):
-                print(f"Running experiment configuration {i+1}/{len(self.experiment_configurations[dataset])} for dataset {dataset}")
-                max_threads = os.cpu_count()                 # determine the number of parallel jobs
-                num_threads = min(configuration.get('num_workers', num_threads), num_threads)
-                if num_threads == -1:
-                    num_threads = max_threads
-
-
-                graph_data = preprocess_graph_data(configuration)
-                # copy config file to the results directory if it is not already there
-                absolute_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-                absolute_path = Path(absolute_path)
-                copy_experiment_config(absolute_path, configuration,
-                                       configuration.get('experiment_config_file', ''),
+                                       configuration.get('network_config_file', ''),
                                        dataset)
 
                 # get all possible hyperparameter configurations from the config files
@@ -159,8 +115,8 @@ class ExperimentMain:
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
         # iterate over the databases
-        for dataset in self.experiment_configurations.keys():
-            for i, configuration in enumerate(self.experiment_configurations[dataset]):
+        for dataset in self.network_configurations.keys():
+            for i, configuration in enumerate(self.network_configurations[dataset]):
                 if evaluate_best_model:
                     # check whether evaluation has been done before
                     out_path = configuration['paths']['results'].joinpath(dataset).joinpath('summary_best.csv')
@@ -189,8 +145,8 @@ class ExperimentMain:
         # set omp_num_threads to 1 to avoid conflicts with OpenMP
         os.environ['OMP_NUM_THREADS'] = '1'
         # iterate over the databases
-        for dataset in self.experiment_configurations.keys():
-            for i, configuration in enumerate(self.experiment_configurations[dataset]):
+        for dataset in self.network_configurations.keys():
+            for i, configuration in enumerate(self.network_configurations[dataset]):
                 print(f"Running experiment for dataset {dataset}")
                 validation_folds = configuration['validation_folds']
 
@@ -225,26 +181,38 @@ class ExperimentMain:
                                                             config_id=config_id)
                                                  for run_id, validation_id in parallelization_pairs)
 
-    def update_experiment_configuration(self, dataset_configuration):
-        experiment_configuration_path = dataset_configuration.get('experiment_config_file', '')
+    def update_network_configuration(self, dataset_configuration):
+        """
+        Merge the main configuration file with the network configuration file.
+        :param dataset_configuration:
+        """
+        network_configuration_path = dataset_configuration.get('network_config_file', '')
         # load the config file
-        experiment_configuration = yaml.load(open(experiment_configuration_path), Loader=yaml.FullLoader)
+        network_configuration = yaml.load(open(network_configuration_path), Loader=yaml.FullLoader)
         paths = collect_paths(main_configuration=self.main_config, dataset_configuration=dataset_configuration,
-                              experiment_configuration=experiment_configuration)
-        experiment_configuration['paths'] = paths
+                              network_configuration=network_configuration)
+        network_configuration['paths'] = paths
         # paths to Path objects
-        config_paths_to_absolute(experiment_configuration,
+        config_paths_to_absolute(network_configuration,
                                  Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))))
-        # update the global configuration with the experiment configuration
+        # join main configuration with the network configuration
         for key in self.main_config:
             if key == 'datasets':
                 for k in dataset_configuration:
-                    experiment_configuration[k] = dataset_configuration[k]
+                    network_configuration[k] = dataset_configuration[k]
             else:
-                if key not in experiment_configuration:
-                    experiment_configuration[key] = self.main_config[key]
+                if key not in network_configuration:
+                    network_configuration[key] = self.main_config[key]
 
-        experiment_configuration['format'] = 'RuleGNNDataset'
+        network_configuration['format'] = 'RuleGNNDataset'
+        network_configuration['with_invariant_layers'] = False
+        # iterate over all layers to check whether an invariant-based layer is used
+        for network in network_configuration['networks']:
+            for layer in network:
+                if layer['layer_type'] in ['invariant_based_convolution', 'invariant_based_aggregation']:
+                    network_configuration['with_invariant_layers'] = True
+                    break
+
         dataset_string_name = None
         if isinstance(dataset_configuration['name'], list):
             str_concatenation = ''
@@ -252,197 +220,198 @@ class ExperimentMain:
                 str_concatenation += name
                 if i < len(dataset_configuration['name']) - 1:
                     str_concatenation += '_'
-            experiment_configuration['name'] = str_concatenation
-            if str_concatenation not in self.experiment_configurations:
-                self.experiment_configurations[str_concatenation] = [experiment_configuration.copy()]
+            network_configuration['name'] = str_concatenation
+            if str_concatenation not in self.network_configurations:
+                self.network_configurations[str_concatenation] = [network_configuration.copy()]
             else:
-                self.experiment_configurations[str_concatenation].append(experiment_configuration.copy())
-            self.experiment_configurations[str_concatenation][-1]['single_datasets'] = dataset_configuration['name']
+                self.network_configurations[str_concatenation].append(network_configuration.copy())
+            self.network_configurations[str_concatenation][-1]['single_datasets'] = dataset_configuration['name']
 
         else:
             dataset_string_name = dataset_configuration['name']
-            if dataset_string_name not in self.experiment_configurations:
-                self.experiment_configurations[dataset_string_name] = [experiment_configuration.copy()]
+            if dataset_string_name not in self.network_configurations:
+                self.network_configurations[dataset_string_name] = [network_configuration.copy()]
             else:
-                self.experiment_configurations[dataset_string_name].append(experiment_configuration.copy())
+                self.network_configurations[dataset_string_name].append(network_configuration.copy())
 
     def get_configuration_list(self):
         all_configurations = []
-        for key in self.experiment_configurations:
-            for configuration in self.experiment_configurations[key]:
+        for key in self.network_configurations:
+            for configuration in self.network_configurations[key]:
                 all_configurations.append(configuration)
         return all_configurations
 
     def ExperimentPreprocessing(self, num_threads=-1):
-        num_datasets = len(self.experiment_configurations)
+        num_datasets = len(self.network_configurations)
         # parallelize over the datasets
         if num_threads == -1:
             num_threads = min(num_datasets, os.cpu_count())
             num_threads = self.main_config.get('num_workers', num_threads)
             num_threads = min(num_threads, num_datasets)
-        joblib.Parallel(n_jobs=num_threads)(joblib.delayed(DatasetPreprocessing)(self.experiment_configurations[key]) for key in self.experiment_configurations.keys())
+        joblib.Parallel(n_jobs=num_threads)(joblib.delayed(DatasetPreprocessing)(self.network_configurations[key]) for key in self.network_configurations.keys())
 
 
-    def config_consistency_and_preprocessing(self):
-        for key in self.experiment_configurations:
-            for configuration in self.experiment_configurations[key]:
-                if 'model' in configuration and configuration['model'] == 'GCN':
-                    #TODO: implement check for GCN
-                    pass
+    def check_configuration_files(self):
+        """
+        Check the configuration files for errors.
+        """
+        for key in self.network_configurations:
+            for configuration in self.network_configurations[key]:
+                # check the name
+                if 'name' not in configuration:
+                    raise ValueError(f'Please specify the name of the dataset in the main configuration file.')
+
+                ### check the paths
+                if 'paths' not in configuration:
+                    raise ValueError(f'Please specify the paths in the main configuration file.')
+                if 'data' not in configuration['paths']:
+                    raise ValueError(f'Please specify the data path in the main configuration file.')
+                if 'labels' not in configuration['paths']:
+                    raise ValueError(f'Please specify the labels path in the main configuration file.')
+                if 'properties' not in configuration['paths']:
+                    raise ValueError(f'Please specify the properties path in the main configuration file.')
+                if 'splits' not in configuration['paths']:
+                    raise ValueError(f'Please specify the splits path in the main configuration file.')
+                if 'results' not in configuration['paths']:
+                    raise ValueError(f'Please specify the results path in the main configuration file.')
+
+
+                ### check the task
+                if 'task' not in configuration:
+                    raise ValueError(f'Please specify the task in the main configuration file.'
+                                     'Choose between "graph_classification", "graph_regression", "node_classification" and "link_prediction".')
+
+                if 'type' not in configuration:
+                    raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
+                                     'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
                 else:
-                    # check the name
-                    if 'name' not in configuration:
-                        raise ValueError(f'Please specify the name of the dataset in the main configuration file.')
-
-                    ### check the paths
-                    if 'paths' not in configuration:
-                        raise ValueError(f'Please specify the paths in the main configuration file.')
-                    if 'data' not in configuration['paths']:
-                        raise ValueError(f'Please specify the data path in the main configuration file.')
-                    if 'labels' not in configuration['paths']:
-                        raise ValueError(f'Please specify the labels path in the main configuration file.')
-                    if 'properties' not in configuration['paths']:
-                        raise ValueError(f'Please specify the properties path in the main configuration file.')
-                    if 'splits' not in configuration['paths']:
-                        raise ValueError(f'Please specify the splits path in the main configuration file.')
-                    if 'results' not in configuration['paths']:
-                        raise ValueError(f'Please specify the results path in the main configuration file.')
-
-
-                    ### check the task
-                    if 'task' not in configuration:
-                        raise ValueError(f'Please specify the task in the main configuration file.'
-                                         'Choose between "graph_classification", "graph_regression", "node_classification" and "link_prediction".')
-
-                    if 'type' not in configuration:
-                        raise ValueError(f'Please specify the type of the dataset in the main configuration file.'
-                                         'Choose between "generate_from_function", "TUDataset", "gnn_benchmark" and "ZINC".')
+                    if isinstance(configuration['type'], list):
+                        if len(configuration['type']) != len(configuration.get('single_datasets',0)):
+                            raise ValueError(f'The number of types and datasets do not match.')
+                        if configuration.get('data_generation_args', None) is not None:
+                            if len(configuration['type']) != len(configuration['data_generation_args']):
+                                raise ValueError(f'The number of types and data generation arguments do not match.')
+                        for t in configuration['type']:
+                            if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
+                                raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
                     else:
-                        if isinstance(configuration['type'], list):
-                            if len(configuration['type']) != len(configuration.get('single_datasets',0)):
-                                raise ValueError(f'The number of types and datasets do not match.')
-                            if configuration.get('data_generation_args', None) is not None:
-                                if len(configuration['type']) != len(configuration['data_generation_args']):
-                                    raise ValueError(f'The number of types and data generation arguments do not match.')
-                            for t in configuration['type']:
-                                if t not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn']:
-                                    raise ValueError(f'The type {t} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+                        if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark', 'NEL', 'QM9', 'QM7']:
+                            raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+
+                ###
+                if 'validation_folds' not in configuration:
+                    raise ValueError(f'Please specify the number of validation folds in the main configuration file.')
+
+                ### check the input features
+                if 'input_features' not in configuration:
+                    raise ValueError(f'Please specify the input features in the main configuration file.')
+                ### TODO per layer weight initialization also possible (if weight initialization is not given default is applied)
+                if 'weight_initialization' not in configuration:
+                    print("Check the weight initialization of the network. If no weight initialization is given, the default weight initialization of PyTorch is used.")
+                    #raise ValueError(f'Please specify the weight initialization in the main configuration file.')
+
+                if 'networks' not in configuration:
+                    raise ValueError(f'Please specify the networks in the experiment configuration file.')
+
+                if 'batch_size' not in configuration:
+                    raise ValueError(f'Please specify the batch size in the experiment configuration file using the key "batch_size".')
+                if 'epochs' not in configuration:
+                    raise ValueError(f'Please specify the number of epochs in the experiment configuration file using the key "epochs".')
+                if 'learning_rate' not in configuration:
+                    raise ValueError(f'Please specify the learning rate in the experiment configuration file using the key "learning_rate".')
+                if 'optimizer' not in configuration:
+                    raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
+                if 'loss' not in configuration:
+                    raise ValueError(f'Please specify the loss function in the experiment configuration file using the key "loss".')
+
+
+
+                # optional keys (print a message that the value was set to the default value)
+                if 'with_splits' not in configuration:
+                    print('To use own splits, please set the key "with_splits" to False in the main configuration file. The default value is True.'
+                          'In addition specify a path to the splits using the key "splits_path".')
+                    configuration['with_splits'] = True
+                else:
+                    if not configuration['with_splits']:
+                        if 'split_function' in configuration:
+                            if not 'split_function_args' in configuration:
+                                configuration['split_function_args'] = {}
+                            # check if the split function exists
+                            if not hasattr(split_functions, configuration['split_function']):
+                                raise ValueError(f"Split function {configuration['split_function']} not found")
+                            else:
+                                split_function = getattr(split_functions, configuration['split_function'])
+                                if not callable(split_function):
+                                    raise ValueError(f"Split function {configuration['split_function']} is not callable")
+                                else:
+                                    configuration['split_function'] = split_function
+                        elif 'splits_path' in configuration:
+                            # check if the splits path exists
+                            if not os.path.exists(configuration['splits_path']):
+                                raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
+                            else:
+                                configuration['splits'] = Load_Splits(configuration['splits_path'], configuration['name'])
+                        elif 'split_appendix' in configuration:
+                            if not os.path.exists(configuration['paths']['splits']):
+                                raise FileNotFoundError(f"Splits path {configuration['paths']['splits']} not found")
+                            else:
+                                configuration['splits'] = Load_Splits(configuration['paths']['splits'], configuration['name'], appendix=configuration['split_appendix'])
+                        elif 'pretraining_datasets' or 'finetuning_datasets' in configuration:
+                            pass
                         else:
-                            if configuration['type'] not in ['generate_from_function', 'TUDataset', 'gnn_benchmark', 'ZINC', 'planetoid', 'Planetoid', 'Nell', 'ogbn', 'MoleculeNet', 'OGB_GraphProp', 'SubstructureBenchmark', 'NEL', 'QM9', 'QM7']:
-                                raise ValueError(f'The type {configuration["type"]} is not supported. Please use "generate_from_function", "TUDataset", "gnn_benchmark" or "ZINC".')
+                            raise ValueError(
+                                f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
 
-                    ###
-                    if 'validation_folds' not in configuration:
-                        raise ValueError(f'Please specify the number of validation folds in the main configuration file.')
-
-                    ### check the input features
-                    if 'input_features' not in configuration:
-                        raise ValueError(f'Please specify the input features in the main configuration file.')
-                    ### check weight initialization
-                    if 'weight_initialization' not in configuration:
-                        raise ValueError(f'Please specify the weight initialization in the main configuration file.')
-
-                    if 'networks' not in configuration:
-                        raise ValueError(f'Please specify the networks in the experiment configuration file.')
-
-                    if 'batch_size' not in configuration:
-                        raise ValueError(f'Please specify the batch size in the experiment configuration file using the key "batch_size".')
-                    if 'epochs' not in configuration:
-                        raise ValueError(f'Please specify the number of epochs in the experiment configuration file using the key "epochs".')
-                    if 'learning_rate' not in configuration:
-                        raise ValueError(f'Please specify the learning rate in the experiment configuration file using the key "learning_rate".')
-                    if 'optimizer' not in configuration:
-                        raise ValueError(f'Please specify the optimizer in the experiment configuration file using the key "optimizer".')
-                    if 'loss' not in configuration:
-                        raise ValueError(f'Please specify the loss function in the experiment configuration file using the key "loss".')
-
-
-
-                    # optional keys (print a message that the value was set to the default value)
-                    if 'with_splits' not in configuration:
-                        print('To use own splits, please set the key "with_splits" to False in the main configuration file. The default value is True.'
-                              'In addition specify a path to the splits using the key "splits_path".')
-                        configuration['with_splits'] = True
+                if 'type' in configuration:
+                    data_generation_args = configuration.get('data_generation_args', None)
+                    if configuration['type'] == 'generate_from_function':
+                        if not hasattr(synthetic_graphs, configuration['generate_function']):
+                            raise ValueError(f"Generate function {configuration['generate_function']} not found")
+                        else:
+                            data_generation = getattr(synthetic_graphs, configuration['generate_function'])
+                            if not callable(data_generation):
+                                raise ValueError(f"Generate function {configuration['generate_function']} is not callable")
+                            else:
+                                configuration['data_generation'] = data_generation
                     else:
-                        if not configuration['with_splits']:
-                            if 'split_function' in configuration:
-                                if not 'split_function_args' in configuration:
-                                    configuration['split_function_args'] = {}
-                                # check if the split function exists
-                                if not hasattr(split_functions, configuration['split_function']):
-                                    raise ValueError(f"Split function {configuration['split_function']} not found")
-                                else:
-                                    split_function = getattr(split_functions, configuration['split_function'])
-                                    if not callable(split_function):
-                                        raise ValueError(f"Split function {configuration['split_function']} is not callable")
-                                    else:
-                                        configuration['split_function'] = split_function
-                            elif 'splits_path' in configuration:
-                                # check if the splits path exists
-                                if not os.path.exists(configuration['splits_path']):
-                                    raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
-                                else:
-                                    configuration['splits'] = Load_Splits(configuration['splits_path'], configuration['name'])
-                            elif 'split_appendix' in configuration:
-                                if not os.path.exists(configuration['paths']['splits']):
-                                    raise FileNotFoundError(f"Splits path {configuration['paths']['splits']} not found")
-                                else:
-                                    configuration['splits'] = Load_Splits(configuration['paths']['splits'], configuration['name'], appendix=configuration['split_appendix'])
-                            elif 'pretraining_datasets' or 'finetuning_datasets' in configuration:
-                                pass
-                            else:
-                                raise ValueError(
-                                    f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
-
-                    if 'type' in configuration:
-                        data_generation_args = configuration.get('data_generation_args', None)
-                        if configuration['type'] == 'generate_from_function':
-                            if not hasattr(synthetic_graphs, configuration['generate_function']):
-                                raise ValueError(f"Generate function {configuration['generate_function']} not found")
-                            else:
-                                data_generation = getattr(synthetic_graphs, configuration['generate_function'])
-                                if not callable(data_generation):
-                                    raise ValueError(f"Generate function {configuration['generate_function']} is not callable")
-                                else:
-                                    configuration['data_generation'] = data_generation
-                        else:
-                            configuration['data_generation'] = configuration['type']
-                        configuration['data_generation_args'] = data_generation_args
+                        configuration['data_generation'] = configuration['type']
+                    configuration['data_generation_args'] = data_generation_args
 
 
 
 
 
-                    if 'device' not in configuration:
-                        print('To use the GPU, please specify the key "device" in the main configuration file. The default value is "cpu".')
-                        configuration['device'] = 'cpu'
+                if 'device' not in configuration:
+                    print('To use the GPU, please specify the key "device" in the main configuration file. The default value is "cpu".')
+                    configuration['device'] = 'cpu'
 
-                    if 'precision' not in configuration:
-                        print('To use float or double precision, please specify the key "precision" in the main configuration file. The default value is "double".')
-                        configuration['precision'] = 'double'
+                if 'precision' not in configuration:
+                    print('To use float or double precision, please specify the key "precision" in the main configuration file. The default value is "double".')
+                    configuration['precision'] = 'double'
 
-                    if 'mode' not in configuration:
-                        print('To use the mode, please specify the key "mode" in the main configuration file. The default value is "experiments".'
-                              'For debugging purposes, set the mode to "debug".')
-                        configuration['mode'] = 'experiments'
+                if 'mode' not in configuration:
+                    print('To use the mode, please specify the key "mode" in the main configuration file. The default value is "experiments".'
+                          'For debugging purposes, set the mode to "debug".')
+                    configuration['mode'] = 'experiments'
 
-                    if 'early_stopping' not in configuration:
-                        print('To use early stopping, please specify the key "early_stopping" in the main configuration file. The default value is False.')
-                        configuration['early_stopping'] = {'enabled': False, 'patience': 25}
+                if 'early_stopping' not in configuration:
+                    print('To use early stopping, please specify the key "early_stopping" in the main configuration file. The default value is False.')
+                    configuration['early_stopping'] = {'enabled': False, 'patience': 25}
 
-                    if 'rule_occurrence_threshold' not in configuration:
-                        print('To use the rule occurrence threshold, please specify the key "rule_occurrence_threshold" in the main configuration file. The default value is 1.')
-                        configuration['rule_occurrence_threshold'] = 1
+                if 'rule_occurrence_threshold' not in configuration:
+                    print('To use the rule occurrence threshold, please specify the key "rule_occurrence_threshold" in the main configuration file. The default value is 1.')
+                    configuration['rule_occurrence_threshold'] = 1
 
 
     def run_configuration(self, graph_data: ShareGNNDataset, run_config, validation_id:int=0, run_id:int=0, config_id:int=None):
         """
-        Run the experiment for a given configuration
+        Run the experiment for a given configuration, a fixed validation split and a fixed run id determining the seed for the random number generator.
         parameters:
-        - graph_data: graph data object containing all the information about the graph(s)
-        - run_config: run configuration object containing all the information about the hyperparameters
-        - validation_id: integer with the validation id, i.e., which validation split to use
-        - run_id: integer with the run id, i.e., which run to use. The id determines the seed for the random number generator
+        :param graph_data: graph data object containing all the information about the graph(s)
+        :param run_config: run configuration object containing all the information about the hyperparameters
+        :param validation_id: integer with the validation id, i.e., which validation split to use
+        :param run_id: integer with the run id, i.e., which run to use. The id determines the seed for the random number generator
+        :param config_id: integer with the configuration id, i.e., which hyperparameter configuration to use
         """
         final_path = run_config.config['paths']['results'].joinpath(f'{graph_data.name}/Results/')
         configuration_file_name = f'{run_config.config["name"]}_{str(config_id).zfill(6)}_Results_run_id_{run_id}_validation_step_{validation_id}.json'
@@ -465,19 +434,19 @@ class ExperimentMain:
             validation_data = data[2][validation_id]
             model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
 
-            # create the main method object
+            # create the model configuration object
             configuration = ModelConfiguration(run_id, validation_id, graph_data, model_data, seed, para)
 
             # run the model, if a pretrained network is given, use it
             if isinstance(self.pretrained_network, tuple):
                 # tuple ExperimentMain object and experiment_db_id
-                configuration.Run(pretrained_network=self.pretrained_network[0].load_model(db_name=para.run_config.config['name'], run_id=run_id, validation_id=validation_id, best=True, experiment_db_id=self.pretrained_network[1]))
+                configuration.train_configuration(pretrained_network=self.pretrained_network[0].load_model(db_name=para.run_config.config['name'], run_id=run_id, validation_id=validation_id, best=True, experiment_db_id=self.pretrained_network[1]))
             elif isinstance(self.pretrained_network, str):
                 if self.pretrained_network in ['best', 'Best']:
                     # TODO load only the best model that achieved the best test accuracy on the pretraining datasets
                     pass
             else:
-                configuration.Run(pretrained_network=self.pretrained_network)
+                configuration.train_configuration(pretrained_network=self.pretrained_network)
             # create a configuration file TODO fill the configuration file with more infos
             with open(final_path.joinpath(configuration_file_name), 'w') as f:
                 # add train_validation_test_data to the configuration file
@@ -497,7 +466,7 @@ class ExperimentMain:
 
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True, experiment_db_id=0):
-        experiment_configuration = self.experiment_configurations[db_name][experiment_db_id]
+        experiment_configuration = self.network_configurations[db_name][experiment_db_id]
         graph_data = preprocess_graph_data(experiment_configuration)
         run_configs = get_run_configs(experiment_configuration)
         # get the path to the model
@@ -543,7 +512,7 @@ class ExperimentMain:
 
     def evaluate_model_on_graphs(self, db_name, db_id=0, graph_ids=[], config_id=0, run_id=0, validation_id=0, best=True):
         # evaluate the performance of the model on the test data
-        experiment_configuration = self.experiment_configurations[db_name][db_id]
+        experiment_configuration = self.network_configurations[db_name][db_id]
         graph_data = preprocess_graph_data(experiment_configuration)
         data = np.asarray(graph_ids, dtype=int)
         outputs = torch.zeros((len(data), graph_data.num_classes), dtype=torch.double)
@@ -564,7 +533,7 @@ class ExperimentMain:
     # evaluate the model on the test data
     def evaluate_model(self, db_name, db_id=0, config_id=0, run_id=0, validation_id=0, best=True):
         # evaluate the performance of the model on the test data
-        experiment_configuration = self.experiment_configurations[db_name][db_id]
+        experiment_configuration = self.network_configurations[db_name][db_id]
         graph_data = preprocess_graph_data(experiment_configuration)
         split_data = Load_Splits(experiment_configuration['paths']['splits'], db_name)
         test_data = np.asarray(split_data[0][validation_id], dtype=int)
@@ -586,7 +555,7 @@ class ExperimentMain:
             print(f"Dataset: {db_name}, Run Id: {run_id}, Validation Split Id: {validation_id}, Accuracy: {accuracy}")
         return outputs, labels, accuracy
 
-def collect_paths(main_configuration, experiment_configuration, dataset_configuration=None):
+def collect_paths(main_configuration, network_configuration, dataset_configuration=None):
     # first look into the main config file
     paths = deepcopy(main_configuration.get('paths', {}))
     # copy to dataset configuration if it does not exist TODO use only the paths from the dataset configuration
@@ -601,17 +570,17 @@ def collect_paths(main_configuration, experiment_configuration, dataset_configur
         dataset_configuration['paths']['results'] = dataset_configuration['paths']['results'] + dataset_configuration['results_appendix'] + '/'
 
     # if there are paths in the experiment config file, overwrite the paths TODO change this experiment config should only be for network definition
-    if experiment_configuration.get('paths', None) is not None:
-        if experiment_configuration['paths'].get('data', None) is not None:
-            paths['data'] = experiment_configuration['paths']['data']
-        if experiment_configuration['paths'].get('results', None) is not None:
-            paths['results'] = experiment_configuration['paths']['results']
-        if experiment_configuration['paths'].get('splits', None) is not None:
-            paths['splits'] = experiment_configuration['paths']['splits']
-        if experiment_configuration['paths'].get('properties', None) is not None:
-            paths['properties'] = experiment_configuration['paths']['properties']
-        if experiment_configuration['paths'].get('labels', None) is not None:
-            paths['labels'] = experiment_configuration['paths']['labels']
+    if network_configuration.get('paths', None) is not None:
+        if network_configuration['paths'].get('data', None) is not None:
+            paths['data'] = network_configuration['paths']['data']
+        if network_configuration['paths'].get('results', None) is not None:
+            paths['results'] = network_configuration['paths']['results']
+        if network_configuration['paths'].get('splits', None) is not None:
+            paths['splits'] = network_configuration['paths']['splits']
+        if network_configuration['paths'].get('properties', None) is not None:
+            paths['properties'] = network_configuration['paths']['properties']
+        if network_configuration['paths'].get('labels', None) is not None:
+            paths['labels'] = network_configuration['paths']['labels']
 
     # get the paths from the dataset configuration
     paths = dataset_configuration.get('paths', None)
@@ -620,17 +589,25 @@ def collect_paths(main_configuration, experiment_configuration, dataset_configur
 
 
 
-    # check wheter one of the paths is missing
+    # check whether one of the paths is missing
     if 'data' not in paths:
         raise FileNotFoundError("Data path is missing")
     if 'results' not in paths:
         raise FileNotFoundError("Results path is missing")
     if 'splits' not in paths:
         raise FileNotFoundError("Splits path is missing")
-    if 'properties' not in paths:
-        raise FileNotFoundError("Properties path is missing")
-    if 'labels' not in paths:
-        raise FileNotFoundError("Labels path is missing")
+    # Not all GNNs need properties and labels go over the networks in experiment configuration and check whether properties and labels are needed
+    need_props_and_labels = False
+    for network in network_configuration.get('networks', []):
+        for layer in network:
+            if layer.get('layer_type') == 'invariant_based_convolution':
+                need_props_and_labels = True
+                break
+    if need_props_and_labels:
+        if 'properties' not in paths:
+            raise FileNotFoundError("Properties path is missing")
+        if 'labels' not in paths:
+            raise FileNotFoundError("Labels path is missing")
 
     return paths
 

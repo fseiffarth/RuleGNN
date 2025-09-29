@@ -1,44 +1,6 @@
-model: GCN
-device:
-  - cpu
-batch_size:
-  - 64
-learning_rate:
-  - 0.0001
-  - 0.001
-  - 0.01
-l2:
-  - 0.
-epochs:
-  - 1000
-optimizer:
-  - Adam
-scheduler:
-  - null
-loss:
-  - CrossEntropyLoss
-gradient_clipping:
-  - null
-early_stopper:
-  -
-    class: Patience
-    args:
-      patience: 500
-      use_loss: False
-  -
-    class: Patience
-    args:
-      patience: 500
-      use_loss: True
+networks:
 
-dim_embedding:
-  - 32
-  - 64
-num_layers:
-  - 3
-  - 5
-aggregation:
-  - mean
-
-dropout:
-  - 0.
+- - { layer_type: gcn_convolution,
+      bias: True,
+      out_channels: 32,
+}

@@ -1,5 +1,5 @@
 networks:
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [1],
@@ -29,7 +29,7 @@ networks:
           { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 ] },
         ]
   }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [1],
@@ -39,7 +39,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -50,7 +50,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
   }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -61,7 +61,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -71,7 +71,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -82,7 +82,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -93,7 +93,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -103,7 +103,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -114,7 +114,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -125,7 +125,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -135,7 +135,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -146,7 +146,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -157,7 +157,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -167,7 +167,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -178,7 +178,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -189,7 +189,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -199,7 +199,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -210,7 +210,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -221,7 +221,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -231,7 +231,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -242,7 +242,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6,7 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -253,7 +253,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6,7 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -264,7 +264,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -275,7 +275,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6,7,8 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -286,7 +286,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6,7,8 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -296,7 +296,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -307,7 +307,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6,7,8,9 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -318,7 +318,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6,7,8,9 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -328,7 +328,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -339,7 +339,7 @@ networks:
           { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10 ] },
         ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -350,7 +350,7 @@ networks:
           { name: distances, values: [ 0,1,2,3,4,5,6,7,8,9,10 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -360,7 +360,7 @@ networks:
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -371,7 +371,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -382,7 +382,7 @@ networks:
             { name: distances, values: [ 0,1 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -393,7 +393,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -403,7 +403,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -414,7 +414,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -425,7 +425,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -436,7 +436,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -446,7 +446,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -457,7 +457,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -468,7 +468,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -479,7 +479,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -489,7 +489,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -500,7 +500,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -511,7 +511,7 @@ networks:
             { name: distances, values: [ 0,1,3,4 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -522,7 +522,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -532,7 +532,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -543,7 +543,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -554,7 +554,7 @@ networks:
             { name: distances, values: [ 0,1,3,4,5 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -565,7 +565,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -575,7 +575,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -586,7 +586,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -597,7 +597,7 @@ networks:
             { name: distances, values: [ 0,1,3,4,5,6 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -608,7 +608,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5,6 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -618,7 +618,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -629,7 +629,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -640,7 +640,7 @@ networks:
             { name: distances, values: [ 0,1 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -651,7 +651,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -662,7 +662,7 @@ networks:
             { name: distances, values: [ 0,1 ] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -672,7 +672,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -683,7 +683,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -694,7 +694,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -705,7 +705,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -716,7 +716,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -727,7 +727,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -738,7 +738,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -749,7 +749,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -760,7 +760,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -771,7 +771,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -781,7 +781,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -792,7 +792,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -803,7 +803,7 @@ networks:
             { name: distances, values: [ 0,1,3,4 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -814,7 +814,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -825,7 +825,7 @@ networks:
             { name: distances, values: [ 0,1,3,4 ] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -836,7 +836,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -847,7 +847,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -858,7 +858,7 @@ networks:
             { name: distances, values: [ 0,1,3,4,5 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -869,7 +869,7 @@ networks:
           { name: distances, values: [ 0,1,3,4,5 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -880,7 +880,7 @@ networks:
             { name: distances, values: [ 0,1,3,4,5 ] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -891,7 +891,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -902,7 +902,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -913,7 +913,7 @@ networks:
             { name: distances, values: [ 0,1 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -924,7 +924,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -935,7 +935,7 @@ networks:
             { name: distances, values: [ 0,1 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -946,7 +946,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -958,7 +958,7 @@ networks:
 
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -969,7 +969,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -980,7 +980,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -991,7 +991,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1002,7 +1002,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1013,7 +1013,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1023,7 +1023,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -1034,7 +1034,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1045,7 +1045,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1056,7 +1056,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1067,7 +1067,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1078,7 +1078,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1089,7 +1089,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -1100,7 +1100,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1111,7 +1111,7 @@ networks:
             { name: distances, values: [ 0,1,3,4 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1122,7 +1122,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1133,7 +1133,7 @@ networks:
             { name: distances, values: [ 0,1,3,4 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1144,7 +1144,7 @@ networks:
           { name: distances, values: [ 0,1,3,4 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1156,7 +1156,7 @@ networks:
 
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -1167,7 +1167,7 @@ networks:
           { name: distances, values: [ 0,1] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1178,7 +1178,7 @@ networks:
             { name: distances, values: [ 0,1] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1189,7 +1189,7 @@ networks:
           { name: distances, values: [ 0,1] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1200,7 +1200,7 @@ networks:
             { name: distances, values: [ 0,1] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1211,7 +1211,7 @@ networks:
           { name: distances, values: [ 0,1] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1222,7 +1222,7 @@ networks:
             { name: distances, values: [ 0,1] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1232,7 +1232,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -1243,7 +1243,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1254,7 +1254,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1265,7 +1265,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1276,7 +1276,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1287,7 +1287,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1298,7 +1298,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1308,7 +1308,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -1319,7 +1319,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1330,7 +1330,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1341,7 +1341,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1352,7 +1352,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1363,7 +1363,7 @@ networks:
           { name: distances, values: [ 0,1,2,3 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1374,7 +1374,7 @@ networks:
             { name: distances, values: [ 0,1,2,3 ] },
             ]
         }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1385,7 +1385,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -1396,7 +1396,7 @@ networks:
           { name: distances, values: [ 0,1] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1407,7 +1407,7 @@ networks:
             { name: distances, values: [ 0,1] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1418,7 +1418,7 @@ networks:
           { name: distances, values: [ 0,1] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1429,7 +1429,7 @@ networks:
             { name: distances, values: [ 0,1] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1440,7 +1440,7 @@ networks:
           { name: distances, values: [ 0,1] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1451,7 +1451,7 @@ networks:
             { name: distances, values: [ 0,1] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1462,7 +1462,7 @@ networks:
           { name: distances, values: [ 0,1] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1472,7 +1472,7 @@ networks:
         }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
           bias: False,
           heads: [ 1 ],
@@ -1483,7 +1483,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
           ]
       }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1494,7 +1494,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1505,7 +1505,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1516,7 +1516,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1527,7 +1527,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
             bias: False,
             heads: [ 1 ],
@@ -1538,7 +1538,7 @@ networks:
             { name: distances, values: [ 0,1,2 ] },
             ]
         }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1549,7 +1549,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
             bias: True,
             heads: [ 1 ],
@@ -1561,7 +1561,7 @@ networks:
 
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1572,7 +1572,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
   }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1583,7 +1583,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1594,7 +1594,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1605,7 +1605,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1616,7 +1616,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1627,7 +1627,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1638,7 +1638,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1649,7 +1649,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -1660,7 +1660,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1671,7 +1671,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1682,7 +1682,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1693,7 +1693,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1704,7 +1704,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1715,7 +1715,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1726,7 +1726,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1737,7 +1737,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1748,7 +1748,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -1759,7 +1759,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1770,7 +1770,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
   }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1781,7 +1781,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1792,7 +1792,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1803,7 +1803,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1814,7 +1814,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1825,7 +1825,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1836,7 +1836,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1847,7 +1847,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1858,7 +1858,7 @@ networks:
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -1869,7 +1869,7 @@ networks:
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1880,7 +1880,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1891,7 +1891,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1902,7 +1902,7 @@ networks:
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
 activation: 'tanh',
         bias: False,
@@ -1914,7 +1914,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1925,7 +1925,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1936,7 +1936,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1947,7 +1947,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1958,7 +1958,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1969,7 +1969,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -1979,7 +1979,7 @@ activation: 'tanh',
     }
     - { layer_type: reshape }
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -1990,7 +1990,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
   }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2001,7 +2001,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2012,7 +2012,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2023,7 +2023,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2034,7 +2034,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2045,7 +2045,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2056,7 +2056,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2067,7 +2067,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2078,7 +2078,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2089,7 +2089,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],
@@ -2100,7 +2100,7 @@ activation: 'tanh',
     - { layer_type: reshape }
 
 
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2111,7 +2111,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
   }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2122,7 +2122,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2133,7 +2133,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2144,7 +2144,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2155,7 +2155,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2166,7 +2166,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2177,7 +2177,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2188,7 +2188,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2199,7 +2199,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: convolution,
+    - { layer_type: invariant_based_convolution,
         activation: 'tanh',
         bias: False,
         heads: [ 1 ],
@@ -2210,7 +2210,7 @@ activation: 'tanh',
           { name: distances, values: [ 0,1,2 ] },
         ]
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'tanh',
         bias: True,
         heads: [ 1 ],

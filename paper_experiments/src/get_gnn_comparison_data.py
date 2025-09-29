@@ -54,7 +54,7 @@ def create_dataset(dataset_name, paths:dict[str, Path], output_path:Path, layers
 def get_gnn_comparison_data(main_config_path:Path, output_path:Path, db_name:str, with_degree=False, with_features=True):
     ### Real World Data
     experiment = ExperimentMain(Path(main_config_path))
-    experiment_configuration = experiment.experiment_configurations[db_name][0]
+    experiment_configuration = experiment.network_configurations[db_name][0]
     run_configs = get_run_configs(experiment_configuration)
     experiment_configuration['best_model'] = True
     # get the best configuration and run it

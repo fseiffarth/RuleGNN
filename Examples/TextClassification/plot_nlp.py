@@ -47,7 +47,7 @@ def main():
     for db_name in ['sentiment_small']:
 
         validation_id = 2
-        configuration = experiment.experiment_configurations[db_name][0]
+        configuration = experiment.network_configurations[db_name][0]
         path_to_data = Path(configuration['paths']['data']) / f'{db_name}'
         with open(path_to_data / f'{db_name}_plain_text.txt', 'r') as f:
             plain_texts = [line.strip() for line in f.readlines()]

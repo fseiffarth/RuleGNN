@@ -51,7 +51,7 @@ def main():
     graph_ids = [3947]
     for counter, db_name in enumerate(['triangle', 'tri_tail', 'cycle5', 'cycle4', 'cycle6', 'star', 'substructure_counting']):
         validation_id = 0
-        configuration = experiment.experiment_configurations[db_name][0]
+        configuration = experiment.network_configurations[db_name][0]
         split_data = Load_Splits(configuration['paths']['splits'], db_name)
         test_data = np.asarray(split_data[0][validation_id], dtype=int)
         # get five random graphs from the test data

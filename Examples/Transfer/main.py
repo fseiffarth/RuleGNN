@@ -16,7 +16,7 @@ def main():
     experiment_configuration = yaml.safe_load(open('Examples/Transfer/Configs/config_experiment.yml'))
     if 'paths' not in experiment_configuration:
         experiment_configuration['paths'] = {}
-    paths = collect_paths(main_configuration=main_configuration, experiment_configuration=experiment_configuration, dataset_configuration=None)
+    paths = collect_paths(main_configuration=main_configuration, network_configuration=experiment_configuration, dataset_configuration=None)
     experiment_configuration['paths'] = paths
     config_paths_to_absolute(experiment_configuration, absolute_path=Path(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))))
 
@@ -27,7 +27,7 @@ def main():
     ####################
     experiment = ExperimentMain(Path('Examples/Transfer/Configs/config_main.yml'))
     experiment.ExperimentPreprocessing()
-    experiment.GridSearch()
+    experiment.run_configurations()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)
@@ -36,7 +36,7 @@ def main():
 
     experiment_finetune = ExperimentMain(Path('Examples/Transfer/Configs/config_finetune.yml'))
     experiment_finetune.ExperimentPreprocessing()
-    experiment_finetune.GridSearch()
+    experiment_finetune.run_configurations()
     experiment_finetune.EvaluateResults()
     experiment_finetune.RunBestModel()
     experiment_finetune.EvaluateResults(evaluate_best_model=True)

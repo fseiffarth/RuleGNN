@@ -5,14 +5,14 @@ datasets:
       validation_folds: 1,
       with_splits: False,
       split_function: zinc_splits,
-      experiment_config_file: "paper_experiments/regression/ZINC/configs/network_ZINC_test.yml",
+      network_config_file: "paper_experiments/regression/ZINC/configs/network_ZINC_test.yml",
       type: 'ZINC',
   }
 
 
 
 paths:
-  # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the experiment_config_file
+  # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the network_config_file
   data:
     "paper_experiments/Data/Graphs/"
   properties:

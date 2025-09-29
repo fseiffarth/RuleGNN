@@ -225,7 +225,7 @@ from src.Experiment.ExperimentMain import ExperimentMain
 def main():
     experiment = ExperimentMain(Path('Path/To/Your/Main/Config/File.yml'))
     experiment.ExperimentPreprocessing()
-    experiment.GridSearch()
+    experiment.run_configurations()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)

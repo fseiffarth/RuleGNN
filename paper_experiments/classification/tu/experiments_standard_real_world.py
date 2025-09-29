@@ -20,12 +20,12 @@ def main_standard_real_world(num_threads=-1):
 
     experiment = ExperimentMain(Path('paper_experiments/classification/configs/main_config_sota_comparison.yml'))
     experiment.ExperimentPreprocessing(num_threads=1)
-    experiment.GridSearch(num_threads=num_threads)
+    experiment.run_configurations(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_validation_only=True)
 
     experiment = ExperimentMain(Path('paper_experiments/classification/configs/main_config_sota_random_comparison.yml'))
     experiment.ExperimentPreprocessing(num_threads=1)
-    experiment.GridSearch(num_threads=num_threads)
+    experiment.run_configurations(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_validation_only=True)
 
 @click.command()

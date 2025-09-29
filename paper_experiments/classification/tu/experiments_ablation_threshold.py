@@ -23,7 +23,7 @@ def run_ablation_experiment(num_threads, threshold_type, threshold):
     ablation_experiment = ExperimentMain(
         Path(f'paper_experiments/classification/configs/ablation/threshold/{threshold_type}/main_config_ablation_threshold_{threshold}.yml'))
     ablation_experiment.ExperimentPreprocessing(num_threads=1)
-    ablation_experiment.GridSearch(num_threads=num_threads)
+    ablation_experiment.run_configurations(num_threads=num_threads)
     ablation_experiment.EvaluateResults()
     ablation_experiment.RunBestModel(num_threads=num_threads)
     ablation_experiment.EvaluateResults(evaluate_best_model=True)

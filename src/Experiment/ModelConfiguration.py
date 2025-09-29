@@ -11,6 +11,7 @@ from torch import optim, nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 
+from src.Architectures.OrdinaryGNN import OrdinaryGNN
 from src.Architectures.ShareGNN import ShareGNN, Parameters
 from src.Experiment.data_sampling import curriculum_sampling
 from src.Preprocessing.GraphData import GraphData
@@ -68,39 +69,32 @@ class ModelConfiguration:
         if self.para.run_config.config.get('precision', 'float') == 'double':
             self.dtype = torch.double
 
-    def Run(self, pretrained_network=None):
+    def train_configuration(self, pretrained_network=None):
         """
-        Sets up the model and runs the training
-        parameters:
-        run_seed: int -> seed for the run
-        net: -> optional pretrained network, if None a new network is created based on the given parameters
+        Train the given configuration
+        :param pretrained_network: If a pretrained network is given, it is used instead of initializing a new network
         """
 
         # Initialize the graph neural network
         self.initialize_model(pretrained_network=pretrained_network, use_model=self.para.run_config.config.get('use_model', 'ShareGNN'))
         # start the timer
         timer = TimeClass()
-        # Set up the loss function
+        # Define the loss function
         self.set_loss_function()
-        # Set up the optimizer
+        # Define the optimizer
         self.set_optimizer()
-        # Preprocess the results writer
+        # Set up the file where the results are stored
         if not self.preprocess_writer():
             # Run already exists, so we do not run the training again
             print(f"Run {self.run_id} already exists, skipping training.")
             return
-        # set the scheduler
+        # Define the scheduler
         self.set_scheduler()
-
-        # Store the best epoch
+        # Initialize the best epoch
         self.best_epoch = {"epoch": 0, "acc": 0.0, "roc_auc": 0.0, "loss": 1000000.0, "val_acc": 0.0,  "val_roc_auc": 0.0, "val_loss": 1000000.0, "val_mae": 1000000.0}
-
-        """
-        Run through the defined number of epochs
-        """
+        # Create the seeds for the different epochs and validation runs
         seeds = np.arange(self.para.n_epochs*self.para.n_val_runs)
         seeds = np.reshape(seeds, (self.para.n_epochs, self.para.n_val_runs))
-
         # set data to device
         #self.graph_data.to(self.device)
 
@@ -108,6 +102,7 @@ class ModelConfiguration:
         for epoch in range(self.para.n_epochs):
             # Test early stopping criterion
             if self.early_stopping(epoch):
+                print(f"Early stopping at epoch {epoch}")
                 break
 
             timer.measure("epoch")
@@ -115,98 +110,7 @@ class ModelConfiguration:
             epoch_values = EvaluationValues()
             validation_values = EvaluationValues()
             test_values = EvaluationValues()
-
-
-            # divide the whole training data into batches
-            if self.para.run_config.config.get('training_data_sampling', None) is None or self.para.run_config.config['training_data_sampling'].get('type', None) == 'default':
-                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
-                np.random.seed(shuffling_seed)
-                np.random.shuffle(self.training_data)
-                self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
-                train_batches = np.array_split(self.training_data, self.training_data.size // self.para.run_config.batch_size)
-
-            # sample the batches from the training data uniformly
-            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'random':
-                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
-                np.random.seed(shuffling_seed)
-                np.random.shuffle(self.training_data)
-                self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
-                # get random indices from the training data
-                random_indices = np.random.choice(len(self.training_data), len(self.training_data), replace=True)
-                train_batches = np.array_split(self.training_data[random_indices], self.training_data.size // self.para.run_config.batch_size)
-
-            # sample the batches from the training data respecting the output class distribution
-            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'balanced':
-                balancing_factor = self.para.run_config.config['training_data_sampling'].get('factor', 0.5)
-                total_samples_per_epoch = self.para.run_config.config['training_data_sampling'].get('total_samples_per_epoch', 1)
-                # get the class distribution of the training data
-                unique_classes, class_indices, class_counts = torch.unique(self.graph_data.y[self.training_data], return_counts=True, return_inverse=True)
-                indices_per_class = []
-                for i in unique_classes:
-                    indices_per_class.append(np.where(class_indices == i)[0])
-                random_indices_per_class = []
-                balancing = [1-balancing_factor, balancing_factor]
-                for i in range(len(indices_per_class)):
-                    random_indices_per_class.append(np.random.choice(self.training_data[indices_per_class[i]], int(total_samples_per_epoch*self.training_data.size * balancing[i]), replace=True))
-                # concatenate the random indices
-                random_indices = np.concatenate(random_indices_per_class)
-                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
-                np.random.seed(shuffling_seed)
-                np.random.shuffle(random_indices)
-                train_batches = np.array_split(random_indices, self.training_data.size // self.para.run_config.batch_size)
-
-            # undersampling the majority class
-            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'undersampling':
-                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
-                np.random.seed(shuffling_seed)
-                # get the class distribution of the training data
-                unique_classes, class_indices, class_counts = torch.unique(self.graph_data.y[self.training_data], return_counts=True, return_inverse=True)
-                minimum_class_count = torch.min(class_counts).item()
-                indices_per_class = []
-                for i in unique_classes:
-                    indices_per_class.append(np.where(class_indices == i)[0])
-                random_indices_per_class = []
-                for i in range(len(indices_per_class)):
-                    random_indices_per_class.append(np.random.choice(indices_per_class[i], minimum_class_count, replace=False))
-                # concatenate the random indices
-                random_indices = np.concatenate(random_indices_per_class)
-                np.random.shuffle(random_indices)
-                train_batches = np.array_split(self.training_data[random_indices], random_indices.size // self.para.run_config.batch_size)
-
-
-
-            # sort the graphs by the number of nodes
-            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum':
-                train_batches = curriculum_sampling(graph_data=self.graph_data,
-                                                               training_data=self.training_data,
-                                                               num_batches=self.para.run_config.config['training_data_sampling'].get('num_batches', (len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
-                                                               batch_size=self.para.run_config.batch_size,
-                                                               bucket_num=self.para.run_config.config['training_data_sampling']['bucket_num'],
-                                                               total_epochs=self.para.n_epochs,
-                                                               epoch=epoch,
-                                                               anti=self.para.run_config.config['training_data_sampling'].get('anti', False),
-                                                               exclusive=self.para.run_config.config['training_data_sampling'].get('exclusive', True))
-
-            # sort the graphs by the number of edges
-            elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum_edges':
-                train_batches = curriculum_sampling(graph_data=self.graph_data,
-                                                             training_data=self.training_data,
-                                                             num_batches=self.para.run_config.config['training_data_sampling'].get('num_batches', (len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
-                                                             batch_size=self.para.run_config.batch_size,
-                                                                bucket_num=self.para.run_config.config['training_data_sampling']['bucket_num'],
-                                                                total_epochs=self.para.n_epochs,
-                                                                epoch=epoch,
-                                                                anti=self.para.run_config.config['training_data_sampling'].get('anti', False),
-                                                                exclusive=self.para.run_config.config['training_data_sampling'].get('exclusive', True),
-                                                                use_edges=True)
-            else:
-                shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
-                np.random.seed(shuffling_seed)
-                np.random.shuffle(self.training_data)
-                self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
-                train_batches = np.array_split(self.training_data,
-                                               self.training_data.size // self.para.run_config.batch_size)
-
+            train_batches = self.get_train_batches(seeds, epoch)
 
             # if weighted_loss is set to true, get the class weights
             if self.para.run_config.config.get('weighted_loss', False):
@@ -227,34 +131,37 @@ class ModelConfiguration:
                 self.train_node_task(epoch=epoch, values=(epoch_values, validation_values, test_values), train_batches=train_batches, random_variation_bool=random_variation_bool, timer=timer)
 
 
-            # Pruning
+            # TODO Pruning
             if valid_pruning_configuration(self.para, epoch):
                 self.model_pruning(epoch)
 
-
-            epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch,train_values=epoch_values, validation_values=validation_values, test_values=test_values, evaluation_type='validation')
-            epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch,train_values=epoch_values, validation_values=validation_values, test_values=test_values, evaluation_type='test')
-
-            timer.measure("epoch")
-            epoch_time = timer.get_flag_time("epoch")
-
-            self.postprocess_writer(epoch, epoch_time, epoch_values, validation_values, test_values)
-
-
-            # apply scheduler
+            # Step the scheduler
             if self.scheduler is not None:
                 if self.para.run_config.config['scheduler']['type'] == 'ReduceLROnPlateau':
                     self.scheduler.step(validation_values.loss)
                 else:
                     self.scheduler.step()
 
+            # Evaluate the results on training, validation and test set (only if specified in the config or for evaluation)
+            epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch,train_values=epoch_values, validation_values=validation_values, test_values=test_values, evaluation_type='validation')
+            epoch_values, validation_values, test_values = self.evaluate_results(epoch=epoch,train_values=epoch_values, validation_values=validation_values, test_values=test_values, evaluation_type='test')
+
+            timer.measure("epoch")
+            epoch_time = timer.get_flag_time("epoch")
+
+            # Write the results to the results file
+            self.postprocess_writer(epoch, epoch_time, epoch_values, validation_values, test_values)
+
+
+
+
     def initialize_model(self, pretrained_network,  use_model='ShareGNN'):
         """
         Initialize the network, i.e., if pretrained_network is given load the network from the file, else create a new network
         """
         print(f'Initializing network with seed {self.seed}')
-        if use_model == 'GCN':
-            self.net = GCNGraph(graph_data=self.graph_data, para=self.para, seed=self.seed, device=self.device)
+        if not self.para.run_config.config.get('with_invariant_layers', True):
+            self.net = OrdinaryGNN.OrdinaryGNN(graph_data=self.graph_data, para=self.para, seed=self.seed, device=self.device)
         else:
             if pretrained_network is not None:
                 self.net = pretrained_network
@@ -991,6 +898,126 @@ class ModelConfiguration:
             if outputs.shape[1] == 1:
                 outputs = outputs.squeeze(1)
         return labels, outputs[data]
+
+
+    def get_train_batches(self, seeds, epoch):
+        """
+        Get the training batches according to the sampling method
+        :param seeds: Vector of seeds for shuffling the training data
+        :param epoch: Current epoch
+        :return: Return the training batches
+        """
+        # divide the whole training data into batches
+        if self.para.run_config.config.get('training_data_sampling', None) is None or self.para.run_config.config[
+            'training_data_sampling'].get('type', None) == 'default':
+            shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+            np.random.seed(shuffling_seed)
+            np.random.shuffle(self.training_data)
+            self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
+            train_batches = np.array_split(self.training_data,
+                                           self.training_data.size // self.para.run_config.batch_size)
+
+        # sample the batches from the training data uniformly
+        elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'random':
+            shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+            np.random.seed(shuffling_seed)
+            np.random.shuffle(self.training_data)
+            self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
+            # get random indices from the training data
+            random_indices = np.random.choice(len(self.training_data), len(self.training_data), replace=True)
+            train_batches = np.array_split(self.training_data[random_indices],
+                                           self.training_data.size // self.para.run_config.batch_size)
+
+        # sample the batches from the training data respecting the output class distribution
+        elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'balanced':
+            balancing_factor = self.para.run_config.config['training_data_sampling'].get('factor', 0.5)
+            total_samples_per_epoch = self.para.run_config.config['training_data_sampling'].get(
+                'total_samples_per_epoch', 1)
+            # get the class distribution of the training data
+            unique_classes, class_indices, class_counts = torch.unique(self.graph_data.y[self.training_data],
+                                                                       return_counts=True, return_inverse=True)
+            indices_per_class = []
+            for i in unique_classes:
+                indices_per_class.append(np.where(class_indices == i)[0])
+            random_indices_per_class = []
+            balancing = [1 - balancing_factor, balancing_factor]
+            for i in range(len(indices_per_class)):
+                random_indices_per_class.append(np.random.choice(self.training_data[indices_per_class[i]],
+                                                                 int(total_samples_per_epoch * self.training_data.size *
+                                                                     balancing[i]), replace=True))
+            # concatenate the random indices
+            random_indices = np.concatenate(random_indices_per_class)
+            shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+            np.random.seed(shuffling_seed)
+            np.random.shuffle(random_indices)
+            train_batches = np.array_split(random_indices, self.training_data.size // self.para.run_config.batch_size)
+
+        # undersampling the majority class
+        elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'undersampling':
+            shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+            np.random.seed(shuffling_seed)
+            # get the class distribution of the training data
+            unique_classes, class_indices, class_counts = torch.unique(self.graph_data.y[self.training_data],
+                                                                       return_counts=True, return_inverse=True)
+            minimum_class_count = torch.min(class_counts).item()
+            indices_per_class = []
+            for i in unique_classes:
+                indices_per_class.append(np.where(class_indices == i)[0])
+            random_indices_per_class = []
+            for i in range(len(indices_per_class)):
+                random_indices_per_class.append(
+                    np.random.choice(indices_per_class[i], minimum_class_count, replace=False))
+            # concatenate the random indices
+            random_indices = np.concatenate(random_indices_per_class)
+            np.random.shuffle(random_indices)
+            train_batches = np.array_split(self.training_data[random_indices],
+                                           random_indices.size // self.para.run_config.batch_size)
+
+
+
+        # sort the graphs by the number of nodes
+        elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum':
+            train_batches = curriculum_sampling(graph_data=self.graph_data,
+                                                training_data=self.training_data,
+                                                num_batches=self.para.run_config.config['training_data_sampling'].get(
+                                                    'num_batches', (
+                                                                len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
+                                                batch_size=self.para.run_config.batch_size,
+                                                bucket_num=self.para.run_config.config['training_data_sampling'][
+                                                    'bucket_num'],
+                                                total_epochs=self.para.n_epochs,
+                                                epoch=epoch,
+                                                anti=self.para.run_config.config['training_data_sampling'].get('anti',
+                                                                                                               False),
+                                                exclusive=self.para.run_config.config['training_data_sampling'].get(
+                                                    'exclusive', True))
+
+        # sort the graphs by the number of edges
+        elif self.para.run_config.config['training_data_sampling'].get('type', None) == 'curriculum_edges':
+            train_batches = curriculum_sampling(graph_data=self.graph_data,
+                                                training_data=self.training_data,
+                                                num_batches=self.para.run_config.config['training_data_sampling'].get(
+                                                    'num_batches', (
+                                                                len(self.training_data) - 1) // self.para.run_config.batch_size + 1),
+                                                batch_size=self.para.run_config.batch_size,
+                                                bucket_num=self.para.run_config.config['training_data_sampling'][
+                                                    'bucket_num'],
+                                                total_epochs=self.para.n_epochs,
+                                                epoch=epoch,
+                                                anti=self.para.run_config.config['training_data_sampling'].get('anti',
+                                                                                                               False),
+                                                exclusive=self.para.run_config.config['training_data_sampling'].get(
+                                                    'exclusive', True),
+                                                use_edges=True)
+        else:
+            shuffling_seed = seeds[epoch][self.k_val] * self.run_id + self.seed
+            np.random.seed(shuffling_seed)
+            np.random.shuffle(self.training_data)
+            self.para.run_config.batch_size = min(self.para.run_config.batch_size, len(self.training_data))
+            train_batches = np.array_split(self.training_data,
+                                           self.training_data.size // self.para.run_config.batch_size)
+        return train_batches
+
 
 
 

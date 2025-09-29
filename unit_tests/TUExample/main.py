@@ -146,7 +146,7 @@ def main():
     test_label_loading(mutag_data)
 
     # Continue with the original test
-    experiment.GridSearch()
+    experiment.run_configurations()
     experiment.EvaluateResults()
     experiment.RunBestModel()
     experiment.EvaluateResults(evaluate_best_model=True)

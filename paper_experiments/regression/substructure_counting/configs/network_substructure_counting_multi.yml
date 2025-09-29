@@ -1,5 +1,5 @@
 networks:
-  - - { layer_type: convolution ,
+  - - { layer_type: invariant_based_convolution ,
       bias: False,
         activation: 'LeakyReLU',
       heads: [
@@ -62,7 +62,7 @@ networks:
         activation: 'LeakyReLU'
     }
     - { layer_type: layer_norm }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         activation: 'LeakyReLU',
         bias: True,
         out_dim: 10,

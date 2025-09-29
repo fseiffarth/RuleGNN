@@ -8,7 +8,7 @@ def main_counting(num_threads=-1):
     experiment = ExperimentMain(Path('paper_experiments/regression/substructure_counting/configs/main_config_substructure_counting.yml'))
     experiment.ExperimentPreprocessing(num_threads=num_threads)
     ## run real world experiment
-    experiment.GridSearch(num_threads=num_threads)
+    experiment.run_configurations(num_threads=num_threads)
     experiment.EvaluateResults()
     experiment.RunBestModel(num_threads=num_threads)
     experiment.EvaluateResults(evaluate_best_model=True)

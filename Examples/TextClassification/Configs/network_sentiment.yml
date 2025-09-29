@@ -1,7 +1,7 @@
 
 # networks: list of network configurations, each configuration is a list of layers, each layer is a dictionary with the layer_type and properties
 networks:
-  - - { layer_type: convolution ,
+  - - { layer_type: invariant_based_convolution ,
         bias: True,
         heads:  [
           {
@@ -33,7 +33,7 @@ networks:
         bias: True,
         activation: 'tanh',
     }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
           bias: True,
           out_dim: 10,
           heads: [1],

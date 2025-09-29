@@ -21,14 +21,9 @@ class DatasetPreprocessing:
     """
     Preprocessing class to load the data, generate the splits, labels and properties and save them in the correct folders.
     params:
-    db_name: str: name of the dataset
     dataset_configuration: dict: configuration for the dataset
-    experiment_configuration: dict: configuration for the experiment
-    with_splits: bool: generate the splits
-    with_labels_and_properties: bool: generate the labels and properties
-    data_generation: str: name of the data generation function
     """
-    def __init__(self, dataset_configurations, with_labels_and_properties=True):
+    def __init__(self, dataset_configurations):
         for configuration in dataset_configurations:
             self.db_name = configuration['name']
             self.graph_data = None
@@ -45,12 +40,13 @@ class DatasetPreprocessing:
                 data_generation = self.experiment_configuration['data_generation']
                 data_generation_args = self.experiment_configuration.get('generate_function_args', None)
                 self.generate_data(dataset, data_generation, data_generation_args)
+            # load the graph data
             self.load_data()
             # generate the split files
             self.generate_configuration_splits()
 
             # generate the labels and properties automatically from the config file
-            if with_labels_and_properties:
+            if configuration.get('with_invariant_layers', False):
                 self.preprocessing_from_config()
 
 
@@ -213,8 +209,10 @@ class DatasetPreprocessing:
             splits_path = splits_path.joinpath(f'{self.db_name}_splits.json')
 
         if splits_path.exists():
-            pass
+            print(f"Splits will be loaded from {splits_path}")
         else:
+            # The split file does not exist, create it
+            print("The split file does not exist, new splits will be created.")
             self.create_split_file()
 
         # copy the splits to the processed folder

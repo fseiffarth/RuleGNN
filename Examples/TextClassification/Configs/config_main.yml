@@ -1,7 +1,7 @@
 # datasets: list of datasets to be used for the experiment
 # -name: "DHFR", name of the dataset (if type is TUDataset, the name can be any of the datasets from
 # -validation_folds: 10, number of validation folds
-# -experiment_config_file: path to the experiment configuration file
+# -network_config_file: path to the experiment configuration file
 # -type: type of the dataset, options: [TUDataset, generate_from_function]
 # -generate_function: if type is generate_from_function, the name of the function to generate the dataset from src/utils/SyntheticGraphs.py
 # -generate_function_args: if type is generate_from_function, the arguments for the generate function as a dictionary
@@ -10,19 +10,19 @@ datasets:
      type: "NEL",
      task: 'graph_classification',
      validation_folds: 10,
-     experiment_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
+     network_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
   }
   - { name: "sentiment_small",
       type: "NEL",
       task: 'graph_classification',
       validation_folds: 10,
-      experiment_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
+      network_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
   }
   - { name: "sentiment_bert",
       type: "NEL",
       task: 'graph_classification',
       validation_folds: 10,
-      experiment_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
+      network_config_file: "Examples/TextClassification/Configs/network_sentiment.yml"
   }
 
 # paths: paths to the data, properties, labels, results and splits

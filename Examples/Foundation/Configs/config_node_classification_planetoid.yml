@@ -1,5 +1,5 @@
 networks:
-  - - { layer_type: convolution ,
+  - - { layer_type: invariant_based_convolution ,
         bias: False,
         heads: [1],
         #concatenate_heads: False,
@@ -10,7 +10,7 @@ networks:
           { name: distances, values: [ 0,1,2 ], cutoff: 2 },
         ]
   }
-    - { layer_type: convolution ,
+    - { layer_type: invariant_based_convolution ,
         bias: False,
         heads: [ 1 ],
       #concatenate_heads: False,
@@ -21,7 +21,7 @@ networks:
           { name: distances, values: [ 0,1,2 ], cutoff: 2 },
         ]
     }
-#    - { layer_type: aggregation,
+#    - { layer_type: invariant_based_aggregation,
 #        bias: True,
 #        heads: [1],
 #        labels: [

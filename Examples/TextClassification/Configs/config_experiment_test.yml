@@ -52,7 +52,7 @@ early_stopping:
 # networks: list of network configurations, each configuration is a list of layers, each layer is a dictionary with the layer_type and properties
 networks:
   # first layer is a convolutional layer, second layer is an aggregation layer
-  - - { layer_type: convolution,
+  - - { layer_type: invariant_based_convolution,
         channels:
           [
             { channel_ids: [ 0, 2 ],
@@ -69,7 +69,7 @@ networks:
             }
           ]
       }
-    - { layer_type: aggregation,
+    - { layer_type: invariant_based_aggregation,
         channels:
           [
             { channels: 2,

@@ -29,7 +29,7 @@ def main():
     get_existing_splits()
     experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
     experiment.ExperimentPreprocessing(1)
-    experiment.GridSearch(1)
+    experiment.run_configurations(1)
     experiment.EvaluateResults(1)
     experiment.RunBestModel(1)
     experiment.EvaluateResults(evaluate_best_model=True)
