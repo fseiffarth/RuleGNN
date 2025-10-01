@@ -669,6 +669,9 @@ class ShareGNNDataset(InMemoryDataset):
                     data['x'] = torch.nn.functional.one_hot(data['x'])
                     if data['x'].shape[1] == 1:
                         data['x'] = data['x'].squeeze(1)
+                    # remove zero columns from one hot encoding
+                    non_zero_columns = torch.where(data['x'].sum(dim=0) != 0)[0]
+                    data['x'] = data['x'][:, non_zero_columns]
                 data['x'] = data['x'].type(self.precision)
             elif use_constant:
                 data['x'] = torch.full(size=(data['x'].shape[0], input_features.get('in_dimensions', 1)), fill_value=input_features.get('value', 1.0), dtype=self.precision)

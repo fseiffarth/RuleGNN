@@ -21,9 +21,9 @@ def main_ablation_distance(num_threads=-1):
     ablation_experiment = ExperimentMain(Path(f'paper_experiments/classification/configs/ablation/distances/main_config_ablation_distances.yml'))
     ablation_experiment.ExperimentPreprocessing(num_threads=1)
     ablation_experiment.run_configurations(num_threads=num_threads)
-    ablation_experiment.EvaluateResults()
-    ablation_experiment.RunBestModel(num_threads=num_threads)
-    ablation_experiment.EvaluateResults(evaluate_best_model=True)
+    ablation_experiment.evaluate_results()
+    ablation_experiment.run_best_configuration(num_threads=num_threads)
+    ablation_experiment.evaluate_results(evaluate_best_model=True)
 
 
 @click.command()

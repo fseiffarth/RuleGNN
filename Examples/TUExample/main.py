@@ -30,9 +30,9 @@ def main():
     experiment = ExperimentMain(Path('Examples/TUExample/Configs/config_main.yml'))
     experiment.ExperimentPreprocessing(1)
     experiment.run_configurations(1)
-    experiment.EvaluateResults(1)
-    experiment.RunBestModel(1)
-    experiment.EvaluateResults(evaluate_best_model=True)
+    experiment.evaluate_results(1)
+    experiment.run_best_configuration(1)
+    experiment.evaluate_results(evaluate_best_model=True)
 
 if __name__ == '__main__':
     main()

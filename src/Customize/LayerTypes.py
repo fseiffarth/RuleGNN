@@ -9,3 +9,4 @@ class LayerTypes(Enum):
     RESHAPE = 'reshape'
     LAYER_NORM = 'layer_norm'
     GCN_CONVOLUTION = 'gcn_convolution'
+    MEAN_AGGREGATION = 'mean_aggregation'

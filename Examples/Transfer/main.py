@@ -28,18 +28,18 @@ def main():
     experiment = ExperimentMain(Path('Examples/Transfer/Configs/config_main.yml'))
     experiment.ExperimentPreprocessing()
     experiment.run_configurations()
-    experiment.EvaluateResults()
-    experiment.RunBestModel()
-    experiment.EvaluateResults(evaluate_best_model=True)
+    experiment.evaluate_results()
+    experiment.run_best_configuration()
+    experiment.evaluate_results(evaluate_best_model=True)
 
     net = experiment.load_model('PTC_MR_PTC_FM', 0, 0, 0)
 
     experiment_finetune = ExperimentMain(Path('Examples/Transfer/Configs/config_finetune.yml'))
     experiment_finetune.ExperimentPreprocessing()
     experiment_finetune.run_configurations()
-    experiment_finetune.EvaluateResults()
-    experiment_finetune.RunBestModel()
-    experiment_finetune.EvaluateResults(evaluate_best_model=True)
+    experiment_finetune.evaluate_results()
+    experiment_finetune.run_best_configuration()
+    experiment_finetune.evaluate_results(evaluate_best_model=True)
 
 if __name__ == '__main__':
     main()

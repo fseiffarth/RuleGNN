@@ -65,8 +65,9 @@ class ExperimentMain:
         # set omp num threads to 1 to avoid conflicts with OpenMP if num_threads is unequal to 1
         if num_threads != 1:
             os.environ['OMP_NUM_THREADS'] = '1'         # set omp_num_threads to 1 to avoid conflicts with OpenMP
-        # iterate over the databases
+        # iterate over all datasets given in the main config file
         for dataset in self.network_configurations.keys():
+            # iterate over all configurations for the given dataset
             for i, configuration in enumerate(self.network_configurations[dataset]):
                 print(f"Running experiment configuration {i+1}/{len(self.network_configurations[dataset])} for dataset {dataset}")
                 max_threads = os.cpu_count()                 # determine the number of parallel jobs
@@ -102,7 +103,7 @@ class ExperimentMain:
                                                            run_id=run_loops[i][1],
                                                            config_id=config_id_names[run_loops[i][2]]) for i in range(len(run_loops)))
 
-    def EvaluateResults(self, evaluate_best_model=False, evaluate_validation_only=False):
+    def evaluate_results(self, evaluate_best_model=False, evaluate_validation_only=False):
         """
         Evaluate the results of the experiments for all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
         parameters:
@@ -138,7 +139,7 @@ class ExperimentMain:
                                            experiment_config=configuration,
                                        evaluate_validation_only=evaluate_validation_only)
 
-    def RunBestModel(self, num_threads=-1):
+    def run_best_configuration(self, num_threads=-1):
         """
         Run over all the datasets defined in the main config file (default) or only over the datasets defined in the dataset_names list.
         """

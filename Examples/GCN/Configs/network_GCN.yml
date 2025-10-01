@@ -4,3 +4,4 @@ networks:
       bias: True,
       out_channels: 32,
 }
+  - { layer_type: mean_aggregation }

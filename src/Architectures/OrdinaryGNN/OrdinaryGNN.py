@@ -1,11 +1,12 @@
 import torch
 
+from src.Architectures.Layers.FrameworkLayers import FrameworkLayers
 from src.Architectures.ShareGNN import ShareGNNLayers
 from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 import torch.nn as nn
 import torch_geometric
-
+import src.Architectures.Layers.FrameworkLayers as GNNFrameworkLayers
 from src.Time.TimeClass import TimeClass
 
 
@@ -35,16 +36,10 @@ class OrdinaryGNN(torch.nn.Module):
         # Define the layers
         self.net_layers = nn.ModuleList()
         input_features = self.graph_data.num_node_features
-        output_features = input_features
         num_heads = 0
+        current_feature_dimension = input_features
         for i, layer in enumerate(para.layers):
-            prev_layer = (None if len(self.net_layers) == 0 else self.net_layers[-1])
-            if prev_layer is not None:
-                input_features = prev_layer.output_features
-                num_heads = prev_layer.num_heads
-                output_features = prev_layer.output_features
             if layer.layer_type == 'invariant_based_convolution':
-                input_features = self.graph_data.num_node_features
                 if i != 0 and self.config_parameters.get('use_feature_transformation', None) is not None:
                     input_features = self.config_parameters['use_feature_transformation'].get('out_dimension', 16)
                 self.net_layers.append(
@@ -54,9 +49,8 @@ class OrdinaryGNN(torch.nn.Module):
                                                                     parameters=para,
                                                                     graph_data=self.graph_data,
                                                                     device=device,
-                                                                     input_features=output_features,
-                                                                     output_features=output_features).type(self.module_precision).requires_grad_(self.convolution_grad))
-
+                                                                     input_features=current_feature_dimension,
+                                                                     output_features=current_feature_dimension).type(self.module_precision).requires_grad_(self.convolution_grad))
 
             elif layer.layer_type == 'invariant_based_aggregation':
                 self.aggregation_out_dim = layer.layer_dict.get('out_dim', self.out_dim)
@@ -68,8 +62,8 @@ class OrdinaryGNN(torch.nn.Module):
                                                                  out_dim=self.aggregation_out_dim,
                                                                  graph_data=self.graph_data,
                                                                  device=device,
-                                                                  input_features=output_features,
-                                                                  output_features=output_features).requires_grad_(self.aggregation_grad))
+                                                                  input_features=current_feature_dimension,
+                                                                  output_features=current_feature_dimension).requires_grad_(self.aggregation_grad))
             elif layer.layer_type == 'linear':
                 self.net_layers.append(ShareGNNLayers.ShareGNNLinear(layer_id=i,
                                                                      seed=seed,
@@ -79,6 +73,7 @@ class OrdinaryGNN(torch.nn.Module):
                                                                      num_heads=num_heads,
                                                                      input_features=input_features,
                                                                      output_features=output_features).type(self.module_precision)).requires_grad_()
+                current_feature_dimension = output_features
             elif layer.layer_type == 'reshape':
                 if isinstance(prev_layer, ShareGNNLayers.InvariantBasedAggregationLayer):
                     output_features = prev_layer.num_heads * prev_layer.output_features * prev_layer.output_dimension
@@ -90,29 +85,37 @@ class OrdinaryGNN(torch.nn.Module):
                                                                            num_heads=num_heads,
                                                                            input_features=input_features,
                                                                            output_features=output_features).type(self.module_precision))
+                current_feature_dimension = output_features
             elif layer.layer_type == 'layer_norm':
                 self.net_layers.append(ShareGNNLayers.ShareGNNLayerNorm(layer_id=i,
                                                                         num_heads=num_heads,
                                                                         input_features=input_features,
                                                                         output_features=output_features).type(self.module_precision))
+                current_feature_dimension = output_features
             elif layer.layer_type == 'gcn_convolution':
-                gcn_args = {'in_channels': -1,
+                gcn_args = {'in_channels': current_feature_dimension,
                             'out_channels': layer.layer_dict.get('out_channels', 16),
                             'improved': layer.layer_dict.get('improved', False),
                             'cached': layer.layer_dict.get('cached', False),
                             'add_self_loops': layer.layer_dict.get('add_self_loops', None),
                             'normalize': layer.layer_dict.get('normalize', True),
                             'bias': layer.layer_dict.get('bias', True)}
-                self.net_layers.append(torch_geometric.nn.conv.GCNConv(**gcn_args))
+                current_feature_dimension = gcn_args['out_channels']
+                self.net_layers.append(GNNFrameworkLayers.GCNConv(gcn_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+            elif layer.layer_type == 'mean_aggregation':
+                self.net_layers.append(GNNFrameworkLayers.MeanAggregation({}).type(self.module_precision).requires_grad_(self.aggregation_grad))
+            else:
+                raise ValueError(f'Layer type {layer.layer_type} not recognized in OrdinaryGNN')
         self.dropout = nn.Dropout(dropout)
 
         self.epoch = 0
         self.timer = TimeClass()
 
-    def forward(self, x, pos):
+    def forward(self, data, *args, **kwargs):
+        node_representation = data.x
         for i, layer in enumerate(self.net_layers):
-            x = layer(x, pos)
-        return x
+            node_representation = layer(node_representation, data)
+        return node_representation
 
     def return_info(self):
         return type(self)

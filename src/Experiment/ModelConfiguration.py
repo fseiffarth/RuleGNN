@@ -628,7 +628,7 @@ class ModelConfiguration:
                     try:
                         file_obj.write(f"Layer: {layer.name}\n")
                     except:
-                        file_obj.write(f"Linear Layer\n")
+                        file_obj.write(f"Layer: {type(layer).__name__}\n")
                     file_obj.write(f"\n")
                     # get number of trainable parameters
                     layer_params = sum(p.numel() for p in layer.parameters() if p.requires_grad)
@@ -661,12 +661,20 @@ class ModelConfiguration:
                         if layer.Param_W.requires_grad:
                             weight_learnable_parameters += layer.Param_W.numel()
                     except:
-                        pass
+                        try:
+                            if layer.lin.weight.requires_grad:
+                                weight_learnable_parameters += layer.lin.weight.numel()
+                        except:
+                            pass
                     try:
                         if layer.Param_b.requires_grad:
                             bias_learnable_parameters += layer.Param_b.numel()
                     except:
-                        pass
+                        try:
+                            if layer.bias.requires_grad:
+                                bias_learnable_parameters += layer.bias.numel()
+                        except:
+                            pass
 
                     file_obj.write("Weight matrix learnable parameters: {}\n".format(weight_learnable_parameters))
                     file_obj.write("Bias learnable parameters: {}\n".format(bias_learnable_parameters))
@@ -757,7 +765,14 @@ class ModelConfiguration:
             else:
                 outputs = torch.zeros((len(batch), self.graph_data.num_classes), dtype=self.dtype).to(self.device)
 
-            # TODO batch in one matrix ?
+
+            # Run ordinary GNN
+            if not self.para.run_config.config.get('with_invariant_layers', True):
+                timer.measure("forward_step")
+                outputs = self.net(self.graph_data[batch], batch)
+                timer.measure("forward_step")
+
+            # Run Share GNN
             for j, graph_id in enumerate(batch, 0):
                 timer.measure("forward_step")
                 if random_variation_bool:
@@ -773,6 +788,8 @@ class ModelConfiguration:
                 else:
                     outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
                 timer.measure("forward_step")
+
+            # TODO run mixed models
 
             # calculate the loss
             if self.para.run_config.config.get('weighted_loss', False):
