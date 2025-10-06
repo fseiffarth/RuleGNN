@@ -103,6 +103,11 @@ class OrdinaryGNN(torch.nn.Module):
                 layer_args['in_channels'] = current_feature_dimension
                 self.net_layers.append(GNNFrameworkLayers.GATConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
                 current_feature_dimension = layer_args['out_channels']
+            elif layer.layer_type == LayerTypes.GATv2_CONVOLUTION.value:
+                layer_args = layer.layer_dict
+                layer_args['in_channels'] = current_feature_dimension
+                self.net_layers.append(GNNFrameworkLayers.GATv2Conv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                current_feature_dimension = layer_args['out_channels']
             elif layer.layer_type == LayerTypes.GIN_CONVOLUTION.value:
                 layer_args = layer.layer_dict
                 layer_args['in_channels'] = current_feature_dimension

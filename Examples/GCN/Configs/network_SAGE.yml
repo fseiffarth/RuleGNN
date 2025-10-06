@@ -1,19 +1,32 @@
 networks:
-- - { layer_type: sage_convolution,
+- - { layer_type: linear,
+      out_features: 64,
+      bias: True,
+      activation: torch.nn.Tanh(),
+    }
+  - { layer_type: sage_convolution,
       bias: True,
       out_channels: 64,
       activation: torch.nn.Tanh(),
+      residual: True,
 }
   - { layer_type: sage_convolution,
       bias: True,
       out_channels: 64,
       activation: torch.nn.Tanh(),
+        residual: True,
 }
+  - { layer_type: sage_convolution,
+      bias: True,
+      out_channels: 64,
+      activation: torch.nn.Tanh(),
+        residual: True,
+  }
   - { layer_type: global_pooling,
         mode: mean,
     }
   - { layer_type: linear,
-      out_features: 32,
+      out_features: 64,
       bias: True,
       activation: torch.nn.Tanh(),
   }
