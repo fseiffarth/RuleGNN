@@ -16,7 +16,7 @@ class FrameworkLayers(torch.nn.Module, ABC):
         self.layer_args = layer_args
 
     @abstractmethod
-    def forward(self, node_representation:torch.Tensor, data: ShareGNNDataset, *args, **kwargs):
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         pass
 
 class GCNConv(FrameworkLayers):
@@ -55,13 +55,24 @@ class LinearLayer(FrameworkLayers):
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         return self.layer(node_representation)
 
-class ActivationLayer(nn.Module):
+class ActivationLayer(FrameworkLayers):
     def __init__(self, layer_args):
         activation_function = layer_args.get('activation_function', torch.nn.Identity())
-        super(ActivationLayer, self).__init__()
+        super(ActivationLayer, self).__init__(layer_args)
         self.activation_function = activation_function
         self.name = "Activation Function"
 
-    def forward(self, x: torch.Tensor, pos:int=None):
-        return self.activation_function(x)
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
+        return self.activation_function(node_representation)
+
+
+class DropoutLayer(FrameworkLayers):
+    def __init__(self, layer_args):
+        p = layer_args.get('p', 0.5)
+        super(DropoutLayer, self).__init__(layer_args)
+        self.dropout = torch.nn.Dropout(p)
+        self.name = "Dropout Layer"
+
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
+        return self.dropout(node_representation)
 

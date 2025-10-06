@@ -66,20 +66,14 @@ class OrdinaryGNN(torch.nn.Module):
                                                                   input_features=current_feature_dimension,
                                                                   output_features=current_feature_dimension).requires_grad_(self.aggregation_grad))
             elif layer.layer_type == 'linear':
+                output_features = layer.layer_dict.get('out_features', 16)
                 layer_args = {
                     'in_features': current_feature_dimension,
-                    'out_features': layer.layer_dict.get('out_features', 16),
-                    'bias': layer.layer_dict.get('bias', True)
+                    'out_features': output_features,
+                    'bias': layer.layer_dict.get('bias', True),
+                    'dtype': self.module_precision
                 }
-                self.net_layers.append(OrdinaryGNN.LinearLayer(**layer_args))
-                self.net_layers.append(ShareGNNLayers.ShareGNNLinear(layer_id=i,
-                                                                     seed=seed,
-                                                                     layer=layer,
-                                                                     parameters=para,
-                                                                     graph_data=self.graph_data,
-                                                                     num_heads=num_heads,
-                                                                     input_features=input_features,
-                                                                     output_features=output_features).type(self.module_precision)).requires_grad_()
+                self.net_layers.append(GNNFrameworkLayers.LinearLayer(layer_args))
                 current_feature_dimension = output_features
             elif layer.layer_type == 'reshape':
                 if isinstance(prev_layer, ShareGNNLayers.InvariantBasedAggregationLayer):

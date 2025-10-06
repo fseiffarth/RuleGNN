@@ -760,6 +760,7 @@ class ModelConfiguration:
     def train_graph_task(self, epoch, values, train_batches, random_variation_bool, timer):
         loader = CustomBatchLoader(self.graph_data, train_batches)
         for batch_counter, batch in enumerate(loader, 0):
+            batch_ids = train_batches[batch_counter]
             timer.measure("forward")
             self.optimizer.zero_grad()
             if self.graph_data.num_classes == 1:
@@ -773,23 +774,23 @@ class ModelConfiguration:
                 timer.measure("forward_step")
                 outputs = self.net(batch)
                 timer.measure("forward_step")
-
-            # Run Share GNN
-            for j, graph_id in enumerate(batch, 0):
-                timer.measure("forward_step")
-                if random_variation_bool:
-                    mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
-                    std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
-                    if self.para.run_config.config.get('precision', 'double') == 'float':
-                        random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(),
-                                                        dtype=torch.float)
+            else:
+                # Run Share GNN
+                for j, graph_id in enumerate(batch, 0):
+                    timer.measure("forward_step")
+                    if random_variation_bool:
+                        mean = self.para.run_config.config['input_features']['random_variation'].get('mean', 0.0)
+                        std = self.para.run_config.config['input_features']['random_variation'].get('std', 0.1)
+                        if self.para.run_config.config.get('precision', 'double') == 'float':
+                            random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(),
+                                                            dtype=torch.float)
+                        else:
+                            random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(),
+                                                            dtype=torch.double)
+                        outputs[j] = self.net(self.graph_data[graph_id].x + random_variation, graph_id)
                     else:
-                        random_variation = torch.normal(mean=mean, std=std, size=self.graph_data[graph_id].x.size(),
-                                                        dtype=torch.double)
-                    outputs[j] = self.net(self.graph_data[graph_id].x + random_variation, graph_id)
-                else:
-                    outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
-                timer.measure("forward_step")
+                        outputs[j] = self.net(self.graph_data[graph_id].x, graph_id)
+                    timer.measure("forward_step")
 
             # TODO run mixed models
 
