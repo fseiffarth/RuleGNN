@@ -14,3 +14,7 @@ class LayerTypes(Enum):
 
     ### GNN specific layers
     GCN_CONVOLUTION = 'gcn_convolution'
+    GAT_CONVOLUTION = 'gat_convolution'
+    GATv2_CONVOLUTION = 'gatv2_convolution'
+    GIN_CONVOLUTION = 'gin_convolution'
+    SAGE_CONVOLUTION = 'sage_convolution'

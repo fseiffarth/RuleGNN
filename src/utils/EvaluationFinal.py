@@ -98,11 +98,19 @@ def epoch_accuracy(db_name, y_val, ids):
     # group by file id
     groups = df_all.groupby('FileId')
     # for each group group by epoch and get the mean and std
+    epoch_loss_column_name = None
+    for col in df_all.columns:
+        if 'EpochLoss' in col:
+            epoch_loss_column_name = col
+            break
+    if epoch_loss_column_name is None:
+        print("No column found that contains 'EpochLoss'")
+        return
     for i, id in enumerate(ids):
         id_str = str(id).zfill(6)
         group = groups.get_group(id_str).copy()
         group['EpochAccuracy'] = group['EpochAccuracy'] * group['TrainingSize']
-        group['EpochLoss'] *= group['TrainingSize']
+        group[epoch_loss_column_name] *= group['TrainingSize']
         group['ValidationAccuracy'] *= group['ValidationSize']
         group['ValidationLoss'] *= group['ValidationSize']
         group['TestAccuracy'] *= group['TestSize']
@@ -110,13 +118,13 @@ def epoch_accuracy(db_name, y_val, ids):
 
         group_mean = group.groupby('Epoch').mean(numeric_only=True)
         group_mean['EpochAccuracy'] /= group_mean['TrainingSize']
-        group_mean['EpochLoss'] /= group_mean['TrainingSize']
+        group_mean[epoch_loss_column_name] /= group_mean['TrainingSize']
         group_mean['ValidationAccuracy'] /= group_mean['ValidationSize']
         group_mean['ValidationLoss'] /= group_mean['ValidationSize']
         group_mean['TestAccuracy'] /= group_mean['TestSize']
         group_std = group.groupby('Epoch').std(numeric_only=True)
         group_std['EpochAccuracy'] /= group_mean['TrainingSize']
-        group_std['EpochLoss'] /= group_mean['TrainingSize']
+        group_std[epoch_loss_column_name] /= group_mean['TrainingSize']
         group_std['ValidationAccuracy'] /= group_mean['ValidationSize']
         group_std['ValidationLoss'] /= group_mean['ValidationSize']
         group_std['TestAccuracy'] /= group_mean['TestSize']
@@ -208,20 +216,27 @@ def evaluateGraphLearningNN(db_name, ids, path='Results/'):
         else:
             df_validation = df_validation.groupby('RunNumber').mean(numeric_only=True)
         # get the average and deviation over all runs
-
-        df_validation['EpochLoss'] *= df_validation['TrainingSize']
+        epoch_loss_column_name = None
+        for col in df_all.columns:
+            if 'EpochLoss' in col:
+                epoch_loss_column_name = col
+                break
+        if epoch_loss_column_name is None:
+            print("No column found that contains 'EpochLoss'")
+            return
+        df_validation[epoch_loss_column_name] *= df_validation['TrainingSize']
         df_validation['TestAccuracy'] *= df_validation['TestSize']
         df_validation['ValidationAccuracy'] *= df_validation['ValidationSize']
         df_validation['ValidationLoss'] *= df_validation['ValidationSize']
         avg = df_validation.mean(numeric_only=True)
 
-        avg['EpochLoss'] /= avg['TrainingSize']
+        avg[epoch_loss_column_name] /= avg['TrainingSize']
         avg['TestAccuracy'] /= avg['TestSize']
         avg['ValidationAccuracy'] /= avg['ValidationSize']
         avg['ValidationLoss'] /= avg['ValidationSize']
 
         std = df_validation.std(numeric_only=True)
-        std['EpochLoss'] /= avg['TrainingSize']
+        std[epoch_loss_column_name] /= avg['TrainingSize']
         std['TestAccuracy'] /= avg['TestSize']
         std['ValidationAccuracy'] /= avg['ValidationSize']
         std['ValidationLoss'] /= avg['ValidationSize']
@@ -375,9 +390,18 @@ def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_vali
                 max_mean = mean_group[mean_group['Epoch'] == max_epoch].iloc[-1]
                 max_std = std_group[std_group['Epoch'] == max_epoch].iloc[-1]
 
+                epoch_loss_column_name = None
+                for col in db.columns:
+                    if 'EpochLoss' in col:
+                        epoch_loss_column_name = col
+                        break
+                if epoch_loss_column_name is None:
+                    print("No column found that contains 'EpochLoss'")
+                    return
+
                 # write the results to summary_sota.csv using the
                 with open(result_path.joinpath(db_name).joinpath('summary_sota.csv'), 'a') as f:
-                    f.write(f"{int(max_mean['ConfigurationId'])},{int(max_mean['RunNumber'])},{int(max_mean['Epoch'])},{max_mean['EpochAccuracy']},{max_std['EpochAccuracy']},{max_mean['EpochLoss']},{max_std['EpochLoss']},{max_mean['ValidationAccuracy']},{max_std['ValidationAccuracy']},{max_mean['ValidationLoss']},{max_std['ValidationLoss']}\n")
+                    f.write(f"{int(max_mean['ConfigurationId'])},{int(max_mean['RunNumber'])},{int(max_mean['Epoch'])},{max_mean['EpochAccuracy']},{max_std['EpochAccuracy']},{max_mean[epoch_loss_column_name]},{max_std[epoch_loss_column_name]},{max_mean['ValidationAccuracy']},{max_std['ValidationAccuracy']},{max_mean['ValidationLoss']},{max_std['ValidationLoss']}\n")
 
         else:
             if db is not None:
@@ -427,8 +451,19 @@ def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_vali
                 with open(result_path.joinpath(db_name).joinpath('summary.csv'), 'w') as f:
                     f.write('Seed,ConfigurationId,RunId,Epoch Mean,Epoch Std,Epoch Accuracy Mean,Epoch Accuracy Std,Epoch Loss Mean,Epoch Loss Std,Validation Accuracy Mean,Validation Accuracy Std,Validation Loss Mean,Validation Loss Std,Test Accuracy Mean,Test Accuracy Std,Test Loss Mean,Test Loss Std\n')
 
+            # find column name that contains EpochLoss
+            epoch_loss_column_name = None
+            for col in df_validation.columns:
+                if 'EpochLoss' in col:
+                    epoch_loss_column_name = col
+                    break
+            if epoch_loss_column_name is None:
+                print("No column found that contains 'EpochLoss'")
+                return
+
+
             for name, group in validation_groups:
-                group['EpochLoss'] *= group['TrainingSize']
+                group[epoch_loss_column_name] *= group['TrainingSize']
                 group['Epoch'] *= group['TrainingSize']
                 group['EpochAccuracy'] *= group['TrainingSize']
                 group['TestAccuracy'] *= group['TestSize']
@@ -437,7 +472,7 @@ def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_vali
                 group['ValidationLoss'] *= group['ValidationSize']
                 avg = group.mean(numeric_only=True)
 
-                avg['EpochLoss'] /= avg['TrainingSize']
+                avg[epoch_loss_column_name] /= avg['TrainingSize']
                 avg['Epoch'] /= avg['TrainingSize']
                 avg['EpochAccuracy'] /= avg['TrainingSize']
                 avg['TestAccuracy'] /= avg['TestSize']
@@ -446,7 +481,7 @@ def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_vali
                 avg['ValidationLoss'] /= avg['ValidationSize']
 
                 std = group.std(numeric_only=True)
-                std['EpochLoss'] /= avg['TrainingSize']
+                std[epoch_loss_column_name] /= avg['TrainingSize']
                 std['Epoch'] /= avg['TrainingSize']
                 std['EpochAccuracy'] /= avg['TrainingSize']
                 std['TestAccuracy'] /= avg['TestSize']
@@ -460,10 +495,10 @@ def model_selection_evaluation(db_name, evaluate_best_model=False, evaluate_vali
                 seed = int(avg['Seed'])
                 if evaluate_best_model:
                     with open(result_path.joinpath(db_name).joinpath('summary_best.csv'), 'a') as f:
-                        f.write(f"{seed},{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
+                        f.write(f"{seed},{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg[epoch_loss_column_name]},{std[epoch_loss_column_name]},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
                 else:
                     with open(result_path.joinpath(db_name).joinpath('summary.csv'), 'a') as f:
-                        f.write(f"{seed},{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg['EpochLoss']},{std['EpochLoss']},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
+                        f.write(f"{seed},{configuration_id},{run_id},{avg['Epoch']},{std['Epoch']},{avg['EpochAccuracy']},{std['EpochAccuracy']},{avg[epoch_loss_column_name]},{std[epoch_loss_column_name]},{avg['ValidationAccuracy']},{std['ValidationAccuracy']},{avg['ValidationLoss']},{std['ValidationLoss']},{avg['TestAccuracy']},{std['TestAccuracy']},{avg['TestLoss']},{std['TestLoss']}\n")
 
 
             if evaluate_best_model:
@@ -557,8 +592,15 @@ def model_selection_evaluation_mae(db_name, path:Path, ids=None):
             df_validation = df_validation.groupby('ValidationNumber').mean(numeric_only=True)
 
             # get the average and deviation over all runs
-
-            df_validation['EpochLoss'] *= df_validation['TrainingSize']
+            epoch_loss_column_name = None
+            for col in df_validation.columns:
+                if 'EpochLoss' in col:
+                    epoch_loss_column_name = col
+                    break
+            if epoch_loss_column_name is None:
+                print("No column found that contains 'EpochLoss'")
+                return
+            df_validation[epoch_loss_column_name] *= df_validation['TrainingSize']
             df_validation['Epoch'] *= df_validation['TrainingSize']
             df_validation['EpochAccuracy'] *= df_validation['TrainingSize']
             df_validation['TestAccuracy'] *= df_validation['TestSize']
@@ -567,7 +609,7 @@ def model_selection_evaluation_mae(db_name, path:Path, ids=None):
             df_validation['ValidationLoss'] *= df_validation['ValidationSize']
             avg = df_validation.mean(numeric_only=True)
 
-            avg['EpochLoss'] /= avg['TrainingSize']
+            avg[epoch_loss_column_name] /= avg['TrainingSize']
             avg['Epoch'] /= avg['TrainingSize']
             avg['EpochAccuracy'] /= avg['TrainingSize']
             avg['TestAccuracy'] /= avg['TestSize']
@@ -576,7 +618,7 @@ def model_selection_evaluation_mae(db_name, path:Path, ids=None):
             avg['ValidationLoss'] /= avg['ValidationSize']
 
             std = df_validation.std(numeric_only=True)
-            std['EpochLoss'] /= avg['TrainingSize']
+            std[epoch_loss_column_name] /= avg['TrainingSize']
             std['Epoch'] /= avg['TrainingSize']
             std['EpochAccuracy'] /= avg['TrainingSize']
             std['TestAccuracy'] /= avg['TestSize']
@@ -587,12 +629,12 @@ def model_selection_evaluation_mae(db_name, path:Path, ids=None):
             # print the avg and std achieved by the highest validation loss
             print(f"Id: {id} "
                   f"Epoch: {avg['Epoch']} +/- {std['Epoch']} "
-                  f"Average Training Loss: {avg['EpochLoss']} +/- {std['EpochLoss']} "
+                  f"Average Training Loss: {avg[epoch_loss_column_name]} +/- {std[epoch_loss_column_name]} "
                   f"Average Validation Loss: {avg['ValidationLoss']} +/- {std['ValidationLoss']} "
                   f"Average Test Loss: {avg['TestLoss']} +/- {std['TestLoss']} ")
 
 
-            evaluation[id] = [avg['EpochLoss'], std['EpochLoss'],avg['ValidationLoss'], std['ValidationLoss'],avg['TestLoss'], std['TestLoss']]
+            evaluation[id] = [avg[epoch_loss_column_name], std[epoch_loss_column_name],avg['ValidationLoss'], std['ValidationLoss'],avg['TestLoss'], std['TestLoss']]
 
 
     # print all evaluation items start with id and network then validation and test accuracy

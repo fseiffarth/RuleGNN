@@ -1,10 +1,10 @@
 networks:
-- - { layer_type: gcn_convolution,
+- - { layer_type: gat_convolution,
       bias: True,
       out_channels: 64,
       activation: torch.nn.Tanh(),
 }
-  - { layer_type: gcn_convolution,
+  - { layer_type: gat_convolution,
       bias: True,
       out_channels: 64,
       activation: torch.nn.Tanh(),

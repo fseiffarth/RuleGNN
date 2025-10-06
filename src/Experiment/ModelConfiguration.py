@@ -798,10 +798,10 @@ class ModelConfiguration:
             if self.para.run_config.config.get('weighted_loss', False):
                 self.set_loss_function(weight =self.class_weights[batch_counter])
 
-            target_labels = self.graph_data.y[batch]
+            target_labels = self.graph_data.y[batch_ids]
             # check if output is two dimensional and task is graph classification
             if self.para.run_config.config.get('task', None) == 'graph_classification'  and len(outputs.shape) > 1 and outputs.shape[1] != 1:
-                target_labels = torch.nn.functional.one_hot(self.graph_data.y[batch], num_classes=self.graph_data.num_classes).to(self.dtype).to(self.device)
+                target_labels = torch.nn.functional.one_hot(self.graph_data.y[batch_ids], num_classes=self.graph_data.num_classes).to(self.dtype).to(self.device)
             loss = self.criterion(outputs, target_labels)
             timer.measure("forward")
 
@@ -830,25 +830,33 @@ class ModelConfiguration:
                                                                                  test_values=test_values,
                                                                                  evaluation_type='training',
                                                                                  outputs=outputs,
-                                                                                 labels=self.graph_data.y[batch],
+                                                                                 labels=self.graph_data.y[batch_ids],
                                                                                  batch_idx=batch_counter,
-                                                                                 batch_length=len(batch),
+                                                                                 batch_length=len(batch_ids),
                                                                                  num_batches=len(train_batches),
                                                                                  batches=train_batches)
 
-    def evaluate_graph_task(self, data):
-        labels = self.graph_data.y[data]
+    def evaluate_graph_task(self, graph_ids):
+        labels = self.graph_data.y[graph_ids]
         if self.graph_data.num_classes == 1:
-            outputs = torch.zeros((len(data)), dtype=self.dtype).to(self.device)
+            outputs = torch.zeros((len(graph_ids)), dtype=self.dtype).to(self.device)
         else:
-            outputs = torch.zeros((len(data), self.graph_data.num_classes), dtype=self.dtype).to(
+            outputs = torch.zeros((len(graph_ids), self.graph_data.num_classes), dtype=self.dtype).to(
                 self.device)
 
         # use torch no grad to save memory
         with torch.no_grad():
-            for j, data_pos in enumerate(data):
-                self.net.train(False)
-                outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
+            self.net.train(False)
+            # Run ordinary GNN
+            loader = CustomBatchLoader(self.graph_data, [graph_ids])
+            if not self.para.run_config.config.get('with_invariant_layers', True):
+                batch = next(iter(loader))
+                outputs = self.net(batch)
+            else:
+                # Run Share GNN
+                for j, data_pos in enumerate(graph_ids):
+                    self.net.train(False)
+                    outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
         return labels, outputs
 
     def train_node_task(self, epoch, values, train_batches, random_variation_bool, timer):

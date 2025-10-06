@@ -93,16 +93,26 @@ class OrdinaryGNN(torch.nn.Module):
                                                                         input_features=input_features,
                                                                         output_features=output_features).type(self.module_precision))
                 current_feature_dimension = output_features
-            elif layer.layer_type == 'gcn_convolution':
-                gcn_args = {'in_channels': current_feature_dimension,
-                            'out_channels': layer.layer_dict.get('out_channels', 16),
-                            'improved': layer.layer_dict.get('improved', False),
-                            'cached': layer.layer_dict.get('cached', False),
-                            'add_self_loops': layer.layer_dict.get('add_self_loops', None),
-                            'normalize': layer.layer_dict.get('normalize', True),
-                            'bias': layer.layer_dict.get('bias', True)}
-                current_feature_dimension = gcn_args['out_channels']
-                self.net_layers.append(GNNFrameworkLayers.GCNConv(gcn_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+            elif layer.layer_type == LayerTypes.GCN_CONVOLUTION.value:
+                layer_args = layer.layer_dict
+                layer_args['in_channels'] = current_feature_dimension
+                current_feature_dimension = layer_args['out_channels']
+                self.net_layers.append(GNNFrameworkLayers.GCNConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+            elif layer.layer_type == LayerTypes.GAT_CONVOLUTION.value:
+                layer_args = layer.layer_dict
+                layer_args['in_channels'] = current_feature_dimension
+                self.net_layers.append(GNNFrameworkLayers.GATConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                current_feature_dimension = layer_args['out_channels']
+            elif layer.layer_type == LayerTypes.GIN_CONVOLUTION.value:
+                layer_args = layer.layer_dict
+                layer_args['in_channels'] = current_feature_dimension
+                self.net_layers.append(GNNFrameworkLayers.GINConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                current_feature_dimension = layer_args['out_channels']
+            elif layer.layer_type == LayerTypes.SAGE_CONVOLUTION.value:
+                layer_args = layer.layer_dict
+                layer_args['in_channels'] = current_feature_dimension
+                self.net_layers.append(GNNFrameworkLayers.SAGEConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                current_feature_dimension = layer_args['out_channels']
             elif layer.layer_type == LayerTypes.GLOBAL_POOLING.value:
                 layer_args = {'mode': layer.layer_dict.get('mode', 'mean')}
                 self.net_layers.append(GNNFrameworkLayers.GlobalPooling(layer_args).type(self.module_precision).requires_grad_(self.aggregation_grad))

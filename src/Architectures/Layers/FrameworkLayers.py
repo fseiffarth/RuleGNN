@@ -14,6 +14,9 @@ class FrameworkLayers(torch.nn.Module, ABC):
     def __init__(self, layer_args):
         super(FrameworkLayers, self).__init__()
         self.layer_args = layer_args
+        self.activation = torch.nn.Identity()
+        if 'activation' in layer_args:
+            self.activation = eval(layer_args['activation'])
 
     @abstractmethod
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
@@ -22,10 +25,71 @@ class FrameworkLayers(torch.nn.Module, ABC):
 class GCNConv(FrameworkLayers):
     def __init__(self, layer_args):
         super(GCNConv, self).__init__(layer_args)
-        self.layer = torch_geometric.nn.GCNConv(**layer_args)
+        gcn_args = {
+            'in_channels': layer_args.get('in_channels'),
+            'out_channels': layer_args.get('out_channels'),
+            'improved': layer_args.get('improved', False),
+            'cached': layer_args.get('cached', False),
+            'add_self_loops': layer_args.get('add_self_loops', True),
+            'normalize': layer_args.get('normalize', True),
+            'bias': layer_args.get('bias', True)
+        }
+        self.layer = torch_geometric.nn.GCNConv(**gcn_args)
 
     def forward(self,node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
-        return self.layer(node_representation, batch_data.edge_index)
+        return  self.activation(self.layer(node_representation, batch_data.edge_index))
+
+class GATConv(FrameworkLayers):
+    def __init__(self, layer_args):
+        super(GATConv, self).__init__(layer_args)
+        gat_args = {
+            'in_channels': layer_args.get('in_channels'),
+            'out_channels': layer_args.get('out_channels'),
+            'heads': layer_args.get('heads', 1),
+            'concat': layer_args.get('concat', True),
+            'negative_slope': layer_args.get('negative_slope', 0.2),
+            'add_self_loops': layer_args.get('add_self_loops', True),
+            'edge_dim': layer_args.get('edge_dim', None),
+            'fill_value': layer_args.get('fill_value', 'mean'),
+            'bias': layer_args.get('bias', True),
+            'residual': layer_args.get('residual', True),
+        }
+        self.layer = torch_geometric.nn.GATConv(**gat_args)
+
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
+        return self.activation(self.layer(node_representation, batch_data.edge_index))
+
+class SAGEConv(FrameworkLayers):
+    def __init__(self, layer_args):
+        super(SAGEConv, self).__init__(layer_args)
+        sage_args = {
+            'in_channels': layer_args.get('in_channels'),
+            'out_channels': layer_args.get('out_channels'),
+            'aggr': layer_args.get('aggr', 'mean'),  # "mean", "max", "add"
+            'normalize': layer_args.get('normalize', False),
+            'root_weight': layer_args.get('root_weight', True),
+            'project': layer_args.get('project', False),
+            'bias': layer_args.get('bias', True),
+        }
+        self.layer = torch_geometric.nn.SAGEConv(**sage_args)
+
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
+        return self.activation(self.layer(node_representation, batch_data.edge_index))
+
+class GINConv(FrameworkLayers):
+    def __init__(self, layer_args):
+        super(GINConv, self).__init__(layer_args)
+        gin_args = {
+            'in_channels': layer_args.get('in_channels'),
+            'out_channels': layer_args.get('out_channels'),
+            'eps': layer_args.get('eps', 0.0),
+            'train_eps': layer_args.get('train_eps', False),
+            'bias': layer_args.get('bias', True),
+        }
+        self.layer = torch_geometric.nn.GINConv(**gin_args)
+
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
+        return self.activation(self.layer(node_representation, batch_data.edge_index))
 
 class GlobalPooling(FrameworkLayers):
     def __init__(self, layer_args):
@@ -44,7 +108,7 @@ class GlobalPooling(FrameworkLayers):
 
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
-        return self.pooling_function(node_representation, batch_data.batch)
+        return self.activation(self.pooling_function(node_representation, batch_data.batch))
 
 class LinearLayer(FrameworkLayers):
     def __init__(self, layer_args):
@@ -53,7 +117,7 @@ class LinearLayer(FrameworkLayers):
         self.name = "Linear Layer"
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
-        return self.layer(node_representation)
+        return self.activation(self.layer(node_representation))
 
 class ActivationLayer(FrameworkLayers):
     def __init__(self, layer_args):

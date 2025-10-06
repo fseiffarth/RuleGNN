@@ -15,50 +15,15 @@ def layer_from_yml(layer_id, layer_yml, layers_per_architecture, network_archite
     if 'layer_type' not in layer_yml:
         raise ValueError("layer_type is required in layer_yml")
     layer_type = layer_yml['layer_type']
-    match layer_type:
-        case LayerTypes.INVARIANT_BASED_CONVOLUTION.value:
-            layer_from_yml_invariant_based(layer_id, layer_yml, layers_per_architecture, network_architecture)
-        case LayerTypes.INVARIANT_BASED_AGGREGATION.value:
-            layer_from_yml_invariant_based(layer_id, layer_yml, layers_per_architecture, network_architecture)
-        case LayerTypes.LINEAR.value:
-            if len(layers_per_architecture) <= layer_id:
-                while len(layers_per_architecture) <= layer_id:
-                    layers_per_architecture.append([])
-            layers_per_architecture[layer_id].append(network_architecture[layer_id])
-        case LayerTypes.RESHAPE.value:
-            if len(layers_per_architecture) <= layer_id:
-                while len(layers_per_architecture) <= layer_id:
-                    layers_per_architecture.append([])
-            layers_per_architecture[layer_id].append(network_architecture[layer_id])
-        case LayerTypes.LAYER_NORM.value:
-            if len(layers_per_architecture) <= layer_id:
-                while len(layers_per_architecture) <= layer_id:
-                    layers_per_architecture.append([])
-            layers_per_architecture[layer_id].append(network_architecture[layer_id])
-        case LayerTypes.GCN_CONVOLUTION.value:
-            if len(layers_per_architecture) <= layer_id:
-                while len(layers_per_architecture) <= layer_id:
-                    layers_per_architecture.append([])
-            layers_per_architecture[layer_id].append(network_architecture[layer_id])
-        case LayerTypes.GLOBAL_POOLING.value:
-            if len(layers_per_architecture) <= layer_id:
-                while len(layers_per_architecture) <= layer_id:
-                    layers_per_architecture.append([])
-            layers_per_architecture[layer_id].append(network_architecture[layer_id])
-        case LayerTypes.ACTIVATION.value:
-            if len(layers_per_architecture) <= layer_id:
-                while len(layers_per_architecture) <= layer_id:
-                    layers_per_architecture.append([])
-            layers_per_architecture[layer_id].append(network_architecture[layer_id])
-        case LayerTypes.DROPOUT.value:
-            if len(layers_per_architecture) <= layer_id:
-                while len(layers_per_architecture) <= layer_id:
-                    layers_per_architecture.append([])
-            layers_per_architecture[layer_id].append(network_architecture[layer_id])
-
-        case _:
-            raise ValueError(f"layer_type {layer_type} is not supported")
-
+    if layer_type not in LayerTypes:
+        raise ValueError(f"layer_type {layer_type} is not supported")
+    elif layer_type in [LayerTypes.INVARIANT_BASED_CONVOLUTION.value, LayerTypes.INVARIANT_BASED_AGGREGATION.value]:
+        layer_from_yml_invariant_based(layer_id, layer_yml, layers_per_architecture, network_architecture)
+    else:
+        if len(layers_per_architecture) <= layer_id:
+            while len(layers_per_architecture) <= layer_id:
+                layers_per_architecture.append([])
+        layers_per_architecture[layer_id].append(network_architecture[layer_id])
 
 
 def layer_from_yml_invariant_based(layer_id, layer_yml, layers_per_architecture, network_architecture):
@@ -185,6 +150,9 @@ def layer_from_yml_invariant_based(layer_id, layer_yml, layers_per_architecture,
 def check_layer(i:int, layer: dict)->(bool, str):
     if 'layer_type' not in layer:
         return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
+    if layer['layer_type'] not in LayerTypes:
+        return False, f'Layer type {layer["layer_type"]} not supported in layer {i}'
+
     if layer['layer_type'] == LayerTypes.LINEAR.value:
         required = ['out_features']
         for req in required:
@@ -206,8 +174,28 @@ def check_layer(i:int, layer: dict)->(bool, str):
         pass
     elif layer['layer_type'] == LayerTypes.DROPOUT.value:
         pass
-    elif layer['layer_type'] == 'gcn_convolution':
+    elif layer['layer_type'] == LayerTypes.GCN_CONVOLUTION.value:
         required=['bias', 'out_channels']
+        for req in required:
+            if req not in layer:
+                return False, f'{req} not defined in layer {i}'
+    elif layer['layer_type'] == LayerTypes.GAT_CONVOLUTION.value:
+        required = ['bias', 'out_channels']
+        for req in required:
+            if req not in layer:
+                return False, f'{req} not defined in layer {i}'
+    elif layer['layer_type'] == LayerTypes.GATv2_CONVOLUTION.value:
+        required = ['bias', 'out_channels']
+        for req in required:
+            if req not in layer:
+                return False, f'{req} not defined in layer {i}'
+    elif layer['layer_type'] == LayerTypes.GIN_CONVOLUTION.value:
+        required = ['bias', 'out_channels']
+        for req in required:
+            if req not in layer:
+                return False, f'{req} not defined in layer {i}'
+    elif layer['layer_type'] == LayerTypes.SAGE_CONVOLUTION.value:
+        required = ['bias', 'out_channels']
         for req in required:
             if req not in layer:
                 return False, f'{req} not defined in layer {i}'
