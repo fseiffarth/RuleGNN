@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Dict, Optional, Callable, List, Union
+from typing import Dict, Optional, Callable, List, Union, Iterator, Iterable, Tuple
 
 import networkx as nx
 import numpy as np
@@ -17,6 +17,8 @@ from src.utils.utils import load_graphs
 from torch_geometric.io import fs
 from torch_geometric.utils.convert import to_networkx
 from ogb.nodeproppred import PygNodePropPredDataset
+from typing import Sequence, Optional, Any, Dict
+from torch_geometric.loader import DataLoader as PyGDataLoader
 
 
 class ShareGNNDataset(InMemoryDataset):
@@ -842,8 +844,71 @@ class ShareGNNDataset(InMemoryDataset):
 
             return None
 
+    def batches_from_ids(self, ids: List[np.ndarray]) -> List[torch.Tensor]:
+        batches = []
+        for batch in ids:
+            subset = self.index_select(batch)
+            x_size = subset.x.shape[0]
+
+            batches.append(self[id_batch])
+        return batches
+
     def __repr__(self) -> str:
         return f'{self.name}({len(self)})'
+
+
+
+
+class CustomBatchLoader(PyGDataLoader):
+    """
+    DataLoader that yields batches dictated by `batches: List[List[int]]`.
+
+    - Respects the exact grouping and order you pass in.
+    - You can mix batch sizes, repeat indices, and include singletons.
+    - Optionally drop empty batches.
+    - All standard DataLoader kwargs (num_workers, pin_memory, ...) are supported,
+      except: batch_size, shuffle, sampler, batch_sampler (they're incompatible).
+
+    Example:
+        dataset = TUDataset(root="data/TUDataset", name="MUTAG")
+        batches = [[0, 3, 5], [2], [1, 4, 6, 7]]
+        loader = CustomBatchLoader(dataset, batches, drop_empty=True, num_workers=0)
+        for batch in loader:
+            print(batch.num_graphs, batch.x.size(0))
+    """
+    class _FixedBatchSampler:
+        def __init__(self, batches: Sequence[Sequence[int]], drop_empty: bool = False):
+            self._batches: List[List[int]] = [list(b) for b in batches]
+            self.drop_empty = drop_empty
+
+        def __iter__(self) -> Iterator[List[int]]:
+            for b in self._batches:
+                if self.drop_empty and len(b) == 0:
+                    continue
+                yield b
+
+        def __len__(self) -> int:
+            if self.drop_empty:
+                return sum(1 for b in self._batches if len(b) > 0)
+            return len(self._batches)
+
+    def __init__(self,
+                 dataset,
+                 batches: Sequence[Sequence[int]],
+                 *,
+                 drop_empty: bool = False,
+                 **dataloader_kwargs: Any):
+        # Disallow conflicting kwargs that PyTorch would otherwise expect:
+        for k in ("batch_size", "shuffle", "sampler", "batch_sampler"):
+            if k in dataloader_kwargs:
+                raise ValueError(
+                    f"`{k}` is incompatible with CustomBatchLoader; "
+                    f"provide your precomputed batches via `batches`."
+                )
+        batch_sampler = CustomBatchLoader._FixedBatchSampler(
+            batches, drop_empty=drop_empty
+        )
+        super().__init__(dataset, batch_sampler=batch_sampler, **dataloader_kwargs)
 
 
 def relabel_most_frequent(labels: NodeLabels, num_max_labels: int):

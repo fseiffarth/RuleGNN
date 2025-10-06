@@ -10,12 +10,14 @@ import torch
 from torch import optim, nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
+from torch_geometric.loader import DataLoader
+from torch_geometric.data import Batch
 
 from src.Architectures.OrdinaryGNN import OrdinaryGNN
 from src.Architectures.ShareGNN import ShareGNN, Parameters
 from src.Experiment.data_sampling import curriculum_sampling
 from src.Preprocessing.GraphData import GraphData
-from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
+from src.Preprocessing.GraphData.GraphData import ShareGNNDataset, CustomBatchLoader
 from src.Time.TimeClass import TimeClass
 from src.utils.utils import get_k_lowest_nonzero_indices, valid_pruning_configuration, is_pruning
 
@@ -755,9 +757,9 @@ class ModelConfiguration:
             file_obj.write(res_str)
 
 
-
     def train_graph_task(self, epoch, values, train_batches, random_variation_bool, timer):
-        for batch_counter, batch in enumerate(train_batches, 0):
+        loader = CustomBatchLoader(self.graph_data, train_batches)
+        for batch_counter, batch in enumerate(loader, 0):
             timer.measure("forward")
             self.optimizer.zero_grad()
             if self.graph_data.num_classes == 1:
@@ -769,7 +771,7 @@ class ModelConfiguration:
             # Run ordinary GNN
             if not self.para.run_config.config.get('with_invariant_layers', True):
                 timer.measure("forward_step")
-                outputs = self.net(self.graph_data[batch], batch)
+                outputs = self.net(batch)
                 timer.measure("forward_step")
 
             # Run Share GNN

@@ -3,6 +3,7 @@ import torch
 from src.Architectures.Layers.FrameworkLayers import FrameworkLayers
 from src.Architectures.ShareGNN import ShareGNNLayers
 from src.Architectures.ShareGNN.Parameters import Parameters
+from src.Customize.LayerTypes import LayerTypes
 from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 import torch.nn as nn
 import torch_geometric
@@ -65,6 +66,12 @@ class OrdinaryGNN(torch.nn.Module):
                                                                   input_features=current_feature_dimension,
                                                                   output_features=current_feature_dimension).requires_grad_(self.aggregation_grad))
             elif layer.layer_type == 'linear':
+                layer_args = {
+                    'in_features': current_feature_dimension,
+                    'out_features': layer.layer_dict.get('out_features', 16),
+                    'bias': layer.layer_dict.get('bias', True)
+                }
+                self.net_layers.append(OrdinaryGNN.LinearLayer(**layer_args))
                 self.net_layers.append(ShareGNNLayers.ShareGNNLinear(layer_id=i,
                                                                      seed=seed,
                                                                      layer=layer,
@@ -102,8 +109,17 @@ class OrdinaryGNN(torch.nn.Module):
                             'bias': layer.layer_dict.get('bias', True)}
                 current_feature_dimension = gcn_args['out_channels']
                 self.net_layers.append(GNNFrameworkLayers.GCNConv(gcn_args).type(self.module_precision).requires_grad_(self.convolution_grad))
-            elif layer.layer_type == 'mean_aggregation':
-                self.net_layers.append(GNNFrameworkLayers.MeanAggregation({}).type(self.module_precision).requires_grad_(self.aggregation_grad))
+            elif layer.layer_type == LayerTypes.GLOBAL_POOLING.value:
+                layer_args = {'mode': layer.layer_dict.get('mode', 'mean')}
+                self.net_layers.append(GNNFrameworkLayers.GlobalPooling(layer_args).type(self.module_precision).requires_grad_(self.aggregation_grad))
+            elif layer.layer_type == LayerTypes.DROPOUT.value:
+                layer_args = {'p': layer.layer_dict.get('p', 0.5)}
+                self.net_layers.append(GNNFrameworkLayers.DropoutLayer(layer_args))
+                # Dropout does not change feature dimension
+            elif layer.layer_type == LayerTypes.ACTIVATION.value:
+                layer_args = {'activation_function': layer.layer_dict.get('activation_function', torch.nn.ReLU())}
+                self.net_layers.append(GNNFrameworkLayers.ActivationLayer(layer_args))
+                # Activation does not change feature dimension
             else:
                 raise ValueError(f'Layer type {layer.layer_type} not recognized in OrdinaryGNN')
         self.dropout = nn.Dropout(dropout)
@@ -111,10 +127,10 @@ class OrdinaryGNN(torch.nn.Module):
         self.epoch = 0
         self.timer = TimeClass()
 
-    def forward(self, data, *args, **kwargs):
-        node_representation = data.x
+    def forward(self, data_batch, *args, **kwargs):
+        node_representation = data_batch.x
         for i, layer in enumerate(self.net_layers):
-            node_representation = layer(node_representation, data)
+            node_representation = layer(node_representation, data_batch)
         return node_representation
 
     def return_info(self):

@@ -4,4 +4,16 @@ networks:
       bias: True,
       out_channels: 32,
 }
-  - { layer_type: mean_aggregation }
+  - { layer_type: activation,
+      activation: torch.nn.ReLU(),
+  }
+  - { layer_type: global_pooling,
+        mode: mean,
+    }
+  - { layer_type: dropout,
+        p: 0.5,
+    }
+  - { layer_type: linear,
+      out_features: 2,
+      bias: True,
+  }

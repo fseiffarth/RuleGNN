@@ -8,5 +8,9 @@ class LayerTypes(Enum):
     LINEAR = 'linear'
     RESHAPE = 'reshape'
     LAYER_NORM = 'layer_norm'
+    GLOBAL_POOLING = 'global_pooling'
+    ACTIVATION = 'activation'
+    DROPOUT = 'dropout'
+
+    ### GNN specific layers
     GCN_CONVOLUTION = 'gcn_convolution'
-    MEAN_AGGREGATION = 'mean_aggregation'

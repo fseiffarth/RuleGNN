@@ -40,11 +40,22 @@ def layer_from_yml(layer_id, layer_yml, layers_per_architecture, network_archite
                 while len(layers_per_architecture) <= layer_id:
                     layers_per_architecture.append([])
             layers_per_architecture[layer_id].append(network_architecture[layer_id])
-        case LayerTypes.MEAN_AGGREGATION.value:
+        case LayerTypes.GLOBAL_POOLING.value:
             if len(layers_per_architecture) <= layer_id:
                 while len(layers_per_architecture) <= layer_id:
                     layers_per_architecture.append([])
             layers_per_architecture[layer_id].append(network_architecture[layer_id])
+        case LayerTypes.ACTIVATION.value:
+            if len(layers_per_architecture) <= layer_id:
+                while len(layers_per_architecture) <= layer_id:
+                    layers_per_architecture.append([])
+            layers_per_architecture[layer_id].append(network_architecture[layer_id])
+        case LayerTypes.DROPOUT.value:
+            if len(layers_per_architecture) <= layer_id:
+                while len(layers_per_architecture) <= layer_id:
+                    layers_per_architecture.append([])
+            layers_per_architecture[layer_id].append(network_architecture[layer_id])
+
         case _:
             raise ValueError(f"layer_type {layer_type} is not supported")
 
@@ -175,12 +186,25 @@ def check_layer(i:int, layer: dict)->(bool, str):
     if 'layer_type' not in layer:
         return False, f'Layer type not defined in layer {i}, it must be convolution or aggregation'
     if layer['layer_type'] == LayerTypes.LINEAR.value:
-        pass
+        required = ['out_features']
+        for req in required:
+            if req not in layer:
+                return False, f'{req} not defined in layer {i}'
     elif layer['layer_type'] == LayerTypes.RESHAPE.value:
         pass
     elif layer['layer_type'] == LayerTypes.LAYER_NORM.value:
         pass
-    elif layer['layer_type'] == LayerTypes.MEAN_AGGREGATION.value:
+    elif layer['layer_type'] == LayerTypes.GLOBAL_POOLING.value:
+        required = ['mode']
+        for req in required:
+            if req not in layer:
+                return False, f'{req} not defined in layer {i}'
+            else:
+                if layer['mode'] not in ['mean', 'max', 'sum']:
+                    return False, f'Mode must be mean, max or sum in layer {i}'
+    elif layer['layer_type'] == LayerTypes.ACTIVATION.value:
+        pass
+    elif layer['layer_type'] == LayerTypes.DROPOUT.value:
         pass
     elif layer['layer_type'] == 'gcn_convolution':
         required=['bias', 'out_channels']
