@@ -18,7 +18,7 @@ def main_example_gcn(num_threads=-1):
     experiment.evaluate_results(evaluate_best_model=True)
 
 @click.command()
-@click.option('--num_threads', default=-1, help='Number of threads to use')
+@click.option('--num_threads', default=1, help='Number of threads to use')
 def main(num_threads):
     main_example_gcn(num_threads)
 

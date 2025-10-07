@@ -22,3 +22,9 @@ networks:
       bias: True,
       activation: torch.nn.Tanh(),
   }
+
+
+paths:
+  # define a specific path for each architecture
+  results:
+    "Examples/GCN/Results/GCN/" # Results will be saved in this folder

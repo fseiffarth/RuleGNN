@@ -1,6 +1,6 @@
 datasets:
   - {
-        name: "MUTAG",
+        name: "NCI1",
         task: "graph_classification",
         validation_folds: 10,
         network_config_file: "Examples/GCN/Configs/network_GATv2.yml",
@@ -31,9 +31,9 @@ loss:
   - CrossEntropyLoss
 
 batch_size:
-  - 16
+  - 32
 learning_rate:
-  - 0.0001
+  - 0.01
 epochs:
   - 1000
 

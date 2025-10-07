@@ -1,6 +1,6 @@
 import torch
 
-from src.Architectures.Layers.FrameworkLayers import FrameworkLayers
+from src.Architectures.Layers.FrameworkLayers import FrameworkLayers, GNNConvLayer
 from src.Architectures.ShareGNN import ShareGNNLayers
 from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Customize.LayerTypes import LayerTypes
@@ -93,31 +93,26 @@ class OrdinaryGNN(torch.nn.Module):
                                                                         input_features=input_features,
                                                                         output_features=output_features).type(self.module_precision))
                 current_feature_dimension = output_features
-            elif layer.layer_type == LayerTypes.GCN_CONVOLUTION.value:
+            elif layer.layer_type in [LayerTypes.GCN_CONVOLUTION.value,
+                                      LayerTypes.GAT_CONVOLUTION.value,
+                                      LayerTypes.GATv2_CONVOLUTION.value,
+                                      LayerTypes.GIN_CONVOLUTION.value,
+                                      LayerTypes.SAGE_CONVOLUTION.value]:
                 layer_args = layer.layer_dict
                 layer_args['in_channels'] = current_feature_dimension
                 current_feature_dimension = layer_args['out_channels']
-                self.net_layers.append(GNNFrameworkLayers.GCNConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
-            elif layer.layer_type == LayerTypes.GAT_CONVOLUTION.value:
-                layer_args = layer.layer_dict
-                layer_args['in_channels'] = current_feature_dimension
-                self.net_layers.append(GNNFrameworkLayers.GATConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
-                current_feature_dimension = layer_args['out_channels']
-            elif layer.layer_type == LayerTypes.GATv2_CONVOLUTION.value:
-                layer_args = layer.layer_dict
-                layer_args['in_channels'] = current_feature_dimension
-                self.net_layers.append(GNNFrameworkLayers.GATv2Conv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
-                current_feature_dimension = layer_args['out_channels']
-            elif layer.layer_type == LayerTypes.GIN_CONVOLUTION.value:
-                layer_args = layer.layer_dict
-                layer_args['in_channels'] = current_feature_dimension
-                self.net_layers.append(GNNFrameworkLayers.GINConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
-                current_feature_dimension = layer_args['out_channels']
-            elif layer.layer_type == LayerTypes.SAGE_CONVOLUTION.value:
-                layer_args = layer.layer_dict
-                layer_args['in_channels'] = current_feature_dimension
-                self.net_layers.append(GNNFrameworkLayers.SAGEConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
-                current_feature_dimension = layer_args['out_channels']
+                # GNN specific layers
+                if layer.layer_type == LayerTypes.GCN_CONVOLUTION.value:
+                    self.net_layers.append(GNNFrameworkLayers.GCNConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                elif layer.layer_type == LayerTypes.GAT_CONVOLUTION.value:
+                    self.net_layers.append(GNNFrameworkLayers.GATConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                elif layer.layer_type == LayerTypes.GATv2_CONVOLUTION.value:
+                    self.net_layers.append(GNNFrameworkLayers.GATv2Conv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                elif layer.layer_type == LayerTypes.GIN_CONVOLUTION.value:
+                    self.net_layers.append(GNNFrameworkLayers.GINConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+                elif layer.layer_type == LayerTypes.SAGE_CONVOLUTION.value:
+                    self.net_layers.append(GNNFrameworkLayers.SAGEConv(layer_args).type(self.module_precision).requires_grad_(self.convolution_grad))
+
             elif layer.layer_type == LayerTypes.GLOBAL_POOLING.value:
                 layer_args = {'mode': layer.layer_dict.get('mode', 'mean')}
                 self.net_layers.append(GNNFrameworkLayers.GlobalPooling(layer_args).type(self.module_precision).requires_grad_(self.aggregation_grad))
@@ -136,11 +131,17 @@ class OrdinaryGNN(torch.nn.Module):
         self.epoch = 0
         self.timer = TimeClass()
 
-    def forward(self, data_batch, *args, **kwargs):
-        node_representation = data_batch.x
+    def forward(self, batch_data, *args, **kwargs):
+        x = batch_data.x
+        representation_list = []
         for i, layer in enumerate(self.net_layers):
-            node_representation = layer(node_representation, data_batch)
-        return node_representation
+            x = layer(x, batch_data)
+            #if isinstance(layer, GNNConvLayer):
+            #    representation_list.append(x)
+            #    if i == len(self.net_layers) - 1 or not isinstance(self.net_layers[i + 1], GNNConvLayer):
+            #        x = torch.squeeze(torch.mean(torch.stack(representation_list), 0, True), 0)
+
+        return x
 
     def return_info(self):
         return type(self)

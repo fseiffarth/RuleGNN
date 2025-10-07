@@ -1,40 +1,68 @@
 networks:
 - - { layer_type: linear,
-      out_features: 64,
+      out_features: 16,
       bias: True,
       activation: torch.nn.ReLU(),
     }
   - { layer_type: gatv2_convolution,
       bias: True,
-      out_channels: 64,
+      out_channels: 16,
       activation: torch.nn.ReLU(),
       batch_norm: True,
+      heads: 4,
       residual: True,
+    }
+  - { layer_type: gatv2_convolution,
+      bias: True,
+      out_channels: 16,
+      activation: torch.nn.ReLU(),
+            batch_norm: True,
+            heads: 4,
+            residual: True,
 }
   - { layer_type: gatv2_convolution,
       bias: True,
-      out_channels: 64,
+      out_channels: 16,
       activation: torch.nn.ReLU(),
             batch_norm: True,
-        residual: True,
-}
+            heads: 4,
+            residual: True,
+  }
   - { layer_type: gatv2_convolution,
       bias: True,
-      out_channels: 64,
+      out_channels: 16,
       activation: torch.nn.ReLU(),
             batch_norm: True,
-        residual: True,
+            heads: 4,
+            residual: True,
+  }
+  - { layer_type: gatv2_convolution,
+      bias: True,
+      out_channels: 16,
+      activation: torch.nn.ReLU(),
+      batch_norm: True,
+            heads: 4,
+            residual: True,
   }
   - { layer_type: global_pooling,
         mode: mean,
     }
   - { layer_type: linear,
-      out_features: 64,
+        out_features: 8,
+      bias: True,
+      activation: torch.nn.ReLU(),
+  }
+  - { layer_type: linear,
+      out_features: 4,
       bias: True,
       activation: torch.nn.ReLU(),
   }
   - { layer_type: linear,
       out_features: 2,
       bias: True,
-      activation: torch.nn.ReLU(),
   }
+
+paths:
+  # define a specific path for each architecture
+  results:
+    "Examples/GCN/Results/GATv2/" # Results will be saved in this folder

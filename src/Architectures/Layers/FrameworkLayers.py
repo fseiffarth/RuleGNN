@@ -14,11 +14,26 @@ class FrameworkLayers(torch.nn.Module, ABC):
     def __init__(self, layer_args, device='cpu'):
         super(FrameworkLayers, self).__init__()
         self.layer_args = layer_args
-        self.activation = torch.nn.Identity()
+        # Whether to use residual connections in this layer
         self.residual = layer_args.get('residual', False)
+        # Whether to use batch normalization in this layer
         self.batch_norm = layer_args.get('batch_norm', False)
+        if self.batch_norm:
+            self.batch_norm_args = {
+                'in_channels': layer_args.get('in_channels', None),
+                'eps': layer_args.get('batch_norm_eps', 1e-5),
+                'momentum': layer_args.get('batch_norm_momentum', 0.1),
+                'affine': layer_args.get('batch_norm_affine', True),
+                'track_running_stats': layer_args.get('batch_norm_track_running_stats', True),
+                'allow_single_element': layer_args.get('batch_norm_allow_single_element', False),
+            }
+            self.batch_norm_layer = torch_geometric.nn.BatchNorm(**self.batch_norm_args)
+        # Dropout rate for this layer
         self.dropout = layer_args.get('dropout', 0.0)
+        # Device to run the layer on
         self.device = device
+        # Activation function for this layer
+        self.activation = torch.nn.Identity()
         if 'activation' in layer_args:
             self.activation = eval(layer_args['activation'])
 
@@ -26,7 +41,15 @@ class FrameworkLayers(torch.nn.Module, ABC):
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         pass
 
-class GCNConv(FrameworkLayers):
+class GNNConvLayer(FrameworkLayers):
+    def __init__(self, layer_args):
+        super(GNNConvLayer, self).__init__(layer_args)
+
+    @abstractmethod
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
+        return node_representation
+
+class GCNConv(GNNConvLayer):
     def __init__(self, layer_args):
         super(GCNConv, self).__init__(layer_args)
         gcn_args = {
@@ -38,21 +61,13 @@ class GCNConv(FrameworkLayers):
             'normalize': layer_args.get('normalize', True),
             'bias': layer_args.get('bias', True)
         }
-        self.batch_norm_args = {
-            'in_channels': layer_args.get('in_channels'),
-            'eps': layer_args.get('batch_norm_eps', 1e-5),
-            'momentum': layer_args.get('batch_norm_momentum', 0.1),
-            'affine': layer_args.get('batch_norm_affine', True),
-            'track_running_stats': layer_args.get('batch_norm_track_running_stats', True),
-            'allow_single_element': layer_args.get('batch_norm_allow_single_element', False),
-        }
         self.layer = torch_geometric.nn.GCNConv(**gcn_args)
 
     def forward(self,node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         x = node_representation
         node_representation = self.layer(node_representation, batch_data.edge_index)
         if self.batch_norm:
-            node_representation = torch_geometric.nn.BatchNorm(**self.batch_norm_args)(node_representation)
+            node_representation = self.batch_norm_layer(node_representation)
         node_representation = self.activation(node_representation)
         if self.residual:
             node_representation = node_representation + x
@@ -60,33 +75,24 @@ class GCNConv(FrameworkLayers):
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
-class GATConv(FrameworkLayers):
+class GATConv(GNNConvLayer):
     def __init__(self, layer_args):
         super(GATConv, self).__init__(layer_args)
         self.gat_args = {
             'in_channels': layer_args.get('in_channels'),
             'out_channels': layer_args.get('out_channels'),
             'heads': layer_args.get('heads', 1),
-            'concat': layer_args.get('concat', True),
+            'concat': layer_args.get('concat', False),
             'negative_slope': layer_args.get('negative_slope', 0.2),
             'add_self_loops': layer_args.get('add_self_loops', True),
             'edge_dim': layer_args.get('edge_dim', None),
             'fill_value': layer_args.get('fill_value', 'mean'),
             'bias': layer_args.get('bias', True),
-            'residual': layer_args.get('residual', True),
-        }
-        self.batch_norm_args = {
-            'in_channels': layer_args.get('in_channels'),
-            'eps': layer_args.get('batch_norm_eps', 1e-5),
-            'momentum': layer_args.get('batch_norm_momentum', 0.1),
-            'affine': layer_args.get('batch_norm_affine', True),
-            'track_running_stats': layer_args.get('batch_norm_track_running_stats', True),
-            'allow_single_element': layer_args.get('batch_norm_allow_single_element', False),
         }
         self.merge_heads = layer_args.get('merge_heads', True)
         self.layer = torch_geometric.nn.GATConv(**self.gat_args)
         self.linear_merge_heads = torch.nn.Linear(self.gat_args['out_channels'] * self.gat_args['heads'], self.gat_args['out_channels']) if self.gat_args['concat'] else torch.nn.Linear(self.gat_args['out_channels'], self.gat_args['out_channels'])
-        self.batch_norm_layer = torch_geometric.nn.BatchNorm(**self.batch_norm_args).to(self.device)
+
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         x = node_representation
@@ -108,34 +114,25 @@ class GATConv(FrameworkLayers):
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
-class GATv2Conv(FrameworkLayers):
+class GATv2Conv(GNNConvLayer):
     def __init__(self, layer_args):
         super(GATv2Conv, self).__init__(layer_args)
         self.gatv2_args = {
             'in_channels': layer_args.get('in_channels'),
             'out_channels': layer_args.get('out_channels'),
             'heads': layer_args.get('heads', 1),
-            'concat': layer_args.get('concat', True),
+            'concat': layer_args.get('concat', False),
             'negative_slope': layer_args.get('negative_slope', 0.2),
             'add_self_loops': layer_args.get('add_self_loops', True),
             'edge_dim': layer_args.get('edge_dim', None),
             'fill_value': layer_args.get('fill_value', 'mean'),
             'bias': layer_args.get('bias', True),
-            'residual': layer_args.get('residual', True),
-        }
-        self.batch_norm_args = {
-            'in_channels': layer_args.get('in_channels'),
-            'eps': layer_args.get('batch_norm_eps', 1e-5),
-            'momentum': layer_args.get('batch_norm_momentum', 0.1),
-            'affine': layer_args.get('batch_norm_affine', True),
-            'track_running_stats': layer_args.get('batch_norm_track_running_stats', True),
-            'allow_single_element': layer_args.get('batch_norm_allow_single_element', False),
+            'share_weights': layer_args.get('share_weights', False),
         }
         self.merge_heads = layer_args.get('merge_heads', True)
         self.layer = torch_geometric.nn.GATv2Conv(**self.gatv2_args)
         if self.merge_heads:
             self.linear_merge_heads = torch.nn.Linear(self.gatv2_args['out_channels'] * self.gatv2_args['heads'], self.gatv2_args['out_channels']) if self.gatv2_args['concat'] else torch.nn.Linear(self.gatv2_args['out_channels'], self.gatv2_args['out_channels'])
-        self.batch_norm_layer = torch_geometric.nn.BatchNorm(**self.batch_norm_args).to(self.device)
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         x = node_representation
@@ -157,7 +154,7 @@ class GATv2Conv(FrameworkLayers):
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
-class SAGEConv(FrameworkLayers):
+class SAGEConv(GNNConvLayer):
     def __init__(self, layer_args):
         super(SAGEConv, self).__init__(layer_args)
         self.sage_args = {
@@ -169,16 +166,8 @@ class SAGEConv(FrameworkLayers):
             'project': layer_args.get('project', False),
             'bias': layer_args.get('bias', True),
         }
-        self.batch_norm_args = {
-            'in_channels': layer_args.get('in_channels'),
-            'eps': layer_args.get('batch_norm_eps', 1e-5),
-            'momentum': layer_args.get('batch_norm_momentum', 0.1),
-            'affine': layer_args.get('batch_norm_affine', True),
-            'track_running_stats': layer_args.get('batch_norm_track_running_stats', True),
-            'allow_single_element': layer_args.get('batch_norm_allow_single_element', False),
-        }
         self.layer = torch_geometric.nn.SAGEConv(**self.sage_args)
-        self.batch_norm_layer = torch_geometric.nn.BatchNorm(**self.batch_norm_args).to(self.device)
+
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         x = node_representation
@@ -192,7 +181,7 @@ class SAGEConv(FrameworkLayers):
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
-class GINConv(FrameworkLayers):
+class GINConv(GNNConvLayer):
     def __init__(self, layer_args):
         super(GINConv, self).__init__(layer_args)
         gin_args = {
@@ -202,16 +191,7 @@ class GINConv(FrameworkLayers):
             'train_eps': layer_args.get('train_eps', False),
             'bias': layer_args.get('bias', True),
         }
-        self.batch_norm_args = {
-            'in_channels': layer_args.get('in_channels'),
-            'eps': layer_args.get('batch_norm_eps', 1e-5),
-            'momentum': layer_args.get('batch_norm_momentum', 0.1),
-            'affine': layer_args.get('batch_norm_affine', True),
-            'track_running_stats': layer_args.get('batch_norm_track_running_stats', True),
-            'allow_single_element': layer_args.get('batch_norm_allow_single_element', False),
-        }
         self.layer = torch_geometric.nn.GINConv(**gin_args)
-        self.batch_norm_layer = torch_geometric.nn.BatchNorm(**self.batch_norm_args).to(self.device)
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         x = node_representation

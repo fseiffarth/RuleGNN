@@ -52,3 +52,9 @@ networks:
       bias: True,
       activation: torch.nn.ReLU(),
   }
+
+
+paths:
+  # define a specific path for each architecture
+  results:
+    "Examples/GCN/Results/GAT/" # Results will be saved in this folder
