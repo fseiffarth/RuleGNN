@@ -14,6 +14,7 @@ from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 from src.utils.GraphLabels import combine_node_labels
 from src.Experiment.RunConfiguration import get_run_configs
 from src.Preprocessing.load_labels import load_labels
+from src.utils.load_splits import Load_Splits
 from src.utils.utils import save_graphs
 
 
@@ -43,7 +44,7 @@ class DatasetPreprocessing:
             # load the graph data
             self.load_data()
             # generate the split files
-            self.generate_configuration_splits()
+            self.load_configuration_splits()
 
             # generate the labels and properties automatically from the config file
             if configuration.get('with_invariant_layers', False):
@@ -55,7 +56,11 @@ class DatasetPreprocessing:
         self.experiment_configuration['paths']['data'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['labels'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['properties'].mkdir(exist_ok=True, parents=True)
-        self.experiment_configuration['paths']['splits'].mkdir(exist_ok=True, parents=True)
+        # if splits path ends with a file, get the parent folder
+        if self.experiment_configuration['paths']['splits'].suffix == '.json':
+            self.experiment_configuration['paths']['splits'] = self.experiment_configuration['paths']['splits'].parent
+        else:
+            self.experiment_configuration['paths']['splits'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['results'].mkdir(exist_ok=True, parents=True)
         # create folders plots, weights, models and results in the results folder under the db_name
         self.experiment_configuration['paths']['results'].joinpath(self.db_name).joinpath('Plots').mkdir(exist_ok=True, parents=True)
@@ -172,8 +177,12 @@ class DatasetPreprocessing:
             raise ValueError(f'Could not load the graph data for {self.db_name} from {self.experiment_configuration["paths"]["data"]}. Please check the configuration and the data generation function.')
 
 
-    def generate_configuration_splits(self):
+    def load_configuration_splits(self):
         splits_path = self.experiment_configuration['paths']['splits']
+        if splits_path.suffix == '.json':
+            self.experiment_configuration['splits'] = Load_Splits(splits_path)
+        else:
+            self.experiment_configuration['splits'] = Load_Splits(splits_path.joinpath(f'{self.db_name}_splits.json'))
         if 'pretraining_datasets' in self.experiment_configuration or 'finetuning_datasets' in self.experiment_configuration:
             # check whether the split file exists
             if 'pretraining_datasets' in self.experiment_configuration:
@@ -205,25 +214,6 @@ class DatasetPreprocessing:
             # create the pretraining respective finetuning splits
             pretraining_finetuning(paths, datasets, pretraining_ids=pretraining_ids, finetuning_ids=finetuning_ids)
 
-        else:
-            splits_path = splits_path.joinpath(f'{self.db_name}_splits.json')
-
-        if splits_path.exists():
-            print(f"Splits will be loaded from {splits_path}")
-        else:
-            # The split file does not exist, create it
-            print("The split file does not exist, new splits will be created.")
-            self.create_split_file()
-
-        # copy the splits to the processed folder
-        #if not Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').exists():
-        #    Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').mkdir()
-        #if 'split_appendix' in self.experiment_configuration:
-        #    split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_{self.experiment_configuration["split_appendix"]}_splits.json')
-        #else:
-        #    split_target_path = Path(self.experiment_configuration['paths']['data']).joinpath(f'{self.db_name}').joinpath('processed').joinpath(f'{self.db_name}_splits.json')
-        # copy the content of the split file to the target path
-        #split_target_path.write_text(splits_path.read_text())
 
     def create_split_file(self):
         # create the splits

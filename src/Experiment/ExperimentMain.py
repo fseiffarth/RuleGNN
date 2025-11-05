@@ -273,6 +273,14 @@ class ExperimentMain:
                     raise ValueError(f'Please specify the properties path in the main configuration file.')
                 if 'splits' not in configuration['paths']:
                     raise ValueError(f'Please specify the splits path in the main configuration file.')
+                # check whether the splits file exists
+                split_file_path = configuration['paths']['splits']
+                if not split_file_path.suffix == '.json':
+                    split_file_path = split_file_path.joinpath(configuration['name'] + '_splits.json') # use default naming convention
+                    configuration['paths']['splits'] = split_file_path
+                if not split_file_path.is_file():
+                    raise FileNotFoundError(f'There is no json file {split_file_path}. Use the script in scripts/generate_splits_files to create the splits file.')
+
                 if 'results' not in configuration['paths']:
                     raise ValueError(f'Please specify the results path in the main configuration file.')
 
@@ -327,41 +335,6 @@ class ExperimentMain:
 
 
 
-                # optional keys (print a message that the value was set to the default value)
-                if 'with_splits' not in configuration:
-                    print('To use own splits, please set the key "with_splits" to False in the main configuration file. The default value is True.'
-                          'In addition specify a path to the splits using the key "splits_path".')
-                    configuration['with_splits'] = True
-                else:
-                    if not configuration['with_splits']:
-                        if 'split_function' in configuration:
-                            if not 'split_function_args' in configuration:
-                                configuration['split_function_args'] = {}
-                            # check if the split function exists
-                            if not hasattr(split_functions, configuration['split_function']):
-                                raise ValueError(f"Split function {configuration['split_function']} not found")
-                            else:
-                                split_function = getattr(split_functions, configuration['split_function'])
-                                if not callable(split_function):
-                                    raise ValueError(f"Split function {configuration['split_function']} is not callable")
-                                else:
-                                    configuration['split_function'] = split_function
-                        elif 'splits_path' in configuration:
-                            # check if the splits path exists
-                            if not os.path.exists(configuration['splits_path']):
-                                raise FileNotFoundError(f"Splits path {configuration['splits_path']} not found")
-                            else:
-                                configuration['splits'] = Load_Splits(configuration['splits_path'], configuration['name'])
-                        elif 'split_appendix' in configuration:
-                            if not os.path.exists(configuration['paths']['splits']):
-                                raise FileNotFoundError(f"Splits path {configuration['paths']['splits']} not found")
-                            else:
-                                configuration['splits'] = Load_Splits(configuration['paths']['splits'], configuration['name'], appendix=configuration['split_appendix'])
-                        elif 'pretraining_datasets' or 'finetuning_datasets' in configuration:
-                            pass
-                        else:
-                            raise ValueError(
-                                f'Please specify the split function in the main configuration file or the splits path using the key "splits_path".')
 
                 if 'type' in configuration:
                     data_generation_args = configuration.get('data_generation_args', None)
@@ -429,14 +402,13 @@ class ExperimentMain:
             # split the data into training, validation and test data
             seed = 42 + validation_id + para.n_val_runs * run_id
             # load the data splits
-            data = Load_Splits(para.splits_path, para.db, para.run_config.config.get('split_appendix', None))
-            test_data = data[0][validation_id]
-            train_data = data[1][validation_id]
-            validation_data = data[2][validation_id]
-            model_data = (np.array(train_data), np.array(validation_data), np.array(test_data))
+            split_data = run_config.config['splits']
+            test_data = split_data['test'][validation_id]
+            train_data = split_data['train'][validation_id]
+            validation_data = split_data['validation'][validation_id]
 
             # create the model configuration object
-            configuration = ModelConfiguration(run_id, validation_id, graph_data, model_data, seed, para)
+            configuration = ModelConfiguration(run_id, validation_id, graph_data, (np.array(train_data), np.array(validation_data), np.array(test_data)), seed, para)
 
             # run the model, if a pretrained network is given, use it
             if isinstance(self.pretrained_network, tuple):

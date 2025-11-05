@@ -1,0 +1,52 @@
+networks:
+- - { layer_type: linear,
+      out_features: 16,
+      bias: True,
+      activation: torch.nn.Tanh(),
+    }
+  - { layer_type: gatv2_convolution,
+      bias: True,
+      out_channels: 16,
+      activation: torch.nn.Tanh(),
+      batch_norm: True,
+      heads: 2,
+      residual: True,
+    }
+  - { layer_type: gatv2_convolution,
+      bias: True,
+      out_channels: 16,
+      activation: torch.nn.Tanh(),
+            batch_norm: True,
+            heads: 2,
+            residual: True,
+}
+  - { layer_type: gatv2_convolution,
+      bias: True,
+      out_channels: 16,
+      activation: torch.nn.Tanh(),
+            batch_norm: True,
+            heads: 2,
+            residual: True,
+  }
+  - { layer_type: global_pooling,
+        mode: mean,
+    }
+  - { layer_type: linear,
+        out_features: 8,
+      bias: True,
+      activation: torch.nn.Tanh(),
+  }
+  - { layer_type: linear,
+      out_features: 4,
+      bias: True,
+      activation: torch.nn.Tanh(),
+  }
+  - { layer_type: linear,
+      out_features: 2,
+      bias: True,
+  }
+
+paths:
+  # define a specific path for each architecture
+  results:
+    "Examples/GED/Results/GATv2/" # Results will be saved in this folder
