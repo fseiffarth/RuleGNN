@@ -129,6 +129,7 @@ class GATv2Conv(GNNConvLayer):
             'bias': layer_args.get('bias', True),
             'share_weights': layer_args.get('share_weights', False),
         }
+        self.use_edge_features = layer_args.get('edge_dim', None) is not None
         self.merge_heads = layer_args.get('merge_heads', True)
         self.layer = torch_geometric.nn.GATv2Conv(**self.gatv2_args)
         if self.merge_heads:
@@ -136,7 +137,10 @@ class GATv2Conv(GNNConvLayer):
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         x = node_representation
-        node_representation = self.layer(node_representation, batch_data.edge_index)
+        if self.use_edge_features:
+            node_representation = self.layer(node_representation, batch_data.edge_index, batch_data.edge_attributes)
+        else:
+            node_representation = self.layer(node_representation, batch_data.edge_index)
         if self.merge_heads and self.gatv2_args['concat'] and self.gatv2_args['heads'] > 1:
             node_representation = self.linear_merge_heads(node_representation)
         if self.batch_norm:

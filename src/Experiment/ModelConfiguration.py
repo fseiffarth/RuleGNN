@@ -155,6 +155,35 @@ class ModelConfiguration:
             self.postprocess_writer(epoch, epoch_time, epoch_values, validation_values, test_values)
 
 
+    def evaluate_network(self, graph_ids):
+        """
+        Evaluate the given network on the self.training_data, self.validate_data and self.test_data
+        :param network: The network to be evaluated
+        :param graph_ids: The graph ids to be evaluated
+        """
+        # set data to device
+        #self.graph_data.to(self.device)
+        self.net.eval()
+        # Evaluate the network on the given graph ids
+
+        if self.para.run_config.task in ['graph_regression', 'graph_classification']:
+            target_values, target_outputs = self.evaluate_graph_task(graph_ids)
+            # print the accuracy
+            if self.para.run_config.task == 'graph_classification':
+                predictions = torch.argmax(target_outputs, dim=1)
+                accuracy = 100 * torch.sum(predictions == target_values).item() / len(target_values)
+                print(f"Evaluation Accuracy: {accuracy} %")
+            else:
+                print(f"Evaluation completed for graph regression task.")
+                mae_error = torch.mean(torch.abs(target_values - target_outputs))
+                rsme_error = torch.mean(torch.sqrt((target_values - target_outputs) ** 2))
+                print(f"Mean Absolute Error: {mae_error}")
+        elif self.para.run_config.task == 'node_classification':
+            target_values, target_outputs = self.evaluate_node_task(graph_ids)
+        else:
+            raise ValueError(f"Task {self.para.run_config.task} not implemented")
+
+        return target_values, target_outputs
 
 
     def initialize_model(self, pretrained_network,  use_model='ShareGNN'):
@@ -163,7 +192,11 @@ class ModelConfiguration:
         """
         print(f'Initializing network with seed {self.seed}')
         if not self.para.run_config.config.get('with_invariant_layers', True):
-            self.net = OrdinaryGNN.OrdinaryGNN(graph_data=self.graph_data, para=self.para, seed=self.seed, device=self.device)
+            if pretrained_network is not None:
+                self.net = pretrained_network
+            else:
+                self.net = OrdinaryGNN.OrdinaryGNN(graph_data=self.graph_data, para=self.para, seed=self.seed,
+                                                   device=self.device)
         else:
             if pretrained_network is not None:
                 self.net = pretrained_network

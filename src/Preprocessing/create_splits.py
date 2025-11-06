@@ -193,9 +193,13 @@ def splits_from_train_test_files(path:Path, db_name:str, output_path:Path = None
     Convert the train, test files given by https://github.com/weihua916/powerful-gnns into our json split file format
     :param path: path to the train, test files
     '''
+
+    # output path should be path if None
+    if output_path is None:
+        output_path = path
     # get all the files in path that are of type train_idx-*.txt or test_idx-*.txt where * is an arbitrary number
-    train_files = list(path.glob("train_idx-*.txt"))
-    test_files = list(path.glob("test_idx-*.txt"))
+    train_files = list(path.rglob("train_idx-*.txt"))
+    test_files = list(path.rglob("test_idx-*.txt"))
     # sort the files
     train_files.sort()
     test_files.sort()

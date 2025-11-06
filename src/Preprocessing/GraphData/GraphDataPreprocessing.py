@@ -7,8 +7,7 @@ from torch_geometric.data import InMemoryDataset, Data
 import torch
 import torch_geometric
 from ogb.graphproppred import PygGraphPropPredDataset
-from torch_geometric.datasets import ZINC
-
+from torch_geometric.datasets import ZINC, TUDataset
 
 
 class GraphDataPreprocessing(abc.ABC):
@@ -354,6 +353,56 @@ class SubstructureBenchmarkPreprocessing(GraphDataPreprocessing):
                  'num_node_labels': 0
                  }
         return self.processed_dataset, self.slices, sizes
+
+
+class TUDatasetPreprocessing(GraphDataPreprocessing):
+    def __init__(self, name, tmp_dir="/tmp"):
+        super().__init__(name, tmp_dir)
+        self.preprocess()
+
+    def preprocess(self, *args, **kwargs):
+        tu_dataset = TUDataset(root='tmp/', name=self.name, use_node_attr=True, use_edge_attr=True)
+        if 'x' not in tu_dataset.data:
+            tu_dataset.data.x = torch.zeros((tu_dataset.num_nodes,1), dtype=torch.float)
+            tu_dataset.data.primary_node_labels = torch.zeros(tu_dataset.num_nodes, dtype=torch.long)
+            tu_dataset.slices['x'] = torch.zeros(len(tu_dataset)+1, dtype=torch.long)
+            # get slices from edge_index_slices
+            edge_slices = tu_dataset.slices['edge_index']
+            for i, edge_slice in enumerate(edge_slices):
+                if i > 0:
+                    start = edge_slices[i-1]
+                    end = edge_slices[i]
+                    num_nodes = torch.max(tu_dataset.edge_index[:, start:end]) - torch.min(tu_dataset.edge_index[:, start:end]) + 1
+                    tu_dataset.slices['x'][i] = tu_dataset.slices['x'][i-1] + num_nodes
+        else:
+            tu_dataset.data.primary_node_labels = torch.argmax(tu_dataset.data.x[:,tu_dataset.sizes['num_node_attributes']:], dim=1)
+        tu_dataset.slices['primary_node_labels'] = tu_dataset.slices['x']
+        if tu_dataset.sizes['num_node_attributes'] > 0:
+            tu_dataset.data.node_attributes = tu_dataset.data.x[:,:tu_dataset.sizes['num_node_attributes']]
+            tu_dataset.slices['node_attributes'] = tu_dataset.slices['x']
+        else:
+            tu_dataset.data.node_attributes = torch.Tensor()
+        if tu_dataset.data.edge_attr is None:
+            tu_dataset.data.primary_edge_labels = torch.Tensor()
+            tu_dataset.data.edge_attributes = torch.Tensor()
+        else:
+            tu_dataset.data.primary_edge_labels = torch.argmax(tu_dataset.data.edge_attr[:,tu_dataset.sizes['num_edge_attributes']:], dim=1)
+            tu_dataset.slices['primary_edge_labels'] = tu_dataset.slices['edge_attr']
+            if tu_dataset.sizes['num_edge_attributes'] > 0:
+                tu_dataset.data.edge_attributes = tu_dataset.data.edge_attr[:,:tu_dataset.sizes['num_edge_attributes']]
+            else:
+                tu_dataset.data.edge_attributes = tu_dataset.data.edge_attr
+            tu_dataset.slices['edge_attributes'] = tu_dataset.slices['edge_attr']
+            # remove edge_attr from data, slices and sizes
+            tu_dataset.data.edge_attr = None
+            tu_dataset.slices.pop('edge_attr', None)
+
+            self.processed_dataset = tu_dataset.data
+            self.slices = tu_dataset.slices
+            self.set_sizes()
+
+        return self.processed_dataset, self.slices, self.sizes
+
 
 
 class GraphCount(InMemoryDataset):

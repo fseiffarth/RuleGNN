@@ -1,3 +1,8 @@
+paths:
+  # define a specific path for each architecture
+  results:
+    "Examples/GED/Results/GCN/" # Results will be saved in this folder
+
 networks:
 - - { layer_type: gcn_convolution,
       bias: True,
@@ -24,7 +29,3 @@ networks:
   }
 
 
-paths:
-  # define a specific path for each architecture
-  results:
-    "Examples/GED/Results/GCN/" # Results will be saved in this folder

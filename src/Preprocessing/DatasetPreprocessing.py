@@ -41,8 +41,9 @@ class DatasetPreprocessing:
                 data_generation = self.experiment_configuration['data_generation']
                 data_generation_args = self.experiment_configuration.get('generate_function_args', None)
                 self.generate_data(dataset, data_generation, data_generation_args)
-            # load the graph data
-            self.load_data()
+            else:
+                # load the graph data
+                self.load_data()
             # generate the split files
             self.load_configuration_splits()
 
@@ -58,7 +59,7 @@ class DatasetPreprocessing:
         self.experiment_configuration['paths']['properties'].mkdir(exist_ok=True, parents=True)
         # if splits path ends with a file, get the parent folder
         if self.experiment_configuration['paths']['splits'].suffix == '.json':
-            self.experiment_configuration['paths']['splits'] = self.experiment_configuration['paths']['splits'].parent
+            self.experiment_configuration['paths']['splits'].parent.mkdir(exist_ok=True, parents=True)
         else:
             self.experiment_configuration['paths']['splits'].mkdir(exist_ok=True, parents=True)
         self.experiment_configuration['paths']['results'].mkdir(exist_ok=True, parents=True)
@@ -113,8 +114,6 @@ class DatasetPreprocessing:
             return
         if isinstance(data_generation_type, str):
             if data_generation_type != 'generate_from_function':
-                try:
-
                     # download the dataset
                     # create a tmp folder to store the dataset
                     if not Path('tmp').exists():
@@ -122,6 +121,8 @@ class DatasetPreprocessing:
                     self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                                                       name=dataset,
                                                       from_existing_data=data_generation_type,
+                                                      task=self.experiment_configuration.get('task', None),
+                                                      precision=self.experiment_configuration.get('precision', 'float'),
                                                       )
                     if not os.path.exists(path.joinpath(Path(dataset))):
                         os.makedirs(path.joinpath(Path(dataset)))
@@ -131,8 +132,6 @@ class DatasetPreprocessing:
                     if not os.path.exists(path.joinpath(Path(dataset + "/raw"))):
                         os.makedirs(path.joinpath(Path(dataset + "/raw")))
                     #tu_to_nel(dataset=dataset, out_path=Path(self.experiment_configuration['paths']['data']))
-                except:
-                    print(f'Could not generate {dataset} from TUDataset')
             else:
                 print(f'Do not know how to handle data from {data_generation_type}. Do you mean "TUDataset"?')
             pass
@@ -148,7 +147,7 @@ class DatasetPreprocessing:
                     self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                                                       name=dataset,
                                                       from_existing_data='NEL',
-                                                      task=self.experiment_configuration.get('task', 'graph'),
+                                                      task=self.experiment_configuration.get('task', None),
                                                       )
                 except:
                     # raise the error that has occurred
@@ -171,6 +170,7 @@ class DatasetPreprocessing:
             self.graph_data = ShareGNNDataset(root=str(self.experiment_configuration['paths']['data']),
                                               name=self.db_name,
                                               task=self.experiment_configuration.get('task', None),
+                                              precision=self.experiment_configuration.get('precision', 'float')
                                               )
             # raise an error if the graph data is still None
         if self.graph_data is None:

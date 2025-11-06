@@ -9,6 +9,7 @@ import numpy as np
 import torch
 import yaml
 
+from src.Architectures.OrdinaryGNN.OrdinaryGNN import OrdinaryGNN
 from src.Preprocessing.DatasetPreprocessing import DatasetPreprocessing
 import src.utils.SyntheticGraphs as synthetic_graphs
 import src.Preprocessing.split_functions as split_functions
@@ -436,7 +437,54 @@ class ExperimentMain:
         else:
             print(f"Configuration file {configuration_file_name} already exists. Skipping the run for dataset {run_config.config['name']} with config_id {config_id}, run_id {run_id} and validation_id {validation_id}")
 
+    def load_ordinary_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True, experiment_db_id=0):
+        experiment_configuration = self.network_configurations[db_name][experiment_db_id]
+        graph_data = preprocess_graph_data(experiment_configuration)
+        run_configs = get_run_configs(experiment_configuration)
+        # get the path to the model
+        path_to_models = experiment_configuration['paths']['results'].joinpath(db_name).joinpath('Models')
 
+        if best:
+            if path_to_models.exists():
+                # get one file that contais the string 'Best_Configuration' in the name
+                curr_path = next(path_to_models.glob('*Best_Configuration*'))
+            else:
+                raise FileNotFoundError(f"Model directory {path_to_models} not found")
+            config_id = int(curr_path.name.split('_')[3])
+            model_path = path_to_models.joinpath(
+                f'model_Best_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
+        else:
+            if not path_to_models.exists():
+                raise FileNotFoundError(f"Model directory {path_to_models} not found")
+            model_path = path_to_models.joinpath(
+                f'model_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
+
+        run_config = run_configs[config_id]
+        # check if the model exists
+        if model_path.exists():
+            with open(model_path, 'r'):
+                para = Parameters()
+                load_preprocessed_data_and_parameters(config_id=config_id,
+                                                      run_id=run_id,
+                                                      validation_id=validation_id,
+                                                      graph_data=graph_data,
+                                                      run_config=run_config,
+                                                      para=para,
+                                                      validation_folds=experiment_configuration.get('validation_folds',
+                                                                                                    10))
+
+                """
+                    Get the first index in the results directory that is not used
+                """
+                para.set_file_index(size=6)
+                net = OrdinaryGNN(graph_data=graph_data,
+                                        para=para,
+                                        seed=0, device=run_config.config.get('device', 'cpu'))
+
+                net.load_state_dict(torch.load(model_path, weights_only=True))
+            return net
+        else:
+            raise FileNotFoundError(f"Model {model_path} not found")
 
     def load_model(self, db_name, config_id=0, run_id=0, validation_id=0, best=True, experiment_db_id=0):
         experiment_configuration = self.network_configurations[db_name][experiment_db_id]
@@ -457,6 +505,7 @@ class ExperimentMain:
             if not path_to_models.exists():
                 raise FileNotFoundError(f"Model directory {path_to_models} not found")
             model_path = path_to_models.joinpath(f'model_Configuration_{str(config_id).zfill(6)}_run_{run_id}_val_step_{validation_id}.pt')
+
         run_config = run_configs[config_id]
         # check if the model exists
         if model_path.exists():
