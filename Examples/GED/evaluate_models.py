@@ -15,7 +15,7 @@ from src.utils.load_splits import Load_Splits
 
 def evaluate_gnn(num_threads=-1):
     # Load and preprocess the experiment
-    experiment = ExperimentMain(Path('Examples/GED/Configs/main_config.yml'))
+    experiment = ExperimentMain(Path('Examples/GED/Configs/paths_config.yml'))
     experiment.ExperimentPreprocessing(num_threads=num_threads)
     run_id = 0
 

@@ -1,8 +1,3 @@
-paths:
-  # define a specific path for each architecture
-  results:
-    "Examples/GED/Results/GAT/" # Results will be saved in this folder
-
 networks:
 - - { layer_type: linear,
       out_features: 64,
@@ -57,3 +52,8 @@ networks:
       bias: True,
       activation: torch.nn.ReLU(),
   }
+
+paths:
+  # define a specific path for each architecture
+  results:
+    "Examples/GED/Results/GAT/" # Results will be saved in this folder

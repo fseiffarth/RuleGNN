@@ -1,56 +1,47 @@
-paths:
-  # define a specific path for each architecture
-  results:
-    "Examples/GED/Results/GATv2/" # Results will be saved in this folder
-
 networks:
 - - { layer_type: linear,
-      out_features: 16,
+      out_features: 64,
       bias: True,
-      activation: torch.nn.ReLU(),
+      activation: torch.nn.Tanh(),
     }
   - { layer_type: gatv2_convolution,
       bias: True,
-      out_channels: 16,
-      activation: torch.nn.ReLU(),
-      batch_norm: True,
-      heads: 2,
-      residual: True,
-      edge_dim: 4,
-    }
-  - { layer_type: gatv2_convolution,
-      bias: True,
-      out_channels: 16,
-      activation: torch.nn.ReLU(),
+      out_channels: 64,
+      activation: torch.nn.Tanh(),
             batch_norm: True,
-            heads: 2,
-            residual: True,
+            heads: 4,
+            residual: False,
             edge_dim: 4,
 }
   - { layer_type: gatv2_convolution,
       bias: True,
-      out_channels: 16,
-      activation: torch.nn.ReLU(),
+      out_channels: 64,
+      activation: torch.nn.Tanh(),
             batch_norm: True,
-            heads: 2,
-            residual: True,
+            heads: 4,
+            residual: False,
             edge_dim: 4,
   }
   - { layer_type: global_pooling,
         mode: mean,
     }
   - { layer_type: linear,
-        out_features: 16,
+        out_features: 64,
       bias: True,
-      activation: torch.nn.ReLU(),
+      activation: torch.nn.Tanh(),
   }
   - { layer_type: linear,
-      out_features: 8,
+      out_features: 32,
       bias: True,
-      activation: torch.nn.ReLU(),
+      activation: torch.nn.Tanh(),
   }
   - { layer_type: linear,
       out_features: 2,
       bias: True,
   }
+
+paths:
+  # define a specific path for each architecture
+  results:
+    "Examples/GED/Results/GATv2/" # Results will be saved in this folder
 

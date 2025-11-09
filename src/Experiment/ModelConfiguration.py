@@ -155,7 +155,7 @@ class ModelConfiguration:
             self.postprocess_writer(epoch, epoch_time, epoch_values, validation_values, test_values)
 
 
-    def evaluate_network(self, graph_ids):
+    def evaluate_network(self, graph_ids, do_print=True):
         """
         Evaluate the given network on the self.training_data, self.validate_data and self.test_data
         :param network: The network to be evaluated
@@ -169,15 +169,16 @@ class ModelConfiguration:
         if self.para.run_config.task in ['graph_regression', 'graph_classification']:
             target_values, target_outputs = self.evaluate_graph_task(graph_ids)
             # print the accuracy
-            if self.para.run_config.task == 'graph_classification':
+            if do_print and self.para.run_config.task == 'graph_classification':
                 predictions = torch.argmax(target_outputs, dim=1)
                 accuracy = 100 * torch.sum(predictions == target_values).item() / len(target_values)
                 print(f"Evaluation Accuracy: {accuracy} %")
             else:
-                print(f"Evaluation completed for graph regression task.")
-                mae_error = torch.mean(torch.abs(target_values - target_outputs))
-                rsme_error = torch.mean(torch.sqrt((target_values - target_outputs) ** 2))
-                print(f"Mean Absolute Error: {mae_error}")
+                if do_print:
+                    print(f"Evaluation completed for graph regression task.")
+                    mae_error = torch.mean(torch.abs(target_values - target_outputs))
+                    rsme_error = torch.mean(torch.sqrt((target_values - target_outputs) ** 2))
+                    print(f"Mean Absolute Error: {mae_error}")
         elif self.para.run_config.task == 'node_classification':
             target_values, target_outputs = self.evaluate_node_task(graph_ids)
         else:
@@ -871,25 +872,30 @@ class ModelConfiguration:
 
     def evaluate_graph_task(self, graph_ids):
         labels = self.graph_data.y[graph_ids]
-        if self.graph_data.num_classes == 1:
-            outputs = torch.zeros((len(graph_ids)), dtype=self.dtype).to(self.device)
-        else:
-            outputs = torch.zeros((len(graph_ids), self.graph_data.num_classes), dtype=self.dtype).to(
-                self.device)
+        outputs = []
 
         # use torch no grad to save memory
         with torch.no_grad():
             self.net.train(False)
             # Run ordinary GNN
-            loader = CustomBatchLoader(self.graph_data, [graph_ids])
+            # split the graph ids into batches of size 512 to avoid memory issues
+            batches = [graph_ids[i:i + 512] for i in range(0, len(graph_ids), 512)]
+            loader = CustomBatchLoader(self.graph_data, batches)
+            batch_counter = 0
             if not self.para.run_config.config.get('with_invariant_layers', True):
-                batch = next(iter(loader))
-                outputs = self.net(batch)
+                for i, batch in enumerate(loader):
+                    print(f"Evaluating batch {i + 1}/{len(batches)}")
+                    outputs.append(self.net(batch))
+                    batch_counter += len(batch)
             else:
                 # Run Share GNN
                 for j, data_pos in enumerate(graph_ids):
                     self.net.train(False)
-                    outputs[j] = self.net(self.graph_data[data_pos].x, data_pos)
+                    outputs.append(self.net(self.graph_data[data_pos].x, data_pos))
+            outputs = torch.concat(outputs, dim=0)
+            # squeeze second dimension if it is one
+            if outputs.shape[1] == 1:
+                outputs = outputs.squeeze(1)
         return labels, outputs
 
     def train_node_task(self, epoch, values, train_batches, random_variation_bool, timer):

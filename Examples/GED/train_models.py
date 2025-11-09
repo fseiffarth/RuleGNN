@@ -15,7 +15,7 @@ def train_ged(num_threads=-1):
     experiment.evaluate_results(evaluate_validation_only=True)
 
 @click.command()
-@click.option('--num_threads', default=1, help='Number of threads to use')
+@click.option('--num_threads', default=-1, help='Number of threads to use')
 def main(num_threads):
     train_ged(num_threads)
 
