@@ -181,7 +181,7 @@ def evaluate_gnn(num_threads=-1):
                 # create evaluation folder if it does not exist
                 if not configuration_paths.results_path.joinpath(evaluation_folder).exists():
                     configuration_paths.results_path.joinpath(evaluation_folder).mkdir(parents=True, exist_ok=True)
-                with open(configuration_paths.results_path.joinpath(evaluation_folder).joinpath(f'path_target_values_config{config_id}_val{val_id}_{db}_{path_strategy}.txt'), 'w') as f:
+                with open(configuration_paths.results_path.joinpath(evaluation_folder).joinpath(f'path_results_config{config_id}_val{val_id}_{db}_{path_strategy}.txt'), 'w') as f:
                     f.write('source_id\tstep_id\ttarget_id\toperation\ttarget_value\n')
                     skip = 0
                     for i, operation_line in enumerate(operation_information):
