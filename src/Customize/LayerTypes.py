@@ -11,6 +11,7 @@ class LayerTypes(Enum):
     GLOBAL_POOLING = 'global_pooling'
     ACTIVATION = 'activation'
     DROPOUT = 'dropout'
+    BATCH_NORM = 'batch_norm'
 
     ### GNN specific layers
     GCN_CONVOLUTION = 'gcn_convolution'

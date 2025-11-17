@@ -124,6 +124,10 @@ class OrdinaryGNN(torch.nn.Module):
                 layer_args = {'activation_function': layer.layer_dict.get('activation_function', torch.nn.ReLU())}
                 self.net_layers.append(GNNFrameworkLayers.ActivationLayer(layer_args))
                 # Activation does not change feature dimension
+            elif layer.layer_type == LayerTypes.BATCH_NORM.value:
+                layer_args = {'batch_norm': True, 'in_channels': current_feature_dimension}
+                self.net_layers.append(GNNFrameworkLayers.BatchNormLayer(layer_args).type(self.module_precision))
+                # BatchNorm does not change feature dimension
             else:
                 raise ValueError(f'Layer type {layer.layer_type} not recognized in OrdinaryGNN')
         self.dropout = nn.Dropout(dropout)

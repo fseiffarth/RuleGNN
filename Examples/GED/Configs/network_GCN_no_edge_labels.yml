@@ -21,7 +21,6 @@ networks:
             batch_norm: True,
             heads: 4,
             residual: False,
-            edge_dim: 4,
       dropout: 0.2,
 }
   - { layer_type: gcn_convolution,
@@ -31,7 +30,15 @@ networks:
             batch_norm: True,
             heads: 4,
             residual: False,
-            edge_dim: 4,
+      dropout: 0.2,
+}
+  - { layer_type: gcn_convolution,
+      bias: True,
+      out_channels: 64,
+      activation: torch.nn.LeakyReLU(),
+            batch_norm: True,
+            heads: 4,
+            residual: False,
       dropout: 0.2,
 }
   - { layer_type: global_pooling,

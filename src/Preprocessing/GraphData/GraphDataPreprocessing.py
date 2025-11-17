@@ -397,9 +397,9 @@ class TUDatasetPreprocessing(GraphDataPreprocessing):
             tu_dataset.data.edge_attr = None
             tu_dataset.slices.pop('edge_attr', None)
 
-            self.processed_dataset = tu_dataset.data
-            self.slices = tu_dataset.slices
-            self.set_sizes()
+        self.processed_dataset = tu_dataset.data
+        self.slices = tu_dataset.slices
+        self.set_sizes()
 
         return self.processed_dataset, self.slices, self.sizes
 

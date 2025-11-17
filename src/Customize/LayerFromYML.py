@@ -174,6 +174,8 @@ def check_layer(i:int, layer: dict)->(bool, str):
         pass
     elif layer['layer_type'] == LayerTypes.DROPOUT.value:
         pass
+    elif layer['layer_type'] == LayerTypes.BATCH_NORM.value:
+        pass
     elif layer['layer_type'] == LayerTypes.GCN_CONVOLUTION.value:
         required=['bias', 'out_channels']
         for req in required:

@@ -3,6 +3,7 @@ from abc import abstractmethod, ABC
 import torch
 import torch_geometric
 from torch._C.cpp import nn
+from torch.nn import Sequential, Linear, ReLU, BatchNorm1d
 
 from src.Preprocessing.GraphData.GraphData import ShareGNNDataset
 
@@ -188,18 +189,29 @@ class SAGEConv(GNNConvLayer):
 class GINConv(GNNConvLayer):
     def __init__(self, layer_args):
         super(GINConv, self).__init__(layer_args)
+        self.use_edge_features = layer_args.get('edge_dim', None) is not None
+        emb_dim = layer_args.get('out_channels')
+        neural_network = Sequential(Linear(emb_dim, 2 * emb_dim), BatchNorm1d(2 * emb_dim), self.activation,
+                        Linear(2 * emb_dim, emb_dim))
         gin_args = {
-            'in_channels': layer_args.get('in_channels'),
-            'out_channels': layer_args.get('out_channels'),
+            'nn': neural_network,
             'eps': layer_args.get('eps', 0.0),
             'train_eps': layer_args.get('train_eps', False),
-            'bias': layer_args.get('bias', True),
+            'edge_dim': layer_args.get('edge_dim', 0),
         }
-        self.layer = torch_geometric.nn.GINConv(**gin_args)
+
+        if gin_args['edge_dim'] == 0:
+            gin_args.pop('edge_dim')
+            self.layer = torch_geometric.nn.GINConv(**gin_args)
+        else:
+            self.layer = torch_geometric.nn.GINEConv(**gin_args)
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         x = node_representation
-        node_representation = self.layer(node_representation, batch_data.edge_index)
+        if self.use_edge_features:
+            node_representation = self.layer(node_representation, batch_data.edge_index, batch_data.edge_attributes)
+        else:
+            node_representation = self.layer(node_representation, batch_data.edge_index)
         if self.batch_norm:
             node_representation = self.batch_norm_layer(node_representation)
         node_representation = self.activation(node_representation)
@@ -257,4 +269,13 @@ class DropoutLayer(FrameworkLayers):
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         return self.dropout(node_representation)
+
+class BatchNormLayer(FrameworkLayers):
+    def __init__(self, layer_args):
+        layer_args['batch_norm'] = True # Ensure batch_norm is set to True by default
+        super(BatchNormLayer, self).__init__(layer_args)
+        self.name = "Batch Normalization Layer"
+
+    def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
+        return self.batch_norm_layer(node_representation)
 

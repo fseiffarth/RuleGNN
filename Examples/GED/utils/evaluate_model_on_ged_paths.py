@@ -15,17 +15,20 @@ from src.utils.load_splits import Load_Splits
 
 
 def evaluate_gnn(num_threads=-1):
+
+    # dataset
+    db = 'Mutagenicity'
+    path_strategy = 'i-E_d-IsoN'
+    evaluation_folder = 'Evaluation'
+
     # Load and preprocess the experiment
-    experiment_base = ExperimentMain(Path('Examples/GED/Configs/main_config.yml'))
+    experiment_base = ExperimentMain(Path(f'Examples/GED/Configs/main_config_{db}.yml'))
     experiment_base.ExperimentPreprocessing(num_threads=num_threads)
-    experiment_paths = ExperimentMain(Path('Examples/GED/Configs/paths_config.yml'))
+    experiment_paths = ExperimentMain(Path(f'Examples/GED/Configs/paths_config_{db}.yml'))
     experiment_paths.ExperimentPreprocessing(num_threads=num_threads)
     run_id = 0
 
-    # dataset
-    db = 'MUTAG'
-    path_strategy = 'i-E_d-IsoN'
-    evaluation_folder = 'Evaluation'
+
 
     # evaluate the pretrained model on the original data only for testing
     for config in experiment_base.network_configurations[db]:

@@ -884,7 +884,7 @@ class ModelConfiguration:
             batch_counter = 0
             if not self.para.run_config.config.get('with_invariant_layers', True):
                 for i, batch in enumerate(loader):
-                    print(f"Evaluating batch {i + 1}/{len(batches)}")
+                    #print(f"Evaluating batch {i + 1}/{len(batches)}")
                     outputs.append(self.net(batch))
                     batch_counter += len(batch)
             else:

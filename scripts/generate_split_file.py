@@ -180,6 +180,7 @@ def main():
     parser.add_argument("--stratify", action="store_true", help="Perform stratified splits (requires labels)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output", type=str, default=None, help="Output JSON path (default: Data/Splits/<NAME>_splits.json)")
+    parser.add_argument("--no-test", action="store_true", help="Do not create a test split; only create a train/validation split")
 
     args = parser.parse_args()
 
@@ -227,15 +228,46 @@ def main():
     if num_graphs is None:
         raise RuntimeError("Could not determine number of graphs. Provide --num-graphs or a loadable --dataset-path.")
 
-    splits = generate_splits(
-        num_graphs=num_graphs,
-        labels=labels,
-        n_folds=args.n_folds,
-        val_size=args.val_size,
-        val_count=args.val_count,
-        stratify=args.stratify,
-        seed=args.seed,
-    )
+    # If user requested no test split, produce a single train/validation split covering the whole dataset.
+    if args.no_test:
+        # Produce n_folds validation folds covering the whole dataset.
+        if args.stratify and (labels is None):
+            raise RuntimeError("Stratified splitting requested but no labels available. Provide --labels-path or a dataset with labels.")
+
+        # If user provided val_size/val_count, they are irrelevant in no-test mode using n_folds
+        if args.val_count is not None or (args.val_size is not None and args.val_size > 0):
+            print("Note: --no-test set: ignoring --val-size and --val-count; using --n-folds to produce validation folds")
+
+        if args.n_folds < 1:
+            raise ValueError("--n-folds must be >= 1")
+        if args.n_folds > num_graphs:
+            raise ValueError(f"--n-folds ({args.n_folds}) cannot be greater than the dataset size ({num_graphs})")
+
+        indices = np.arange(num_graphs)
+        folds = []
+        if args.stratify and (labels is not None):
+            splitter = StratifiedKFold(n_splits=args.n_folds, shuffle=True, random_state=args.seed)
+            split_iter = splitter.split(indices, labels)
+        else:
+            splitter = KFold(n_splits=args.n_folds, shuffle=True, random_state=args.seed)
+            split_iter = splitter.split(indices)
+
+        for train_idx, val_idx in split_iter:
+            train_list = sorted(int(x) for x in np.unique(train_idx))
+            val_list = sorted(int(x) for x in np.unique(val_idx))
+            folds.append({"test": [], "model_selection": [{"train": train_list, "validation": val_list}]})
+
+        splits = folds
+    else:
+        splits = generate_splits(
+            num_graphs=num_graphs,
+            labels=labels,
+            n_folds=args.n_folds,
+            val_size=args.val_size,
+            val_count=args.val_count,
+            stratify=args.stratify,
+            seed=args.seed,
+        )
 
     if args.output is None:
         # derive a sensible default name

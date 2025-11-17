@@ -6,13 +6,16 @@ import click
 from src.Experiment.ExperimentMain import ExperimentMain
 
 def train_ged(num_threads=-1):
-    # Load and preprocess the experiment
-    experiment = ExperimentMain(Path('Examples/GED/Configs/main_config.yml'))
-    experiment.ExperimentPreprocessing(num_threads=num_threads)
+    datasets = ['NCI1', 'DHFR', 'NCI109', 'Mutagenicity', 'MUTAG']
 
-    # Run and evaluate all configurations defined in the config file
-    experiment.run_configurations(num_threads=num_threads)
-    experiment.evaluate_results(evaluate_validation_only=True)
+    # Load and preprocess the experiment
+    for dataset in datasets:
+        experiment = ExperimentMain(Path(f'Examples/GED/Configs/main_config_{dataset}.yml'))
+        experiment.ExperimentPreprocessing(num_threads=num_threads)
+
+        # Run and evaluate all configurations defined in the config file
+        experiment.run_configurations(num_threads=num_threads)
+        experiment.evaluate_results(evaluate_validation_only=True)
 
 @click.command()
 @click.option('--num_threads', default=-1, help='Number of threads to use')

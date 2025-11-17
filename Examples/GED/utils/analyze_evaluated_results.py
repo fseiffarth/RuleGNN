@@ -685,7 +685,8 @@ class MainEvaluation():
                     medianprops=dict(color='darkgreen'),
                     whiskerprops=dict(color='green'),
                     capprops=dict(color='green'),
-                    flierprops=dict(color='green', markeredgecolor='green'))
+                    flierprops=dict(color='green',
+                                    markeredgecolor='green'))
         plt.legend(['Same Endpoint Labels', 'Different Endpoint Labels'])
         plt.xlabel('Number of Flips in Path')
         plt.ylabel('Fraction of Paths')
@@ -715,7 +716,8 @@ class MainEvaluation():
                     medianprops=dict(color='yellow'),
                     whiskerprops=dict(color='darkred'),
                     capprops=dict(color='darkred'),
-                    flierprops=dict(color='darkred', markeredgecolor='darkred'))
+                    flierprops=dict(color='darkred',
+                                    markeredgecolor='darkred'))
         plt.xticks(np.arange(len(operation_names)), operation_names, rotation=45, ha='right')
         plt.xlabel('Graph Edit Operation')
         plt.ylabel('Number of Flips Caused by Operation')
@@ -771,15 +773,15 @@ class MainEvaluation():
 
 if __name__ == '__main__':
     config_id = 0
-    db = 'MUTAG'
+    db = 'Mutagenicity'
     strategy = 'i-E_d-IsoN'
-    gnn_algorithm = 'GATv2'
-    mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
-    flipping_statistics_all_folds = dict()
-    for val_id in range(0, 10):
-        mainEvaluation.merge_results(config_id, val_id)
+    for gnn_algorithm in ['GIN', 'GATv2', 'GCN']:
+        mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
+        flipping_statistics_all_folds = dict()
+        for val_id in range(0, 10):
+            mainEvaluation.merge_results(config_id, val_id)
 
-    mainEvaluation.create_statistics(config_id)
+        mainEvaluation.create_statistics(config_id)
 
 
     pass

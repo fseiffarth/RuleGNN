@@ -1,32 +1,33 @@
 datasets:
   - {
-        name: "MUTAG",
+        name: "Mutagenicity",
         task: "graph_classification",
         validation_folds: 10,
-        network_config_file: "Examples/GED/Configs/network_GIN.yml",
+        network_config_file: "Examples/GED/Configs/network_GIN_Mutagenicity.yml",
         type: "TUDataset"
     }
   - {
-    name: "MUTAG",
+    name: "Mutagenicity",
     task: "graph_classification",
     validation_folds: 10,
-    network_config_file: "Examples/GED/Configs/network_GATv2.yml",
+    network_config_file: "Examples/GED/Configs/network_GATv2_Mutagenicity.yml",
     type: "TUDataset"
   }
   - {
-    name: "MUTAG",
+    name: "Mutagenicity",
     task: "graph_classification",
     validation_folds: 10,
-    network_config_file: "Examples/GED/Configs/network_GCN.yml",
+    network_config_file: "Examples/GED/Configs/network_GCN_Mutagenicity.yml",
     type: "TUDataset"
   }
+
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the network_config_file
   data:
     "Examples/Data/TUDatasets/"
   splits:
-    "Examples/GED/Splits/" # Path to the folder containing the data splits (if file is name_splits.json) otherwise path to the splits file (e.g. Examples/Data/Splits/MUTAG_test_x_splits.json)
+    "Examples/GED/Splits/Mutagenicity_splits.json" # Path to the folder containing the data splits (if file is name_splits.json) otherwise path to the splits file (e.g. Examples/Data/Splits/MUTAG_test_x_splits.json)
   results:
     "Examples/GED/Results/" # Results will be saved in this folder
 
@@ -49,7 +50,7 @@ batch_size:
 learning_rate:
   - 0.001
 epochs:
-  - 500
+  - 200
 
 early_stopping:
   enabled:
