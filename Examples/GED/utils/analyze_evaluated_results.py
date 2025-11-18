@@ -566,7 +566,7 @@ class MainEvaluation():
         ).sort('num_flips')
 
 
-        # all operations
+        # evaluating which operations cause the flips
         all_operations = ds_paths.group_by(['val_id', 'operation_str']).agg(
             polars.count('operation_str').alias('operation_count')
         ).sort(['val_id', 'operation_str'])
@@ -597,6 +597,29 @@ class MainEvaluation():
             polars.mean('relative_frequency').alias('mean_relative_frequency'),
             polars.std('relative_frequency').alias('std_relative_frequency')
         ).sort('operation_str')
+
+        #evaluation which operations change the outcome how much
+        # add a column change_class_x for all columns giving the absolute difference between the prediction before
+        # get all rows where source is 0
+        row_ids = ds_paths.filter(polars.col('is_source') == 0).select('row_idx').to_series().to_list()
+        # shift by one to get the previous row
+        previous_row_ids = [rid - 1 for rid in row_ids if rid > 0]
+        # create a dataframe with current and previous rows
+        #add change columns for class_x over all classes
+        classes = [col for col in ds_paths.columns if col.startswith('class_')]
+        for class_col in classes:
+            ds_paths = ds_paths.with_columns(
+                (polars.col(class_col) - polars.col(class_col).shift(1)).abs().alias(f'change_{class_col}')
+            )
+        # now aggregate the change columns by operation_str
+        change_columns = [f'change_{class_col}' for class_col in classes]
+        operation_change_stats = ds_paths.filter(polars.col('row_idx').is_in(row_ids)).group_by('operation_str').agg(
+            *[polars.mean(col).alias(f'mean_{col}') for col in change_columns],
+            *[polars.std(col).alias(f'std_{col}') for col in change_columns]
+        ).sort('operation_str')
+
+
+
 
 
         # plot the results from above (path num vs num flips) with boxplots (one boxplot per num_flips)
@@ -773,7 +796,7 @@ class MainEvaluation():
 
 if __name__ == '__main__':
     config_id = 0
-    db = 'Mutagenicity'
+    db = 'MUTAG'
     strategy = 'i-E_d-IsoN'
     for gnn_algorithm in ['GIN', 'GATv2', 'GCN']:
         mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
