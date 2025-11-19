@@ -20,6 +20,13 @@ datasets:
     network_config_file: "Examples/GED/Configs/network_GCN_no_edge_labels.yml",
     type: "TUDataset"
   }
+  - {
+    name: "DHFR",
+    task: "graph_classification",
+    validation_folds: 10,
+    network_config_file: "Examples/GED/Configs/network_GraphSAGE_no_edge_labels.yml",
+    type: "TUDataset"
+  }
 
 
 paths:

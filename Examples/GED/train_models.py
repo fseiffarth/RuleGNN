@@ -6,8 +6,7 @@ import click
 from src.Experiment.ExperimentMain import ExperimentMain
 
 def train_ged(num_threads=-1):
-    datasets = ['NCI1', 'DHFR', 'NCI109', 'Mutagenicity', 'MUTAG']
-    datasets = ['MUTAG']
+    datasets = ['Mutagenicity', 'NCI1', 'DHFR', 'NCI109', 'MUTAG']
 
     # Load and preprocess the experiment
     for dataset in datasets:
