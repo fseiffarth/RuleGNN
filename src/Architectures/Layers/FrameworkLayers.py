@@ -72,7 +72,7 @@ class GCNConv(GNNConvLayer):
         node_representation = self.activation(node_representation)
         if self.residual:
             node_representation = node_representation + x
-        if self.dropout > 0:
+        if self.dropout > 0 and self.training:
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
@@ -111,7 +111,7 @@ class GATConv(GNNConvLayer):
                 node_representation = node_representation + x
             else: # add residual to each head separately
                 node_representation = node_representation + x.repeat(1, self.gat_args['heads'])
-        if self.dropout > 0:
+        if self.dropout > 0 and self.training:
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
@@ -155,7 +155,7 @@ class GATv2Conv(GNNConvLayer):
                 node_representation = node_representation + x
             else: # add residual to each head separately
                 node_representation = node_representation + x.repeat(1, self.gatv2_args['heads'])
-        if self.dropout > 0:
+        if self.dropout > 0 and self.training:
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
@@ -182,7 +182,7 @@ class SAGEConv(GNNConvLayer):
         node_representation = self.activation(node_representation)
         if self.residual:
             node_representation = node_representation + x
-        if self.dropout > 0:
+        if self.dropout > 0 and self.training:
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
@@ -217,7 +217,7 @@ class GINConv(GNNConvLayer):
         node_representation = self.activation(node_representation)
         if self.residual:
             node_representation = node_representation + x
-        if self.dropout > 0:
+        if self.dropout > 0 and self.training:
             node_representation = torch.nn.Dropout(self.dropout)(node_representation)
         return node_representation
 
@@ -268,7 +268,10 @@ class DropoutLayer(FrameworkLayers):
         self.name = "Dropout Layer"
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
-        return self.dropout(node_representation)
+        if self.training:
+            return self.dropout(node_representation)
+        else:
+            return node_representation
 
 class BatchNormLayer(FrameworkLayers):
     def __init__(self, layer_args):
@@ -278,4 +281,5 @@ class BatchNormLayer(FrameworkLayers):
 
     def forward(self, node_representation:torch.Tensor, batch_data: ShareGNNDataset, *args, **kwargs):
         return self.batch_norm_layer(node_representation)
+
 

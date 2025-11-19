@@ -13,8 +13,9 @@ from src.Time.TimeClass import TimeClass
 
 class OrdinaryGNN(torch.nn.Module):
     def __init__(self, graph_data: ShareGNNDataset, para: Parameters, seed, device):
-
         super(OrdinaryGNN, self).__init__()
+        # set torch seed
+        torch.manual_seed(seed)
         self.graph_data = graph_data
         self.para = para
         self.config_parameters = para.run_config.config

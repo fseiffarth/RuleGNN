@@ -1,7 +1,7 @@
 paths:
   # define a specific path for each architecture
   results:
-    "Examples/GED/Results/GCN/" # Results will be saved in this folder
+    "Examples/GED/Results/GraphSAGE/" # Results will be saved in this folder
 
 networks:
 - - { layer_type: linear,
@@ -9,20 +9,22 @@ networks:
       bias: True,
       activation: torch.nn.LeakyReLU(),
     }
-  - { layer_type: gcn_convolution,
+  - { layer_type: sage_convolution,
       bias: True,
       out_channels: 64,
       activation: torch.nn.LeakyReLU(),
             batch_norm: True,
+            heads: 4,
             residual: False,
             edge_dim: 4,
       dropout: 0.2,
 }
-  - { layer_type: gcn_convolution,
+  - { layer_type: sage_convolution,
       bias: True,
       out_channels: 64,
       activation: torch.nn.LeakyReLU(),
             batch_norm: True,
+            heads: 4,
             residual: False,
             edge_dim: 4,
       dropout: 0.2,
@@ -49,6 +51,5 @@ networks:
       out_features: 2,
       bias: True,
   }
-
 
 

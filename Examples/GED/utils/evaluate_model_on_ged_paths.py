@@ -17,7 +17,7 @@ from src.utils.load_splits import Load_Splits
 def evaluate_gnn(num_threads=-1):
 
     # dataset
-    db = 'Mutagenicity'
+    db = 'MUTAG'
     path_strategy = 'i-E_d-IsoN'
     evaluation_folder = 'Evaluation'
 
@@ -41,6 +41,7 @@ def evaluate_gnn(num_threads=-1):
         for config_id, run_config in enumerate(run_configs):
             for val_id in range(config['validation_folds']):
                 model = experiment_base.load_ordinary_model(db_name=db, validation_id=val_id, best=False, run_id=run_id)
+                model.eval()
 
                 # create the model configuration object
                 graph_data = preprocess_graph_data(config)
@@ -59,7 +60,7 @@ def evaluate_gnn(num_threads=-1):
                                                use_model=configuration.para.run_config.config.get('use_model',
                                                                                                   'ShareGNN'))
                 print(f"Evaluating model for config_id {config_id}, val_id {val_id} on training set")
-                train_values, train_outputs = configuration.evaluate_network(graph_ids=train_ids[val_id])
+                train_values, train_outputs = configuration.evaluate_network(graph_ids=train_ids[val_id], do_print=True, with_loss=True)
                 # create Evaluation folder if it does not exist
                 if not configuration.results_path.joinpath(evaluation_folder).exists():
                     configuration.results_path.joinpath(evaluation_folder).mkdir(parents=True, exist_ok=True)
@@ -86,7 +87,7 @@ def evaluate_gnn(num_threads=-1):
                             oval = ' '.join([str(v.item()) for v in oval])
                         f.write(f'{gid}\t{tval}\t{oval}\n')
                 print(f"Evaluating model for config_id {config_id}, val_id {val_id} on validation set")
-                validation_values, validation_outputs = configuration.evaluate_network(graph_ids=validation_ids[val_id])
+                validation_values, validation_outputs = configuration.evaluate_network(graph_ids=validation_ids[val_id], do_print=True, with_loss=True)
 
                 # do the same for validation set
                 # create an empty torch tensor to save the outputs columns are graph_id, target_value, rest: output_values

@@ -155,7 +155,7 @@ class ModelConfiguration:
             self.postprocess_writer(epoch, epoch_time, epoch_values, validation_values, test_values)
 
 
-    def evaluate_network(self, graph_ids, do_print=True):
+    def evaluate_network(self, graph_ids, do_print=False, with_loss=False):
         """
         Evaluate the given network on the self.training_data, self.validate_data and self.test_data
         :param network: The network to be evaluated
@@ -172,7 +172,10 @@ class ModelConfiguration:
             if do_print and self.para.run_config.task == 'graph_classification':
                 predictions = torch.argmax(target_outputs, dim=1)
                 accuracy = 100 * torch.sum(predictions == target_values).item() / len(target_values)
-                print(f"Evaluation Accuracy: {accuracy} %")
+                if with_loss:
+                    self.set_loss_function()
+                    loss = self.criterion(target_outputs, target_values).item()
+                print(f"Accuracy: {accuracy} %, Loss: {loss}")
             else:
                 if do_print:
                     print(f"Evaluation completed for graph regression task.")
@@ -355,6 +358,7 @@ class ModelConfiguration:
                          batch_length=0,
                          num_batches=0,
                          batches=None):
+        self.net.eval()
         if evaluation_type == 'training':
             batch_acc = 0
 
@@ -510,10 +514,8 @@ class ModelConfiguration:
 
 
                 else:
-                    acc_condition = (validation_values.accuracy > self.best_epoch["val_acc"] or validation_values.accuracy == self.best_epoch[
-                        "val_acc"] and validation_loss < self.best_epoch["val_loss"])
-                    roc_condition = (validation_values.accuracy_roc_auc > self.best_epoch["val_roc_auc"] or validation_values.accuracy_roc_auc == self.best_epoch[
-                        "val_roc_auc"] and validation_loss < self.best_epoch["val_loss"])
+                    acc_condition = (validation_values.accuracy > self.best_epoch["val_acc"] or (validation_values.accuracy == self.best_epoch["val_acc"] and validation_loss < self.best_epoch["val_loss"]))
+                    roc_condition = (validation_values.accuracy_roc_auc > self.best_epoch["val_roc_auc"] or (validation_values.accuracy_roc_auc == self.best_epoch["val_roc_auc"] and validation_loss < self.best_epoch["val_loss"]))
                     loss_condition = (validation_loss < self.best_epoch["val_loss"])
                     condition = False
                     if self.para.run_config.config.get('evaluation_metric', 'accuracy') == 'accuracy':
@@ -642,7 +644,7 @@ class ModelConfiguration:
                     labels_np = labels_np.T
                     df = pd.DataFrame(labels_np)
                     df.to_csv("Results/Parameter/test_predictions.csv", header=False, index=False, mode='a')
-
+        self.net.train()
         return train_values, validation_values, test_values
 
     def preprocess_writer(self)-> bool:

@@ -116,16 +116,17 @@ class ShareGNNDataset(InMemoryDataset):
             raise ValueError('Task not supported')
 
 
+        # set data attribute precision to self.precision
+        data['x'] = data['x'].type(self.precision)
+        data['node_attributes'] = data['node_attributes'].type(self.precision)
+        data['edge_attributes'] = data['edge_attributes'].type(self.precision)
         if not isinstance(data, dict):  # Backward compatibility.
             self.data = data
         else:
             # split node labels and attributes as well as edge labels and attributes
             self.data = data_cls.from_dict(data)
 
-        # set data attribute precision to self.precision
-        self.data.x = self.data.x.type(self.precision)
-        self.data.node_attributes = self.data.node_attributes.type(self.precision)
-        self.data.edge_attributes = self.data.edge_attributes.type(self.precision)
+
         assert isinstance(self._data, Data)
 
 

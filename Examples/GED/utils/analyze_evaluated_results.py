@@ -741,7 +741,7 @@ class MainEvaluation():
                     capprops=dict(color='darkred'),
                     flierprops=dict(color='darkred',
                                     markeredgecolor='darkred'))
-        plt.xticks(np.arange(len(operation_names)), operation_names, rotation=45, ha='right')
+        plt.xticks(np.arange(len(operation_names)), operation_names, rotation=15, ha='right')
         plt.xlabel('Graph Edit Operation')
         plt.ylabel('Number of Flips Caused by Operation')
         plt.title(f'Flipping Operations Statistics\nDataset: {self.dataset_name}, Strategy: {self.strategy}')
@@ -768,7 +768,7 @@ class MainEvaluation():
                     whiskerprops=dict(color='darkred'),
                     capprops=dict(color='darkred'),
                     flierprops=dict(color='darkred', markeredgecolor='darkred'))
-        plt.xticks(np.arange(len(operation_names)), operation_names, rotation=45, ha='right')
+        plt.xticks(np.arange(len(operation_names)), operation_names, rotation=15, ha='right')
         plt.xlabel('Graph Edit Operation')
         plt.ylabel('Relative Frequency of Flips Caused by Operation')
         plt.title(f'Relative Flipping Operations Statistics\nDataset: {self.dataset_name}, Strategy: {self.strategy}')
