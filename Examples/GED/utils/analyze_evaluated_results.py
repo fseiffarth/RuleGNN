@@ -144,13 +144,6 @@ class MainEvaluation():
 
 
     def merge_results(self, config_id, val_id):
-
-        # if the analyzed results file already exists, skip
-        output_file = os.path.join(self.path, f'merged_results_config{config_id}_val{val_id}_{self.dataset_name}_{self.strategy}.csv')
-        if os.path.exists(output_file):
-            print(f"Analyzed results file {output_file} already exists, skipping analysis.")
-            return
-
         # analyze the results for the given config_id and val_id
         training_results = self.training_results.get((config_id, val_id), [])
         validation_results = self.validation_results.get((config_id, val_id), [])
@@ -798,7 +791,8 @@ if __name__ == '__main__':
     config_id = 0
     db = 'MUTAG'
     strategy = 'i-E_d-IsoN'
-    for gnn_algorithm in ['GIN', 'GATv2', 'GCN']:
+    merged_all_results = None
+    for gnn_algorithm in ['GIN', 'GATv2', 'GCN', 'GraphSAGE']:
         mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
         flipping_statistics_all_folds = dict()
         for val_id in range(0, 10):

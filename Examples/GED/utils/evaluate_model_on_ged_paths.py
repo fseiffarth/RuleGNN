@@ -31,7 +31,7 @@ def evaluate_gnn(num_threads=-1):
 
 
     # evaluate the pretrained model on the original data only for testing
-    for config in experiment_base.network_configurations[db]:
+    for db_id, config in enumerate(experiment_base.network_configurations[db]):
         split_data = Load_Splits(config['paths']['splits'])
         train_ids = split_data['train']
         validation_ids = split_data['validation']
@@ -40,7 +40,7 @@ def evaluate_gnn(num_threads=-1):
         run_configs = get_run_configs(config)
         for config_id, run_config in enumerate(run_configs):
             for val_id in range(config['validation_folds']):
-                model = experiment_base.load_ordinary_model(db_name=db, validation_id=val_id, best=False, run_id=run_id)
+                model = experiment_base.load_ordinary_model(db_name=db, validation_id=val_id, best=False, run_id=run_id, experiment_db_id=db_id)
                 model.eval()
 
                 # create the model configuration object
