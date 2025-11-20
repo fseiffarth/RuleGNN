@@ -1,3 +1,4 @@
+import itertools
 import os
 from calendar import day_abbr
 
@@ -789,16 +790,24 @@ class MainEvaluation():
 
 if __name__ == '__main__':
     config_id = 0
-    db = 'MUTAG'
-    strategy = 'i-E_d-IsoN'
-    merged_all_results = None
-    for gnn_algorithm in ['GIN', 'GATv2', 'GCN', 'GraphSAGE']:
-        mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
-        flipping_statistics_all_folds = dict()
-        for val_id in range(0, 10):
-            mainEvaluation.merge_results(config_id, val_id)
+    # dataset
+    dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
+    path_strategies = ['i-E_d-IsoN', 'Rnd']
 
-        mainEvaluation.create_statistics(config_id)
+    dbs = ['Mutagenicity']
+    path_strategies = ['i-E_d-IsoN']
+
+    evaluation_folder = 'Evaluation'
+    tasks = list(itertools.product(dbs, path_strategies))
+    for db, strategy in tasks:
+        merged_all_results = None
+        for gnn_algorithm in ['GIN', 'GATv2', 'GCN', 'GraphSAGE']:
+            mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
+            flipping_statistics_all_folds = dict()
+            for val_id in range(0, 10):
+                mainEvaluation.merge_results(config_id, val_id)
+
+            mainEvaluation.create_statistics(config_id)
 
 
     pass

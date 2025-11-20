@@ -1,9 +1,11 @@
 ## Real World Data
+import itertools
 from pathlib import Path
 
 import click
 import numpy as np
 import torch
+import joblib
 
 from src.Architectures.ShareGNN.Parameters import Parameters
 from src.Experiment.ExperimentMain import ExperimentMain, preprocess_graph_data
@@ -14,13 +16,7 @@ from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_param
 from src.utils.load_splits import Load_Splits
 
 
-def evaluate_gnn(num_threads=-1):
-
-    # dataset
-    db = 'MUTAG'
-    path_strategy = 'i-E_d-IsoN'
-    evaluation_folder = 'Evaluation'
-
+def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', evaluation_folder='Evaluation'):
     # Load and preprocess the experiment
     experiment_base = ExperimentMain(Path(f'Examples/GED/Configs/main_config_{db}.yml'))
     experiment_base.ExperimentPreprocessing(num_threads=num_threads)
@@ -218,12 +214,20 @@ def evaluate_gnn(num_threads=-1):
                 pass
 
 
+def main():
 
+    # dataset
+    dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
+    path_strategies = ['Rnd', 'i-E_d-IsoN']
 
-@click.command()
-@click.option('--num_threads', default=1, help='Number of threads to use')
-def main(num_threads):
-    evaluate_gnn(num_threads)
+    dbs = ['MUTAG']
+    evaluation_folder = 'Evaluation'
+    tasks = list(itertools.product(dbs, path_strategies))
+    # parallel evaluation over datasets and path strategies
+    joblib.Parallel(n_jobs=len(tasks))(
+        joblib.delayed(evaluate_gnn)(db=db, path_strategy=path_strategy, evaluation_folder=evaluation_folder)
+        for db, path_strategy in tasks
+    )
 
 
 
