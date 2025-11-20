@@ -16,7 +16,7 @@ from src.Preprocessing.load_preprocessed import load_preprocessed_data_and_param
 from src.utils.load_splits import Load_Splits
 
 
-def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', evaluation_folder='Evaluation'):
+def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', gnn_algorithm=None, evaluation_folder='Evaluation'):
     # Load and preprocess the experiment
     experiment_base = ExperimentMain(Path(f'Examples/GED/Configs/main_config_{db}.yml'))
     experiment_base.ExperimentPreprocessing(num_threads=num_threads)
@@ -28,6 +28,9 @@ def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', evaluat
 
     # evaluate the pretrained model on the original data only for testing
     for db_id, config in enumerate(experiment_base.network_configurations[db]):
+        algorithm = config['network_config_file'].split('_')[1]
+        if gnn_algorithm is not None and algorithm != gnn_algorithm:
+            continue
         split_data = Load_Splits(config['paths']['splits'])
         train_ids = split_data['train']
         validation_ids = split_data['validation']
@@ -41,7 +44,7 @@ def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', evaluat
 
                 # create the model configuration object
                 graph_data = preprocess_graph_data(config)
-                path_graph_data = preprocess_graph_data(experiment_paths.network_configurations[f'{db}_{path_strategy}'][db_id])
+                path_graph_data = preprocess_graph_data(experiment_paths.network_configurations[f'{db}_{path_strategy}'][0])
                 para = Parameters()
                 load_preprocessed_data_and_parameters(config_id=config_id,
                                                       run_id=run_id,
@@ -219,14 +222,21 @@ def main():
     # dataset
     dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
     path_strategies = ['Rnd', 'i-E_d-IsoN']
+    gnn_algorithms = ['GIN', 'GraphSAGE', 'GATv2', 'GCN']
 
-    dbs = ['Mutagenicity']
+    #gnn_algorithms = ['GraphSAGE']
+    dbs = ['DHFR']
+    #path_strategies = ['i-E_d-IsoN']
     evaluation_folder = 'Evaluation'
-    tasks = list(itertools.product(dbs, path_strategies))
+    tasks = list(itertools.product(dbs, path_strategies, gnn_algorithms))
+
+    # set torch omp threads to 1 for parallel evaluation
+    torch.set_num_threads(1)
+
     # parallel evaluation over datasets and path strategies
     joblib.Parallel(n_jobs=len(tasks))(
-        joblib.delayed(evaluate_gnn)(db=db, path_strategy=path_strategy, evaluation_folder=evaluation_folder)
-        for db, path_strategy in tasks
+        joblib.delayed(evaluate_gnn)(db=db, path_strategy=path_strategy, gnn_algorithm=gnn_algorithm, evaluation_folder=evaluation_folder)
+        for db, path_strategy, gnn_algorithm in tasks
     )
 
 

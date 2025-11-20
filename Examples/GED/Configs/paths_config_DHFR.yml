@@ -6,6 +6,13 @@ datasets:
         network_config_file: "Examples/GED/Configs/network_GIN.yml",
         type: "TUDataset"
     }
+  - {
+    name: "DHFR_Rnd",
+    task: "graph_classification",
+    validation_folds: 10,
+    network_config_file: "Examples/GED/Configs/network_GIN.yml",
+    type: "TUDataset"
+  }
 
 paths:
   # all the paths are relative to the PYTHONPATH path, can be also defined dataset-wise in the network_config_file

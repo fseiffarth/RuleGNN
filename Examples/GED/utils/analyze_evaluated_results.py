@@ -95,53 +95,57 @@ class MainEvaluation():
         self.path = path
         self.strategy = strategy
         self.dataset_name = dataset_name
-        main_evaluation_file = os.path.join(path, f'main_evaluation_{dataset_name}_{strategy}_meta.pt')
-        if not os.path.exists(main_evaluation_file):
-            # get all files in the path that match the strategy and dataset_name
-            files = os.listdir(path)
-            strategy_files = [f for f in files if strategy in f and dataset_name in f]
-            dataset_files = [f for f in files if dataset_name in f]
-            # separate files into path_results_files, training_results_files, validation_results_files
-            self.path_results_files = [f for f in strategy_files if 'path_results' in f and f.endswith('.pt')]
-            self.training_results_files = [f for f in dataset_files if 'train_results' in f and f.endswith('.pt')]
-            self.validation_results_files = [f for f in dataset_files if 'validation_results' in f and f.endswith('.pt')]
+        self.data = None
+
+        # get all files in the path that match the strategy and dataset_name
+        files = os.listdir(path)
+        strategy_files = [f for f in files if strategy in f and dataset_name in f]
+        dataset_files = [f for f in files if dataset_name in f]
+        # separate files into path_results_files, training_results_files, validation_results_files
+        self.path_results_files = [f for f in strategy_files if 'path_results' in f and f.endswith('.pt')]
+        self.training_results_files = [f for f in dataset_files if 'train_results' in f and f.endswith('.pt')]
+        self.validation_results_files = [f for f in dataset_files if 'validation_results' in f and f.endswith('.pt')]
+
+        # check if all three lists contain 10 files each ow throw error
+        if len(self.path_results_files) != 10 or len(self.training_results_files) != 10 or len(self.validation_results_files) != 10:
+            raise ValueError(f"Expected 10 files each for path results, training results and validation results but got {len(self.path_results_files)}, {len(self.training_results_files)} and {len(self.validation_results_files)} respectively.")
 
 
-            self.training_results = {}
-            self.validation_results = {}
-            self.path_results = {}
-            self.path_results_pt = {}
+        self.training_results = {}
+        self.validation_results = {}
+        self.path_results = {}
+        self.path_results_pt = {}
 
-            for file in self.path_results_files:
-                parts = file.split('_')
-                config_part = [p for p in parts if p.startswith('config')]
-                val_part = [p for p in parts if p.startswith('val')]
-                if config_part and val_part:
-                    config_id = int(config_part[0].replace('config', ''))
-                    val_id = int(val_part[0].replace('val', ''))
-                    file_path = os.path.join(path, file)
-                    self.path_results[(config_id, val_id)] = LoadPathResultsFromPt(file_path)
+        for file in self.path_results_files:
+            parts = file.split('_')
+            config_part = [p for p in parts if p.startswith('config')]
+            val_part = [p for p in parts if p.startswith('val')]
+            if config_part and val_part:
+                config_id = int(config_part[0].replace('config', ''))
+                val_id = int(val_part[0].replace('val', ''))
+                file_path = os.path.join(path, file)
+                self.path_results[(config_id, val_id)] = LoadPathResultsFromPt(file_path)
 
-            # Load the training results in a dict with key as (config_id, val_id)
-            for file in self.training_results_files:
-                parts = file.split('_')
-                config_part = [p for p in parts if p.startswith('config')]
-                val_part = [p for p in parts if p.startswith('val')]
-                if config_part and val_part:
-                    config_id = int(config_part[0].replace('config', ''))
-                    val_id = int(val_part[0].replace('val', ''))
-                    file_path = os.path.join(path, file)
-                    self.training_results[(config_id, val_id)] = LoadResultsFromPt(file_path)
-            # Load the validation results in a dict with key as (config_id, val_id)
-            for file in self.validation_results_files:
-                parts = file.split('_')
-                config_part = [p for p in parts if p.startswith('config')]
-                val_part = [p for p in parts if p.startswith('val') and 'validation' not in p]
-                if config_part and val_part:
-                    config_id = int(config_part[0].replace('config', ''))
-                    val_id = int(val_part[0].replace('val', ''))
-                    file_path = os.path.join(path, file)
-                    self.validation_results[(config_id, val_id)] = LoadResultsFromPt(file_path)
+        # Load the training results in a dict with key as (config_id, val_id)
+        for file in self.training_results_files:
+            parts = file.split('_')
+            config_part = [p for p in parts if p.startswith('config')]
+            val_part = [p for p in parts if p.startswith('val')]
+            if config_part and val_part:
+                config_id = int(config_part[0].replace('config', ''))
+                val_id = int(val_part[0].replace('val', ''))
+                file_path = os.path.join(path, file)
+                self.training_results[(config_id, val_id)] = LoadResultsFromPt(file_path)
+        # Load the validation results in a dict with key as (config_id, val_id)
+        for file in self.validation_results_files:
+            parts = file.split('_')
+            config_part = [p for p in parts if p.startswith('config')]
+            val_part = [p for p in parts if p.startswith('val') and 'validation' not in p]
+            if config_part and val_part:
+                config_id = int(config_part[0].replace('config', ''))
+                val_id = int(val_part[0].replace('val', ''))
+                file_path = os.path.join(path, file)
+                self.validation_results[(config_id, val_id)] = LoadResultsFromPt(file_path)
 
 
     def merge_results(self, config_id, val_id):
@@ -458,6 +462,7 @@ class MainEvaluation():
         output_file = os.path.join(self.path, f'merged_results_config{config_id}_val{val_id}_{self.dataset_name}_{self.strategy}.csv')
         ds_paths.write_csv(output_file)
         print(f"Analyzed results saved to {output_file}")
+        self.data = ds_paths
 
 
 
@@ -793,21 +798,34 @@ if __name__ == '__main__':
     # dataset
     dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
     path_strategies = ['i-E_d-IsoN', 'Rnd']
+    gnn_algorithms = ['GIN', 'GATv2', 'GCN', 'GraphSAGE']
 
-    dbs = ['MUTAG']
+    dbs = ['Mutagenicity']
     path_strategies = ['Rnd', 'i-E_d-IsoN']
 
     evaluation_folder = 'Evaluation'
-    tasks = list(itertools.product(dbs, path_strategies))
-    for db, strategy in tasks:
-        merged_all_results = None
-        for gnn_algorithm in ['GIN', 'GATv2', 'GCN', 'GraphSAGE']:
-            mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
-            flipping_statistics_all_folds = dict()
-            for val_id in range(0, 10):
-                mainEvaluation.merge_results(config_id, val_id)
+    tasks = list(itertools.product(dbs, path_strategies, gnn_algorithms))
+    all_data = polars.DataFrame()
+    for db, strategy, gnn_algorithm in tasks:
+        print(f"Processing results for Dataset: {db}, Strategy: {strategy}, GNN: {gnn_algorithm}")
+        mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
+        flipping_statistics_all_folds = dict()
+        for val_id in range(0, 10):
+            mainEvaluation.merge_results(config_id, val_id)
+        # add gnn_algorithm column, db column, strategy column to mainEvaluation.data
+        mainEvaluation.data = mainEvaluation.data.with_columns(
+            polars.lit(gnn_algorithm).alias('gnn_algorithm'),
+            polars.lit(db).alias('dataset'),
+            polars.lit(strategy).alias('path_strategy')
+        )
+        if all_data is None:
+            all_data = mainEvaluation.data
+        else:
 
-            mainEvaluation.create_statistics(config_id)
-
-
+            all_data = polars.concat([all_data, mainEvaluation.data])
+        mainEvaluation.create_statistics(config_id)
+    # save all_data to csv
+    output_file = f'Examples/GED/Results/all_results.csv'
+    all_data.write_csv(output_file)
+    print(f"All results saved to {output_file}")
     pass
