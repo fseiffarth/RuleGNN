@@ -794,8 +794,8 @@ if __name__ == '__main__':
     dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
     path_strategies = ['i-E_d-IsoN', 'Rnd']
 
-    dbs = ['Mutagenicity']
-    path_strategies = ['i-E_d-IsoN']
+    dbs = ['MUTAG']
+    path_strategies = ['Rnd', 'i-E_d-IsoN']
 
     evaluation_folder = 'Evaluation'
     tasks = list(itertools.product(dbs, path_strategies))

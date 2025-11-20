@@ -41,7 +41,7 @@ def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', evaluat
 
                 # create the model configuration object
                 graph_data = preprocess_graph_data(config)
-                path_graph_data = preprocess_graph_data(experiment_paths.network_configurations[f'{db}_{path_strategy}'][0])
+                path_graph_data = preprocess_graph_data(experiment_paths.network_configurations[f'{db}_{path_strategy}'][db_id])
                 para = Parameters()
                 load_preprocessed_data_and_parameters(config_id=config_id,
                                                       run_id=run_id,
@@ -220,7 +220,7 @@ def main():
     dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
     path_strategies = ['Rnd', 'i-E_d-IsoN']
 
-    dbs = ['MUTAG']
+    dbs = ['Mutagenicity']
     evaluation_folder = 'Evaluation'
     tasks = list(itertools.product(dbs, path_strategies))
     # parallel evaluation over datasets and path strategies
