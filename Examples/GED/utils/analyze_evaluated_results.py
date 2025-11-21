@@ -99,8 +99,8 @@ class MainEvaluation():
 
         # get all files in the path that match the strategy and dataset_name
         files = os.listdir(path)
-        strategy_files = [f for f in files if strategy in f and (dataset_name + '_' or dataset_name + '.') in f]
-        dataset_files = [f for f in files if (dataset_name + '_' or dataset_name + '.') in f]
+        strategy_files = [f for f in files if strategy in f and dataset_name + '_' in f]
+        dataset_files = [f for f in files if dataset_name + '_' in f or dataset_name + '.' in f]
         # separate files into path_results_files, training_results_files, validation_results_files
         self.path_results_files = [f for f in strategy_files if 'path_results' in f and f.endswith('.pt')]
         self.training_results_files = [f for f in dataset_files if 'train_results' in f and f.endswith('.pt')]
@@ -148,7 +148,7 @@ class MainEvaluation():
                 self.validation_results[(config_id, val_id)] = LoadResultsFromPt(file_path)
 
 
-    def merge_results(self, config_id, val_id):
+    def merge_results(self, config_id, val_id, recalculate=True):
         # analyze the results for the given config_id and val_id
         training_results = self.training_results.get((config_id, val_id), [])
         validation_results = self.validation_results.get((config_id, val_id), [])
@@ -470,7 +470,21 @@ class MainEvaluation():
         output_file = os.path.join(self.path, f'merged_results_config{config_id}_val{val_id}_{self.dataset_name}_{self.strategy}.csv')
         ds_paths.write_csv(output_file)
         print(f"Analyzed results saved to {output_file}")
-        self.data = ds_paths
+        if self.data is None:
+            # set self.data to ds_paths adding val_id and config_id columns
+            ds_paths = ds_paths.with_columns(
+                polars.lit(val_id).alias('val_id'),
+                polars.lit(config_id).alias('config_id')
+            )
+            self.data = ds_paths
+        else:
+            # append to self.data
+            ds_paths = ds_paths.with_columns(
+                polars.lit(val_id).alias('val_id'),
+                polars.lit(config_id).alias('config_id')
+            )
+            self.data = polars.concat([self.data, ds_paths])
+        pass
 
 
 
@@ -807,6 +821,7 @@ if __name__ == '__main__':
     dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
     path_strategies = ['i-E_d-IsoN', 'Rnd']
     gnn_algorithms = ['GIN', 'GATv2', 'GCN', 'GraphSAGE']
+    recalculate=False
 
     evaluation_folder = 'Evaluation'
     tasks = list(itertools.product(dbs, path_strategies, gnn_algorithms))
@@ -816,7 +831,7 @@ if __name__ == '__main__':
         mainEvaluation = MainEvaluation(f'Examples/GED/Results/{gnn_algorithm}/Evaluation', strategy, db)
         flipping_statistics_all_folds = dict()
         for val_id in range(0, 10):
-            mainEvaluation.merge_results(config_id, val_id)
+            mainEvaluation.merge_results(config_id, val_id, recalculate=recalculate)
         # add gnn_algorithm column, db column, strategy column to mainEvaluation.data
         mainEvaluation.data = mainEvaluation.data.with_columns(
             polars.lit(gnn_algorithm).alias('gnn_algorithm'),
@@ -828,7 +843,7 @@ if __name__ == '__main__':
         else:
 
             all_data = polars.concat([all_data, mainEvaluation.data])
-        mainEvaluation.create_statistics(config_id)
+        #mainEvaluation.create_statistics(config_id)
     # save all_data to csv
     output_file = f'Examples/GED/Results/all_results.csv'
     all_data.write_csv(output_file)
