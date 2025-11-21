@@ -99,8 +99,8 @@ class MainEvaluation():
 
         # get all files in the path that match the strategy and dataset_name
         files = os.listdir(path)
-        strategy_files = [f for f in files if strategy in f and dataset_name in f]
-        dataset_files = [f for f in files if dataset_name in f]
+        strategy_files = [f for f in files if strategy in f and (dataset_name + '_' or dataset_name + '.') in f]
+        dataset_files = [f for f in files if (dataset_name + '_' or dataset_name + '.') in f]
         # separate files into path_results_files, training_results_files, validation_results_files
         self.path_results_files = [f for f in strategy_files if 'path_results' in f and f.endswith('.pt')]
         self.training_results_files = [f for f in dataset_files if 'train_results' in f and f.endswith('.pt')]
@@ -807,9 +807,6 @@ if __name__ == '__main__':
     dbs = ['MUTAG', 'Mutagenicity', 'NCI1', 'DHFR', 'NCI109']
     path_strategies = ['i-E_d-IsoN', 'Rnd']
     gnn_algorithms = ['GIN', 'GATv2', 'GCN', 'GraphSAGE']
-
-    dbs = ['DHFR', 'MUTAG', 'Mutagenicity']
-    path_strategies = ['Rnd', 'i-E_d-IsoN']
 
     evaluation_folder = 'Evaluation'
     tasks = list(itertools.product(dbs, path_strategies, gnn_algorithms))
