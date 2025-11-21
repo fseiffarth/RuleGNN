@@ -154,9 +154,17 @@ class MainEvaluation():
         validation_results = self.validation_results.get((config_id, val_id), [])
         path_results = self.path_results.get((config_id, val_id), [])
 
+
         # path results to polars db using the column names: source_id, step_id, target_id, operation, output_value
         import polars
         ds_paths = polars.DataFrame(path_results)
+        # delete rows containing Nan values
+        ds_paths = ds_paths.drop_nans()
+        # delete row when column_0 is negative
+        ds_paths = ds_paths.filter(polars.col('column_0') >= 0)
+        ds_paths = ds_paths.filter(polars.col('column_2') >= 0)
+        # delete broken rows where column_0 is not an integer, i.e., has non-zero decimal part
+        ds_paths = ds_paths.filter(polars.col('column_0').cast(polars.Int64) == polars.col('column_0'))
         ds_training = polars.DataFrame(training_results)
         ds_validation = polars.DataFrame(validation_results)
         # add the column names
@@ -800,7 +808,7 @@ if __name__ == '__main__':
     path_strategies = ['i-E_d-IsoN', 'Rnd']
     gnn_algorithms = ['GIN', 'GATv2', 'GCN', 'GraphSAGE']
 
-    dbs = ['Mutagenicity']
+    dbs = ['DHFR', 'MUTAG', 'Mutagenicity']
     path_strategies = ['Rnd', 'i-E_d-IsoN']
 
     evaluation_folder = 'Evaluation'

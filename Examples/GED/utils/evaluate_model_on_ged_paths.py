@@ -44,7 +44,19 @@ def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', gnn_alg
 
                 # create the model configuration object
                 graph_data = preprocess_graph_data(config)
+
                 path_graph_data = preprocess_graph_data(experiment_paths.network_configurations[f'{db}_{path_strategy}'][0])
+
+                # get set of all graphs in path_graph_data
+                all_path_graph_ids = list(set(path_graph_data.data.edit_path_start.tolist() + path_graph_data.data.edit_path_end.tolist()))
+                # get the corresponding graphs from graph_data
+                path_graph_data.data.x = graph_data.data.x[all_path_graph_ids]
+
+                # get possible zero column indices from the graph data
+                zero_column_indices = graph_data[all_path_graph_ids].data.x.abs().sum(dim=0).eq(0).nonzero(as_tuple=True)[0].tolist()
+
+
+
                 para = Parameters()
                 load_preprocessed_data_and_parameters(config_id=config_id,
                                                       run_id=run_id,
@@ -225,7 +237,7 @@ def main():
     gnn_algorithms = ['GIN', 'GraphSAGE', 'GATv2', 'GCN']
 
     #gnn_algorithms = ['GraphSAGE']
-    dbs = ['DHFR']
+    dbs = ['NCI109']
     #path_strategies = ['i-E_d-IsoN']
     evaluation_folder = 'Evaluation'
     tasks = list(itertools.product(dbs, path_strategies, gnn_algorithms))
@@ -234,7 +246,7 @@ def main():
     torch.set_num_threads(1)
 
     # parallel evaluation over datasets and path strategies
-    joblib.Parallel(n_jobs=len(tasks))(
+    joblib.Parallel(n_jobs=len([1]))(
         joblib.delayed(evaluate_gnn)(db=db, path_strategy=path_strategy, gnn_algorithm=gnn_algorithm, evaluation_folder=evaluation_folder)
         for db, path_strategy, gnn_algorithm in tasks
     )
