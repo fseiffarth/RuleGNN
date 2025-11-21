@@ -29,32 +29,38 @@ def evaluate_gnn(num_threads=-1, db='MUTAG', path_strategy='i-E_d-IsoN', gnn_alg
     # evaluate the pretrained model on the original data only for testing
     for db_id, config in enumerate(experiment_base.network_configurations[db]):
         algorithm = config['network_config_file'].split('_')[1]
+        # also remove possible .yml at the end
+        algorithm = algorithm.replace('.yml', '')
         if gnn_algorithm is not None and algorithm != gnn_algorithm:
             continue
         split_data = Load_Splits(config['paths']['splits'])
         train_ids = split_data['train']
         validation_ids = split_data['validation']
         test_ids = split_data['test']
+        ## graph data
+        # create the model configuration object
+        graph_data = preprocess_graph_data(config)
+
+        path_graph_data = preprocess_graph_data(experiment_paths.network_configurations[f'{db}_{path_strategy}'][0])
+
+        # get set of all graphs in path_graph_data
+        all_path_graph_ids = list(
+            set(path_graph_data.data.edit_path_start.tolist() + path_graph_data.data.edit_path_end.tolist()))
+        subset_list = [graph_data[i] for i in all_path_graph_ids]
+        subset, slices = graph_data.collate(subset_list)
+        zero_column_indices = subset.x.abs().sum(dim=0).eq(0).nonzero(as_tuple=True)[0].tolist()
+        # insert the zero columns into path_graph_data
+        for col_idx in zero_column_indices:
+            zero_column = torch.zeros((path_graph_data.data.x.shape[0], 1), dtype=path_graph_data.data.x.dtype)
+            path_graph_data._data.x = torch.cat(
+                (path_graph_data.data.x[:, :col_idx], zero_column, path_graph_data.data.x[:, col_idx:]), dim=1)
+
         # get all possible hyperparameter configurations from the config files
         run_configs = get_run_configs(config)
         for config_id, run_config in enumerate(run_configs):
             for val_id in range(config['validation_folds']):
                 model = experiment_base.load_ordinary_model(db_name=db, validation_id=val_id, best=False, run_id=run_id, experiment_db_id=db_id)
                 model.eval()
-
-                # create the model configuration object
-                graph_data = preprocess_graph_data(config)
-
-                path_graph_data = preprocess_graph_data(experiment_paths.network_configurations[f'{db}_{path_strategy}'][0])
-
-                # get set of all graphs in path_graph_data
-                all_path_graph_ids = list(set(path_graph_data.data.edit_path_start.tolist() + path_graph_data.data.edit_path_end.tolist()))
-                # get the corresponding graphs from graph_data
-                path_graph_data.data.x = graph_data.data.x[all_path_graph_ids]
-
-                # get possible zero column indices from the graph data
-                zero_column_indices = graph_data[all_path_graph_ids].data.x.abs().sum(dim=0).eq(0).nonzero(as_tuple=True)[0].tolist()
-
 
 
                 para = Parameters()
@@ -237,7 +243,7 @@ def main():
     gnn_algorithms = ['GIN', 'GraphSAGE', 'GATv2', 'GCN']
 
     #gnn_algorithms = ['GraphSAGE']
-    dbs = ['NCI109']
+    dbs = ['NCI1']
     #path_strategies = ['i-E_d-IsoN']
     evaluation_folder = 'Evaluation'
     tasks = list(itertools.product(dbs, path_strategies, gnn_algorithms))
@@ -246,7 +252,7 @@ def main():
     torch.set_num_threads(1)
 
     # parallel evaluation over datasets and path strategies
-    joblib.Parallel(n_jobs=len([1]))(
+    joblib.Parallel(n_jobs=len(tasks))(
         joblib.delayed(evaluate_gnn)(db=db, path_strategy=path_strategy, gnn_algorithm=gnn_algorithm, evaluation_folder=evaluation_folder)
         for db, path_strategy, gnn_algorithm in tasks
     )
